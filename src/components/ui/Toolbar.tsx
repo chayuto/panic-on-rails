@@ -105,6 +105,16 @@ export function Toolbar() {
                 >
                     {isRunning ? '⏸️ Pause' : '▶️ Play'}
                 </button>
+                <button
+                    onClick={() => {
+                        const firstEdgeId = Object.keys(edges)[0];
+                        if (firstEdgeId) spawnTrain(firstEdgeId);
+                    }}
+                    disabled={Object.keys(edges).length === 0}
+                    title="Add Train"
+                >
+                    🚂 Train
+                </button>
 
                 {selectedEdgeId && (
                     <span className="toolbar-info">Selected: {selectedEdgeId.slice(0, 8)}...</span>

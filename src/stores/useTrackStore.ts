@@ -23,6 +23,7 @@ interface TrackActions {
     loadLayout: (data: LayoutData) => void;
     clearLayout: () => void;
     getLayout: () => LayoutData;
+    getOpenEndpoints: () => TrackNode[];
 }
 
 const initialState: TrackState = {
@@ -173,6 +174,14 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     nodes: state.nodes,
                     edges: state.edges,
                 };
+            },
+
+            getOpenEndpoints: () => {
+                const state = get();
+                // Open endpoints are nodes with only 1 connection (one open side)
+                return Object.values(state.nodes).filter(
+                    node => node.connections.length === 1
+                );
             },
         }),
         {
