@@ -1,0 +1,218 @@
+/* PanicOnRails - Night Mode Theme */
+/* Inspired by Mini Metro aesthetic */
+
+:root {
+  /* Canvas Colors */
+  --bg-primary: #1A1A1A;
+  --bg-secondary: #2D2D2D;
+  --bg-tertiary: #3D3D3D;
+
+  /* Text Colors */
+  --fg-primary: #EEEEEE;
+  --fg-secondary: #AAAAAA;
+  --fg-muted: #666666;
+
+  /* Track Colors */
+  --track-rail: #888888;
+  --track-tie: #5D4E37;
+  --track-selected: #00FF88;
+  --track-snap-halo: rgba(0, 255, 136, 0.3);
+  --track-warning: #FF9F43;
+
+  /* Train Colors */
+  --train-primary: #FF6B6B;
+  --train-secondary: #4ECDC4;
+  --train-accent: #FFE66D;
+
+  /* UI Elements */
+  --button-bg: #3D3D3D;
+  --button-hover: #4D4D4D;
+  --button-active: #5D5D5D;
+  --border-color: #444444;
+
+  /* Spacing */
+  --toolbar-height: 48px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--fg-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility Classes */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+.gap-4 {
+  gap: 16px;
+}
+
+/* Button Base */
+button {
+  background: var(--button-bg);
+  color: var(--fg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button:hover {
+  background: var(--button-hover);
+}
+
+button:active {
+  background: var(--button-active);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toolbar */
+.toolbar {
+  height: var(--toolbar-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toolbar-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--track-selected);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Canvas Container */
+.canvas-container {
+  width: 100%;
+  height: calc(100vh - var(--toolbar-height));
+  position: relative;
+}
+
+/* Simulation Controls */
+.sim-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--train-primary);
+  border: none;
+}
+
+.play-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* Hidden file input */
+.hidden-input {
+  display: none;
+}
+
+/* Toolbar divider */
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+.toolbar-info {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  padding: 4px 8px;
+}
+
+button.active {
+  background: var(--train-primary);
+  border-color: var(--train-primary);
+}
+
+/* Viewport warning */
+.viewport-warning {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--track-warning);
+  color: var(--bg-primary);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* App layout */
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
