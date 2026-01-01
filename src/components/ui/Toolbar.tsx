@@ -9,7 +9,7 @@ export function Toolbar() {
 
     const { getLayout, loadLayout, clearLayout, addTrack, edges } = useTrackStore();
     const { isRunning, toggleRunning, spawnTrain, clearTrains } = useSimulationStore();
-    const { mode, setMode, toggleGrid, showGrid, resetView, selectedEdgeId } = useEditorStore();
+    const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId } = useEditorStore();
 
     // File operations
     const handleSave = useCallback(() => {

@@ -38,3 +38,4 @@ coverage
 # TypeScript
 *.tsbuildinfo
 docs/personal/
+docs/internal/

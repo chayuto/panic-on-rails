@@ -70,7 +70,6 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     };
 
                     // End position on the arc
-                    const endAngle = startRad + angleRad;
                     endPosition = {
                         x: center.x + Math.cos(centerAngle + Math.PI + angleRad) * radius,
                         y: center.y + Math.sin(centerAngle + Math.PI + angleRad) * radius,

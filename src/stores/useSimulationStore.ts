@@ -21,7 +21,7 @@ const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 
 let trainCounter = 0;
 
-export const useSimulationStore = create<SimulationState & SimulationActions>()((set, get) => ({
+export const useSimulationStore = create<SimulationState & SimulationActions>()((set) => ({
     trains: {},
     isRunning: false,
     speedMultiplier: 1.0,

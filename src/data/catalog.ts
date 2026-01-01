@@ -113,10 +113,70 @@ export const PART_LIBRARY: PartDefinition[] = [
 ];
 
 /**
- * Get a part definition by ID
+ * IKEA Lillabo / Brio Wooden Railway Parts
+ * 
+ * "Maximum Slop" system - loose tolerances for child-friendly assembly.
+ * Snap tolerance: 10-15 degrees angle deviation allowed.
+ * All measurements in millimeters.
+ */
+export const WOODEN_LIBRARY: PartDefinition[] = [
+    // Straights
+    {
+        id: 'wooden-straight-long',
+        name: 'Long Straight',
+        brand: 'brio',
+        scale: 'wooden',
+        geometry: { type: 'straight', length: 216 }
+    },
+    {
+        id: 'wooden-straight-short',
+        name: 'Short Straight',
+        brand: 'brio',
+        scale: 'wooden',
+        geometry: { type: 'straight', length: 108 }
+    },
+    {
+        id: 'wooden-straight-mini',
+        name: 'Mini Straight',
+        brand: 'brio',
+        scale: 'wooden',
+        geometry: { type: 'straight', length: 54 }
+    },
+
+    // Curves (8 pieces = full circle)
+    {
+        id: 'wooden-curve-large',
+        name: 'Large Curve',
+        brand: 'brio',
+        scale: 'wooden',
+        geometry: { type: 'curve', radius: 182, angle: 45 }
+    },
+    {
+        id: 'wooden-curve-small',
+        name: 'Small Curve',
+        brand: 'brio',
+        scale: 'wooden',
+        geometry: { type: 'curve', radius: 90, angle: 45 }
+    },
+];
+
+/**
+ * Combined library for easy lookup
+ */
+export const ALL_PARTS = [...PART_LIBRARY, ...WOODEN_LIBRARY];
+
+/**
+ * Get a part definition by ID (searches all libraries)
  */
 export function getPartById(partId: string): PartDefinition | undefined {
-    return PART_LIBRARY.find(p => p.id === partId);
+    return ALL_PARTS.find(p => p.id === partId);
+}
+
+/**
+ * Get parts filtered by scale/system
+ */
+export function getPartsByScale(scale: 'n-scale' | 'wooden'): PartDefinition[] {
+    return ALL_PARTS.filter(p => p.scale === scale);
 }
 
 /**
