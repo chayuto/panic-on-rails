@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Circle, Group } from 'react-konva';
+import { Circle, Group, Line } from 'react-konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import type { Train, TrackEdge, Vector2 } from '../../types';
@@ -73,6 +73,45 @@ function TrainEntity({ train }: { train: Train }) {
 
     // Render nothing if no valid position
     if (!position) return null;
+
+    // Crashed train rendering
+    if (train.crashed) {
+        return (
+            <Group>
+                {/* Crashed train - dark gray with red stroke */}
+                <Circle
+                    x={position.x}
+                    y={position.y}
+                    radius={TRAIN_RADIUS}
+                    fill="#444444"
+                    stroke="#FF0000"
+                    strokeWidth={3}
+                    shadowColor="red"
+                    shadowBlur={10}
+                    shadowOpacity={0.5}
+                />
+                {/* X symbol on crashed train */}
+                <Line
+                    points={[
+                        position.x - 6, position.y - 6,
+                        position.x + 6, position.y + 6,
+                    ]}
+                    stroke="#FF0000"
+                    strokeWidth={3}
+                    lineCap="round"
+                />
+                <Line
+                    points={[
+                        position.x + 6, position.y - 6,
+                        position.x - 6, position.y + 6,
+                    ]}
+                    stroke="#FF0000"
+                    strokeWidth={3}
+                    lineCap="round"
+                />
+            </Group>
+        );
+    }
 
     return (
         <Circle

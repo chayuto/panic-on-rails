@@ -41,7 +41,9 @@ export interface TrackNode {
     rotation: number; // degrees, direction the connector faces
     connections: EdgeId[];
     type: 'endpoint' | 'junction' | 'switch';
-    switchState?: number; // For switches: which branch is active (0, 1, ...)
+    // Switch-specific fields
+    switchState?: 0 | 1;           // 0 = main path, 1 = branch path
+    switchBranches?: [EdgeId, EdgeId]; // [mainEdgeId, branchEdgeId] - exit edges
 }
 
 /** A rail segment connecting two nodes */
@@ -68,6 +70,9 @@ export interface Train {
     color: string;
     // Bounce animation state
     bounceTime?: number;    // Timestamp when bounce started (performance.now())
+    // Crash state
+    crashed?: boolean;      // True if train has crashed
+    crashTime?: number;     // Timestamp when crash occurred
 }
 
 // ===========================

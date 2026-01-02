@@ -11,6 +11,7 @@ interface SimulationActions {
     spawnTrain: (edgeId: EdgeId, color?: string) => TrainId;
     removeTrain: (trainId: TrainId) => void;
     updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1, bounceTime?: number) => void;
+    setCrashed: (trainId: TrainId) => void;
     setRunning: (running: boolean) => void;
     toggleRunning: () => void;
     setSpeedMultiplier: (multiplier: number) => void;
@@ -79,6 +80,25 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
     toggleRunning: () => set((state) => ({ isRunning: !state.isRunning })),
 
     setSpeedMultiplier: (multiplier) => set({ speedMultiplier: multiplier }),
+
+    setCrashed: (trainId) => {
+        set((state) => {
+            const train = state.trains[trainId];
+            if (!train) return state;
+
+            return {
+                trains: {
+                    ...state.trains,
+                    [trainId]: {
+                        ...train,
+                        crashed: true,
+                        crashTime: performance.now(),
+                        speed: 0, // Stop the train
+                    },
+                },
+            };
+        });
+    },
 
     clearTrains: () => set({ trains: {} }),
 }));

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { playSound } from '../utils/audioManager';
+import { detectCollisions } from '../utils/collisionManager';
 import type { Train, TrackEdge, Vector2 } from '../types';
 
 /**
@@ -34,7 +35,7 @@ export function useGameLoop() {
     const lastTimeRef = useRef<number>(0);
     const animationFrameRef = useRef<number>(0);
 
-    const { trains, isRunning, speedMultiplier, updateTrainPosition } = useSimulationStore();
+    const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed } = useSimulationStore();
     const { edges, nodes } = useTrackStore();
 
     const updateTrains = useCallback((deltaTime: number) => {
@@ -64,8 +65,24 @@ export function useGameLoop() {
                     );
 
                     if (otherConnections.length > 0) {
-                        // Transition to next edge
-                        const nextEdgeId = otherConnections[0]; // TODO: handle switches
+                        // Determine which edge to take
+                        let nextEdgeId: string;
+
+                        // If this is a switch node, use switch state to decide
+                        if (exitNode.type === 'switch' && exitNode.switchBranches) {
+                            const [mainEdgeId, branchEdgeId] = exitNode.switchBranches;
+                            // Use switch state: 0 = main, 1 = branch
+                            nextEdgeId = exitNode.switchState === 0 ? mainEdgeId : branchEdgeId;
+                            // Ensure the selected edge is in our available connections
+                            if (!otherConnections.includes(nextEdgeId)) {
+                                // Fallback if switch edge not available
+                                nextEdgeId = otherConnections[0];
+                            }
+                        } else {
+                            // Regular junction: take first available
+                            nextEdgeId = otherConnections[0];
+                        }
+
                         const nextEdge = edges[nextEdgeId];
 
                         if (nextEdge) {
@@ -96,7 +113,20 @@ export function useGameLoop() {
                     );
 
                     if (otherConnections.length > 0) {
-                        const nextEdgeId = otherConnections[0];
+                        // Determine which edge to take
+                        let nextEdgeId: string;
+
+                        // If this is a switch node, use switch state to decide
+                        if (exitNode.type === 'switch' && exitNode.switchBranches) {
+                            const [mainEdgeId, branchEdgeId] = exitNode.switchBranches;
+                            nextEdgeId = exitNode.switchState === 0 ? mainEdgeId : branchEdgeId;
+                            if (!otherConnections.includes(nextEdgeId)) {
+                                nextEdgeId = otherConnections[0];
+                            }
+                        } else {
+                            nextEdgeId = otherConnections[0];
+                        }
+
                         const nextEdge = edges[nextEdgeId];
 
                         if (nextEdge) {
@@ -145,6 +175,18 @@ export function useGameLoop() {
             const cappedDelta = Math.min(deltaTime, 0.1);
 
             updateTrains(cappedDelta);
+
+            // Check for collisions
+            const collisions = detectCollisions(trains);
+            collisions.forEach(({ trainA, trainB }) => {
+                if (!trainA.crashed) {
+                    setCrashed(trainA.id);
+                }
+                if (!trainB.crashed) {
+                    setCrashed(trainB.id);
+                }
+                playSound('crash');
+            });
 
             animationFrameRef.current = requestAnimationFrame(loop);
         };

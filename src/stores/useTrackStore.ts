@@ -25,6 +25,7 @@ interface TrackActions {
     getLayout: () => LayoutData;
     getOpenEndpoints: () => TrackNode[];
     connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
+    toggleSwitch: (nodeId: NodeId) => void;
 }
 
 const initialState: TrackState = {
@@ -41,6 +42,98 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                 const part = getPartById(partId);
                 if (!part) return null;
 
+                // For switch geometry, we create 3 nodes and 2 edges
+                if (part.geometry.type === 'switch') {
+                    const { mainLength, branchLength, branchAngle, branchDirection } = part.geometry;
+
+                    // Generate IDs
+                    const entryNodeId = uuidv4();
+                    const mainExitNodeId = uuidv4();
+                    const branchExitNodeId = uuidv4();
+                    const mainEdgeId = uuidv4();
+                    const branchEdgeId = uuidv4();
+
+                    const radians = (rotation * Math.PI) / 180;
+
+                    // Calculate main exit position (straight through)
+                    const mainExitPosition: Vector2 = {
+                        x: position.x + Math.cos(radians) * mainLength,
+                        y: position.y + Math.sin(radians) * mainLength,
+                    };
+
+                    // Calculate branch exit position (diverging)
+                    const branchAngleDir = branchDirection === 'left' ? -1 : 1;
+                    const branchRadians = radians + (branchAngleDir * branchAngle * Math.PI / 180);
+                    const branchExitPosition: Vector2 = {
+                        x: position.x + Math.cos(branchRadians) * branchLength,
+                        y: position.y + Math.sin(branchRadians) * branchLength,
+                    };
+
+                    // Create nodes
+                    const entryNode: TrackNode = {
+                        id: entryNodeId,
+                        position,
+                        rotation: rotation + 180, // Facing backwards for connection
+                        connections: [mainEdgeId, branchEdgeId],
+                        type: 'switch',
+                        switchState: 0, // Default to main path
+                        switchBranches: [mainEdgeId, branchEdgeId],
+                    };
+
+                    const mainExitNode: TrackNode = {
+                        id: mainExitNodeId,
+                        position: mainExitPosition,
+                        rotation: rotation,
+                        connections: [mainEdgeId],
+                        type: 'endpoint',
+                    };
+
+                    const branchExitNode: TrackNode = {
+                        id: branchExitNodeId,
+                        position: branchExitPosition,
+                        rotation: rotation + (branchAngleDir * branchAngle),
+                        connections: [branchEdgeId],
+                        type: 'endpoint',
+                    };
+
+                    // Create edges
+                    const mainEdge: TrackEdge = {
+                        id: mainEdgeId,
+                        partId,
+                        startNodeId: entryNodeId,
+                        endNodeId: mainExitNodeId,
+                        geometry: { type: 'straight', start: position, end: mainExitPosition },
+                        length: mainLength,
+                    };
+
+                    const branchEdge: TrackEdge = {
+                        id: branchEdgeId,
+                        partId,
+                        startNodeId: entryNodeId,
+                        endNodeId: branchExitNodeId,
+                        geometry: { type: 'straight', start: position, end: branchExitPosition },
+                        length: branchLength,
+                    };
+
+                    set((state) => ({
+                        nodes: {
+                            ...state.nodes,
+                            [entryNodeId]: entryNode,
+                            [mainExitNodeId]: mainExitNode,
+                            [branchExitNodeId]: branchExitNode,
+                        },
+                        edges: {
+                            ...state.edges,
+                            [mainEdgeId]: mainEdge,
+                            [branchEdgeId]: branchEdge,
+                        },
+                    }));
+
+                    // Return the main edge ID as the primary identifier
+                    return mainEdgeId;
+                }
+
+                // Standard track handling (straight/curve)
                 const edgeId = uuidv4();
                 const startNodeId = uuidv4();
                 const endNodeId = uuidv4();
@@ -79,7 +172,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     endRotation = rotation + angle;
                     length = calculateArcLength(radius, angle);
                 } else {
-                    // Switch/crossing geometry not yet supported
+                    // crossing geometry not yet supported
                     console.warn(`Unsupported geometry type: ${part.geometry.type}`);
                     return null;
                 }
@@ -261,6 +354,36 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     });
 
                     return { nodes: newNodes, edges: newEdges };
+                });
+            },
+
+            /**
+             * Toggle a switch between its two branch states.
+             */
+            toggleSwitch: (nodeId) => {
+                set((state) => {
+                    const node = state.nodes[nodeId];
+                    if (!node || node.type !== 'switch') {
+                        console.warn('[toggleSwitch] Node is not a switch:', nodeId.slice(0, 8));
+                        return state;
+                    }
+
+                    const newState: 0 | 1 = node.switchState === 0 ? 1 : 0;
+                    console.log('[toggleSwitch] Toggling switch:', {
+                        nodeId: nodeId.slice(0, 8),
+                        from: node.switchState,
+                        to: newState,
+                    });
+
+                    return {
+                        nodes: {
+                            ...state.nodes,
+                            [nodeId]: {
+                                ...node,
+                                switchState: newState,
+                            },
+                        },
+                    };
                 });
             },
         }),
