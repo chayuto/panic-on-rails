@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
+import { playSound } from '../utils/audioManager';
 import type { Train, TrackEdge, Vector2 } from '../types';
 
 /**
@@ -48,6 +49,7 @@ export function useGameLoop() {
             let newDistance = train.distanceAlongEdge + train.speed * train.direction * dt;
             let newDirection = train.direction;
             let newEdgeId = train.currentEdgeId;
+            let bounceTime: number | undefined = undefined;
 
             // Handle reaching end of edge
             if (newDistance > edge.length) {
@@ -77,9 +79,10 @@ export function useGameLoop() {
                         // Dead end - BOUNCE!
                         newDirection = -train.direction as 1 | -1;
                         newDistance = edge.length - (newDistance - edge.length);
+                        bounceTime = performance.now();
 
-                        // Trigger bounce animation (handled by TrainLayer)
-                        // TODO: Add bounce state to train
+                        // Play bounce sound
+                        playSound('bounce');
                     }
                 }
             } else if (newDistance < 0) {
@@ -106,6 +109,10 @@ export function useGameLoop() {
                         // Dead end - BOUNCE!
                         newDirection = -train.direction as 1 | -1;
                         newDistance = Math.abs(newDistance);
+                        bounceTime = performance.now();
+
+                        // Play bounce sound
+                        playSound('bounce');
                     }
                 }
             }
@@ -113,8 +120,8 @@ export function useGameLoop() {
             // Clamp distance
             newDistance = Math.max(0, Math.min(newDistance, edges[newEdgeId]?.length || edge.length));
 
-            // Update train position
-            updateTrainPosition(train.id, newDistance, newEdgeId, newDirection);
+            // Update train position (pass bounceTime if bounce occurred)
+            updateTrainPosition(train.id, newDistance, newEdgeId, newDirection, bounceTime);
         });
     }, [trains, edges, nodes, speedMultiplier, updateTrainPosition]);
 

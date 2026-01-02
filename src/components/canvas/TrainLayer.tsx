@@ -5,6 +5,7 @@ import { useTrackStore } from '../../stores/useTrackStore';
 import type { Train, TrackEdge, Vector2 } from '../../types';
 
 const TRAIN_RADIUS = 12;
+const BOUNCE_DURATION = 300; // ms
 
 /**
  * Calculate world position from edge geometry and distance along edge
@@ -30,6 +31,31 @@ function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
 }
 
 /**
+ * Calculate bounce animation scale using easeOutElastic
+ */
+function getBounceScale(bounceTime: number | undefined): { scaleX: number; scaleY: number } {
+    if (!bounceTime) return { scaleX: 1, scaleY: 1 };
+
+    const elapsed = performance.now() - bounceTime;
+    if (elapsed > BOUNCE_DURATION) return { scaleX: 1, scaleY: 1 };
+
+    // Normalize progress 0 to 1
+    const t = elapsed / BOUNCE_DURATION;
+
+    // EaseOutElastic for bouncy feel
+    const c4 = (2 * Math.PI) / 3;
+    const elasticValue = t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+
+    // Squash: at t=0, scaleX=1.3, scaleY=0.7
+    // Stretch back with elastic overshoot
+    const squash = 0.3 * (1 - elasticValue);
+    const scaleX = 1 + squash;
+    const scaleY = 1 - squash;
+
+    return { scaleX, scaleY };
+}
+
+/**
  * Individual train component
  */
 function TrainEntity({ train }: { train: Train }) {
@@ -41,6 +67,9 @@ function TrainEntity({ train }: { train: Train }) {
         if (!edge) return null;
         return getPositionOnEdge(edge, train.distanceAlongEdge);
     }, [edges, train.currentEdgeId, train.distanceAlongEdge]);
+
+    // Calculate bounce animation scale
+    const { scaleX, scaleY } = getBounceScale(train.bounceTime);
 
     // Render nothing if no valid position
     if (!position) return null;
@@ -56,6 +85,8 @@ function TrainEntity({ train }: { train: Train }) {
             shadowColor="black"
             shadowBlur={5}
             shadowOpacity={0.3}
+            scaleX={scaleX}
+            scaleY={scaleY}
         />
     );
 }

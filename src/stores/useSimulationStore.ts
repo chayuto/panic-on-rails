@@ -10,7 +10,7 @@ interface SimulationState {
 interface SimulationActions {
     spawnTrain: (edgeId: EdgeId, color?: string) => TrainId;
     removeTrain: (trainId: TrainId) => void;
-    updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1) => void;
+    updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1, bounceTime?: number) => void;
     setRunning: (running: boolean) => void;
     toggleRunning: () => void;
     setSpeedMultiplier: (multiplier: number) => void;
@@ -54,7 +54,7 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
         });
     },
 
-    updateTrainPosition: (trainId, distance, edgeId, direction) => {
+    updateTrainPosition: (trainId, distance, edgeId, direction, bounceTime) => {
         set((state) => {
             const train = state.trains[trainId];
             if (!train) return state;
@@ -67,6 +67,7 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
                         distanceAlongEdge: distance,
                         ...(edgeId && { currentEdgeId: edgeId }),
                         ...(direction && { direction }),
+                        ...(bounceTime !== undefined && { bounceTime }),
                     },
                 },
             };

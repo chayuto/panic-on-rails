@@ -207,11 +207,28 @@ export const useTrackStore = create<TrackState & TrackActions>()(
              * @param newEdgeId - The new track's edge that needs updating
              */
             connectNodes: (survivorNodeId, removedNodeId, newEdgeId) => {
+                console.log('[connectNodes] Starting node merge:', {
+                    survivorNodeId: survivorNodeId.slice(0, 8),
+                    removedNodeId: removedNodeId.slice(0, 8),
+                    newEdgeId: newEdgeId.slice(0, 8),
+                });
+
                 set((state) => {
                     const survivorNode = state.nodes[survivorNodeId];
                     const removedNode = state.nodes[removedNodeId];
 
-                    if (!survivorNode || !removedNode) return state;
+                    if (!survivorNode || !removedNode) {
+                        console.warn('[connectNodes] Node not found:', {
+                            survivorExists: !!survivorNode,
+                            removedExists: !!removedNode,
+                        });
+                        return state;
+                    }
+
+                    console.log('[connectNodes] Nodes found:', {
+                        survivorConnections: survivorNode.connections.length,
+                        removedConnections: removedNode.connections.length,
+                    });
 
                     const newNodes = { ...state.nodes };
                     const newEdges = { ...state.edges };
@@ -236,6 +253,12 @@ export const useTrackStore = create<TrackState & TrackActions>()(
 
                     // Delete the removed node
                     delete newNodes[removedNodeId];
+
+                    console.log('[connectNodes] Merge complete:', {
+                        totalNodes: Object.keys(newNodes).length,
+                        totalEdges: Object.keys(newEdges).length,
+                        survivorConnectionsNow: newNodes[survivorNodeId].connections.length,
+                    });
 
                     return { nodes: newNodes, edges: newEdges };
                 });

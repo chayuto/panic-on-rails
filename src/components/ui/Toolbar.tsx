@@ -1,8 +1,27 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { exportLayout, importLayout } from '../../utils/fileManager';
+import { isMuted, toggleMute } from '../../utils/audioManager';
+
+/**
+ * Mute toggle button component
+ */
+function MuteToggle() {
+    const [muted, setMuted] = useState(isMuted());
+
+    const handleToggle = useCallback(() => {
+        const newMuted = toggleMute();
+        setMuted(newMuted);
+    }, []);
+
+    return (
+        <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'}>
+            {muted ? '🔇' : '🔊'}
+        </button>
+    );
+}
 
 export function Toolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +113,7 @@ export function Toolbar() {
                 <button onClick={resetView} title="Reset View">
                     🎯 Reset
                 </button>
+                <MuteToggle />
 
                 <div className="toolbar-divider" />
 

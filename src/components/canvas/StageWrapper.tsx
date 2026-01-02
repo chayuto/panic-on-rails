@@ -9,6 +9,7 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { findSnapTarget } from '../../utils/snapManager';
+import { initAudio, playSound } from '../../utils/audioManager';
 import { getPartById } from '../../data/catalog';
 
 interface StageWrapperProps {
@@ -48,6 +49,24 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         window.addEventListener('resize', updateDimensions);
         return () => window.removeEventListener('resize', updateDimensions);
     }, [width, height]);
+
+    // Initialize audio on first user interaction
+    useEffect(() => {
+        const handleUserInteraction = () => {
+            initAudio();
+            // Remove listener after first interaction
+            window.removeEventListener('click', handleUserInteraction);
+            window.removeEventListener('keydown', handleUserInteraction);
+        };
+
+        window.addEventListener('click', handleUserInteraction);
+        window.addEventListener('keydown', handleUserInteraction);
+
+        return () => {
+            window.removeEventListener('click', handleUserInteraction);
+            window.removeEventListener('keydown', handleUserInteraction);
+        };
+    }, []);
 
     // Convert screen coordinates to world coordinates
     const screenToWorld = useCallback((screenX: number, screenY: number) => {
@@ -153,6 +172,13 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         // Get current snap state
         const { snapTarget, ghostRotation } = useEditorStore.getState();
 
+        console.log('[handleDrop] Drop initiated:', {
+            partId,
+            worldPos,
+            hasSnapTarget: !!snapTarget,
+            ghostRotation,
+        });
+
         // Determine final position and rotation
         let finalPosition = worldPos;
         let finalRotation = ghostRotation;
@@ -161,10 +187,16 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             // Use snap position
             finalPosition = snapTarget.targetPosition;
             finalRotation = (snapTarget.targetRotation + 180) % 360;
+            console.log('[handleDrop] Snapping to target:', {
+                targetNodeId: snapTarget.targetNodeId.slice(0, 8),
+                targetPosition: snapTarget.targetPosition,
+                finalRotation,
+            });
         }
 
         // Add the track
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);
+        console.log('[handleDrop] Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
 
         // If we snapped to an existing node, connect them
         if (newEdgeId && snapTarget) {
@@ -172,8 +204,24 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             const { edges } = useTrackStore.getState();
             const newEdge = edges[newEdgeId];
             if (newEdge) {
+                console.log('[handleDrop] Connecting nodes:', {
+                    survivorNodeId: snapTarget.targetNodeId.slice(0, 8),
+                    newEdgeStartNodeId: newEdge.startNodeId.slice(0, 8),
+                    newEdgeEndNodeId: newEdge.endNodeId.slice(0, 8),
+                });
                 // The new track's start node should connect to the snap target
                 connectNodes(snapTarget.targetNodeId, newEdge.startNodeId, newEdgeId);
+
+                // Play snap sound based on track system
+                const { selectedSystem } = useEditorStore.getState();
+                playSound(selectedSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
+
+                // Log final state
+                const finalState = useTrackStore.getState();
+                console.log('[handleDrop] Final state:', {
+                    nodeCount: Object.keys(finalState.nodes).length,
+                    edgeCount: Object.keys(finalState.edges).length,
+                });
             }
         }
 

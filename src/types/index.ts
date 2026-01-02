@@ -66,6 +66,8 @@ export interface Train {
     direction: 1 | -1;
     speed: number; // pixels per second
     color: string;
+    // Bounce animation state
+    bounceTime?: number;    // Timestamp when bounce started (performance.now())
 }
 
 // ===========================
