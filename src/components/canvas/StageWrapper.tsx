@@ -26,7 +26,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         draggedPartId, updateGhost, setSnapTarget, endDrag, selectedSystem
     } = useEditorStore();
 
-    const { addTrack, getOpenEndpoints } = useTrackStore();
+    const { addTrack, getOpenEndpoints, connectNodes } = useTrackStore();
 
     // Run the game loop for train simulation
     useGameLoop();
@@ -164,11 +164,22 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         }
 
         // Add the track
-        addTrack(partId, finalPosition, finalRotation);
+        const newEdgeId = addTrack(partId, finalPosition, finalRotation);
+
+        // If we snapped to an existing node, connect them
+        if (newEdgeId && snapTarget) {
+            // Get the new edge to find its start node
+            const { edges } = useTrackStore.getState();
+            const newEdge = edges[newEdgeId];
+            if (newEdge) {
+                // The new track's start node should connect to the snap target
+                connectNodes(snapTarget.targetNodeId, newEdge.startNodeId, newEdgeId);
+            }
+        }
 
         // Clean up drag state
         endDrag();
-    }, [screenToWorld, addTrack, endDrag]);
+    }, [screenToWorld, addTrack, connectNodes, endDrag]);
 
     // Determine cursor based on drag state
     const cursor = draggedPartId ? 'copy' : 'crosshair';

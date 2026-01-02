@@ -40,7 +40,7 @@ export interface TrackNode {
     position: Vector2;
     rotation: number; // degrees, direction the connector faces
     connections: EdgeId[];
-    type: 'endpoint' | 'switch' | 'connector';
+    type: 'endpoint' | 'junction' | 'switch';
     switchState?: number; // For switches: which branch is active (0, 1, ...)
 }
 
@@ -72,20 +72,15 @@ export interface Train {
 // Part Catalog
 // ===========================
 
-export type PartGeometry =
-    | { type: 'straight'; length: number }
-    | { type: 'curve'; radius: number; angle: number }; // angle in degrees
-
-export type PartBrand = 'kato' | 'brio' | 'generic';
-export type PartScale = 'n-scale' | 'ho-scale' | 'wooden';
-
-export interface PartDefinition {
-    id: PartId;
-    name: string;
-    brand: PartBrand;
-    scale: PartScale;
-    geometry: PartGeometry;
-}
+// Re-export from catalog for single source of truth
+// Note: Individual geometry types (StraightGeometry etc) are NOT re-exported
+// to avoid conflict with TrackGeometry edge types above.
+export type {
+    PartGeometry,
+    PartBrand,
+    PartScale,
+    PartDefinition,
+} from '../data/catalog/types';
 
 // ===========================
 // Serialization (Save/Load)

@@ -24,6 +24,7 @@ interface TrackActions {
     clearLayout: () => void;
     getLayout: () => LayoutData;
     getOpenEndpoints: () => TrackNode[];
+    connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
 }
 
 const initialState: TrackState = {
@@ -57,7 +58,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     };
                     endRotation = rotation;
                     length = part.geometry.length;
-                } else {
+                } else if (part.geometry.type === 'curve') {
                     // Calculate end position for curved track
                     const { radius, angle } = part.geometry;
                     const angleRad = (angle * Math.PI) / 180;
@@ -77,6 +78,10 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     };
                     endRotation = rotation + angle;
                     length = calculateArcLength(radius, angle);
+                } else {
+                    // Switch/crossing geometry not yet supported
+                    console.warn(`Unsupported geometry type: ${part.geometry.type}`);
+                    return null;
                 }
 
                 const startNode: TrackNode = {
@@ -95,20 +100,29 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     type: 'endpoint',
                 };
 
+                // Build edge geometry based on part type
+                let edgeGeometry: TrackEdge['geometry'];
+                if (part.geometry.type === 'straight') {
+                    edgeGeometry = { type: 'straight', start: position, end: endPosition };
+                } else if (part.geometry.type === 'curve') {
+                    edgeGeometry = {
+                        type: 'arc',
+                        center: { x: 0, y: 0 }, // Simplified for now
+                        radius: part.geometry.radius,
+                        startAngle: (rotation * Math.PI) / 180,
+                        endAngle: ((rotation + part.geometry.angle) * Math.PI) / 180,
+                    };
+                } else {
+                    // Should never reach here due to early return above
+                    return null;
+                }
+
                 const edge: TrackEdge = {
                     id: edgeId,
                     partId,
                     startNodeId,
                     endNodeId,
-                    geometry: part.geometry.type === 'straight'
-                        ? { type: 'straight', start: position, end: endPosition }
-                        : {
-                            type: 'arc',
-                            center: { x: 0, y: 0 }, // Simplified for now
-                            radius: part.geometry.radius,
-                            startAngle: (rotation * Math.PI) / 180,
-                            endAngle: ((rotation + part.geometry.angle) * Math.PI) / 180,
-                        },
+                    geometry: edgeGeometry,
                     length,
                 };
 
@@ -182,6 +196,49 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                 return Object.values(state.nodes).filter(
                     node => node.connections.length === 1
                 );
+            },
+
+            /**
+             * Connect two nodes by merging them.
+             * The "removedNode" is deleted and all its edge references transfer to "survivorNode".
+             * 
+             * @param survivorNodeId - The existing node that will remain
+             * @param removedNodeId - The new track's node that will be merged/deleted
+             * @param newEdgeId - The new track's edge that needs updating
+             */
+            connectNodes: (survivorNodeId, removedNodeId, newEdgeId) => {
+                set((state) => {
+                    const survivorNode = state.nodes[survivorNodeId];
+                    const removedNode = state.nodes[removedNodeId];
+
+                    if (!survivorNode || !removedNode) return state;
+
+                    const newNodes = { ...state.nodes };
+                    const newEdges = { ...state.edges };
+
+                    // Update the new edge to point to survivor instead of removed node
+                    const newEdge = newEdges[newEdgeId];
+                    if (newEdge) {
+                        if (newEdge.startNodeId === removedNodeId) {
+                            newEdges[newEdgeId] = { ...newEdge, startNodeId: survivorNodeId };
+                        } else if (newEdge.endNodeId === removedNodeId) {
+                            newEdges[newEdgeId] = { ...newEdge, endNodeId: survivorNodeId };
+                        }
+                    }
+
+                    // Add the new edge connection to survivor
+                    newNodes[survivorNodeId] = {
+                        ...survivorNode,
+                        connections: [...survivorNode.connections, newEdgeId],
+                        // Upgrade to junction if now has 2+ connections
+                        type: survivorNode.connections.length >= 1 ? 'junction' : 'endpoint',
+                    };
+
+                    // Delete the removed node
+                    delete newNodes[removedNodeId];
+
+                    return { nodes: newNodes, edges: newEdges };
+                });
             },
         }),
         {

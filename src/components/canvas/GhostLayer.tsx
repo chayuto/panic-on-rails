@@ -76,8 +76,8 @@ export function GhostLayer() {
                 )}
             </Group>
         );
-    } else {
-        // Curve - simplified as arc approximation with line for now
+    } else if (part.geometry.type === 'curve') {
+        // Curve - simplified as arc approximation
         const { radius, angle } = part.geometry;
         const radians = (ghostRotation * Math.PI) / 180;
         const angleRad = (angle * Math.PI) / 180;
@@ -137,5 +137,8 @@ export function GhostLayer() {
                 )}
             </Group>
         );
+    } else {
+        // Switch/Crossing - not yet supported in ghost preview
+        return null;
     }
 }
