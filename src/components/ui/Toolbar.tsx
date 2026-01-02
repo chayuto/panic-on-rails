@@ -61,8 +61,17 @@ export function Toolbar() {
         if (Object.keys(edges).length > 0) {
             if (!confirm('Clear current layout?')) return;
         }
+        // Clear persisted stores from localStorage
+        localStorage.removeItem('panic-on-rails-track-v1');
+        localStorage.removeItem('panic-on-rails-simulation-v1');
+        localStorage.removeItem('panic-on-rails-logic-v1');
+        localStorage.removeItem('panic-on-rails-budget-v1');
+
         clearLayout();
         clearTrains();
+
+        // Force refresh to reset all state
+        window.location.reload();
     }, [edges, clearLayout, clearTrains]);
 
     // Demo: Add a track at center

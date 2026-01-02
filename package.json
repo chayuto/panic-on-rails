@@ -12,20 +12,21 @@
         "test": "vitest"
     },
     "dependencies": {
+        "file-saver": "^2.0.5",
+        "konva": "^9.3.18",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-        "konva": "^9.3.18",
         "react-konva": "^18.2.10",
-        "zustand": "^5.0.2",
         "uuid": "^11.0.4",
-        "file-saver": "^2.0.5"
+        "zod": "^4.3.4",
+        "zustand": "^5.0.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.17.0",
+        "@types/file-saver": "^2.0.7",
         "@types/react": "^18.3.18",
         "@types/react-dom": "^18.3.5",
         "@types/uuid": "^10.0.0",
-        "@types/file-saver": "^2.0.7",
         "@vitejs/plugin-react": "^4.3.4",
         "eslint": "^9.17.0",
         "eslint-plugin-react-hooks": "^5.0.0",

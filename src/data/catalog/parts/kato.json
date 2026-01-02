@@ -1,0 +1,145 @@
+{
+    "version": 1,
+    "brand": "kato",
+    "scale": "n-scale",
+    "parts": [
+        {
+            "id": "kato-20-000",
+            "name": "Straight 248mm",
+            "type": "straight",
+            "length": 248,
+            "productCode": "20-000"
+        },
+        {
+            "id": "kato-20-010",
+            "name": "Straight 186mm",
+            "type": "straight",
+            "length": 186,
+            "productCode": "20-010"
+        },
+        {
+            "id": "kato-20-020",
+            "name": "Straight 124mm",
+            "type": "straight",
+            "length": 124,
+            "productCode": "20-020"
+        },
+        {
+            "id": "kato-20-030",
+            "name": "Straight 64mm",
+            "type": "straight",
+            "length": 64,
+            "productCode": "20-030"
+        },
+        {
+            "id": "kato-20-040",
+            "name": "Feeder/Spacer 62mm",
+            "type": "straight",
+            "length": 62,
+            "productCode": "20-040"
+        },
+        {
+            "id": "kato-20-091",
+            "name": "Short Straight 29mm",
+            "type": "straight",
+            "length": 29,
+            "productCode": "20-091"
+        },
+        {
+            "id": "kato-20-170",
+            "name": "Curve R216-45° (Tight)",
+            "type": "curve",
+            "radius": 216,
+            "angle": 45,
+            "productCode": "20-170"
+        },
+        {
+            "id": "kato-20-100",
+            "name": "Curve R249-45°",
+            "type": "curve",
+            "radius": 249,
+            "angle": 45,
+            "productCode": "20-100"
+        },
+        {
+            "id": "kato-20-110",
+            "name": "Curve R282-45° (Inner)",
+            "type": "curve",
+            "radius": 282,
+            "angle": 45,
+            "productCode": "20-110"
+        },
+        {
+            "id": "kato-20-120",
+            "name": "Curve R315-45° (Outer)",
+            "type": "curve",
+            "radius": 315,
+            "angle": 45,
+            "productCode": "20-120"
+        },
+        {
+            "id": "kato-20-132",
+            "name": "Curve R348-45°",
+            "type": "curve",
+            "radius": 348,
+            "angle": 45,
+            "productCode": "20-132"
+        },
+        {
+            "id": "kato-20-140",
+            "name": "Curve R381-30°",
+            "type": "curve",
+            "radius": 381,
+            "angle": 30,
+            "productCode": "20-140"
+        },
+        {
+            "id": "kato-20-150",
+            "name": "Curve R718-15° (Large)",
+            "type": "curve",
+            "radius": 718,
+            "angle": 15,
+            "productCode": "20-150"
+        },
+        {
+            "id": "kato-20-202",
+            "name": "#4 Turnout Left",
+            "type": "switch",
+            "mainLength": 248,
+            "branchLength": 186,
+            "branchAngle": 15,
+            "branchDirection": "left",
+            "productCode": "20-202"
+        },
+        {
+            "id": "kato-20-203",
+            "name": "#4 Turnout Right",
+            "type": "switch",
+            "mainLength": 248,
+            "branchLength": 186,
+            "branchAngle": 15,
+            "branchDirection": "right",
+            "productCode": "20-203"
+        },
+        {
+            "id": "kato-20-220",
+            "name": "#6 Turnout Left",
+            "type": "switch",
+            "mainLength": 310,
+            "branchLength": 248,
+            "branchAngle": 10,
+            "branchDirection": "left",
+            "productCode": "20-220"
+        },
+        {
+            "id": "kato-20-221",
+            "name": "#6 Turnout Right",
+            "type": "switch",
+            "mainLength": 310,
+            "branchLength": 248,
+            "branchAngle": 10,
+            "branchDirection": "right",
+            "productCode": "20-221"
+        }
+    ]
+}

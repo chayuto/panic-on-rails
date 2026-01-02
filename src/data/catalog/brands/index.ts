@@ -1,24 +1,29 @@
 /**
- * Brand Auto-Import
+ * Brand Auto-Import (JSON-based)
  * 
- * This file imports all brand files and registers their parts.
- * When adding a new brand, import it here.
+ * This file imports JSON catalog files and registers their parts.
+ * When adding a new brand, add a JSON file to ../parts/ and import here.
+ * 
+ * Migration Note: TypeScript brand files (kato.ts, brio.ts) are now
+ * deprecated. Use JSON files in ../parts/ instead.
  */
 
 import { registerParts } from '../registry';
+import { parsePartsCatalog } from '../loader';
 
-// Import brand part arrays
-import { KATO_PARTS } from './kato';
-import { BRIO_PARTS } from './brio';
-// import { TOMIX_PARTS } from './tomix';
-// import { IKEA_PARTS } from './ikea';
+// Import JSON catalog files
+import katoJson from '../parts/kato.json';
+import brioJson from '../parts/brio.json';
 
-// Register all brands
+// Parse and register all brands
+const KATO_PARTS = parsePartsCatalog(katoJson);
+const BRIO_PARTS = parsePartsCatalog(brioJson);
+
 registerParts(KATO_PARTS);
 registerParts(BRIO_PARTS);
-// registerParts(TOMIX_PARTS);
-// registerParts(IKEA_PARTS);
 
-// Re-export for direct access if needed
-export { KATO_PARTS } from './kato';
-export { BRIO_PARTS } from './brio';
+// Re-export for backward compatibility
+// @deprecated Use getPartsByBrand('kato') instead
+export { KATO_PARTS };
+// @deprecated Use getPartsByBrand('brio') instead
+export { BRIO_PARTS };

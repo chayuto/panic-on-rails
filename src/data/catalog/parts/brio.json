@@ -1,0 +1,57 @@
+{
+    "version": 1,
+    "brand": "brio",
+    "scale": "wooden",
+    "parts": [
+        {
+            "id": "wooden-straight-long",
+            "name": "Long Straight",
+            "type": "straight",
+            "length": 216
+        },
+        {
+            "id": "wooden-straight-short",
+            "name": "Short Straight",
+            "type": "straight",
+            "length": 108
+        },
+        {
+            "id": "wooden-straight-mini",
+            "name": "Mini Straight",
+            "type": "straight",
+            "length": 54
+        },
+        {
+            "id": "wooden-curve-large",
+            "name": "Large Curve",
+            "type": "curve",
+            "radius": 182,
+            "angle": 45
+        },
+        {
+            "id": "wooden-curve-small",
+            "name": "Small Curve",
+            "type": "curve",
+            "radius": 90,
+            "angle": 45
+        },
+        {
+            "id": "wooden-switch-y",
+            "name": "Y-Splitter",
+            "type": "switch",
+            "mainLength": 108,
+            "branchLength": 108,
+            "branchAngle": 30,
+            "branchDirection": "left"
+        },
+        {
+            "id": "wooden-switch-t",
+            "name": "T-Junction",
+            "type": "switch",
+            "mainLength": 108,
+            "branchLength": 108,
+            "branchAngle": 90,
+            "branchDirection": "right"
+        }
+    ]
+}

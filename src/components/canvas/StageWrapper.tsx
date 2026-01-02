@@ -229,28 +229,49 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
         // If we snapped to an existing node, connect them
         if (newEdgeId && snapTarget) {
-            // Get the new edge to find its start node
-            const { edges } = useTrackStore.getState();
+            // Get the new edge and its nodes to find which end to connect
+            const { edges, nodes } = useTrackStore.getState();
             const newEdge = edges[newEdgeId];
             if (newEdge) {
-                console.log('[handleDrop] Connecting nodes:', {
-                    survivorNodeId: snapTarget.targetNodeId.slice(0, 8),
-                    newEdgeStartNodeId: newEdge.startNodeId.slice(0, 8),
-                    newEdgeEndNodeId: newEdge.endNodeId.slice(0, 8),
-                });
-                // The new track's start node should connect to the snap target
-                connectNodes(snapTarget.targetNodeId, newEdge.startNodeId, newEdgeId);
+                const startNode = nodes[newEdge.startNodeId];
+                const endNode = nodes[newEdge.endNodeId];
 
-                // Play snap sound based on track system
-                const { selectedSystem } = useEditorStore.getState();
-                playSound(selectedSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
+                if (startNode && endNode) {
+                    // Calculate distance from each node to the snap target position
+                    const distToStart = Math.hypot(
+                        startNode.position.x - snapTarget.targetPosition.x,
+                        startNode.position.y - snapTarget.targetPosition.y
+                    );
+                    const distToEnd = Math.hypot(
+                        endNode.position.x - snapTarget.targetPosition.x,
+                        endNode.position.y - snapTarget.targetPosition.y
+                    );
 
-                // Log final state
-                const finalState = useTrackStore.getState();
-                console.log('[handleDrop] Final state:', {
-                    nodeCount: Object.keys(finalState.nodes).length,
-                    edgeCount: Object.keys(finalState.edges).length,
-                });
+                    // The node closer to snap target is the one that should be merged
+                    const nodeToRemove = distToStart < distToEnd ? newEdge.startNodeId : newEdge.endNodeId;
+
+                    console.log('[handleDrop] Connecting nodes:', {
+                        survivorNodeId: snapTarget.targetNodeId.slice(0, 8),
+                        nodeToRemove: nodeToRemove.slice(0, 8),
+                        distToStart,
+                        distToEnd,
+                        selectedNode: distToStart < distToEnd ? 'start' : 'end',
+                    });
+
+                    // Merge the closer node with the snap target
+                    connectNodes(snapTarget.targetNodeId, nodeToRemove, newEdgeId);
+
+                    // Play snap sound based on track system
+                    const { selectedSystem } = useEditorStore.getState();
+                    playSound(selectedSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
+
+                    // Log final state
+                    const finalState = useTrackStore.getState();
+                    console.log('[handleDrop] Final state:', {
+                        nodeCount: Object.keys(finalState.nodes).length,
+                        edgeCount: Object.keys(finalState.edges).length,
+                    });
+                }
             }
         }
 
