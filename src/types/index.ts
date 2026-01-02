@@ -108,10 +108,28 @@ export interface LayoutData {
 // Editor State
 // ===========================
 
-export type EditorMode = 'edit' | 'simulate';
+export type EditorMode = 'edit' | 'simulate' | 'sensor' | 'signal' | 'wire';
 
 export interface SnapResult {
     targetNode: TrackNode | null;
     isValid: boolean;
     distance: number;
 }
+
+// ===========================
+// Logic Components
+// ===========================
+
+// Re-export from logic types
+export type {
+    SensorId,
+    SignalId,
+    WireId,
+    LogicState,
+    SignalState,
+    Sensor,
+    Signal,
+    Wire,
+    WireAction,
+    LogicLayoutData,
+} from './logic';

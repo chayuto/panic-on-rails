@@ -5,6 +5,9 @@ import { BackgroundLayer } from './BackgroundLayer';
 import { TrackLayer } from './TrackLayer';
 import { GhostLayer } from './GhostLayer';
 import { TrainLayer } from './TrainLayer';
+import { SensorLayer } from './SensorLayer';
+import { SignalLayer } from './SignalLayer';
+import { WireLayer } from './WireLayer';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
@@ -272,6 +275,13 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 {/* Ghost layer - drag preview */}
                 <Layer listening={false}>
                     <GhostLayer />
+                </Layer>
+
+                {/* Logic layers - sensors, signals, wires */}
+                <Layer>
+                    <WireLayer />
+                    <SensorLayer />
+                    <SignalLayer />
                 </Layer>
 
                 {/* Entity layer - trains */}

@@ -117,6 +117,34 @@ export function Toolbar() {
 
                 <div className="toolbar-divider" />
 
+                {/* Logic tools */}
+                <button
+                    onClick={() => setMode('sensor')}
+                    title="Sensor Tool - Place sensors on tracks"
+                >
+                    📡 Sensor
+                </button>
+                <button
+                    onClick={() => setMode('signal')}
+                    title="Signal Tool - Place signals at nodes"
+                >
+                    🚦 Signal
+                </button>
+                <button
+                    onClick={() => setMode('wire')}
+                    title="Wire Tool - Connect sensors to switches/signals"
+                >
+                    🔌 Wire
+                </button>
+                <button
+                    onClick={() => setMode('edit')}
+                    title="Edit Mode - Normal track editing"
+                >
+                    ✏️ Edit
+                </button>
+
+                <div className="toolbar-divider" />
+
                 {/* Simulation */}
                 <button
                     onClick={handlePlayPause}

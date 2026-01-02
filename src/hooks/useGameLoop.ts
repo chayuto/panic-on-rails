@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
+import { useLogicStore } from '../stores/useLogicStore';
 import { playSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
 import type { Train, TrackEdge, Vector2 } from '../types';
@@ -36,7 +37,8 @@ export function useGameLoop() {
     const animationFrameRef = useRef<number>(0);
 
     const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed } = useSimulationStore();
-    const { edges, nodes } = useTrackStore();
+    const { edges, nodes, toggleSwitch } = useTrackStore();
+    const { sensors, wires, setSensorState, setSignalState } = useLogicStore();
 
     const updateTrains = useCallback((deltaTime: number) => {
         // Scale delta by speed multiplier
@@ -186,6 +188,56 @@ export function useGameLoop() {
                     setCrashed(trainB.id);
                 }
                 playSound('crash');
+            });
+
+            // Update sensor states based on train positions
+            Object.values(sensors).forEach((sensor) => {
+                const trainOnSensor = Object.values(trains).some((train) => {
+                    if (train.crashed) return false;
+                    if (train.currentEdgeId !== sensor.edgeId) return false;
+
+                    // Check if train is within sensor zone
+                    const distance = Math.abs(train.distanceAlongEdge - sensor.position);
+                    return distance < sensor.length / 2;
+                });
+
+                const newState = trainOnSensor ? 'on' : 'off';
+                if (sensor.state !== newState) {
+                    setSensorState(sensor.id, newState);
+
+                    // Process wires triggered by this sensor
+                    if (newState === 'on') {
+                        Object.values(wires).forEach((wire) => {
+                            if (wire.sourceType === 'sensor' && wire.sourceId === sensor.id) {
+                                // Execute wire action
+                                if (wire.targetType === 'switch') {
+                                    if (wire.action === 'toggle') {
+                                        toggleSwitch(wire.targetId);
+                                    } else if (wire.action === 'set_main') {
+                                        // Set to main (state 0)
+                                        const node = nodes[wire.targetId];
+                                        if (node?.switchState !== 0) toggleSwitch(wire.targetId);
+                                    } else if (wire.action === 'set_branch') {
+                                        // Set to branch (state 1)
+                                        const node = nodes[wire.targetId];
+                                        if (node?.switchState !== 1) toggleSwitch(wire.targetId);
+                                    }
+                                    playSound('switch');
+                                } else if (wire.targetType === 'signal') {
+                                    if (wire.action === 'toggle') {
+                                        // Toggle signal
+                                        const signal = useLogicStore.getState().signals[wire.targetId];
+                                        setSignalState(wire.targetId, signal?.state === 'red' ? 'green' : 'red');
+                                    } else if (wire.action === 'set_red') {
+                                        setSignalState(wire.targetId, 'red');
+                                    } else if (wire.action === 'set_green') {
+                                        setSignalState(wire.targetId, 'green');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
             });
 
             animationFrameRef.current = requestAnimationFrame(loop);
