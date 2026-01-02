@@ -95,6 +95,9 @@ export interface PartDefinition {
     /** Geometry specification */
     geometry: PartGeometry;
 
+    /** Cost in game currency (cents for precision) */
+    cost: number;
+
     // === Optional Metadata ===
 
     /** Real product SKU (e.g., "20-000") */

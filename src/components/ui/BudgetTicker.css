@@ -1,0 +1,48 @@
+/* BudgetTicker Component Styles */
+
+.budget-ticker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+}
+
+.budget-ticker.healthy .budget-balance {
+    color: #00FF88;
+}
+
+.budget-ticker.warning .budget-balance {
+    color: #FFD93D;
+}
+
+.budget-ticker.danger .budget-balance {
+    color: #FF6B6B;
+}
+
+.budget-balance {
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.budget-spent {
+    color: #888;
+    font-size: 0.75rem;
+}
+
+.budget-reset {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.budget-reset:hover {
+    opacity: 1;
+}

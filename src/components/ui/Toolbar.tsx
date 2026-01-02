@@ -4,6 +4,7 @@ import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { exportLayout, importLayout } from '../../utils/fileManager';
 import { isMuted, toggleMute } from '../../utils/audioManager';
+import { BudgetTicker } from './BudgetTicker';
 
 /**
  * Mute toggle button component
@@ -88,6 +89,8 @@ export function Toolbar() {
                 <span>🚂</span>
                 <span>PanicOnRails</span>
             </div>
+
+            <BudgetTicker />
 
             <div className="toolbar-actions">
                 {/* File operations */}

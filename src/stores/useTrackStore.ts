@@ -11,6 +11,7 @@ import type {
     PartId
 } from '../types';
 import { getPartById, calculateArcLength } from '../data/catalog';
+import { useBudgetStore } from './useBudgetStore';
 
 interface TrackState {
     nodes: Record<NodeId, TrackNode>;
@@ -268,6 +269,9 @@ export const useTrackStore = create<TrackState & TrackActions>()(
             },
 
             clearLayout: () => {
+                // Reset budget (refund all spending)
+                useBudgetStore.getState().reset();
+
                 set(initialState);
             },
 

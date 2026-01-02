@@ -10,6 +10,7 @@ import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useTrackStore } from '../../stores/useTrackStore';
+import { useBudgetStore } from '../../stores/useBudgetStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { findSnapTarget } from '../../utils/snapManager';
 import { initAudio, playSound } from '../../utils/audioManager';
@@ -170,6 +171,28 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             return;
         }
 
+        // Get part to check cost
+        const part = getPartById(partId);
+        if (!part) {
+            console.error('[handleDrop] Part not found:', partId);
+            endDrag();
+            return;
+        }
+
+        // Check budget using imported store
+        const budgetStore = useBudgetStore.getState();
+
+        if (!budgetStore.canAfford(part.cost)) {
+            console.warn('[handleDrop] Insufficient budget for:', {
+                part: part.name,
+                cost: part.cost,
+                balance: budgetStore.balance,
+            });
+            playSound('bounce'); // Rejection sound
+            endDrag();
+            return;
+        }
+
         const worldPos = screenToWorld(e.clientX, e.clientY);
 
         // Get current snap state
@@ -196,6 +219,9 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 finalRotation,
             });
         }
+
+        // Spend the budget
+        budgetStore.spend(part.cost);
 
         // Add the track
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);

@@ -26,20 +26,25 @@ import type { PartDefinition, PartBrand, PartScale } from './types';
  * @param length - Length in millimeters
  * @param brand - Manufacturer brand
  * @param scale - Track scale/system
+ * @param cost - Cost in cents (default: based on length)
  */
 export function straight(
     id: string,
     name: string,
     length: number,
     brand: PartBrand,
-    scale: PartScale
+    scale: PartScale,
+    cost?: number
 ): PartDefinition {
+    // Default cost: ~$0.02 per mm, min $2
+    const defaultCost = Math.max(200, Math.round(length * 2));
     return {
         id,
         name,
         brand,
         scale,
         geometry: { type: 'straight', length },
+        cost: cost ?? defaultCost,
     };
 }
 
@@ -56,6 +61,7 @@ export function straight(
  * @param angle - Arc angle in degrees (e.g., 45, 30, 15)
  * @param brand - Manufacturer brand
  * @param scale - Track scale/system
+ * @param cost - Cost in cents (default: based on arc length)
  */
 export function curve(
     id: string,
@@ -63,14 +69,19 @@ export function curve(
     radius: number,
     angle: number,
     brand: PartBrand,
-    scale: PartScale
+    scale: PartScale,
+    cost?: number
 ): PartDefinition {
+    // Default cost: based on arc length + radius premium
+    const arcLength = calculateArcLength(radius, angle);
+    const defaultCost = Math.max(300, Math.round(arcLength * 2 + radius * 0.5));
     return {
         id,
         name,
         brand,
         scale,
         geometry: { type: 'curve', radius, angle },
+        cost: cost ?? defaultCost,
     };
 }
 
@@ -93,6 +104,7 @@ interface SwitchOptions {
  * @param opts - Switch geometry options
  * @param brand - Manufacturer brand
  * @param scale - Track scale/system
+ * @param cost - Cost in cents (default: $15)
  * 
  * @example
  * switchPart('kato-20-202', '#4 Turnout Left', {
@@ -107,7 +119,8 @@ export function switchPart(
     name: string,
     opts: SwitchOptions,
     brand: PartBrand,
-    scale: PartScale
+    scale: PartScale,
+    cost: number = 1500
 ): PartDefinition {
     return {
         id,
@@ -121,6 +134,7 @@ export function switchPart(
             branchAngle: opts.branchAngle,
             branchDirection: opts.branchDirection,
         },
+        cost,
     };
 }
 
@@ -137,6 +151,7 @@ export function switchPart(
  * @param crossingAngle - Angle of crossing (90 = perpendicular)
  * @param brand - Manufacturer brand
  * @param scale - Track scale/system
+ * @param cost - Cost in cents (default: $20)
  */
 export function crossing(
     id: string,
@@ -144,7 +159,8 @@ export function crossing(
     length: number,
     crossingAngle: number,
     brand: PartBrand,
-    scale: PartScale
+    scale: PartScale,
+    cost: number = 2000
 ): PartDefinition {
     return {
         id,
@@ -152,6 +168,7 @@ export function crossing(
         brand,
         scale,
         geometry: { type: 'crossing', length, crossingAngle },
+        cost,
     };
 }
 
