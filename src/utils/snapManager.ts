@@ -1,5 +1,6 @@
-import type { TrackNode, Vector2, NodeId } from '../types';
 import type { SnapResult } from '../stores/useEditorStore';
+import type { PartDefinition, Vector2, PartGeometry } from '../types';
+import type { TrackNode, NodeId } from '../types';
 
 // Snap configuration by system
 const SNAP_CONFIG = {
@@ -86,6 +87,165 @@ export function findSnapTarget(
     }
 
     return bestMatch;
+}
+
+/**
+ * Result including the necessary transform for the ghost
+ */
+export interface BestSnapResult {
+    snap: SnapResult;
+    ghostPosition: Vector2;
+    ghostRotation: number;
+}
+
+/**
+ * Calculate the position of a connector based on start position, rotation, and geometry.
+ * Returns the position and the rotation AT that point.
+ */
+function calculateEndpoint(
+    startPos: Vector2,
+    startRot: number,
+    geometry: PartGeometry
+): { position: Vector2; rotation: number } | null {
+    const startRad = (startRot * Math.PI) / 180;
+
+    if (geometry.type === 'straight') {
+        return {
+            position: {
+                x: startPos.x + Math.cos(startRad) * geometry.length,
+                y: startPos.y + Math.sin(startRad) * geometry.length,
+            },
+            rotation: startRot,
+        };
+    } else if (geometry.type === 'curve') {
+        const { radius, angle } = geometry;
+        const angleRad = (angle * Math.PI) / 180;
+
+        // Center is 90 degrees CCW from start heading (assuming left curve behavior for positive angle)
+        // Note: The system assumes standardized curves. If angle is positive, it curves "Left" relative to forward?
+        // Let's verify standard assumption: 
+        // In useTrackStore: centerAngle = startRad - Math.PI / 2; (Left curve)
+        // And endPosition calculation matches this.
+
+        const centerAngle = startRad - Math.PI / 2;
+        const centerX = startPos.x + Math.cos(centerAngle) * radius;
+        const centerY = startPos.y + Math.sin(centerAngle) * radius;
+
+        const endAngle = centerAngle + Math.PI + angleRad;
+
+        return {
+            position: {
+                x: centerX + Math.cos(endAngle) * radius,
+                y: centerY + Math.sin(endAngle) * radius,
+            },
+            rotation: startRot + angle,
+        };
+    }
+
+    // Switch/Crossing handling could be added here
+    return null;
+}
+
+/**
+ * Find the best snap target by checking ALL connectors of the ghost piece.
+ * Returns the snap result AND the new transform for the ghost to satisfy that map.
+ */
+export function findBestSnapForTrack(
+    ghostStartPos: Vector2,
+    ghostRotation: number,
+    part: PartDefinition,
+    openEndpoints: TrackNode[],
+    system: 'n-scale' | 'wooden'
+): BestSnapResult | null {
+    let bestResult: BestSnapResult | null = null;
+    let minDistance = Infinity;
+
+    // 1. Check Start Node Snapping
+    // Properties of Start Node:
+    // Position: ghostStartPos
+    // Rotation: ghostRotation. (Points OUT of the track start)
+    // Wait, standard node rotation usually points OUT of the connection.
+    // If I drive onto the track at Start, I am heading in `ghostRotation`.
+    // So `ghostRotation` is the "Into Track" direction? 
+    // No, `useTrackStore`: startNode.rotation = rotation + 180.
+    // So `ghostRotation` is the Forward Vector of the track.
+    // Start Node rotation (facing away from track) is `ghostRotation + 180`.
+
+    // `findSnapTarget` logic: 
+    // expectedAngle = (ghostConnectorRotation + 180) % 360;
+    // It compares expectedAngle to target.rotation.
+    // If we pass `ghostRotation` (Forward), expected is Backwards.
+    // If Target is Endpoint (facing out/backwards relative to its track), we want Backwards == Target.
+    // So passing `ghostRotation` is correct for Head-to-Head snapping.
+
+    const startSnap = findSnapTarget(ghostStartPos, ghostRotation, openEndpoints, system);
+    if (startSnap && startSnap.distance < minDistance) {
+        minDistance = startSnap.distance;
+        bestResult = {
+            snap: startSnap,
+            // If we snap Start, ghost moves so Start is at Target.
+            ghostPosition: startSnap.targetPosition,
+            // Ghost aligns to target. Target faces X. We face X + 180.
+            ghostRotation: (startSnap.targetRotation + 180) % 360,
+        };
+    }
+
+    // 2. Check End Node Snapping
+    if (part.geometry.type === 'straight' || part.geometry.type === 'curve') {
+        // Calculate where the End Node is currently (based on mouse pos)
+        const currentEnd = calculateEndpoint(ghostStartPos, ghostRotation, part.geometry);
+
+        if (currentEnd) {
+            // Check snap at current End Node position
+            // End Node direction: currentEnd.rotation.
+            // But End Node "facing" (connector direction) is same as track direction at that point?
+            // `useTrackStore`: endNode.rotation = endRotation.
+            // So yes, it faces "Forward".
+
+            const endSnap = findSnapTarget(currentEnd.position, currentEnd.rotation, openEndpoints, system);
+
+            if (endSnap && endSnap.distance < minDistance) {
+                // Found a better snap at the end!
+
+                // We want to align End Node to Target.
+                // Target faces T. We want End Node to face T + 180.
+                // So newEndRotation = T + 180.
+                const targetRotation = endSnap.targetRotation;
+                const requiredEndRotation = (targetRotation + 180) % 360;
+
+                // Track geometry dictates: EndRot = StartRot + Delta.
+                // So StartRot = EndRot - Delta.
+                let deltaAngle = 0;
+                if (part.geometry.type === 'curve') {
+                    deltaAngle = part.geometry.angle;
+                }
+
+                const newStartRotation = (requiredEndRotation - deltaAngle + 360) % 360;
+
+                // Now calculate new Start Position.
+                // We know New End Position = Target Position.
+                // We need to backtrack from Target to Start.
+                // Determine vector from Start to End using NEW rotation.
+                const relativeEnd = calculateEndpoint({ x: 0, y: 0 }, newStartRotation, part.geometry);
+
+                if (relativeEnd) {
+                    const newStartPosition = {
+                        x: endSnap.targetPosition.x - relativeEnd.position.x,
+                        y: endSnap.targetPosition.y - relativeEnd.position.y,
+                    };
+
+                    minDistance = endSnap.distance;
+                    bestResult = {
+                        snap: endSnap,
+                        ghostPosition: newStartPosition,
+                        ghostRotation: newStartRotation,
+                    };
+                }
+            }
+        }
+    }
+
+    return bestResult;
 }
 
 /**

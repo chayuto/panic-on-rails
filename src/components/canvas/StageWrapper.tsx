@@ -12,7 +12,7 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useBudgetStore } from '../../stores/useBudgetStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
-import { findSnapTarget } from '../../utils/snapManager';
+import { findBestSnapForTrack } from '../../utils/snapManager';
 import { initAudio, playSound } from '../../utils/audioManager';
 import { getPartById } from '../../data/catalog';
 
@@ -157,18 +157,19 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
         // Find snap target
         const openEndpoints = getOpenEndpoints();
-        const snapResult = findSnapTarget(
+        const bestSnap = findBestSnapForTrack(
             worldPos,
             currentRotation,
+            part,
             openEndpoints,
             selectedSystem
         );
 
         // Update ghost position and snap state
-        if (snapResult) {
-            // Snap position: place ghost connector at target
-            updateGhost(snapResult.targetPosition, snapResult.targetRotation + 180, true);
-            setSnapTarget(snapResult);
+        if (bestSnap) {
+            // Apply the best snap transform (which correctly handles Start vs End snapping)
+            updateGhost(bestSnap.ghostPosition, bestSnap.ghostRotation, true);
+            setSnapTarget(bestSnap.snap);
         } else {
             updateGhost(worldPos, currentRotation, true);
             setSnapTarget(null);
@@ -214,7 +215,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         const worldPos = screenToWorld(e.clientX, e.clientY);
 
         // Get current snap state
-        const { snapTarget, ghostRotation } = useEditorStore.getState();
+        const { snapTarget, ghostRotation, ghostPosition } = useEditorStore.getState();
 
         console.log('[handleDrop] Drop initiated:', {
             partId,
@@ -227,13 +228,15 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         let finalPosition = worldPos;
         let finalRotation = userRotation;
 
-        if (snapTarget) {
-            // Use snap position
-            finalPosition = snapTarget.targetPosition;
-            finalRotation = (snapTarget.targetRotation + 180) % 360;
-            console.log('[handleDrop] Snapping to target:', {
+        if (snapTarget && ghostPosition) {
+            // Use the calculated ghost position/rotation from the snap
+            // This handles both Head-to-Head and Tail-to-Head snaps correctly
+            finalPosition = ghostPosition;
+            finalRotation = ghostRotation;
+
+            console.log('[handleDrop] Snapping using ghost transform:', {
                 targetNodeId: snapTarget.targetNodeId.slice(0, 8),
-                targetPosition: snapTarget.targetPosition,
+                finalPosition,
                 finalRotation,
             });
         }
