@@ -29,7 +29,7 @@ function MuteToggle() {
 export function Toolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { getLayout, loadLayout, clearLayout, addTrack, edges } = useTrackStore();
+    const { getLayout, loadLayout, clearLayout, edges } = useTrackStore();
     const { isRunning, toggleRunning, spawnTrain, clearTrains, setRunning } = useSimulationStore();
     const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId, mode } = useEditorStore();
 
@@ -119,11 +119,6 @@ export function Toolbar() {
         window.location.reload();
     }, [edges, clearLayout, clearTrains]);
 
-    // Demo: Add a track at center
-    const handleAddTrack = useCallback(() => {
-        addTrack('kato-20-000', { x: 400, y: 300 }, 0);
-    }, [addTrack]);
-
     // Simulation controls
     const handlePlayPause = useCallback(() => {
         if (!isRunning && Object.keys(edges).length > 0) {
@@ -175,9 +170,7 @@ export function Toolbar() {
                 <div className="toolbar-divider" />
 
                 {/* Editor tools */}
-                <button onClick={handleAddTrack} title="Add Demo Track">
-                    ➕ Add Track
-                </button>
+
                 <button onClick={toggleGrid} title="Toggle Grid">
                     {showGrid ? '🔲' : '⬜'} Grid
                 </button>

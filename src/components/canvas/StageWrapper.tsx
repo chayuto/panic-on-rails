@@ -28,7 +28,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     const {
         zoom, pan, setZoom, setPan, showGrid,
-        draggedPartId, ghostRotation, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
+        draggedPartId, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
         rotateGhostCW, rotateGhostCCW
     } = useEditorStore();
 
