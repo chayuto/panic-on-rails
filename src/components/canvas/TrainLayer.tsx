@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Circle, Group, Line } from 'react-konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
+import { useIsSimulating } from '../../stores/useModeStore';
 import type { Train, TrackEdge, Vector2 } from '../../types';
 
 const TRAIN_RADIUS = 12;
@@ -131,10 +132,16 @@ function TrainEntity({ train }: { train: Train }) {
 }
 
 /**
- * Train layer - renders all active trains
+ * Train layer - renders all active trains (simulate mode only)
  */
 export function TrainLayer() {
     const { trains } = useSimulationStore();
+    const isSimulating = useIsSimulating();
+
+    // Safety check - don't render if not in simulate mode
+    if (!isSimulating) {
+        return null;
+    }
 
     return (
         <Group>

@@ -1,5 +1,6 @@
 import { Line, Arc, Circle, Group } from 'react-konva';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useIsEditing } from '../../stores/useModeStore';
 import { getPartById } from '../../data/catalog';
 
 const GHOST_VALID_COLOR = '#4ECDC4';   // Teal
@@ -7,9 +8,10 @@ const GHOST_INVALID_COLOR = '#FF6B6B'; // Red
 const GHOST_OPACITY = 0.5;
 
 /**
- * Renders a semi-transparent preview of the part being dragged
+ * Renders a semi-transparent preview of the part being dragged (edit mode only)
  */
 export function GhostLayer() {
+    const isEditing = useIsEditing();
     const {
         draggedPartId,
         ghostPosition,
@@ -17,6 +19,9 @@ export function GhostLayer() {
         ghostValid,
         snapTarget
     } = useEditorStore();
+
+    // Don't render in simulate mode
+    if (!isEditing) return null;
 
     // No ghost if not dragging or no position set
     if (!draggedPartId || !ghostPosition) return null;

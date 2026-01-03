@@ -11,6 +11,7 @@ import { WireLayer } from './WireLayer';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useBudgetStore } from '../../stores/useBudgetStore';
+import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { findBestSnapForTrack } from '../../utils/snapManager';
 import { initAudio, playSound } from '../../utils/audioManager';
@@ -28,11 +29,15 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     const {
         zoom, pan, setZoom, setPan, showGrid,
-        draggedPartId, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
+        draggedPartId, ghostPosition, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
         rotateGhostCW, rotateGhostCCW
     } = useEditorStore();
 
     const { addTrack, getOpenEndpoints, connectNodes } = useTrackStore();
+
+    // Mode hooks for conditional rendering
+    const isEditing = useIsEditing();
+    const isSimulating = useIsSimulating();
 
     // Run the game loop for train simulation
     useGameLoop();
@@ -349,10 +354,12 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                     <TrackLayer viewport={viewport} />
                 </Layer>
 
-                {/* Ghost layer - drag preview */}
-                <Layer listening={false}>
-                    <GhostLayer />
-                </Layer>
+                {/* Ghost layer - edit mode only, when dragging */}
+                {isEditing && draggedPartId && ghostPosition && (
+                    <Layer listening={false}>
+                        <GhostLayer />
+                    </Layer>
+                )}
 
                 {/* Logic layers - sensors, signals, wires */}
                 <Layer>
@@ -361,10 +368,12 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                     <SignalLayer />
                 </Layer>
 
-                {/* Entity layer - trains */}
-                <Layer>
-                    <TrainLayer />
-                </Layer>
+                {/* Train layer - simulate mode only */}
+                {isSimulating && (
+                    <Layer>
+                        <TrainLayer />
+                    </Layer>
+                )}
             </Stage>
 
             {/* Viewport warning for small screens */}

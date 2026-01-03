@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
+import { useIsSimulating } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
 import type { Train, TrackEdge, Vector2 } from '../types';
@@ -30,12 +31,13 @@ function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
 }
 
 /**
- * Game loop hook - updates train positions at 60fps
+ * Game loop hook - updates train positions at 60fps (simulate mode only)
  */
 export function useGameLoop() {
     const lastTimeRef = useRef<number>(0);
     const animationFrameRef = useRef<number>(0);
 
+    const isSimulating = useIsSimulating();
     const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed } = useSimulationStore();
     const { edges, nodes, toggleSwitch } = useTrackStore();
     const { sensors, wires, setSensorState, setSignalState } = useLogicStore();
@@ -158,10 +160,12 @@ export function useGameLoop() {
     }, [trains, edges, nodes, speedMultiplier, updateTrainPosition]);
 
     useEffect(() => {
-        if (!isRunning) {
+        // Only run game loop if BOTH in simulate mode AND running
+        if (!isSimulating || !isRunning) {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
+            lastTimeRef.current = 0;
             return;
         }
 
@@ -250,7 +254,7 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
+    }, [isSimulating, isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
 
     // Return position calculator for TrainLayer
     return { getPositionOnEdge };

@@ -1,0 +1,110 @@
+/**
+ * ModeToggle.css - Styling for the mode toggle buttons
+ * 
+ * Design:
+ * - Edit mode: Blue accent (#4A90D9)
+ * - Simulate mode: Green accent (#4CAF50) with pulse animation
+ * - Responsive: Labels hidden on mobile
+ */
+
+.mode-toggle-container {
+    display: flex;
+    gap: 2px;
+    background: var(--color-surface-dark, #1a1a2e);
+    border-radius: 8px;
+    padding: 3px;
+    margin: 0 8px;
+}
+
+.mode-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+}
+
+.mode-toggle-btn:hover:not(.active) {
+    background: var(--color-surface-hover, rgba(255, 255, 255, 0.1));
+    color: var(--color-text, #fff);
+}
+
+.mode-toggle-btn:focus-visible {
+    outline: 2px solid var(--color-accent, #4A90D9);
+    outline-offset: 2px;
+}
+
+/* Edit mode active state */
+.mode-toggle-btn.edit-btn.active {
+    background: linear-gradient(135deg, #2a3f5f 0%, #1e3a5f 100%);
+    color: #fff;
+    box-shadow:
+        0 2px 8px rgba(74, 144, 217, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.mode-toggle-btn.edit-btn.active .mode-icon {
+    filter: drop-shadow(0 0 4px rgba(74, 144, 217, 0.5));
+}
+
+/* Simulate mode active state */
+.mode-toggle-btn.simulate-btn.active {
+    background: linear-gradient(135deg, #2f4f2f 0%, #1e3f1e 100%);
+    color: #fff;
+    box-shadow:
+        0 2px 8px rgba(76, 175, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.mode-toggle-btn.simulate-btn.active .mode-icon {
+    filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.5));
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Pulse animation for simulate mode - indicates activity */
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.5));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.8));
+    }
+}
+
+.mode-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.mode-label {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+/* Transition animation when switching */
+.mode-toggle-btn.active {
+    transform: scale(1.02);
+}
+
+/* Responsive: Hide labels on smaller screens */
+@media (max-width: 768px) {
+    .mode-toggle-btn {
+        padding: 8px 12px;
+    }
+
+    .mode-label {
+        display: none;
+    }
+}
