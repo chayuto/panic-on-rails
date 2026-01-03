@@ -10,6 +10,7 @@
  */
 
 import { useModeStore } from '../../../stores/useModeStore';
+import { useTrackStore } from '../../../stores/useTrackStore';
 import type { EditSubMode } from '../../../types/mode';
 
 interface ToolButton {
@@ -54,6 +55,106 @@ const EDIT_TOOLS: ToolButton[] = [
 
 export function EditToolbar() {
     const { editSubMode, setEditSubMode } = useModeStore();
+    const { nodes, edges } = useTrackStore();
+
+    const handleDebugExport = () => {
+        // Build debug info with connection analysis
+        const nodeList = Object.values(nodes).map(node => ({
+            id: node.id,
+            position: node.position,
+            rotation: node.rotation,
+            type: node.type,
+            connectionCount: node.connections.length,
+            connections: node.connections,
+            // Check if this is a properly connected joint (2+ connections)
+            isJoint: node.connections.length >= 2,
+            // Show which edges connect at this node
+            connectedEdges: node.connections.map(edgeId => {
+                const edge = edges[edgeId];
+                if (!edge) return { edgeId, error: 'EDGE_NOT_FOUND' };
+                return {
+                    edgeId,
+                    isStart: edge.startNodeId === node.id,
+                    isEnd: edge.endNodeId === node.id,
+                };
+            }),
+        }));
+
+        const edgeList = Object.values(edges).map(edge => ({
+            id: edge.id,
+            partId: edge.partId,
+            startNodeId: edge.startNodeId,
+            endNodeId: edge.endNodeId,
+            length: edge.length,
+            geometry: edge.geometry,
+            // Verify node references are valid
+            startNodeExists: !!nodes[edge.startNodeId],
+            endNodeExists: !!nodes[edge.endNodeId],
+        }));
+
+        // Find potential issues
+        const issues: string[] = [];
+
+        // Check for orphan edges (edges pointing to non-existent nodes)
+        edgeList.forEach(edge => {
+            if (!edge.startNodeExists) {
+                issues.push(`Edge ${edge.id.slice(0, 8)} has invalid startNodeId`);
+            }
+            if (!edge.endNodeExists) {
+                issues.push(`Edge ${edge.id.slice(0, 8)} has invalid endNodeId`);
+            }
+        });
+
+        // Check for nodes that should be connected but aren't
+        nodeList.forEach(node => {
+            if (node.connectionCount === 1) {
+                // This is an endpoint - check if there's another endpoint very close
+                const otherEndpoints = nodeList.filter(
+                    n => n.id !== node.id && n.connectionCount === 1
+                );
+                otherEndpoints.forEach(other => {
+                    const dist = Math.hypot(
+                        other.position.x - node.position.x,
+                        other.position.y - node.position.y
+                    );
+                    if (dist < 10) {
+                        issues.push(
+                            `UNCONNECTED JOINT: Node ${node.id.slice(0, 8)} and ${other.id.slice(0, 8)} are ${dist.toFixed(1)}px apart but NOT connected!`
+                        );
+                    }
+                });
+            }
+        });
+
+        const debugData = {
+            timestamp: new Date().toISOString(),
+            summary: {
+                totalNodes: nodeList.length,
+                totalEdges: edgeList.length,
+                endpoints: nodeList.filter(n => n.connectionCount === 1).length,
+                junctions: nodeList.filter(n => n.connectionCount >= 2).length,
+                issueCount: issues.length,
+            },
+            issues,
+            nodes: nodeList,
+            edges: edgeList,
+        };
+
+        // Download as JSON
+        const blob = new Blob([JSON.stringify(debugData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `track-debug-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // Also log to console
+        console.log('[DEBUG EXPORT]', debugData);
+        if (issues.length > 0) {
+            console.warn('[DEBUG EXPORT] Issues found:', issues);
+        }
+    };
 
     return (
         <>
@@ -67,6 +168,14 @@ export function EditToolbar() {
                     {tool.icon} {tool.label}
                 </button>
             ))}
+            <button
+                onClick={handleDebugExport}
+                title="Export track data as JSON for debugging"
+                style={{ marginLeft: '16px', opacity: 0.7 }}
+            >
+                🐛 Debug Export
+            </button>
         </>
     );
 }
+
