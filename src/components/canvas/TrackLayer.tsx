@@ -1,4 +1,4 @@
-import { Group, Line, Circle, Wedge } from 'react-konva';
+import { Group, Line, Circle, Wedge, Arc } from 'react-konva';
 import { useMemo } from 'react';
 import type Konva from 'konva';
 import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
@@ -169,24 +169,25 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                         />
                     );
                 } else {
-                    // Arc rendering - simplified for now
-                    // TODO: Implement proper arc rendering with bezier approximation
+                    // Arc rendering - using Konva Arc component
+                    const { center, radius, startAngle, endAngle } = edge.geometry;
+                    // startAngle and endAngle are in radians from center to arc endpoints
+                    // Convert to degrees for Konva
+                    const startDeg = (startAngle * 180) / Math.PI;
+                    const sweepDeg = ((endAngle - startAngle) * 180) / Math.PI;
+
                     return (
-                        <Line
+                        <Arc
                             key={edge.id}
-                            points={[
-                                startNode.position.x,
-                                startNode.position.y,
-                                endNode.position.x,
-                                endNode.position.y,
-                            ]}
-                            stroke={color}
-                            strokeWidth={strokeWidth}
-                            lineCap="round"
-                            dash={[10, 5]} // Dashed to indicate it's a curve placeholder
+                            x={center.x}
+                            y={center.y}
+                            innerRadius={radius - strokeWidth / 2}
+                            outerRadius={radius + strokeWidth / 2}
+                            angle={sweepDeg}
+                            rotation={startDeg}
+                            fill={color}
                             onClick={(e) => handleEdgeClick(edge.id, e)}
                             onTap={(e) => handleEdgeClick(edge.id, e)}
-                            hitStrokeWidth={12}
                         />
                     );
                 }

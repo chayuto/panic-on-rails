@@ -28,7 +28,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     const {
         zoom, pan, setZoom, setPan, showGrid,
-        draggedPartId, updateGhost, setSnapTarget, endDrag, selectedSystem
+        draggedPartId, ghostRotation, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
+        rotateGhostCW, rotateGhostCCW
     } = useEditorStore();
 
     const { addTrack, getOpenEndpoints, connectNodes } = useTrackStore();
@@ -71,6 +72,24 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             window.removeEventListener('keydown', handleUserInteraction);
         };
     }, []);
+
+    // Keyboard rotation during drag (R = clockwise, Shift+R = counter-clockwise)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!draggedPartId) return;
+            if (e.key.toLowerCase() === 'r') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    rotateGhostCCW();
+                } else {
+                    rotateGhostCW();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [draggedPartId, rotateGhostCW, rotateGhostCCW]);
 
     // Convert screen coordinates to world coordinates
     const screenToWorld = useCallback((screenX: number, screenY: number) => {
@@ -133,15 +152,14 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         const part = getPartById(draggedPartId);
         if (!part) return;
 
-        // For now, ghost rotation is 0 (horizontal)
-        // TODO: Add rotation with keyboard modifier
-        const ghostRotation = 0;
+        // Use user's intended rotation for finding snap targets
+        const currentRotation = userRotation;
 
         // Find snap target
         const openEndpoints = getOpenEndpoints();
         const snapResult = findSnapTarget(
             worldPos,
-            ghostRotation,
+            currentRotation,
             openEndpoints,
             selectedSystem
         );
@@ -152,10 +170,10 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             updateGhost(snapResult.targetPosition, snapResult.targetRotation + 180, true);
             setSnapTarget(snapResult);
         } else {
-            updateGhost(worldPos, ghostRotation, true);
+            updateGhost(worldPos, currentRotation, true);
             setSnapTarget(null);
         }
-    }, [draggedPartId, screenToWorld, getOpenEndpoints, selectedSystem, updateGhost, setSnapTarget]);
+    }, [draggedPartId, userRotation, screenToWorld, getOpenEndpoints, selectedSystem, updateGhost, setSnapTarget]);
 
     const handleDragLeave = useCallback(() => {
         updateGhost(null);
@@ -207,7 +225,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
         // Determine final position and rotation
         let finalPosition = worldPos;
-        let finalRotation = ghostRotation;
+        let finalRotation = userRotation;
 
         if (snapTarget) {
             // Use snap position

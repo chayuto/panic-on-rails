@@ -265,12 +265,26 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                 if (part.geometry.type === 'straight') {
                     edgeGeometry = { type: 'straight', start: position, end: endPosition };
                 } else if (part.geometry.type === 'curve') {
+                    // Calculate arc center (perpendicular left from start direction)
+                    const startRad = (rotation * Math.PI) / 180;
+                    const centerAngle = startRad - Math.PI / 2;  // Left curve: center is 90deg CCW from direction
+                    const arcCenter = {
+                        x: position.x + Math.cos(centerAngle) * part.geometry.radius,
+                        y: position.y + Math.sin(centerAngle) * part.geometry.radius,
+                    };
+
+                    // Arc angles are measured FROM THE CENTER TO THE ARC ENDPOINTS
+                    // Start point is at angle (centerAngle + PI) from center (opposite direction)
+                    // End point is at angle (centerAngle + PI + arcSweep) from center
+                    const arcStartAngle = centerAngle + Math.PI;  // Angle from center to start point
+                    const arcSweep = (part.geometry.angle * Math.PI) / 180;  // Arc sweep in radians
+
                     edgeGeometry = {
                         type: 'arc',
-                        center: { x: 0, y: 0 }, // Simplified for now
+                        center: arcCenter,
                         radius: part.geometry.radius,
-                        startAngle: (rotation * Math.PI) / 180,
-                        endAngle: ((rotation + part.geometry.angle) * Math.PI) / 180,
+                        startAngle: arcStartAngle,
+                        endAngle: arcStartAngle + arcSweep,
                     };
                 } else {
                     // Should never reach here due to early return above

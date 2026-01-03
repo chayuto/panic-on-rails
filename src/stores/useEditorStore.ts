@@ -24,7 +24,8 @@ interface EditorState {
     // Drag-and-drop state
     draggedPartId: PartId | null;
     ghostPosition: Vector2 | null;
-    ghostRotation: number;
+    ghostRotation: number;    // Visual rotation (may be snapped)
+    userRotation: number;     // User's intended rotation (persists across snaps)
     ghostValid: boolean;
 
     // Snap state
@@ -55,6 +56,8 @@ interface EditorActions {
     updateGhost: (position: Vector2 | null, rotation?: number, valid?: boolean) => void;
     setSnapTarget: (snap: SnapResult | null) => void;
     endDrag: () => void;
+    rotateGhostCW: () => void;
+    rotateGhostCCW: () => void;
 
     // Wire creation actions
     setWireSource: (source: { type: 'sensor' | 'signal'; id: SensorId | SignalId } | null) => void;
@@ -72,6 +75,7 @@ const initialState: EditorState = {
     draggedPartId: null,
     ghostPosition: null,
     ghostRotation: 0,
+    userRotation: 0,
     ghostValid: true,
     snapTarget: null,
     wireSource: null,
@@ -97,6 +101,7 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
         draggedPartId: partId,
         ghostPosition: null,
         ghostRotation: 0,
+        userRotation: 0,
         ghostValid: true,
         snapTarget: null,
     }),
@@ -113,8 +118,25 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
         draggedPartId: null,
         ghostPosition: null,
         ghostRotation: 0,
+        userRotation: 0,
         ghostValid: true,
         snapTarget: null,
+    }),
+
+    rotateGhostCW: () => set((state) => {
+        const newRotation = (state.userRotation + 15) % 360;
+        return {
+            userRotation: newRotation,
+            ghostRotation: newRotation, // Update visual rotation too (will be overridden if snapped)
+        };
+    }),
+
+    rotateGhostCCW: () => set((state) => {
+        const newRotation = (state.userRotation - 15 + 360) % 360;
+        return {
+            userRotation: newRotation,
+            ghostRotation: newRotation,
+        };
     }),
 
     // Wire creation actions
