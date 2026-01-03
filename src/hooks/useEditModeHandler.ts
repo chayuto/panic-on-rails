@@ -192,78 +192,80 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);
         console.log('[useEditModeHandler] Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
 
-        // If we snapped to an existing node, connect them
-        if (newEdgeId && snapTarget) {
-            const { edges, nodes } = useTrackStore.getState();
+        // Post-placement: Always scan BOTH endpoints for nearby merge targets
+        // This catches both snap-assisted placements AND near-misses where user dropped
+        // close to an existing endpoint but snap detection didn't trigger
+        if (newEdgeId) {
+            const { edges } = useTrackStore.getState();
             const newEdge = edges[newEdgeId];
+
             if (newEdge) {
-                const startNode = nodes[newEdge.startNodeId];
-                const endNode = nodes[newEdge.endNodeId];
+                const MERGE_THRESHOLD = 10; // pixels - slightly larger than snap tolerance to catch near-misses
+                let mergedAny = false;
+                const nodesToCheck = [newEdge.startNodeId, newEdge.endNodeId];
 
-                if (startNode && endNode) {
-                    // Calculate distance from each node to the snap target position
-                    const distToStart = Math.hypot(
-                        startNode.position.x - snapTarget.targetPosition.x,
-                        startNode.position.y - snapTarget.targetPosition.y
+                for (const newNodeId of nodesToCheck) {
+                    // Re-fetch state each iteration as previous merge may have changed it
+                    const currentState = useTrackStore.getState();
+                    const newNode = currentState.nodes[newNodeId];
+
+                    // Skip if this node was already merged (deleted)
+                    if (!newNode) continue;
+
+                    // Find open endpoints excluding our own new nodes
+                    const openEndpoints = currentState.getOpenEndpoints().filter(
+                        ep => ep.id !== newEdge.startNodeId && ep.id !== newEdge.endNodeId
                     );
-                    const distToEnd = Math.hypot(
-                        endNode.position.x - snapTarget.targetPosition.x,
-                        endNode.position.y - snapTarget.targetPosition.y
-                    );
 
-                    // The node closer to snap target is the one that should be merged
-                    const nodeToRemove = distToStart < distToEnd ? newEdge.startNodeId : newEdge.endNodeId;
+                    // Find nearest endpoint within threshold
+                    let nearestEndpoint: typeof openEndpoints[0] | null = null;
+                    let nearestDist = Infinity;
 
-                    console.log('[useEditModeHandler] Connecting nodes:', {
-                        survivorNodeId: snapTarget.targetNodeId.slice(0, 8),
-                        nodeToRemove: nodeToRemove.slice(0, 8),
-                        selectedNode: distToStart < distToEnd ? 'start' : 'end',
-                    });
-
-                    // Merge the closer node with the snap target
-                    connectNodes(snapTarget.targetNodeId, nodeToRemove, newEdgeId);
-
-                    // Check if the OTHER end of new track is also near an existing endpoint
-                    const otherNewNodeId = nodeToRemove === newEdge.startNodeId
-                        ? newEdge.endNodeId
-                        : newEdge.startNodeId;
-
-                    // Re-fetch state after first merge
-                    const updatedState = useTrackStore.getState();
-                    const otherNewNode = updatedState.nodes[otherNewNodeId];
-
-                    if (otherNewNode) {
-                        // Find open endpoints (excluding the one we just merged and the other new node)
-                        const remainingEndpoints = updatedState.getOpenEndpoints().filter(
-                            ep => ep.id !== snapTarget.targetNodeId && ep.id !== otherNewNodeId
+                    for (const ep of openEndpoints) {
+                        const dist = Math.hypot(
+                            ep.position.x - newNode.position.x,
+                            ep.position.y - newNode.position.y
                         );
+                        if (dist < MERGE_THRESHOLD && dist < nearestDist) {
+                            // Special case: if nodes are essentially at same position (< 1px),
+                            // merge regardless of angle - this is clearly intentional
+                            const skipAngleCheck = dist < 1;
 
-                        // Check for nearby endpoint
-                        const MERGE_THRESHOLD = 5; // pixels
-                        const nearbyEndpoint = remainingEndpoints.find(ep => {
-                            const dist = Math.hypot(
-                                ep.position.x - otherNewNode.position.x,
-                                ep.position.y - otherNewNode.position.y
-                            );
-                            return dist < MERGE_THRESHOLD;
-                        });
+                            // Otherwise check angle compatibility: nodes should face EACH OTHER (~180° apart)
+                            let angleOk = skipAngleCheck;
+                            if (!skipAngleCheck) {
+                                let rotDiff = Math.abs(ep.rotation - newNode.rotation);
+                                if (rotDiff > 180) rotDiff = 360 - rotDiff; // Normalize to [0, 180]
+                                const facingError = Math.abs(rotDiff - 180); // How far from facing each other
+                                angleOk = facingError < 15; // 15 degree tolerance
+                            }
 
-                        if (nearbyEndpoint) {
-                            console.log('[useEditModeHandler] Also connecting other end:', {
-                                survivorNodeId: nearbyEndpoint.id.slice(0, 8),
-                                nodeToRemove: otherNewNodeId.slice(0, 8),
-                            });
-                            connectNodes(nearbyEndpoint.id, otherNewNodeId, newEdgeId);
+                            if (angleOk) {
+                                nearestEndpoint = ep;
+                                nearestDist = dist;
+                            }
                         }
                     }
 
+                    if (nearestEndpoint) {
+                        console.log('[useEditModeHandler] Auto-merging nearby node:', {
+                            survivorNodeId: nearestEndpoint.id.slice(0, 8),
+                            nodeToRemove: newNodeId.slice(0, 8),
+                            distance: nearestDist.toFixed(1),
+                        });
+                        connectNodes(nearestEndpoint.id, newNodeId, newEdgeId);
+                        mergedAny = true;
+                    }
+                }
+
+                if (mergedAny) {
                     // Play snap sound based on track system
                     const { selectedSystem: currentSystem } = useEditorStore.getState();
                     playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
 
                     // Log final state
                     const finalState = useTrackStore.getState();
-                    console.log('[useEditModeHandler] Final state:', {
+                    console.log('[useEditModeHandler] Final state after auto-merge:', {
                         nodeCount: Object.keys(finalState.nodes).length,
                         edgeCount: Object.keys(finalState.edges).length,
                     });

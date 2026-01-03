@@ -56,10 +56,9 @@ export function useGameLoop() {
             let newEdgeId = train.currentEdgeId;
             let bounceTime: number | undefined = undefined;
 
-            // Handle reaching end of edge
             if (newDistance > edge.length) {
-                // Get the exit node
-                const exitNodeId = train.direction === 1 ? edge.endNodeId : edge.startNodeId;
+                // Train went past the END of edge, so exit via endNodeId
+                const exitNodeId = edge.endNodeId;
                 const exitNode = nodes[exitNodeId];
 
                 if (exitNode) {
@@ -107,8 +106,8 @@ export function useGameLoop() {
                     }
                 }
             } else if (newDistance < 0) {
-                // Same logic for going backwards
-                const exitNodeId = train.direction === 1 ? edge.startNodeId : edge.endNodeId;
+                // Train went past the START of edge (distance=0), so exit via startNodeId
+                const exitNodeId = edge.startNodeId;
                 const exitNode = nodes[exitNodeId];
 
                 if (exitNode) {
