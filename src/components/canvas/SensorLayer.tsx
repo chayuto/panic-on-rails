@@ -51,7 +51,7 @@ function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; 
 function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boolean }) {
     const { edges } = useTrackStore();
     const { removeSensor } = useLogicStore();
-    const { mode } = useEditorStore();
+    const { mode, wireSource, setWireSource } = useEditorStore();
 
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
@@ -61,11 +61,18 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     // Determine color based on state
     let fillColor = sensor.state === 'on' ? SENSOR_COLOR_ACTIVE : SENSOR_COLOR_INACTIVE;
     if (isSelected) fillColor = SENSOR_COLOR_SELECTED;
+    // Highlight if this sensor is the wire source
+    if (wireSource?.type === 'sensor' && wireSource.id === sensor.id) {
+        fillColor = SENSOR_COLOR_SELECTED;
+    }
 
     const handleClick = () => {
         if (mode === 'sensor') {
             // In sensor mode, clicking removes the sensor
             removeSensor(sensor.id);
+        } else if (mode === 'wire') {
+            // In wire mode, clicking selects this sensor as wire source
+            setWireSource({ type: 'sensor', id: sensor.id });
         }
     };
 

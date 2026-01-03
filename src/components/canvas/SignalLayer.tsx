@@ -18,8 +18,8 @@ const SIGNAL_RADIUS = 8;
  */
 function SignalEntity({ signal }: { signal: Signal }) {
     const { nodes } = useTrackStore();
-    const { toggleSignal, removeSignal } = useLogicStore();
-    const { mode } = useEditorStore();
+    const { toggleSignal, removeSignal, addWire } = useLogicStore();
+    const { mode, wireSource, setWireSource, clearWireSource } = useEditorStore();
 
     const node = nodes[signal.nodeId];
     if (!node) return null;
@@ -27,16 +27,41 @@ function SignalEntity({ signal }: { signal: Signal }) {
     const signalX = node.position.x + signal.offset.x;
     const signalY = node.position.y + signal.offset.y;
 
-    const fillColor = signal.state === 'green' ? '#00FF88' : '#FF4444';
-    const glowColor = signal.state === 'green' ? '#00FF88' : '#FF4444';
+    // Check if this signal is selected as wire source
+    const isWireSource = wireSource?.type === 'signal' && wireSource.id === signal.id;
+
+    let fillColor = signal.state === 'green' ? '#00FF88' : '#FF4444';
+    let glowColor = signal.state === 'green' ? '#00FF88' : '#FF4444';
+
+    // Highlight if selected as wire source
+    if (isWireSource) {
+        fillColor = '#00BFFF'; // Blue for selected
+        glowColor = '#00BFFF';
+    }
 
     const handleClick = () => {
         if (mode === 'signal') {
-            // In signal mode, shift+click removes, click toggles
+            // In signal mode, clicking removes the signal
             removeSignal(signal.id);
         } else if (mode === 'edit' || mode === 'simulate') {
             toggleSignal(signal.id);
             playSound('switch');
+        } else if (mode === 'wire') {
+            if (wireSource) {
+                // If we have a source, create wire to this signal
+                addWire(
+                    wireSource.type,
+                    wireSource.id,
+                    'signal',
+                    signal.id,
+                    'toggle' // Default action
+                );
+                playSound('switch');
+                clearWireSource();
+            } else {
+                // No source yet, select this signal as source
+                setWireSource({ type: 'signal', id: signal.id });
+            }
         }
     };
 

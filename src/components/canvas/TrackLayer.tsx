@@ -1,7 +1,10 @@
 import { Group, Line, Circle, Wedge } from 'react-konva';
+import type Konva from 'konva';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useLogicStore } from '../../stores/useLogicStore';
 import { playSound } from '../../utils/audioManager';
+import type { TrackEdge, Vector2 } from '../../types';
 
 const RAIL_COLOR = '#888888';
 const RAIL_SELECTED_COLOR = '#00FF88';
@@ -12,18 +15,80 @@ const NODE_RADIUS = 6;
 const SWITCH_NODE_RADIUS = 10;
 
 export function TrackLayer() {
-    const { nodes, edges, toggleSwitch } = useTrackStore();
-    const { selectedEdgeId, setSelectedEdge, mode } = useEditorStore();
+    const { nodes, edges, toggleSwitch, removeTrack } = useTrackStore();
+    const { selectedEdgeId, setSelectedEdge, mode, wireSource, clearWireSource } = useEditorStore();
+    const { addSensor, addSignal, addWire } = useLogicStore();
 
-    const handleEdgeClick = (edgeId: string) => {
+    // Calculate distance along a straight edge from a point
+    const getPositionAlongEdge = (edge: TrackEdge, clickPos: Vector2): number => {
+        if (edge.geometry.type === 'straight') {
+            const { start, end } = edge.geometry;
+            const edgeVec = { x: end.x - start.x, y: end.y - start.y };
+            const clickVec = { x: clickPos.x - start.x, y: clickPos.y - start.y };
+            // Project click point onto edge vector
+            const edgeLenSq = edgeVec.x * edgeVec.x + edgeVec.y * edgeVec.y;
+            const dot = edgeVec.x * clickVec.x + edgeVec.y * clickVec.y;
+            const t = Math.max(0, Math.min(1, dot / edgeLenSq));
+            return t * edge.length;
+        } else {
+            // For arcs, just place at middle for now
+            return edge.length / 2;
+        }
+    };
+
+    const handleEdgeClick = (edgeId: string, e: Konva.KonvaEventObject<Event>) => {
         if (mode === 'edit') {
             setSelectedEdge(selectedEdgeId === edgeId ? null : edgeId);
+        } else if (mode === 'delete') {
+            removeTrack(edgeId);
+            playSound('switch');
+        } else if (mode === 'sensor') {
+            // Get click position in stage coordinates
+            const stage = e.target.getStage();
+            if (!stage) return;
+            const pointerPos = stage.getPointerPosition();
+            if (!pointerPos) return;
+
+            // Convert to world coordinates (accounting for zoom/pan)
+            const transform = stage.getAbsoluteTransform().copy().invert();
+            const worldPos = transform.point(pointerPos);
+
+            // Calculate position along edge
+            const edge = edges[edgeId];
+            if (!edge) return;
+            const position = getPositionAlongEdge(edge, worldPos);
+
+            addSensor(edgeId, position);
+            playSound('switch');
         }
     };
 
     const handleSwitchClick = (nodeId: string) => {
         if (mode === 'edit') {
             toggleSwitch(nodeId);
+            playSound('switch');
+        } else if (mode === 'signal') {
+            addSignal(nodeId);
+            playSound('switch');
+        } else if (mode === 'wire') {
+            // Switches can be wire targets
+            if (wireSource) {
+                addWire(
+                    wireSource.type,
+                    wireSource.id,
+                    'switch',
+                    nodeId,
+                    'toggle'
+                );
+                playSound('switch');
+                clearWireSource();
+            }
+        }
+    };
+
+    const handleNodeClick = (nodeId: string) => {
+        if (mode === 'signal') {
+            addSignal(nodeId);
             playSound('switch');
         }
     };
@@ -82,8 +147,8 @@ export function TrackLayer() {
                             stroke={color}
                             strokeWidth={strokeWidth}
                             lineCap="round"
-                            onClick={() => handleEdgeClick(edge.id)}
-                            onTap={() => handleEdgeClick(edge.id)}
+                            onClick={(e) => handleEdgeClick(edge.id, e)}
+                            onTap={(e) => handleEdgeClick(edge.id, e)}
                             hitStrokeWidth={12}
                         />
                     );
@@ -103,8 +168,8 @@ export function TrackLayer() {
                             strokeWidth={strokeWidth}
                             lineCap="round"
                             dash={[10, 5]} // Dashed to indicate it's a curve placeholder
-                            onClick={() => handleEdgeClick(edge.id)}
-                            onTap={() => handleEdgeClick(edge.id)}
+                            onClick={(e) => handleEdgeClick(edge.id, e)}
+                            onTap={(e) => handleEdgeClick(edge.id, e)}
                             hitStrokeWidth={12}
                         />
                     );
@@ -154,6 +219,8 @@ export function TrackLayer() {
                         fill={NODE_COLOR}
                         stroke="#1A1A1A"
                         strokeWidth={2}
+                        onClick={() => handleNodeClick(node.id)}
+                        onTap={() => handleNodeClick(node.id)}
                     />
                 );
             })}

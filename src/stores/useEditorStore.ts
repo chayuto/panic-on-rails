@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EdgeId, PartId, EditorMode, Vector2, NodeId } from '../types';
+import type { EdgeId, PartId, EditorMode, Vector2, NodeId, SensorId, SignalId } from '../types';
 
 // Snap result when near an open endpoint
 export interface SnapResult {
@@ -29,6 +29,12 @@ interface EditorState {
 
     // Snap state
     snapTarget: SnapResult | null;
+
+    // Wire creation state
+    wireSource: {
+        type: 'sensor' | 'signal';
+        id: SensorId | SignalId;
+    } | null;
 }
 
 interface EditorActions {
@@ -49,6 +55,10 @@ interface EditorActions {
     updateGhost: (position: Vector2 | null, rotation?: number, valid?: boolean) => void;
     setSnapTarget: (snap: SnapResult | null) => void;
     endDrag: () => void;
+
+    // Wire creation actions
+    setWireSource: (source: { type: 'sensor' | 'signal'; id: SensorId | SignalId } | null) => void;
+    clearWireSource: () => void;
 }
 
 const initialState: EditorState = {
@@ -64,13 +74,14 @@ const initialState: EditorState = {
     ghostRotation: 0,
     ghostValid: true,
     snapTarget: null,
+    wireSource: null,
 };
 
 export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
     ...initialState,
 
     // Mode actions
-    setMode: (mode) => set({ mode }),
+    setMode: (mode) => set({ mode, wireSource: null }), // Clear wire source when changing modes
     setSelectedEdge: (edgeId) => set({ selectedEdgeId: edgeId }),
     setSelectedPart: (partId) => set({ selectedPartId: partId }),
     setSelectedSystem: (system) => set({ selectedSystem: system }),
@@ -105,4 +116,8 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
         ghostValid: true,
         snapTarget: null,
     }),
+
+    // Wire creation actions
+    setWireSource: (source) => set({ wireSource: source }),
+    clearWireSource: () => set({ wireSource: null }),
 }));

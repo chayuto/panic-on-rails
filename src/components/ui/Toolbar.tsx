@@ -31,7 +31,7 @@ export function Toolbar() {
 
     const { getLayout, loadLayout, clearLayout, addTrack, edges } = useTrackStore();
     const { isRunning, toggleRunning, spawnTrain, clearTrains, setRunning } = useSimulationStore();
-    const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId } = useEditorStore();
+    const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId, mode } = useEditorStore();
 
     // Template state
     const [templates, setTemplates] = useState<TemplateMetadata[]>([]);
@@ -191,24 +191,35 @@ export function Toolbar() {
                 {/* Logic tools */}
                 <button
                     onClick={() => setMode('sensor')}
+                    className={mode === 'sensor' ? 'active' : ''}
                     title="Sensor Tool - Place sensors on tracks"
                 >
                     📡 Sensor
                 </button>
                 <button
                     onClick={() => setMode('signal')}
+                    className={mode === 'signal' ? 'active' : ''}
                     title="Signal Tool - Place signals at nodes"
                 >
                     🚦 Signal
                 </button>
                 <button
                     onClick={() => setMode('wire')}
+                    className={mode === 'wire' ? 'active' : ''}
                     title="Wire Tool - Connect sensors to switches/signals"
                 >
                     🔌 Wire
                 </button>
                 <button
+                    onClick={() => setMode('delete')}
+                    className={mode === 'delete' ? 'active' : ''}
+                    title="Delete Tool - Click tracks to remove them"
+                >
+                    🗑️ Delete
+                </button>
+                <button
                     onClick={() => setMode('edit')}
+                    className={mode === 'edit' ? 'active' : ''}
                     title="Edit Mode - Normal track editing"
                 >
                     ✏️ Edit
