@@ -1,8 +1,10 @@
 import { Group, Line, Circle, Wedge } from 'react-konva';
+import { useMemo } from 'react';
 import type Konva from 'konva';
-import { useTrackStore } from '../../stores/useTrackStore';
+import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useLogicStore } from '../../stores/useLogicStore';
+import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { playSound } from '../../utils/audioManager';
 import type { TrackEdge, Vector2 } from '../../types';
 
@@ -14,10 +16,24 @@ const SWITCH_NODE_COLOR = '#FFD93D';
 const NODE_RADIUS = 6;
 const SWITCH_NODE_RADIUS = 10;
 
-export function TrackLayer() {
+interface TrackLayerProps {
+    /** Viewport bounds for visibility culling. If null, render all edges. */
+    viewport: BoundingBox | null;
+}
+
+export function TrackLayer({ viewport }: TrackLayerProps) {
     const { nodes, edges, toggleSwitch, removeTrack } = useTrackStore();
     const { selectedEdgeId, setSelectedEdge, mode, wireSource, clearWireSource } = useEditorStore();
     const { addSensor, addSignal, addWire } = useLogicStore();
+
+    // Get visible edge IDs from spatial index
+    const visibleEdgeIds = useVisibleEdges(viewport);
+
+    // Create a Set for O(1) lookup and filter edges
+    const visibleEdges = useMemo(() => {
+        const idSet = new Set(visibleEdgeIds);
+        return Object.values(edges).filter(edge => idSet.has(edge.id));
+    }, [edges, visibleEdgeIds]);
 
     // Calculate distance along a straight edge from a point
     const getPositionAlongEdge = (edge: TrackEdge, clickPos: Vector2): number => {
@@ -112,8 +128,8 @@ export function TrackLayer() {
 
     return (
         <Group>
-            {/* Render all edges (tracks) */}
-            {Object.values(edges).map((edge) => {
+            {/* Render only visible edges (tracks) */}
+            {visibleEdges.map((edge) => {
                 const startNode = nodes[edge.startNodeId];
                 const endNode = nodes[edge.endNodeId];
 
@@ -176,7 +192,7 @@ export function TrackLayer() {
                 }
             })}
 
-            {/* Render all nodes (connection points) */}
+            {/* Render all nodes (connection points) - nodes are fewer so no culling needed */}
             {Object.values(nodes).map((node) => {
                 // Switch nodes get special rendering
                 if (node.type === 'switch') {

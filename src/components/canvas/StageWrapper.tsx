@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Stage, Layer } from 'react-konva';
 import type Konva from 'konva';
 import { BackgroundLayer } from './BackgroundLayer';
@@ -279,6 +279,15 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         endDrag();
     }, [screenToWorld, addTrack, connectNodes, endDrag]);
 
+    // Calculate viewport in world coordinates for visibility culling
+    // This determines which tracks need to be rendered based on current view
+    const viewport = useMemo(() => ({
+        x: -pan.x / zoom,
+        y: -pan.y / zoom,
+        width: dimensions.width / zoom,
+        height: dimensions.height / zoom,
+    }), [pan.x, pan.y, zoom, dimensions.width, dimensions.height]);
+
     // Determine cursor based on drag state
     const cursor = draggedPartId ? 'copy' : 'crosshair';
 
@@ -314,9 +323,9 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                     />
                 </Layer>
 
-                {/* Track layer - interactive */}
+                {/* Track layer - interactive, with viewport culling */}
                 <Layer>
-                    <TrackLayer />
+                    <TrackLayer viewport={viewport} />
                 </Layer>
 
                 {/* Ghost layer - drag preview */}

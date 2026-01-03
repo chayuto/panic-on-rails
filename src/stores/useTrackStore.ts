@@ -12,6 +12,12 @@ import type {
 } from '../types';
 import { getPartById, calculateArcLength } from '../data/catalog';
 import { useBudgetStore } from './useBudgetStore';
+import {
+    SpatialHashGrid,
+    boundingBoxFromPoints,
+    boundingBoxFromArc,
+    type BoundingBox
+} from '../utils/spatialHashGrid';
 
 interface TrackState {
     nodes: Record<NodeId, TrackNode>;
@@ -27,6 +33,57 @@ interface TrackActions {
     getOpenEndpoints: () => TrackNode[];
     connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
     toggleSwitch: (nodeId: NodeId) => void;
+    // New spatial query actions
+    getVisibleEdges: (viewport: BoundingBox) => EdgeId[];
+    getVisibleNodes: (viewport: BoundingBox) => NodeId[];
+}
+
+// Non-persisted runtime state - spatial index is rebuilt on hydration
+const spatialIndex = new SpatialHashGrid<EdgeId>(500);
+const nodeIndex = new SpatialHashGrid<NodeId>(500);
+
+/**
+ * Calculate bounding box for a track edge
+ */
+function getEdgeBounds(edge: TrackEdge): BoundingBox {
+    if (edge.geometry.type === 'straight') {
+        const { start, end } = edge.geometry;
+        return boundingBoxFromPoints(start, end, 5);
+    } else {
+        // Arc geometry
+        const { center, radius, startAngle, endAngle } = edge.geometry;
+        return boundingBoxFromArc(center, radius, startAngle, endAngle, 5);
+    }
+}
+
+/**
+ * Calculate bounding box for a node (small circle)
+ */
+function getNodeBounds(node: TrackNode): BoundingBox {
+    return {
+        x: node.position.x - 10,
+        y: node.position.y - 10,
+        width: 20,
+        height: 20,
+    };
+}
+
+/**
+ * Rebuild spatial indices from state
+ */
+function rebuildSpatialIndices(nodes: Record<NodeId, TrackNode>, edges: Record<EdgeId, TrackEdge>): void {
+    spatialIndex.clear();
+    nodeIndex.clear();
+
+    for (const [id, edge] of Object.entries(edges)) {
+        const bounds = getEdgeBounds(edge);
+        spatialIndex.insert(id, bounds, id);
+    }
+
+    for (const [id, node] of Object.entries(nodes)) {
+        const bounds = getNodeBounds(node);
+        nodeIndex.insert(id, bounds, id);
+    }
 }
 
 const initialState: TrackState = {
@@ -115,6 +172,15 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         geometry: { type: 'straight', start: position, end: branchExitPosition },
                         length: branchLength,
                     };
+
+                    // Update spatial index for new edges
+                    spatialIndex.insert(mainEdgeId, getEdgeBounds(mainEdge), mainEdgeId);
+                    spatialIndex.insert(branchEdgeId, getEdgeBounds(branchEdge), branchEdgeId);
+
+                    // Update spatial index for new nodes
+                    nodeIndex.insert(entryNodeId, getNodeBounds(entryNode), entryNodeId);
+                    nodeIndex.insert(mainExitNodeId, getNodeBounds(mainExitNode), mainExitNodeId);
+                    nodeIndex.insert(branchExitNodeId, getNodeBounds(branchExitNode), branchExitNodeId);
 
                     set((state) => ({
                         nodes: {
@@ -220,6 +286,11 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     length,
                 };
 
+                // Update spatial index for new edge and nodes
+                spatialIndex.insert(edgeId, getEdgeBounds(edge), edgeId);
+                nodeIndex.insert(startNodeId, getNodeBounds(startNode), startNodeId);
+                nodeIndex.insert(endNodeId, getNodeBounds(endNode), endNodeId);
+
                 set((state) => ({
                     nodes: {
                         ...state.nodes,
@@ -236,6 +307,9 @@ export const useTrackStore = create<TrackState & TrackActions>()(
             },
 
             removeTrack: (edgeId) => {
+                // Remove from spatial index first
+                spatialIndex.remove(edgeId);
+
                 set((state) => {
                     const edge = state.edges[edgeId];
                     if (!edge) return state;
@@ -253,6 +327,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                             node.connections = node.connections.filter((id) => id !== edgeId);
                             if (node.connections.length === 0) {
                                 delete newNodes[nodeId];
+                                nodeIndex.remove(nodeId);
                             }
                         }
                     });
@@ -262,6 +337,9 @@ export const useTrackStore = create<TrackState & TrackActions>()(
             },
 
             loadLayout: (data) => {
+                // Rebuild spatial indices with loaded data
+                rebuildSpatialIndices(data.nodes, data.edges);
+
                 set({
                     nodes: data.nodes,
                     edges: data.edges,
@@ -271,6 +349,10 @@ export const useTrackStore = create<TrackState & TrackActions>()(
             clearLayout: () => {
                 // Reset budget (refund all spending)
                 useBudgetStore.getState().reset();
+
+                // Clear spatial indices
+                spatialIndex.clear();
+                nodeIndex.clear();
 
                 set(initialState);
             },
@@ -348,8 +430,9 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         type: survivorNode.connections.length >= 1 ? 'junction' : 'endpoint',
                     };
 
-                    // Delete the removed node
+                    // Delete the removed node and remove from spatial index
                     delete newNodes[removedNodeId];
+                    nodeIndex.remove(removedNodeId);
 
                     console.log('[connectNodes] Merge complete:', {
                         totalNodes: Object.keys(newNodes).length,
@@ -390,9 +473,36 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     };
                 });
             },
+
+            /**
+             * Query for visible edges within a viewport rectangle.
+             * Uses spatial hash grid for O(1) performance.
+             */
+            getVisibleEdges: (viewport: BoundingBox): EdgeId[] => {
+                return spatialIndex.queryIds(viewport);
+            },
+
+            /**
+             * Query for visible nodes within a viewport rectangle.
+             * Uses spatial hash grid for O(1) performance.
+             */
+            getVisibleNodes: (viewport: BoundingBox): NodeId[] => {
+                return nodeIndex.queryIds(viewport);
+            },
         }),
         {
             name: 'panic-on-rails-v1',
+            // Rebuild spatial indices after hydration
+            onRehydrateStorage: () => (state) => {
+                if (state) {
+                    rebuildSpatialIndices(state.nodes, state.edges);
+                    console.log('[useTrackStore] Spatial indices rebuilt after hydration');
+                }
+            },
         }
     )
 );
+
+// Export helper functions for use in other components
+export { getEdgeBounds, getNodeBounds };
+export type { BoundingBox };
