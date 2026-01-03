@@ -1,0 +1,72 @@
+/* ============================================
+   Debug Overlay Styles
+   Terminal aesthetic for developer debug panel
+   ============================================ */
+
+.debug-overlay {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ff00;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 0, 0.5);
+    z-index: 9999;
+    min-width: 160px;
+    user-select: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    font-weight: bold;
+}
+
+.debug-header button {
+    background: none;
+    border: none;
+    color: #00ff00;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.debug-header button:hover {
+    opacity: 1;
+    background: transparent;
+}
+
+.debug-section {
+    margin: 4px 0;
+}
+
+.debug-separator {
+    border-top: 1px dashed rgba(0, 255, 0, 0.2);
+    margin: 6px 0;
+}
+
+.debug-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.debug-label {
+    color: rgba(0, 255, 0, 0.7);
+}
+
+.debug-value {
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+}

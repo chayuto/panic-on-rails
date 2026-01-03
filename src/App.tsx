@@ -1,6 +1,7 @@
 import { StageWrapper } from './components/canvas/StageWrapper';
 import { Toolbar } from './components/ui/Toolbar';
 import { PartsBin } from './components/ui/PartsBin';
+import { DebugOverlay } from './components/ui/DebugOverlay';
 
 function App() {
     return (
@@ -10,6 +11,7 @@ function App() {
                 <PartsBin />
                 <StageWrapper />
             </main>
+            <DebugOverlay />
         </div>
     );
 }
