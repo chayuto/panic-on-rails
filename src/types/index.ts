@@ -108,7 +108,7 @@ export interface LayoutData {
 // Editor State
 // ===========================
 
-export type EditorMode = 'edit' | 'simulate' | 'sensor' | 'signal' | 'wire';
+export type EditorMode = 'edit' | 'simulate' | 'sensor' | 'signal' | 'wire' | 'delete';
 
 export interface SnapResult {
     targetNode: TrackNode | null;

@@ -35,12 +35,13 @@ function transformToPart(
             defaultCost = Math.max(200, Math.round(jsonPart.length * 2));
             break;
 
-        case 'curve':
+        case 'curve': {
             geometry = { type: 'curve', radius: jsonPart.radius, angle: jsonPart.angle };
             // Default cost: based on arc length + radius premium
             const arcLength = calculateArcLength(jsonPart.radius, jsonPart.angle);
             defaultCost = Math.max(300, Math.round(arcLength * 2 + jsonPart.radius * 0.5));
             break;
+        }
 
         case 'switch':
             geometry = {

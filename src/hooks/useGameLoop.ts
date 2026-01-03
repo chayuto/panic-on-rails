@@ -250,7 +250,7 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [isRunning, updateTrains]);
+    }, [isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
 
     // Return position calculator for TrainLayer
     return { getPositionOnEdge };
