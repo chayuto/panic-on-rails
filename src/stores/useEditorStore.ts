@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EdgeId, PartId, EditorMode, Vector2, NodeId, SensorId, SignalId } from '../types';
+import type { EdgeId, PartId, Vector2, NodeId, SensorId, SignalId } from '../types';
 
 // Snap result when near an open endpoint
 export interface SnapResult {
@@ -10,8 +10,7 @@ export interface SnapResult {
 }
 
 interface EditorState {
-    // Mode
-    mode: EditorMode;
+    // Selection state
     selectedEdgeId: EdgeId | null;
     selectedPartId: PartId;
     selectedSystem: 'n-scale' | 'wooden';
@@ -39,8 +38,7 @@ interface EditorState {
 }
 
 interface EditorActions {
-    // Mode actions
-    setMode: (mode: EditorMode) => void;
+    // Selection actions
     setSelectedEdge: (edgeId: EdgeId | null) => void;
     setSelectedPart: (partId: PartId) => void;
     setSelectedSystem: (system: 'n-scale' | 'wooden') => void;
@@ -65,7 +63,6 @@ interface EditorActions {
 }
 
 const initialState: EditorState = {
-    mode: 'edit',
     selectedEdgeId: null,
     selectedPartId: 'kato-20-000',
     selectedSystem: 'n-scale',
@@ -84,8 +81,7 @@ const initialState: EditorState = {
 export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
     ...initialState,
 
-    // Mode actions
-    setMode: (mode) => set({ mode, wireSource: null }), // Clear wire source when changing modes
+    // Selection actions
     setSelectedEdge: (edgeId) => set({ selectedEdgeId: edgeId }),
     setSelectedPart: (partId) => set({ selectedPartId: partId }),
     setSelectedSystem: (system) => set({ selectedSystem: system }),

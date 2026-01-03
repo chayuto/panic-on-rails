@@ -8,6 +8,7 @@ import { Group, Circle, Line } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useModeStore, useIsSimulating } from '../../stores/useModeStore';
 import { playSound } from '../../utils/audioManager';
 import type { Signal } from '../../types';
 
@@ -19,7 +20,9 @@ const SIGNAL_RADIUS = 8;
 function SignalEntity({ signal }: { signal: Signal }) {
     const { nodes } = useTrackStore();
     const { toggleSignal, removeSignal, addWire } = useLogicStore();
-    const { mode, wireSource, setWireSource, clearWireSource } = useEditorStore();
+    const { wireSource, setWireSource, clearWireSource } = useEditorStore();
+    const { editSubMode } = useModeStore();
+    const isSimulating = useIsSimulating();
 
     const node = nodes[signal.nodeId];
     if (!node) return null;
@@ -40,13 +43,14 @@ function SignalEntity({ signal }: { signal: Signal }) {
     }
 
     const handleClick = () => {
-        if (mode === 'signal') {
+        if (editSubMode === 'signal') {
             // In signal mode, clicking removes the signal
             removeSignal(signal.id);
-        } else if (mode === 'edit' || mode === 'simulate') {
+        } else if (editSubMode === 'select' || isSimulating) {
+            // In select mode or simulate mode, clicking toggles the signal
             toggleSignal(signal.id);
             playSound('switch');
-        } else if (mode === 'wire') {
+        } else if (editSubMode === 'wire') {
             if (wireSource) {
                 // If we have a source, create wire to this signal
                 addWire(

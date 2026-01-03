@@ -7,7 +7,7 @@
 import { Group, Line } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
-import { useEditorStore } from '../../stores/useEditorStore';
+import { useModeStore } from '../../stores/useModeStore';
 import type { Wire, Sensor, Signal, Vector2, TrackEdge } from '../../types';
 
 const WIRE_COLOR_ACTIVE = '#FFD93D';
@@ -97,7 +97,7 @@ function getTargetPosition(
 function WireEntity({ wire }: { wire: Wire }) {
     const { sensors, signals, removeWire } = useLogicStore();
     const { edges, nodes } = useTrackStore();
-    const { mode } = useEditorStore();
+    const { editSubMode } = useModeStore();
 
     const sourcePos = getSourcePosition(wire, sensors, signals, edges, nodes);
     const targetPos = getTargetPosition(wire, signals, nodes);
@@ -126,7 +126,8 @@ function WireEntity({ wire }: { wire: Wire }) {
     const color = isActive ? WIRE_COLOR_ACTIVE : WIRE_COLOR_INACTIVE;
 
     const handleClick = () => {
-        if (mode === 'wire') {
+        // Only allow wire removal in wire mode
+        if (editSubMode === 'wire') {
             removeWire(wire.id);
         }
     };
@@ -162,10 +163,10 @@ function WireEntity({ wire }: { wire: Wire }) {
  */
 export function WireLayer() {
     const { wires } = useLogicStore();
-    const { mode } = useEditorStore();
+    const { primaryMode, editSubMode } = useModeStore();
 
-    // Only show wires in wire mode or when actively editing
-    const showWires = mode === 'wire' || mode === 'edit' || mode === 'simulate';
+    // Show wires in wire mode, select mode, or simulate mode
+    const showWires = editSubMode === 'wire' || editSubMode === 'select' || primaryMode === 'simulate';
     if (!showWires) return null;
 
     return (

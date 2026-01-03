@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useModeStore } from '../../stores/useModeStore';
 import { exportLayout, importLayout } from '../../utils/fileManager';
 import { isMuted, toggleMute } from '../../utils/audioManager';
 import { BudgetTicker } from './BudgetTicker';
@@ -31,7 +32,8 @@ export function Toolbar() {
 
     const { getLayout, loadLayout, clearLayout, edges } = useTrackStore();
     const { isRunning, toggleRunning, spawnTrain, clearTrains, setRunning } = useSimulationStore();
-    const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId, mode } = useEditorStore();
+    const { toggleGrid, showGrid, resetView, selectedEdgeId } = useEditorStore();
+    const { editSubMode, setEditSubMode, enterEditMode, enterSimulateMode } = useModeStore();
 
     // Template state
     const [templates, setTemplates] = useState<TemplateMetadata[]>([]);
@@ -129,8 +131,13 @@ export function Toolbar() {
             }
         }
         toggleRunning();
-        setMode(isRunning ? 'edit' : 'simulate');
-    }, [isRunning, edges, spawnTrain, toggleRunning, setMode]);
+        // Switch mode based on new running state
+        if (isRunning) {
+            enterEditMode();
+        } else {
+            enterSimulateMode();
+        }
+    }, [isRunning, edges, spawnTrain, toggleRunning, enterEditMode, enterSimulateMode]);
 
     return (
         <header className="toolbar">
@@ -183,36 +190,36 @@ export function Toolbar() {
 
                 {/* Logic tools */}
                 <button
-                    onClick={() => setMode('sensor')}
-                    className={mode === 'sensor' ? 'active' : ''}
+                    onClick={() => setEditSubMode('sensor')}
+                    className={editSubMode === 'sensor' ? 'active' : ''}
                     title="Sensor Tool - Place sensors on tracks"
                 >
                     📡 Sensor
                 </button>
                 <button
-                    onClick={() => setMode('signal')}
-                    className={mode === 'signal' ? 'active' : ''}
+                    onClick={() => setEditSubMode('signal')}
+                    className={editSubMode === 'signal' ? 'active' : ''}
                     title="Signal Tool - Place signals at nodes"
                 >
                     🚦 Signal
                 </button>
                 <button
-                    onClick={() => setMode('wire')}
-                    className={mode === 'wire' ? 'active' : ''}
+                    onClick={() => setEditSubMode('wire')}
+                    className={editSubMode === 'wire' ? 'active' : ''}
                     title="Wire Tool - Connect sensors to switches/signals"
                 >
                     🔌 Wire
                 </button>
                 <button
-                    onClick={() => setMode('delete')}
-                    className={mode === 'delete' ? 'active' : ''}
+                    onClick={() => setEditSubMode('delete')}
+                    className={editSubMode === 'delete' ? 'active' : ''}
                     title="Delete Tool - Click tracks to remove them"
                 >
                     🗑️ Delete
                 </button>
                 <button
-                    onClick={() => setMode('edit')}
-                    className={mode === 'edit' ? 'active' : ''}
+                    onClick={() => setEditSubMode('select')}
+                    className={editSubMode === 'select' ? 'active' : ''}
                     title="Edit Mode - Normal track editing"
                 >
                     ✏️ Edit

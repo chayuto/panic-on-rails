@@ -4,6 +4,7 @@ import type Konva from 'konva';
 import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useLogicStore } from '../../stores/useLogicStore';
+import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { playSound } from '../../utils/audioManager';
 import type { TrackEdge, Vector2 } from '../../types';
@@ -23,8 +24,10 @@ interface TrackLayerProps {
 
 export function TrackLayer({ viewport }: TrackLayerProps) {
     const { nodes, edges, toggleSwitch, removeTrack } = useTrackStore();
-    const { selectedEdgeId, setSelectedEdge, mode, wireSource, clearWireSource } = useEditorStore();
+    const { selectedEdgeId, setSelectedEdge, wireSource, clearWireSource } = useEditorStore();
     const { addSensor, addSignal, addWire } = useLogicStore();
+    const { editSubMode } = useModeStore();
+    const isEditing = useIsEditing();
 
     // Get visible edge IDs from spatial index
     const visibleEdgeIds = useVisibleEdges(viewport);
@@ -53,12 +56,15 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     };
 
     const handleEdgeClick = (edgeId: string, e: Konva.KonvaEventObject<Event>) => {
-        if (mode === 'edit') {
+        // Only handle clicks in edit mode
+        if (!isEditing) return;
+
+        if (editSubMode === 'select') {
             setSelectedEdge(selectedEdgeId === edgeId ? null : edgeId);
-        } else if (mode === 'delete') {
+        } else if (editSubMode === 'delete') {
             removeTrack(edgeId);
             playSound('switch');
-        } else if (mode === 'sensor') {
+        } else if (editSubMode === 'sensor') {
             // Get click position in stage coordinates
             const stage = e.target.getStage();
             if (!stage) return;
@@ -80,13 +86,16 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     };
 
     const handleSwitchClick = (nodeId: string) => {
-        if (mode === 'edit') {
+        // Only handle clicks in edit mode
+        if (!isEditing) return;
+
+        if (editSubMode === 'select') {
             toggleSwitch(nodeId);
             playSound('switch');
-        } else if (mode === 'signal') {
+        } else if (editSubMode === 'signal') {
             addSignal(nodeId);
             playSound('switch');
-        } else if (mode === 'wire') {
+        } else if (editSubMode === 'wire') {
             // Switches can be wire targets
             if (wireSource) {
                 addWire(
@@ -103,7 +112,10 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     };
 
     const handleNodeClick = (nodeId: string) => {
-        if (mode === 'signal') {
+        // Only handle clicks in edit mode
+        if (!isEditing) return;
+
+        if (editSubMode === 'signal') {
             addSignal(nodeId);
             playSound('switch');
         }

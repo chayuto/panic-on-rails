@@ -9,6 +9,7 @@ import { Group, Rect, Text } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useModeStore } from '../../stores/useModeStore';
 import type { Sensor, TrackEdge, Vector2 } from '../../types';
 
 const SENSOR_HEIGHT = 12;
@@ -51,7 +52,8 @@ function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; 
 function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boolean }) {
     const { edges } = useTrackStore();
     const { removeSensor } = useLogicStore();
-    const { mode, wireSource, setWireSource } = useEditorStore();
+    const { wireSource, setWireSource } = useEditorStore();
+    const { editSubMode } = useModeStore();
 
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
@@ -67,10 +69,10 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     }
 
     const handleClick = () => {
-        if (mode === 'sensor') {
+        if (editSubMode === 'sensor') {
             // In sensor mode, clicking removes the sensor
             removeSensor(sensor.id);
-        } else if (mode === 'wire') {
+        } else if (editSubMode === 'wire') {
             // In wire mode, clicking selects this sensor as wire source
             setWireSource({ type: 'sensor', id: sensor.id });
         }
@@ -99,7 +101,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
                 shadowBlur={sensor.state === 'on' ? 10 : 0}
             />
             {/* Sensor label (only in sensor mode) */}
-            {mode === 'sensor' && (
+            {editSubMode === 'sensor' && (
                 <Text
                     x={-sensor.length / 2}
                     y={-SENSOR_HEIGHT / 2 - 14}
