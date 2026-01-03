@@ -223,6 +223,40 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
                     // Merge the closer node with the snap target
                     connectNodes(snapTarget.targetNodeId, nodeToRemove, newEdgeId);
 
+                    // Check if the OTHER end of new track is also near an existing endpoint
+                    const otherNewNodeId = nodeToRemove === newEdge.startNodeId
+                        ? newEdge.endNodeId
+                        : newEdge.startNodeId;
+
+                    // Re-fetch state after first merge
+                    const updatedState = useTrackStore.getState();
+                    const otherNewNode = updatedState.nodes[otherNewNodeId];
+
+                    if (otherNewNode) {
+                        // Find open endpoints (excluding the one we just merged and the other new node)
+                        const remainingEndpoints = updatedState.getOpenEndpoints().filter(
+                            ep => ep.id !== snapTarget.targetNodeId && ep.id !== otherNewNodeId
+                        );
+
+                        // Check for nearby endpoint
+                        const MERGE_THRESHOLD = 5; // pixels
+                        const nearbyEndpoint = remainingEndpoints.find(ep => {
+                            const dist = Math.hypot(
+                                ep.position.x - otherNewNode.position.x,
+                                ep.position.y - otherNewNode.position.y
+                            );
+                            return dist < MERGE_THRESHOLD;
+                        });
+
+                        if (nearbyEndpoint) {
+                            console.log('[useEditModeHandler] Also connecting other end:', {
+                                survivorNodeId: nearbyEndpoint.id.slice(0, 8),
+                                nodeToRemove: otherNewNodeId.slice(0, 8),
+                            });
+                            connectNodes(nearbyEndpoint.id, otherNewNodeId, newEdgeId);
+                        }
+                    }
+
                     // Play snap sound based on track system
                     const { selectedSystem: currentSystem } = useEditorStore.getState();
                     playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
