@@ -227,17 +227,17 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
                             ep.position.y - newNode.position.y
                         );
                         if (dist < MERGE_THRESHOLD && dist < nearestDist) {
-                            // Special case: if nodes are essentially at same position (< 1px),
-                            // merge regardless of angle - this is clearly intentional
-                            const skipAngleCheck = dist < 1;
+                            // Forgiving merge logic for close placements:
+                            // - Very close (< 3px): skip angle check entirely - clearly intentional
+                            // - Close (3-10px): use 45° tolerance to catch arc misalignments
+                            const skipAngleCheck = dist < 3;
 
-                            // Otherwise check angle compatibility: nodes should face EACH OTHER (~180° apart)
                             let angleOk = skipAngleCheck;
                             if (!skipAngleCheck) {
                                 let rotDiff = Math.abs(ep.rotation - newNode.rotation);
                                 if (rotDiff > 180) rotDiff = 360 - rotDiff; // Normalize to [0, 180]
                                 const facingError = Math.abs(rotDiff - 180); // How far from facing each other
-                                angleOk = facingError < 15; // 15 degree tolerance
+                                angleOk = facingError < 45; // 45 degree tolerance for near-misses
                             }
 
                             if (angleOk) {

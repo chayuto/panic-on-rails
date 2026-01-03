@@ -6,22 +6,15 @@ import type { TrackNode, NodeId } from '../types';
 const SNAP_CONFIG = {
     'n-scale': {
         radius: 30,      // pixels
-        maxAngle: 5,     // degrees
+        maxAngle: 30,    // degrees - increased from 5 to work with curves
     },
     'wooden': {
         radius: 40,      // pixels (more forgiving)
-        maxAngle: 15,    // degrees (looser tolerance)
+        maxAngle: 45,    // degrees - increased from 15 to work with curves
     },
 };
 
-/**
- * Find the shortest angle difference between two angles (in degrees)
- */
-function shortestAngleDiff(a: number, b: number): number {
-    let diff = ((b - a + 180) % 360) - 180;
-    if (diff < -180) diff += 360;
-    return diff;
-}
+
 
 /**
  * Calculate distance between two points
@@ -50,7 +43,7 @@ export function findOpenEndpoints(nodes: Record<NodeId, TrackNode>): TrackNode[]
  */
 export function findSnapTarget(
     ghostConnectorPosition: Vector2,
-    ghostConnectorRotation: number,
+    _ghostConnectorRotation: number, // Kept for API compatibility but not used for filtering
     openEndpoints: TrackNode[],
     system: 'n-scale' | 'wooden'
 ): SnapResult | null {
@@ -66,15 +59,10 @@ export function findSnapTarget(
         // Skip if outside snap radius
         if (dist > config.radius) continue;
 
-        // Check angle compatibility
-        // For a valid connection, angles should be ~180 degrees apart
-        // (one faces "into" the other)
-        const expectedAngle = (ghostConnectorRotation + 180) % 360;
-        const angleDiff = Math.abs(shortestAngleDiff(expectedAngle, endpoint.rotation));
+        // No angle check - we auto-rotate to match the target
+        // This allows snapping from any angle and the ghost will rotate to fit
 
-        if (angleDiff > config.maxAngle) continue;
-
-        // This is a valid snap candidate
+        // This is a valid snap candidate - pick closest
         if (dist < bestDistance) {
             bestDistance = dist;
             bestMatch = {
