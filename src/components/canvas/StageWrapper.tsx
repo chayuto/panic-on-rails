@@ -9,13 +9,10 @@ import { SensorLayer } from './SensorLayer';
 import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
 import { useEditorStore } from '../../stores/useEditorStore';
-import { useTrackStore } from '../../stores/useTrackStore';
-import { useBudgetStore } from '../../stores/useBudgetStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
-import { findBestSnapForTrack } from '../../utils/snapManager';
-import { initAudio, playSound } from '../../utils/audioManager';
-import { getPartById } from '../../data/catalog';
+import { useEditModeHandler } from '../../hooks/useEditModeHandler';
+import { initAudio } from '../../utils/audioManager';
 
 interface StageWrapperProps {
     width?: number;
@@ -29,11 +26,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     const {
         zoom, pan, setZoom, setPan, showGrid,
-        draggedPartId, ghostPosition, userRotation, updateGhost, setSnapTarget, endDrag, selectedSystem,
-        rotateGhostCW, rotateGhostCCW
+        draggedPartId, ghostPosition
     } = useEditorStore();
-
-    const { addTrack, getOpenEndpoints, connectNodes } = useTrackStore();
 
     // Mode hooks for conditional rendering
     const isEditing = useIsEditing();
@@ -64,7 +58,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     useEffect(() => {
         const handleUserInteraction = () => {
             initAudio();
-            // Remove listener after first interaction
             window.removeEventListener('click', handleUserInteraction);
             window.removeEventListener('keydown', handleUserInteraction);
         };
@@ -78,24 +71,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         };
     }, []);
 
-    // Keyboard rotation during drag (R = clockwise, Shift+R = counter-clockwise)
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (!draggedPartId) return;
-            if (e.key.toLowerCase() === 'r') {
-                e.preventDefault();
-                if (e.shiftKey) {
-                    rotateGhostCCW();
-                } else {
-                    rotateGhostCW();
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [draggedPartId, rotateGhostCW, rotateGhostCCW]);
-
     // Convert screen coordinates to world coordinates
     const screenToWorld = useCallback((screenX: number, screenY: number) => {
         const rect = containerRef.current?.getBoundingClientRect();
@@ -105,6 +80,17 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         const y = (screenY - rect.top - pan.y) / zoom;
         return { x, y };
     }, [pan, zoom]);
+
+    // ========================================
+    // Edit mode handlers (extracted to hook)
+    // ========================================
+    const { handleDragOver, handleDragLeave, handleDrop } = useEditModeHandler({
+        screenToWorld,
+    });
+
+    // ========================================
+    // Canvas event handlers
+    // ========================================
 
     // Mouse wheel zoom
     const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -141,172 +127,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         }
     }, [setPan]);
 
-    // ========================================
-    // Drag-and-drop from Parts Bin
-    // ========================================
-
-    const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-
-        if (!draggedPartId) return;
-
-        const worldPos = screenToWorld(e.clientX, e.clientY);
-
-        // Get the part to determine connector position
-        const part = getPartById(draggedPartId);
-        if (!part) return;
-
-        // Use user's intended rotation for finding snap targets
-        const currentRotation = userRotation;
-
-        // Find snap target
-        const openEndpoints = getOpenEndpoints();
-        const bestSnap = findBestSnapForTrack(
-            worldPos,
-            currentRotation,
-            part,
-            openEndpoints,
-            selectedSystem
-        );
-
-        // Update ghost position and snap state
-        if (bestSnap) {
-            // Apply the best snap transform (which correctly handles Start vs End snapping)
-            updateGhost(bestSnap.ghostPosition, bestSnap.ghostRotation, true);
-            setSnapTarget(bestSnap.snap);
-        } else {
-            updateGhost(worldPos, currentRotation, true);
-            setSnapTarget(null);
-        }
-    }, [draggedPartId, userRotation, screenToWorld, getOpenEndpoints, selectedSystem, updateGhost, setSnapTarget]);
-
-    const handleDragLeave = useCallback(() => {
-        updateGhost(null);
-        setSnapTarget(null);
-    }, [updateGhost, setSnapTarget]);
-
-    const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-
-        const partId = e.dataTransfer.getData('application/x-part-id');
-        if (!partId) {
-            endDrag();
-            return;
-        }
-
-        // Get part to check cost
-        const part = getPartById(partId);
-        if (!part) {
-            console.error('[handleDrop] Part not found:', partId);
-            endDrag();
-            return;
-        }
-
-        // Check budget using imported store
-        const budgetStore = useBudgetStore.getState();
-
-        if (!budgetStore.canAfford(part.cost)) {
-            console.warn('[handleDrop] Insufficient budget for:', {
-                part: part.name,
-                cost: part.cost,
-                balance: budgetStore.balance,
-            });
-            playSound('bounce'); // Rejection sound
-            endDrag();
-            return;
-        }
-
-        const worldPos = screenToWorld(e.clientX, e.clientY);
-
-        // Get current snap state
-        const { snapTarget, ghostRotation, ghostPosition } = useEditorStore.getState();
-
-        console.log('[handleDrop] Drop initiated:', {
-            partId,
-            worldPos,
-            hasSnapTarget: !!snapTarget,
-            ghostRotation,
-        });
-
-        // Determine final position and rotation
-        let finalPosition = worldPos;
-        let finalRotation = userRotation;
-
-        if (snapTarget && ghostPosition) {
-            // Use the calculated ghost position/rotation from the snap
-            // This handles both Head-to-Head and Tail-to-Head snaps correctly
-            finalPosition = ghostPosition;
-            finalRotation = ghostRotation;
-
-            console.log('[handleDrop] Snapping using ghost transform:', {
-                targetNodeId: snapTarget.targetNodeId.slice(0, 8),
-                finalPosition,
-                finalRotation,
-            });
-        }
-
-        // Spend the budget
-        budgetStore.spend(part.cost);
-
-        // Add the track
-        const newEdgeId = addTrack(partId, finalPosition, finalRotation);
-        console.log('[handleDrop] Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
-
-        // If we snapped to an existing node, connect them
-        if (newEdgeId && snapTarget) {
-            // Get the new edge and its nodes to find which end to connect
-            const { edges, nodes } = useTrackStore.getState();
-            const newEdge = edges[newEdgeId];
-            if (newEdge) {
-                const startNode = nodes[newEdge.startNodeId];
-                const endNode = nodes[newEdge.endNodeId];
-
-                if (startNode && endNode) {
-                    // Calculate distance from each node to the snap target position
-                    const distToStart = Math.hypot(
-                        startNode.position.x - snapTarget.targetPosition.x,
-                        startNode.position.y - snapTarget.targetPosition.y
-                    );
-                    const distToEnd = Math.hypot(
-                        endNode.position.x - snapTarget.targetPosition.x,
-                        endNode.position.y - snapTarget.targetPosition.y
-                    );
-
-                    // The node closer to snap target is the one that should be merged
-                    const nodeToRemove = distToStart < distToEnd ? newEdge.startNodeId : newEdge.endNodeId;
-
-                    console.log('[handleDrop] Connecting nodes:', {
-                        survivorNodeId: snapTarget.targetNodeId.slice(0, 8),
-                        nodeToRemove: nodeToRemove.slice(0, 8),
-                        distToStart,
-                        distToEnd,
-                        selectedNode: distToStart < distToEnd ? 'start' : 'end',
-                    });
-
-                    // Merge the closer node with the snap target
-                    connectNodes(snapTarget.targetNodeId, nodeToRemove, newEdgeId);
-
-                    // Play snap sound based on track system
-                    const { selectedSystem } = useEditorStore.getState();
-                    playSound(selectedSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
-
-                    // Log final state
-                    const finalState = useTrackStore.getState();
-                    console.log('[handleDrop] Final state:', {
-                        nodeCount: Object.keys(finalState.nodes).length,
-                        edgeCount: Object.keys(finalState.edges).length,
-                    });
-                }
-            }
-        }
-
-        // Clean up drag state
-        endDrag();
-    }, [screenToWorld, addTrack, connectNodes, endDrag]);
-
     // Calculate viewport in world coordinates for visibility culling
-    // This determines which tracks need to be rendered based on current view
     const viewport = useMemo(() => ({
         x: -pan.x / zoom,
         y: -pan.y / zoom,
