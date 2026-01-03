@@ -1,0 +1,272 @@
+{
+    "version": 1,
+    "template": {
+        "id": "simple-oval",
+        "name": "Simple Oval",
+        "description": "A basic oval loop - perfect for beginners. Watch the train go round and round!",
+        "difficulty": "beginner",
+        "system": "n-scale",
+        "estimatedCost": 4960,
+        "partCount": 8,
+        "trainCount": 1
+    },
+    "layout": {
+        "version": 1,
+        "metadata": {
+            "name": "Simple Oval",
+            "created": "2026-01-03T00:00:00Z"
+        },
+        "nodes": {
+            "n1": {
+                "id": "n1",
+                "position": {
+                    "x": 500,
+                    "y": 300
+                },
+                "rotation": 270,
+                "connections": [
+                    "e1",
+                    "e8"
+                ],
+                "type": "junction"
+            },
+            "n2": {
+                "id": "n2",
+                "position": {
+                    "x": 676,
+                    "y": 373
+                },
+                "rotation": 315,
+                "connections": [
+                    "e1",
+                    "e2"
+                ],
+                "type": "junction"
+            },
+            "n3": {
+                "id": "n3",
+                "position": {
+                    "x": 749,
+                    "y": 549
+                },
+                "rotation": 0,
+                "connections": [
+                    "e2",
+                    "e3"
+                ],
+                "type": "junction"
+            },
+            "n4": {
+                "id": "n4",
+                "position": {
+                    "x": 676,
+                    "y": 725
+                },
+                "rotation": 45,
+                "connections": [
+                    "e3",
+                    "e4"
+                ],
+                "type": "junction"
+            },
+            "n5": {
+                "id": "n5",
+                "position": {
+                    "x": 500,
+                    "y": 798
+                },
+                "rotation": 90,
+                "connections": [
+                    "e4",
+                    "e5"
+                ],
+                "type": "junction"
+            },
+            "n6": {
+                "id": "n6",
+                "position": {
+                    "x": 324,
+                    "y": 725
+                },
+                "rotation": 135,
+                "connections": [
+                    "e5",
+                    "e6"
+                ],
+                "type": "junction"
+            },
+            "n7": {
+                "id": "n7",
+                "position": {
+                    "x": 251,
+                    "y": 549
+                },
+                "rotation": 180,
+                "connections": [
+                    "e6",
+                    "e7"
+                ],
+                "type": "junction"
+            },
+            "n8": {
+                "id": "n8",
+                "position": {
+                    "x": 324,
+                    "y": 373
+                },
+                "rotation": 225,
+                "connections": [
+                    "e7",
+                    "e8"
+                ],
+                "type": "junction"
+            }
+        },
+        "edges": {
+            "e1": {
+                "id": "e1",
+                "partId": "kato-20-100",
+                "startNodeId": "n1",
+                "endNodeId": "n2",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": -1.5708,
+                    "endAngle": -0.7854
+                },
+                "length": 195
+            },
+            "e2": {
+                "id": "e2",
+                "partId": "kato-20-100",
+                "startNodeId": "n2",
+                "endNodeId": "n3",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": -0.7854,
+                    "endAngle": 0
+                },
+                "length": 195
+            },
+            "e3": {
+                "id": "e3",
+                "partId": "kato-20-100",
+                "startNodeId": "n3",
+                "endNodeId": "n4",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 0,
+                    "endAngle": 0.7854
+                },
+                "length": 195
+            },
+            "e4": {
+                "id": "e4",
+                "partId": "kato-20-100",
+                "startNodeId": "n4",
+                "endNodeId": "n5",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 0.7854,
+                    "endAngle": 1.5708
+                },
+                "length": 195
+            },
+            "e5": {
+                "id": "e5",
+                "partId": "kato-20-100",
+                "startNodeId": "n5",
+                "endNodeId": "n6",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 1.5708,
+                    "endAngle": 2.3562
+                },
+                "length": 195
+            },
+            "e6": {
+                "id": "e6",
+                "partId": "kato-20-100",
+                "startNodeId": "n6",
+                "endNodeId": "n7",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 2.3562,
+                    "endAngle": 3.1416
+                },
+                "length": 195
+            },
+            "e7": {
+                "id": "e7",
+                "partId": "kato-20-100",
+                "startNodeId": "n7",
+                "endNodeId": "n8",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 3.1416,
+                    "endAngle": 3.927
+                },
+                "length": 195
+            },
+            "e8": {
+                "id": "e8",
+                "partId": "kato-20-100",
+                "startNodeId": "n8",
+                "endNodeId": "n1",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 249,
+                    "startAngle": 3.927,
+                    "endAngle": 4.7124
+                },
+                "length": 195
+            }
+        }
+    },
+    "trains": [
+        {
+            "edgeId": "e1",
+            "position": 50,
+            "direction": 1,
+            "color": "#E53935"
+        }
+    ]
+}

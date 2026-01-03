@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "templates": [
+        {
+            "id": "simple-oval",
+            "name": "Simple Oval",
+            "description": "A basic oval loop - perfect for beginners",
+            "difficulty": "beginner",
+            "system": "n-scale",
+            "estimatedCost": 4960,
+            "partCount": 8,
+            "trainCount": 1
+        },
+        {
+            "id": "wooden-starter",
+            "name": "Wooden Starter",
+            "description": "A simple wooden railway loop for little engineers",
+            "difficulty": "beginner",
+            "system": "wooden",
+            "estimatedCost": 2400,
+            "partCount": 8,
+            "trainCount": 1
+        }
+    ]
+}

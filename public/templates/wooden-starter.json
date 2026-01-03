@@ -1,0 +1,272 @@
+{
+    "version": 1,
+    "template": {
+        "id": "wooden-starter",
+        "name": "Wooden Starter",
+        "description": "A simple wooden railway loop for little engineers",
+        "difficulty": "beginner",
+        "system": "wooden",
+        "estimatedCost": 2400,
+        "partCount": 8,
+        "trainCount": 1
+    },
+    "layout": {
+        "version": 1,
+        "metadata": {
+            "name": "Wooden Starter",
+            "created": "2026-01-03T00:00:00Z"
+        },
+        "nodes": {
+            "n1": {
+                "id": "n1",
+                "position": {
+                    "x": 500,
+                    "y": 367
+                },
+                "rotation": 270,
+                "connections": [
+                    "e1",
+                    "e8"
+                ],
+                "type": "junction"
+            },
+            "n2": {
+                "id": "n2",
+                "position": {
+                    "x": 629,
+                    "y": 420
+                },
+                "rotation": 315,
+                "connections": [
+                    "e1",
+                    "e2"
+                ],
+                "type": "junction"
+            },
+            "n3": {
+                "id": "n3",
+                "position": {
+                    "x": 682,
+                    "y": 549
+                },
+                "rotation": 0,
+                "connections": [
+                    "e2",
+                    "e3"
+                ],
+                "type": "junction"
+            },
+            "n4": {
+                "id": "n4",
+                "position": {
+                    "x": 629,
+                    "y": 678
+                },
+                "rotation": 45,
+                "connections": [
+                    "e3",
+                    "e4"
+                ],
+                "type": "junction"
+            },
+            "n5": {
+                "id": "n5",
+                "position": {
+                    "x": 500,
+                    "y": 731
+                },
+                "rotation": 90,
+                "connections": [
+                    "e4",
+                    "e5"
+                ],
+                "type": "junction"
+            },
+            "n6": {
+                "id": "n6",
+                "position": {
+                    "x": 371,
+                    "y": 678
+                },
+                "rotation": 135,
+                "connections": [
+                    "e5",
+                    "e6"
+                ],
+                "type": "junction"
+            },
+            "n7": {
+                "id": "n7",
+                "position": {
+                    "x": 318,
+                    "y": 549
+                },
+                "rotation": 180,
+                "connections": [
+                    "e6",
+                    "e7"
+                ],
+                "type": "junction"
+            },
+            "n8": {
+                "id": "n8",
+                "position": {
+                    "x": 371,
+                    "y": 420
+                },
+                "rotation": 225,
+                "connections": [
+                    "e7",
+                    "e8"
+                ],
+                "type": "junction"
+            }
+        },
+        "edges": {
+            "e1": {
+                "id": "e1",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n1",
+                "endNodeId": "n2",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": -1.5708,
+                    "endAngle": -0.7854
+                },
+                "length": 143
+            },
+            "e2": {
+                "id": "e2",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n2",
+                "endNodeId": "n3",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": -0.7854,
+                    "endAngle": 0
+                },
+                "length": 143
+            },
+            "e3": {
+                "id": "e3",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n3",
+                "endNodeId": "n4",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 0,
+                    "endAngle": 0.7854
+                },
+                "length": 143
+            },
+            "e4": {
+                "id": "e4",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n4",
+                "endNodeId": "n5",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 0.7854,
+                    "endAngle": 1.5708
+                },
+                "length": 143
+            },
+            "e5": {
+                "id": "e5",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n5",
+                "endNodeId": "n6",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 1.5708,
+                    "endAngle": 2.3562
+                },
+                "length": 143
+            },
+            "e6": {
+                "id": "e6",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n6",
+                "endNodeId": "n7",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 2.3562,
+                    "endAngle": 3.1416
+                },
+                "length": 143
+            },
+            "e7": {
+                "id": "e7",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n7",
+                "endNodeId": "n8",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 3.1416,
+                    "endAngle": 3.927
+                },
+                "length": 143
+            },
+            "e8": {
+                "id": "e8",
+                "partId": "wooden-curve-large",
+                "startNodeId": "n8",
+                "endNodeId": "n1",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 500,
+                        "y": 549
+                    },
+                    "radius": 182,
+                    "startAngle": 3.927,
+                    "endAngle": 4.7124
+                },
+                "length": 143
+            }
+        }
+    },
+    "trains": [
+        {
+            "edgeId": "e1",
+            "position": 30,
+            "direction": 1,
+            "color": "#4CAF50"
+        }
+    ]
+}

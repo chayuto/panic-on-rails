@@ -1,10 +1,12 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { exportLayout, importLayout } from '../../utils/fileManager';
 import { isMuted, toggleMute } from '../../utils/audioManager';
 import { BudgetTicker } from './BudgetTicker';
+import { getTemplateList, loadTemplate, applyTemplate } from '../../data/templates';
+import type { TemplateMetadata } from '../../data/templates';
 
 /**
  * Mute toggle button component
@@ -28,8 +30,51 @@ export function Toolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { getLayout, loadLayout, clearLayout, addTrack, edges } = useTrackStore();
-    const { isRunning, toggleRunning, spawnTrain, clearTrains } = useSimulationStore();
+    const { isRunning, toggleRunning, spawnTrain, clearTrains, setRunning } = useSimulationStore();
     const { setMode, toggleGrid, showGrid, resetView, selectedEdgeId } = useEditorStore();
+
+    // Template state
+    const [templates, setTemplates] = useState<TemplateMetadata[]>([]);
+    const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+    // Load templates on mount
+    useEffect(() => {
+        getTemplateList().then(setTemplates);
+    }, []);
+
+    // Template loading handler
+    const handleLoadTemplate = useCallback(async (templateId: string) => {
+        if (!templateId) return;
+
+        if (Object.keys(edges).length > 0) {
+            if (!confirm('Load template? This will clear your current layout.')) {
+                return;
+            }
+        }
+
+        setLoadingTemplate(true);
+        try {
+            // Clear persisted stores first
+            localStorage.removeItem('panic-on-rails-track-v1');
+            localStorage.removeItem('panic-on-rails-simulation-v1');
+            localStorage.removeItem('panic-on-rails-logic-v1');
+
+            const template = await loadTemplate(templateId);
+            applyTemplate(
+                template,
+                clearLayout,
+                loadLayout as (data: unknown) => void,
+                spawnTrain,
+                () => setRunning(true),
+                true // autoStart
+            );
+        } catch (error) {
+            console.error('Failed to load template:', error);
+            alert('Failed to load template');
+        } finally {
+            setLoadingTemplate(false);
+        }
+    }, [edges, clearLayout, loadLayout, spawnTrain, setRunning]);
 
     // File operations
     const handleSave = useCallback(() => {
@@ -106,6 +151,20 @@ export function Toolbar() {
                 <button onClick={handleNew} title="New Layout">
                     📄 New
                 </button>
+                <select
+                    value=""
+                    onChange={(e) => handleLoadTemplate(e.target.value)}
+                    disabled={loadingTemplate}
+                    title="Load Template"
+                    className="template-selector"
+                >
+                    <option value="">📋 Templates...</option>
+                    {templates.map(t => (
+                        <option key={t.id} value={t.id}>
+                            {t.name} ({t.difficulty})
+                        </option>
+                    ))}
+                </select>
                 <button onClick={handleSave} title="Save to File">
                     💾 Save
                 </button>
