@@ -7,8 +7,11 @@ interface SimulationState {
     speedMultiplier: number;
 }
 
+/** Default spacing between carriage centers in pixels */
+export const DEFAULT_CARRIAGE_SPACING = 30;
+
 interface SimulationActions {
-    spawnTrain: (edgeId: EdgeId, color?: string) => TrainId;
+    spawnTrain: (edgeId: EdgeId, color?: string, carriageCount?: number) => TrainId;
     removeTrain: (trainId: TrainId) => void;
     updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1, bounceTime?: number) => void;
     setCrashed: (trainId: TrainId) => void;
@@ -27,7 +30,7 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
     isRunning: false,
     speedMultiplier: 1.0,
 
-    spawnTrain: (edgeId, color) => {
+    spawnTrain: (edgeId, color, carriageCount) => {
         const trainId = `train-${++trainCounter}`;
         const trainColor = color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
 
@@ -38,6 +41,8 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
             direction: 1,
             speed: 100, // pixels per second
             color: trainColor,
+            carriageCount: carriageCount ?? 1,
+            carriageSpacing: DEFAULT_CARRIAGE_SPACING,
         };
 
         set((state) => ({
