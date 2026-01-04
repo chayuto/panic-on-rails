@@ -64,6 +64,17 @@ export function pointToLineDistance(
  * @param endAngleDeg - End angle in DEGREES per constitution
  * @returns Approximate distance to the arc
  */
+/**
+ * Calculate distance from a point to an arc (circular segment).
+ * Uses a simplified approximation for performance.
+ * 
+ * @param point - The point to test
+ * @param center - Center of the arc
+ * @param radius - Radius of the arc
+ * @param startAngleDeg - Start angle in DEGREES per constitution [0, 360) (usually)
+ * @param endAngleDeg - End angle in DEGREES per constitution (can be > 360 or < 0)
+ * @returns Approximate distance to the arc
+ */
 export function pointToArcDistance(
     point: Vector2,
     center: Vector2,
@@ -80,27 +91,36 @@ export function pointToArcDistance(
     const pointAngleRad = Math.atan2(dy, dx);
     const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
 
-    // Normalize angles to [0, 360)
-    const normalizeAngle = (a: number) => ((a % 360) + 360) % 360;
+    // Normalize angles to [0, 360) for consistent comparison logic?
+    // Actually, relying on stored continuous sweep is safer.
+    // We want to check if pointAngleDeg is "between" start and end.
 
-    const normPointDeg = normalizeAngle(pointAngleDeg);
-    const normStartDeg = normalizeAngle(startAngleDeg);
-    let normEndDeg = normalizeAngle(endAngleDeg);
+    // Calculate the total sweep
+    const sweep = endAngleDeg - startAngleDeg;
 
-    // Handle wrap-around case
-    if (normEndDeg < normStartDeg) {
-        normEndDeg += 360;
-    }
+    // Normalize point angle relative to startAngle
+    // diff will be in range (-180, 180] or [0, 360) depending on validation
+    // We want diff to be "how far along the sweep" the point is.
+    let diff = (pointAngleDeg - startAngleDeg) % 360;
 
-    // Check if point angle falls within arc sweep
+    // Adjust diff to align with sweep direction
+    if (diff < 0) diff += 360; // Now diff is [0, 360) (positive CCW offset)
+
     let isWithinArc = false;
-    const adjustedPointAngle = normPointDeg < normStartDeg
-        ? normPointDeg + 360
-        : normPointDeg;
 
-    if (adjustedPointAngle >= normStartDeg && adjustedPointAngle <= normEndDeg) {
-        isWithinArc = true;
+    if (sweep > 0) {
+        // CCW arc: point is inside if diff is in [0, sweep]
+        // (Assuming sweep < 360 for single track parts)
+        isWithinArc = diff >= 0 && diff <= sweep;
+    } else {
+        // CW arc (negative sweep): point is inside if diff is "large" (near 360)
+        // e.g. sweep = -20. diff should be in [340, 360].
+        // 360 + sweep = 340.
+        isWithinArc = diff >= (360 + sweep);
     }
+
+    // Handle edge case: if sweep is very small/zero, no hit inside?
+    if (Math.abs(sweep) < 0.1) isWithinArc = false;
 
     if (isWithinArc) {
         // Point is within arc's angular span - distance is difference from radius
