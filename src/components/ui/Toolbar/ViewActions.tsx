@@ -37,7 +37,7 @@ export function ViewActions() {
             <button onClick={toggleGrid} title="Toggle Grid">
                 {showGrid ? '🔲' : '⬜'} Grid
             </button>
-            <button onClick={toggleMeasurements} title="Toggle Measurements (m)">
+            <button onClick={toggleMeasurements} title="Toggle Measurements (Shift+M)">
                 {showMeasurements ? '📐' : '📏'} Measure
             </button>
             <button onClick={resetView} title="Reset View">

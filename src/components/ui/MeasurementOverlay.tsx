@@ -156,7 +156,7 @@ function MeasurementOverlayContent({ data, onClose }: MeasurementOverlayContentP
         <div className="measurement-overlay">
             <div className="measurement-header">
                 <span>📐 Measurements</span>
-                <button onClick={onClose} title="Close (m)">✕</button>
+                <button onClick={onClose} title="Close (Shift+M)">✕</button>
             </div>
 
             {data.bounds ? (
