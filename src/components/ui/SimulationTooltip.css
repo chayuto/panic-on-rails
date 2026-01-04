@@ -1,0 +1,111 @@
+/* ============================================
+   Simulation Tooltip Styles
+   Terminal aesthetic for simulation mode tooltip
+   ============================================ */
+
+.simulation-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: #4ECDC4;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 11px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(78, 205, 196, 0.5);
+    z-index: 9998;
+    min-width: 140px;
+    max-width: 240px;
+    user-select: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    /* Don't block mouse events */
+    transform: translate(12px, 12px);
+    /* Offset from cursor */
+}
+
+.simulation-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(78, 205, 196, 0.3);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.simulation-tooltip-header .icon {
+    font-size: 14px;
+}
+
+.simulation-tooltip-section {
+    margin: 3px 0;
+}
+
+.simulation-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 0;
+    gap: 8px;
+}
+
+.simulation-tooltip-label {
+    color: rgba(78, 205, 196, 0.7);
+}
+
+.simulation-tooltip-value {
+    font-weight: bold;
+    text-align: right;
+    word-break: break-all;
+    max-width: 120px;
+}
+
+/* Element type specific colors */
+.simulation-tooltip.train {
+    border-color: rgba(255, 107, 107, 0.5);
+    color: #FF6B6B;
+}
+
+.simulation-tooltip.train .simulation-tooltip-label {
+    color: rgba(255, 107, 107, 0.7);
+}
+
+.simulation-tooltip.switch {
+    border-color: rgba(255, 217, 61, 0.5);
+    color: #FFD93D;
+}
+
+.simulation-tooltip.switch .simulation-tooltip-label {
+    color: rgba(255, 217, 61, 0.7);
+}
+
+.simulation-tooltip.sensor {
+    border-color: rgba(255, 217, 61, 0.5);
+    color: #FFD93D;
+}
+
+.simulation-tooltip.sensor .simulation-tooltip-label {
+    color: rgba(255, 217, 61, 0.7);
+}
+
+.simulation-tooltip.signal {
+    border-color: rgba(0, 255, 136, 0.5);
+    color: #00FF88;
+}
+
+.simulation-tooltip.signal .simulation-tooltip-label {
+    color: rgba(0, 255, 136, 0.7);
+}
+
+/* Status colors */
+.simulation-tooltip-value.crashed {
+    color: #FF0000;
+}
+
+.simulation-tooltip-value.active {
+    color: #00FF88;
+}
+
+.simulation-tooltip-value.inactive {
+    color: #888888;
+}

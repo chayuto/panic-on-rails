@@ -8,6 +8,7 @@ import { TrainLayer } from './TrainLayer';
 import { SensorLayer } from './SensorLayer';
 import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
+import { SimulationTooltip } from '../ui/SimulationTooltip';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
@@ -23,6 +24,14 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage>(null);
     const [dimensions, setDimensions] = useState({ width: width || 800, height: height || 600 });
+
+    // Tooltip position state (screen + world coords)
+    const [tooltipPosition, setTooltipPosition] = useState<{
+        screenX: number;
+        screenY: number;
+        worldX: number;
+        worldY: number;
+    } | null>(null);
 
     const {
         zoom, pan, setZoom, setPan, showGrid,
@@ -135,6 +144,36 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         height: dimensions.height / zoom,
     }), [pan.x, pan.y, zoom, dimensions.width, dimensions.height]);
 
+    // Mouse move handler for simulation tooltip
+    const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+        if (!isSimulating) return;
+
+        const stage = stageRef.current;
+        if (!stage) return;
+
+        const pointer = stage.getPointerPosition();
+        if (!pointer) {
+            setTooltipPosition(null);
+            return;
+        }
+
+        // Convert to world coordinates
+        const worldX = (pointer.x - pan.x) / zoom;
+        const worldY = (pointer.y - pan.y) / zoom;
+
+        // Get screen coordinates from the event
+        const rect = containerRef.current?.getBoundingClientRect();
+        const screenX = rect ? e.evt.clientX : pointer.x;
+        const screenY = rect ? e.evt.clientY : pointer.y;
+
+        setTooltipPosition({ screenX, screenY, worldX, worldY });
+    }, [isSimulating, pan.x, pan.y, zoom]);
+
+    // Clear tooltip on mouse leave
+    const handleMouseLeave = useCallback(() => {
+        setTooltipPosition(null);
+    }, []);
+
     // Determine cursor based on drag state
     const cursor = draggedPartId ? 'copy' : 'crosshair';
 
@@ -158,6 +197,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 draggable={!draggedPartId} // Disable pan during drag
                 onWheel={handleWheel}
                 onDragEnd={handleDragEnd}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
             >
                 {/* Background grid layer - static, listening disabled */}
                 <Layer listening={false}>
@@ -202,6 +243,16 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 <div className="viewport-warning">
                     <p>PanicOnRails works best on desktop or tablet.</p>
                 </div>
+            )}
+
+            {/* Simulation mode tooltip */}
+            {isSimulating && tooltipPosition && (
+                <SimulationTooltip
+                    screenX={tooltipPosition.screenX}
+                    screenY={tooltipPosition.screenY}
+                    worldX={tooltipPosition.worldX}
+                    worldY={tooltipPosition.worldY}
+                />
             )}
         </div>
     );
