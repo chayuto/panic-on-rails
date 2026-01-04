@@ -126,8 +126,12 @@ function getCarriagePositions(
         if (i < carriageCount - 1) {
             // Move backwards by spacing amount (opposite to train direction)
             let remainingDistance = spacing;
+            // Maximum iterations to prevent infinite loops in complex track layouts
+            const MAX_ITERATIONS = 100;
+            let iterations = 0;
             
-            while (remainingDistance > 0) {
+            while (remainingDistance > 0 && iterations < MAX_ITERATIONS) {
+                iterations++;
                 const edge = edges[currentEdgeId];
                 if (!edge) break;
                 
@@ -173,6 +177,9 @@ function getCarriagePositions(
                     }
                     
                     // Take first available connection (simple path following)
+                    // Note: This is a simplification that works for simple track layouts.
+                    // For complex junctions with multiple paths, a proper path history
+                    // would need to be tracked. This is acceptable for the current toy simulation.
                     const prevEdgeId = otherConnections[0];
                     const prevEdge = edges[prevEdgeId];
                     
