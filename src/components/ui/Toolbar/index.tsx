@@ -38,13 +38,8 @@ export function Toolbar() {
 
             {/* Main toolbar actions - ordered by frequency */}
             <div className="toolbar-actions">
-                {/* Edit mode tools - most frequently used in edit mode */}
-                {isEditing && <EditToolbar />}
-
-                <div className="toolbar-divider" />
-
-                {/* Simulation controls - core interaction */}
-                <SimulateToolbar />
+                {/* Tools specific to the current mode */}
+                {isEditing ? <EditToolbar /> : <SimulateToolbar />}
 
                 <div className="toolbar-divider" />
 
