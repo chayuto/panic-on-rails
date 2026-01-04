@@ -200,6 +200,125 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     return mainEdgeId;
                 }
 
+                if ((part.geometry as any).type === 'crossing') {
+                    // Crossing geometry: Two straight tracks crossing at the center
+                    // Cast to any to avoid "Property 'type' does not exist on type 'never'" error
+                    const { length, crossingAngle } = part.geometry as import('../data/catalog/types').CrossingGeometry;
+                    const halfLength = length / 2;
+                    const radians = (rotation * Math.PI) / 180;
+
+                    // Main track (Path A) - follows placement position/rotation
+                    const endPosition = {
+                        x: position.x + Math.cos(radians) * length,
+                        y: position.y + Math.sin(radians) * length,
+                    };
+
+                    // Calculate Center Point (intersection)
+                    const center: Vector2 = {
+                        x: position.x + Math.cos(radians) * halfLength,
+                        y: position.y + Math.sin(radians) * halfLength,
+                    };
+
+                    // Cross track (Path B) - rotated by crossingAngle relative to main
+                    const crossRadians = radians + (crossingAngle * Math.PI / 180);
+
+                    // Calculate Start/End for Cross Track
+                    // Start is half-length BACKWARDS from center
+                    const crossStart: Vector2 = {
+                        x: center.x - Math.cos(crossRadians) * halfLength,
+                        y: center.y - Math.sin(crossRadians) * halfLength,
+                    };
+
+                    const crossEnd: Vector2 = {
+                        x: center.x + Math.cos(crossRadians) * halfLength,
+                        y: center.y + Math.sin(crossRadians) * halfLength,
+                    };
+
+                    // Generate IDs
+                    const mainEdgeId = uuidv4();
+                    const crossEdgeId = uuidv4();
+                    const mainStartNodeId = uuidv4();
+                    const mainEndNodeId = uuidv4();
+                    const crossStartNodeId = uuidv4();
+                    const crossEndNodeId = uuidv4();
+
+                    // Create Nodes
+                    const mainStartNode: TrackNode = {
+                        id: mainStartNodeId,
+                        position,
+                        rotation: rotation + 180,
+                        connections: [mainEdgeId],
+                        type: 'endpoint'
+                    };
+                    const mainEndNode: TrackNode = {
+                        id: mainEndNodeId,
+                        position: endPosition,
+                        rotation: rotation,
+                        connections: [mainEdgeId],
+                        type: 'endpoint'
+                    };
+
+                    const crossStartNode: TrackNode = {
+                        id: crossStartNodeId,
+                        position: crossStart,
+                        rotation: rotation + crossingAngle + 180,
+                        connections: [crossEdgeId],
+                        type: 'endpoint'
+                    };
+                    const crossEndNode: TrackNode = {
+                        id: crossEndNodeId,
+                        position: crossEnd,
+                        rotation: rotation + crossingAngle,
+                        connections: [crossEdgeId],
+                        type: 'endpoint'
+                    };
+
+                    // Create Edges
+                    const mainEdge: TrackEdge = {
+                        id: mainEdgeId,
+                        partId,
+                        startNodeId: mainStartNodeId,
+                        endNodeId: mainEndNodeId,
+                        geometry: { type: 'straight', start: position, end: endPosition },
+                        length
+                    };
+
+                    const crossEdge: TrackEdge = {
+                        id: crossEdgeId,
+                        partId,
+                        startNodeId: crossStartNodeId,
+                        endNodeId: crossEndNodeId,
+                        geometry: { type: 'straight', start: crossStart, end: crossEnd },
+                        length
+                    };
+
+                    // Update indices
+                    spatialIndex.insert(mainEdgeId, getEdgeBounds(mainEdge), mainEdgeId);
+                    spatialIndex.insert(crossEdgeId, getEdgeBounds(crossEdge), crossEdgeId);
+                    nodeIndex.insert(mainStartNodeId, getNodeBounds(mainStartNode), mainStartNodeId);
+                    nodeIndex.insert(mainEndNodeId, getNodeBounds(mainEndNode), mainEndNodeId);
+                    nodeIndex.insert(crossStartNodeId, getNodeBounds(crossStartNode), crossStartNodeId);
+                    nodeIndex.insert(crossEndNodeId, getNodeBounds(crossEndNode), crossEndNodeId);
+
+                    // Update state
+                    set((state) => ({
+                        nodes: {
+                            ...state.nodes,
+                            [mainStartNodeId]: mainStartNode,
+                            [mainEndNodeId]: mainEndNode,
+                            [crossStartNodeId]: crossStartNode,
+                            [crossEndNodeId]: crossEndNode,
+                        },
+                        edges: {
+                            ...state.edges,
+                            [mainEdgeId]: mainEdge,
+                            [crossEdgeId]: crossEdge,
+                        },
+                    }));
+
+                    return mainEdgeId;
+                }
+
                 // Standard track handling (straight/curve)
                 const edgeId = uuidv4();
                 const startNodeId = uuidv4();

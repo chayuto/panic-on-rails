@@ -103,8 +103,8 @@ export function FileActions() {
         clearLayout();
         clearTrains();
 
-        // Force refresh to reset all state
-        window.location.reload();
+        // Reset view helper (optional, if we had one)
+        console.log('Layout cleared - New Project started');
     }, [edges, clearLayout, clearTrains]);
 
     return (
