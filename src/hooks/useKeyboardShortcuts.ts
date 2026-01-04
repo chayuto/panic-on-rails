@@ -3,6 +3,7 @@
  * 
  * Mode-aware shortcuts:
  * - M: Toggle between Edit/Simulate modes
+ * - Shift+M: Toggle measurement overlay
  * - 1-6: Switch edit sub-modes (Edit mode only)
  * - Space: Play/Pause (Simulate mode only)
  * - +/-: Speed control (Simulate mode only)
@@ -12,6 +13,7 @@
 import { useEffect } from 'react';
 import { useModeStore } from '../stores/useModeStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
+import { useEditorStore } from '../stores/useEditorStore';
 import type { EditSubMode } from '../types/mode';
 
 // Map number keys to edit sub-modes
@@ -27,6 +29,7 @@ const EDIT_MODE_SHORTCUTS: Record<string, EditSubMode> = {
 export function useKeyboardShortcuts() {
     const { primaryMode, togglePrimaryMode, setEditSubMode } = useModeStore();
     const { isRunning, toggleRunning, speedMultiplier, setSpeedMultiplier } = useSimulationStore();
+    const toggleMeasurements = useEditorStore(s => s.toggleMeasurements);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,6 +45,13 @@ export function useKeyboardShortcuts() {
             const key = e.key.toLowerCase();
             const isEditing = primaryMode === 'edit';
             const isSimulating = primaryMode === 'simulate';
+
+            // Shift+M: Toggle measurement overlay (works in both modes)
+            if (key === 'm' && e.shiftKey) {
+                e.preventDefault();
+                toggleMeasurements();
+                return;
+            }
 
             // Mode toggle - works in both modes
             if (key === 'm') {
@@ -91,6 +101,7 @@ export function useKeyboardShortcuts() {
         primaryMode,
         togglePrimaryMode,
         setEditSubMode,
+        toggleMeasurements,
         isRunning,
         toggleRunning,
         speedMultiplier,

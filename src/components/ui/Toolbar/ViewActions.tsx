@@ -30,12 +30,15 @@ function MuteToggle() {
 }
 
 export function ViewActions() {
-    const { toggleGrid, showGrid, resetView } = useEditorStore();
+    const { toggleGrid, showGrid, toggleMeasurements, showMeasurements, resetView } = useEditorStore();
 
     return (
         <>
             <button onClick={toggleGrid} title="Toggle Grid">
                 {showGrid ? '🔲' : '⬜'} Grid
+            </button>
+            <button onClick={toggleMeasurements} title="Toggle Measurements (Shift+M)">
+                {showMeasurements ? '📐' : '📏'} Measure
             </button>
             <button onClick={resetView} title="Reset View">
                 🎯 Reset

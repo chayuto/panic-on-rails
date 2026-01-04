@@ -1,0 +1,85 @@
+/* ============================================
+   Measurement Overlay Styles
+   Shows layout dimensions in real-world units (mm)
+   ============================================ */
+
+.measurement-overlay {
+    position: fixed;
+    bottom: 60px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ccff;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 204, 255, 0.5);
+    z-index: 9999;
+    min-width: 180px;
+    user-select: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.measurement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(0, 204, 255, 0.3);
+    font-weight: bold;
+}
+
+.measurement-header button {
+    background: none;
+    border: none;
+    color: #00ccff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.measurement-header button:hover {
+    opacity: 1;
+    background: transparent;
+}
+
+.measurement-section {
+    margin: 4px 0;
+}
+
+.measurement-separator {
+    border-top: 1px dashed rgba(0, 204, 255, 0.2);
+    margin: 6px 0;
+}
+
+.measurement-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.measurement-label {
+    color: rgba(0, 204, 255, 0.7);
+}
+
+.measurement-value {
+    font-weight: bold;
+    min-width: 80px;
+    text-align: right;
+}
+
+.measurement-unit {
+    color: rgba(0, 204, 255, 0.6);
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.measurement-empty {
+    color: rgba(0, 204, 255, 0.5);
+    font-style: italic;
+    text-align: center;
+    padding: 8px 0;
+}
