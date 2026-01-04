@@ -788,9 +788,31 @@ export const useTrackStore = create<TrackState & TrackActions>()(
         }),
         {
             name: 'panic-on-rails-v1',
-            // Rebuild spatial indices after hydration
+            // Rebuild spatial indices after hydration and migrate legacy data
             onRehydrateStorage: () => (state) => {
                 if (state) {
+                    // MIGRATION: Fix angles (radian -> degree) for legacy data
+                    // If we see very small effective sweeps for large radius arcs, it's likely radians
+                    let migratedCount = 0;
+
+                    Object.values(state.edges).forEach(edge => {
+                        if (edge.geometry.type === 'arc') {
+                            const sweep = Math.abs(edge.geometry.endAngle - edge.geometry.startAngle);
+                            // Heuristic: If sweep is < 15 degrees and radius > 50mm, it's likely radians (PI/2 = 1.57)
+                            // Standard curves are usually 45 or 90 degrees.
+                            // Even the smallest likely curve (15 deg) is much larger than 2PI (6.28)
+                            if (sweep < 15 && edge.geometry.radius > 50) {
+                                edge.geometry.startAngle = (edge.geometry.startAngle * 180) / Math.PI;
+                                edge.geometry.endAngle = (edge.geometry.endAngle * 180) / Math.PI;
+                                migratedCount++;
+                            }
+                        }
+                    });
+
+                    if (migratedCount > 0) {
+                        console.log(`[useTrackStore] Migrated ${migratedCount} legacy arcs from radians to degrees`);
+                    }
+
                     rebuildSpatialIndices(state.nodes, state.edges);
                     console.log('[useTrackStore] Spatial indices rebuilt after hydration');
                 }

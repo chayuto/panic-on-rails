@@ -26,7 +26,7 @@ export function Toolbar() {
     const isEditing = primaryMode === 'edit';
 
     return (
-        <header className="toolbar">
+        <header className="toolbar toolbar-compact">
             {/* App title */}
             <div className="toolbar-title">
                 <span>🚂</span>
@@ -36,39 +36,36 @@ export function Toolbar() {
             {/* Mode toggle - prominent position right after title */}
             <ModeToggle />
 
-            {/* Budget display */}
-            <BudgetTicker />
-
-            {/* Main toolbar actions */}
+            {/* Main toolbar actions - ordered by frequency */}
             <div className="toolbar-actions">
-                {/* File operations - always visible */}
-                <FileActions />
+                {/* Edit mode tools - most frequently used in edit mode */}
+                {isEditing && <EditToolbar />}
 
                 <div className="toolbar-divider" />
 
-                {/* View controls - always visible */}
-                <ViewActions />
-
-                {/* Edit mode tools - only in edit mode */}
-                {isEditing && (
-                    <>
-                        <div className="toolbar-divider" />
-                        <EditToolbar />
-                    </>
-                )}
-
-                <div className="toolbar-divider" />
-
-                {/* Simulation controls - always visible */}
+                {/* Simulation controls - core interaction */}
                 <SimulateToolbar />
 
-                {/* Selection info - only when something selected */}
-                {selectedEdgeId && (
-                    <span className="toolbar-info">
-                        Selected: {selectedEdgeId.slice(0, 8)}...
-                    </span>
-                )}
+                <div className="toolbar-divider" />
+
+                {/* View controls - occasionally used */}
+                <ViewActions />
+
+                <div className="toolbar-divider" />
+
+                {/* File operations - infrequently used */}
+                <FileActions />
             </div>
+
+            {/* Budget display - moved to end */}
+            <BudgetTicker />
+
+            {/* Selection info - only when something selected */}
+            {selectedEdgeId && (
+                <span className="toolbar-info">
+                    {selectedEdgeId.slice(0, 8)}...
+                </span>
+            )}
         </header>
     );
 }

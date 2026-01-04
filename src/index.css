@@ -147,6 +147,67 @@ button:disabled {
   transition: border-color 0.3s ease;
 }
 
+/* Compact toolbar variant */
+.toolbar-compact {
+  padding: 6px 12px;
+  gap: 6px 12px;
+}
+
+.toolbar-compact .toolbar-actions {
+  gap: 4px;
+}
+
+/* Icon-only toolbar buttons */
+.toolbar-btn-icon {
+  padding: 6px 10px;
+  min-width: unset;
+  font-size: 16px;
+  position: relative;
+}
+
+/* Custom tooltip - appears faster than native title */
+.toolbar-btn-icon::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-primary);
+  color: var(--fg-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1px solid var(--border-color);
+}
+
+.toolbar-btn-icon:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.2s;
+}
+
+/* Compact template selector */
+.template-selector-compact {
+  background: var(--button-bg);
+  color: var(--fg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 40px;
+}
+
+.template-selector-compact:hover {
+  background: var(--button-hover);
+}
+
 .toolbar-title {
   font-weight: 600;
   font-size: 16px;

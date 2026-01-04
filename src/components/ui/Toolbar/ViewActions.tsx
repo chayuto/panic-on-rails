@@ -23,25 +23,19 @@ function MuteToggle() {
     }, []);
 
     return (
-        <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'}>
+        <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'} className="toolbar-btn-icon">
             {muted ? '🔇' : '🔊'}
         </button>
     );
 }
 
 export function ViewActions() {
-    const { toggleGrid, showGrid, toggleMeasurements, showMeasurements, resetView } = useEditorStore();
+    const { toggleGrid, showGrid } = useEditorStore();
 
     return (
         <>
-            <button onClick={toggleGrid} title="Toggle Grid">
-                {showGrid ? '🔲' : '⬜'} Grid
-            </button>
-            <button onClick={toggleMeasurements} title="Toggle Measurements (Shift+M)">
-                {showMeasurements ? '📐' : '📏'} Measure
-            </button>
-            <button onClick={resetView} title="Reset View">
-                🎯 Reset
+            <button onClick={toggleGrid} title="Toggle Grid" className="toolbar-btn-icon">
+                {showGrid ? '🔲' : '⬜'}
             </button>
             <MuteToggle />
         </>

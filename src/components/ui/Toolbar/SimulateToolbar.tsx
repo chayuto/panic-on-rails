@@ -47,17 +47,18 @@ export function SimulateToolbar() {
         <>
             <button
                 onClick={handlePlayPause}
-                className={isRunning ? 'active' : ''}
-                title={isRunning ? 'Pause' : 'Play'}
+                className={`toolbar-btn-icon ${isRunning ? 'active' : ''}`}
+                title={isRunning ? 'Pause (M)' : 'Play (M)'}
             >
-                {isRunning ? '⏸️ Pause' : '▶️ Play'}
+                {isRunning ? '⏸️' : '▶️'}
             </button>
             <button
                 onClick={handleAddTrain}
                 disabled={!hasEdges}
                 title="Add Train"
+                className="toolbar-btn-icon"
             >
-                🚂 Train
+                🚂
             </button>
         </>
     );

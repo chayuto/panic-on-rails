@@ -215,28 +215,28 @@ export function FileActions() {
 
     return (
         <>
-            <button onClick={handleNewClick} title="New Layout">
-                📄 New
+            <button onClick={handleNewClick} title="New Layout" className="toolbar-btn-icon">
+                📄
             </button>
             <select
                 value=""
                 onChange={(e) => handleLoadTemplate(e.target.value)}
                 disabled={loadingTemplate}
                 title="Load Template"
-                className="template-selector"
+                className="template-selector-compact"
             >
-                <option value="">📋 Templates...</option>
+                <option value="">📋</option>
                 {templates.map(t => (
                     <option key={t.id} value={t.id}>
-                        {t.name} ({t.difficulty})
+                        {t.name}
                     </option>
                 ))}
             </select>
-            <button onClick={handleSave} title="Save to File">
-                💾 Save
+            <button onClick={handleSave} title="Save to File" className="toolbar-btn-icon">
+                💾
             </button>
-            <button onClick={handleLoad} title="Load from File">
-                📂 Load
+            <button onClick={handleLoad} title="Load from File" className="toolbar-btn-icon">
+                📂
             </button>
 
             {/* Hidden file input */}

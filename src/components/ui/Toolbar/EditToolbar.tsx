@@ -217,25 +217,23 @@ export function EditToolbar() {
         }
     };
 
+    // Debug export available via console: window.debugExport()
+    if (typeof window !== 'undefined') {
+        (window as unknown as { debugExport: () => void }).debugExport = handleDebugExport;
+    }
+
     return (
         <>
             {EDIT_TOOLS.map(tool => (
                 <button
                     key={tool.mode}
                     onClick={() => setEditSubMode(tool.mode)}
-                    className={editSubMode === tool.mode ? 'active' : ''}
+                    className={`toolbar-btn-icon ${editSubMode === tool.mode ? 'active' : ''}`}
                     title={tool.title}
                 >
-                    {tool.icon} {tool.label}
+                    {tool.icon}
                 </button>
             ))}
-            <button
-                onClick={handleDebugExport}
-                title="Export track data as JSON for debugging"
-                style={{ marginLeft: '16px', opacity: 0.7 }}
-            >
-                🐛 Debug Export
-            </button>
         </>
     );
 }
