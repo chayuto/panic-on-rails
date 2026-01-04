@@ -2,14 +2,14 @@
  * TrainPanel - Train management panel for Simulate mode
  * 
  * Features:
- * - List of active trains with status
- * - Add/Remove train controls
+ * - List of active trains with status and carriage count
+ * - Add/Remove train controls with carriage selector
  * - Play/Pause simulation
  * - Speed multiplier slider
  * - Crash warnings
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import './TrainPanel.css';
@@ -26,6 +26,9 @@ export function TrainPanel() {
         clearTrains
     } = useSimulationStore();
     const { edges } = useTrackStore();
+    
+    // State for carriage count selector
+    const [carriageCount, setCarriageCount] = useState(1);
 
     const trainList = Object.values(trains);
     const hasEdges = Object.keys(edges).length > 0;
@@ -35,13 +38,17 @@ export function TrainPanel() {
         if (edgeIds.length > 0) {
             // Spawn on random edge for variety
             const randomEdge = edgeIds[Math.floor(Math.random() * edgeIds.length)];
-            spawnTrain(randomEdge);
+            spawnTrain(randomEdge, undefined, carriageCount);
         }
-    }, [edges, spawnTrain]);
+    }, [edges, spawnTrain, carriageCount]);
 
     const handleSpeedChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSpeedMultiplier(parseFloat(e.target.value));
     }, [setSpeedMultiplier]);
+
+    const handleCarriageCountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setCarriageCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)));
+    }, []);
 
     return (
         <div className="train-panel">
@@ -79,6 +86,21 @@ export function TrainPanel() {
                 </button>
             </div>
 
+            {/* Carriage Count Control */}
+            <div className="carriage-control">
+                <label>
+                    <span>Carriages: {carriageCount}</span>
+                    <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="1"
+                        value={carriageCount}
+                        onChange={handleCarriageCountChange}
+                    />
+                </label>
+            </div>
+
             {/* Speed Control */}
             <div className="speed-control">
                 <label>
@@ -113,6 +135,9 @@ export function TrainPanel() {
                             />
                             <span className="train-name">
                                 {train.id.replace('train-', 'Train ')}
+                                {(train.carriageCount ?? 1) > 1 && (
+                                    <span className="carriage-info"> ({train.carriageCount} cars)</span>
+                                )}
                             </span>
                             <span className="train-status">
                                 {train.crashed ? '💥' : isRunning ? '🚂' : '⏸️'}

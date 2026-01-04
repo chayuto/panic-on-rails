@@ -73,24 +73,28 @@
 }
 
 /* Speed Control */
-.speed-control {
+.speed-control,
+.carriage-control {
     padding: 12px;
     background: var(--bg-tertiary);
     border-radius: 8px;
 }
 
-.speed-control label {
+.speed-control label,
+.carriage-control label {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.speed-control span {
+.speed-control span,
+.carriage-control span {
     font-size: 12px;
     color: var(--fg-secondary);
 }
 
-.speed-control input[type="range"] {
+.speed-control input[type="range"],
+.carriage-control input[type="range"] {
     width: 100%;
     accent-color: var(--mode-simulate-accent, #4CAF50);
 }
@@ -149,6 +153,11 @@
     flex: 1;
     font-size: 14px;
     color: var(--fg-primary);
+}
+
+.train-name .carriage-info {
+    font-size: 11px;
+    color: var(--fg-muted);
 }
 
 .train-status {
