@@ -480,14 +480,20 @@ export const useTrackStore = create<TrackState & TrackActions>()(
             },
 
             clearLayout: () => {
+                console.log('[useTrackStore] clearLayout() called');
+
                 // Reset budget (refund all spending)
+                console.log('[useTrackStore] Resetting budget...');
                 useBudgetStore.getState().reset();
 
                 // Clear spatial indices
+                console.log('[useTrackStore] Clearing spatial indices...');
                 spatialIndex.clear();
                 nodeIndex.clear();
 
+                console.log('[useTrackStore] Setting initial state...');
                 set(initialState);
+                console.log('[useTrackStore] ✅ clearLayout() completed');
             },
 
             getLayout: () => {
