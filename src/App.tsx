@@ -4,6 +4,7 @@ import { Toolbar } from './components/ui/Toolbar';
 import { PartsBin } from './components/ui/PartsBin';
 import { TrainPanel } from './components/ui/TrainPanel';
 import { DebugOverlay } from './components/ui/DebugOverlay';
+import { MeasurementOverlay } from './components/ui/MeasurementOverlay';
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -36,6 +37,7 @@ function App() {
                 <StageWrapper />
             </main>
             <DebugOverlay />
+            <MeasurementOverlay />
         </div>
     );
 }

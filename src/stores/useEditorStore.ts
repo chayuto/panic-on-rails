@@ -17,6 +17,7 @@ interface EditorState {
 
     // Viewport
     showGrid: boolean;
+    showMeasurements: boolean;
     zoom: number;
     pan: { x: number; y: number };
 
@@ -45,6 +46,7 @@ interface EditorActions {
 
     // Viewport actions
     toggleGrid: () => void;
+    toggleMeasurements: () => void;
     setZoom: (zoom: number) => void;
     setPan: (x: number, y: number) => void;
     resetView: () => void;
@@ -67,6 +69,7 @@ const initialState: EditorState = {
     selectedPartId: 'kato-20-000',
     selectedSystem: 'n-scale',
     showGrid: true,
+    showMeasurements: false,
     zoom: 1,
     pan: { x: 0, y: 0 },
     draggedPartId: null,
@@ -88,6 +91,7 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
 
     // Viewport actions
     toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
+    toggleMeasurements: () => set((state) => ({ showMeasurements: !state.showMeasurements })),
     setZoom: (zoom) => set({ zoom: Math.max(0.1, Math.min(5, zoom)) }),
     setPan: (x, y) => set({ pan: { x, y } }),
     resetView: () => set({ zoom: 1, pan: { x: 0, y: 0 } }),
