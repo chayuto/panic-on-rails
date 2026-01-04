@@ -1,4 +1,4 @@
-import { Group, Line, Circle, Wedge, Arc } from 'react-konva';
+import { Group, Line, Circle, Wedge, Arc, Ring } from 'react-konva';
 import { useMemo } from 'react';
 import type Konva from 'konva';
 import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
@@ -6,6 +6,7 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
+import { useConnectMode } from '../../hooks/useConnectMode';
 import { playSound } from '../../utils/audioManager';
 import type { TrackEdge, Vector2 } from '../../types';
 
@@ -14,8 +15,11 @@ const RAIL_SELECTED_COLOR = '#00FF88';
 const RAIL_INACTIVE_COLOR = '#555555';
 const NODE_COLOR = '#4ECDC4';
 const SWITCH_NODE_COLOR = '#FFD93D';
+const CONNECT_SOURCE_COLOR = '#00FF88';  // Green for selected source
+const CONNECT_TARGET_COLOR = '#00BFFF';  // Cyan for valid targets
 const NODE_RADIUS = 6;
 const SWITCH_NODE_RADIUS = 10;
+const CONNECT_HIGHLIGHT_RADIUS = 12;  // Outer glow radius
 
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
@@ -28,6 +32,10 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     const { addSensor, addSignal, addWire } = useLogicStore();
     const { editSubMode } = useModeStore();
     const isEditing = useIsEditing();
+    const { connectSource, isValidConnectTarget, handleConnectModeNodeClick } = useConnectMode();
+
+    // Check if we're in connect mode
+    const isConnectMode = editSubMode === 'connect';
 
     // Get visible edge IDs from spatial index
     const visibleEdgeIds = useVisibleEdges(viewport);
@@ -115,7 +123,9 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         // Only handle clicks in edit mode
         if (!isEditing) return;
 
-        if (editSubMode === 'signal') {
+        if (editSubMode === 'connect') {
+            handleConnectModeNodeClick(nodeId);
+        } else if (editSubMode === 'signal') {
             addSignal(nodeId);
             playSound('switch');
         }
@@ -182,11 +192,9 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                     );
                 } else {
                     // Arc rendering - using Konva Arc component
+                    // startAngle and endAngle are now in DEGREES per constitution
                     const { center, radius, startAngle, endAngle } = edge.geometry;
-                    // startAngle and endAngle are in radians from center to arc endpoints
-                    // Convert to degrees for Konva
-                    const startDeg = (startAngle * 180) / Math.PI;
-                    const sweepDeg = ((endAngle - startAngle) * 180) / Math.PI;
+                    const sweepDeg = endAngle - startAngle;
 
                     return (
                         <Arc
@@ -196,7 +204,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                             innerRadius={radius - strokeWidth / 2}
                             outerRadius={radius + strokeWidth / 2}
                             angle={sweepDeg}
-                            rotation={startDeg}
+                            rotation={startAngle}
                             fill={color}
                             onClick={(e) => handleEdgeClick(edge.id, e)}
                             onTap={(e) => handleEdgeClick(edge.id, e)}
@@ -239,18 +247,35 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                 }
 
                 // Regular nodes
+                const isOpenEndpoint = node.connections.length === 1;
+                const isSource = connectSource?.nodeId === node.id;
+                const isValidTarget = isConnectMode && isOpenEndpoint && isValidConnectTarget(node.id);
+
                 return (
-                    <Circle
-                        key={node.id}
-                        x={node.position.x}
-                        y={node.position.y}
-                        radius={NODE_RADIUS}
-                        fill={NODE_COLOR}
-                        stroke="#1A1A1A"
-                        strokeWidth={2}
-                        onClick={() => handleNodeClick(node.id)}
-                        onTap={() => handleNodeClick(node.id)}
-                    />
+                    <Group key={node.id}>
+                        {/* Connect mode highlight ring */}
+                        {isConnectMode && isOpenEndpoint && (
+                            <Ring
+                                x={node.position.x}
+                                y={node.position.y}
+                                innerRadius={CONNECT_HIGHLIGHT_RADIUS - 3}
+                                outerRadius={CONNECT_HIGHLIGHT_RADIUS}
+                                fill={isSource ? CONNECT_SOURCE_COLOR : (isValidTarget ? CONNECT_TARGET_COLOR : '#666666')}
+                                opacity={isSource ? 0.9 : 0.6}
+                            />
+                        )}
+                        {/* Main node circle */}
+                        <Circle
+                            x={node.position.x}
+                            y={node.position.y}
+                            radius={NODE_RADIUS}
+                            fill={isSource ? CONNECT_SOURCE_COLOR : NODE_COLOR}
+                            stroke="#1A1A1A"
+                            strokeWidth={2}
+                            onClick={() => handleNodeClick(node.id)}
+                            onTap={() => handleNodeClick(node.id)}
+                        />
+                    </Group>
                 );
             })}
         </Group>

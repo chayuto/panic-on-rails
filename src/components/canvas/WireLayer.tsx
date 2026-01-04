@@ -30,11 +30,13 @@ function getSensorPosition(sensor: Sensor, edges: Record<string, TrackEdge>): Ve
             y: start.y + (end.y - start.y) * progress,
         };
     } else {
+        // Arc geometry - angles are stored in DEGREES per constitution
         const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angle = startAngle + (endAngle - startAngle) * progress;
+        const angleDeg = startAngle + (endAngle - startAngle) * progress;
+        const angleRad = (angleDeg * Math.PI) / 180;
         return {
-            x: center.x + Math.cos(angle) * radius,
-            y: center.y + Math.sin(angle) * radius,
+            x: center.x + Math.cos(angleRad) * radius,
+            y: center.y + Math.sin(angleRad) * radius,
         };
     }
 }

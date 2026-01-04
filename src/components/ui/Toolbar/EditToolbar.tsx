@@ -28,6 +28,12 @@ const EDIT_TOOLS: ToolButton[] = [
         title: 'Edit Mode - Select and move tracks'
     },
     {
+        mode: 'connect',
+        icon: '🔗',
+        label: 'Connect',
+        title: 'Connect Mode - Click two endpoints to connect tracks'
+    },
+    {
         mode: 'delete',
         icon: '🗑️',
         label: 'Delete',
@@ -96,10 +102,11 @@ export function EditToolbar() {
                 curveDirection = 'straight';
             } else if (edge.geometry.type === 'arc') {
                 // Arc: tangent is perpendicular to radius at each point
+                // Angles are now stored in DEGREES per constitution
                 const { startAngle, endAngle } = edge.geometry;
-                // Tangent = radius angle + 90° (for CCW arc)
-                const startTangent = (startAngle * 180 / Math.PI) + 90;
-                const endTangent = (endAngle * 180 / Math.PI) + 90;
+                // Tangent = radius angle + 90°
+                const startTangent = startAngle + 90;
+                const endTangent = endAngle + 90;
                 tangentAtStart = Math.round(((startTangent % 360) + 360) % 360);
                 tangentAtEnd = Math.round(((endTangent % 360) + 360) % 360);
                 // Determine if arc curves CW or CCW (in screen coords)

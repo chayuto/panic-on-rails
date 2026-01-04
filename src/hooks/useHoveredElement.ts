@@ -80,11 +80,13 @@ function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
             y: start.y + (end.y - start.y) * progress,
         };
     } else {
+        // Arc angles are stored in DEGREES per constitution
         const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angle = startAngle + (endAngle - startAngle) * progress;
+        const angleDeg = startAngle + (endAngle - startAngle) * progress;
+        const angleRad = (angleDeg * Math.PI) / 180;
         return {
-            x: center.x + Math.cos(angle) * radius,
-            y: center.y + Math.sin(angle) * radius,
+            x: center.x + Math.cos(angleRad) * radius,
+            y: center.y + Math.sin(angleRad) * radius,
         };
     }
 }
@@ -113,38 +115,37 @@ function distanceToLineSegment(point: Vector2, start: Vector2, end: Vector2): nu
 
 /**
  * Calculate distance from a point to an arc
+ * Input angles are in DEGREES per constitution
  */
 function distanceToArc(
     point: Vector2,
     center: Vector2,
     radius: number,
-    startAngle: number,
-    endAngle: number
+    startAngleDeg: number,
+    endAngleDeg: number
 ): number {
     const dx = point.x - center.x;
     const dy = point.y - center.y;
     const distToCenter = Math.hypot(dx, dy);
 
-    // Angle from center to point
-    let angle = Math.atan2(dy, dx);
+    // Angle from center to point (in radians from atan2)
+    const pointAngleRad = Math.atan2(dy, dx);
+    const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
 
-    // Normalize angles
-    const normalizeAngle = (a: number) => {
-        while (a < 0) a += 2 * Math.PI;
-        while (a >= 2 * Math.PI) a -= 2 * Math.PI;
-        return a;
-    };
+    // Normalize angles to [0, 360)
+    const normalizeAngle = (a: number) => ((a % 360) + 360) % 360;
 
-    angle = normalizeAngle(angle);
-    const normStart = normalizeAngle(startAngle);
-    let normEnd = normalizeAngle(endAngle);
+    const normPointDeg = normalizeAngle(pointAngleDeg);
+    const normStartDeg = normalizeAngle(startAngleDeg);
+    const normEndDeg = normalizeAngle(endAngleDeg);
 
     // Check if angle is within arc span
     let isInArc: boolean;
-    if (normStart <= normEnd) {
-        isInArc = angle >= normStart && angle <= normEnd;
+    if (normStartDeg <= normEndDeg) {
+        isInArc = normPointDeg >= normStartDeg && normPointDeg <= normEndDeg;
     } else {
-        isInArc = angle >= normStart || angle <= normEnd;
+        // Arc crosses 0°
+        isInArc = normPointDeg >= normStartDeg || normPointDeg <= normEndDeg;
     }
 
     if (isInArc) {
@@ -152,13 +153,15 @@ function distanceToArc(
         return Math.abs(distToCenter - radius);
     } else {
         // Point projects outside the arc, find closest endpoint
+        const startRad = (startAngleDeg * Math.PI) / 180;
+        const endRad = (endAngleDeg * Math.PI) / 180;
         const startPoint: Vector2 = {
-            x: center.x + Math.cos(startAngle) * radius,
-            y: center.y + Math.sin(startAngle) * radius
+            x: center.x + Math.cos(startRad) * radius,
+            y: center.y + Math.sin(startRad) * radius
         };
         const endPoint: Vector2 = {
-            x: center.x + Math.cos(endAngle) * radius,
-            y: center.y + Math.sin(endAngle) * radius
+            x: center.x + Math.cos(endRad) * radius,
+            y: center.y + Math.sin(endRad) * radius
         };
 
         const distToStart = Math.hypot(point.x - startPoint.x, point.y - startPoint.y);

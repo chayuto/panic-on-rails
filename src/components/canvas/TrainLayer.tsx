@@ -23,12 +23,13 @@ function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
             y: start.y + (end.y - start.y) * progress,
         };
     } else {
-        // Arc geometry
+        // Arc geometry - angles are stored in DEGREES per constitution
         const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angle = startAngle + (endAngle - startAngle) * progress;
+        const angleDeg = startAngle + (endAngle - startAngle) * progress;
+        const angleRad = (angleDeg * Math.PI) / 180;
         return {
-            x: center.x + Math.cos(angle) * radius,
-            y: center.y + Math.sin(angle) * radius,
+            x: center.x + Math.cos(angleRad) * radius,
+            y: center.y + Math.sin(angleRad) * radius,
         };
     }
 }
@@ -63,7 +64,7 @@ function getBounceScale(bounceTime: number | undefined): { scaleX: number; scale
  */
 function getRotationOnEdge(edge: TrackEdge, distance: number, direction: 1 | -1): number {
     const progress = Math.max(0, Math.min(1, distance / edge.length));
-    
+
     if (edge.geometry.type === 'straight') {
         const { start, end } = edge.geometry;
         const angle = Math.atan2(end.y - start.y, end.x - start.x);
@@ -71,13 +72,14 @@ function getRotationOnEdge(edge: TrackEdge, distance: number, direction: 1 | -1)
         return (angle * 180 / Math.PI) + (direction === -1 ? 180 : 0);
     } else {
         // Arc geometry - tangent to the curve
+        // Angles are stored in DEGREES per constitution
         const { startAngle, endAngle } = edge.geometry;
-        const angle = startAngle + (endAngle - startAngle) * progress;
+        const angleDeg = startAngle + (endAngle - startAngle) * progress;
         // Tangent is perpendicular to radius (add 90 degrees)
-        const tangentAngle = angle + Math.PI / 2;
+        const tangentAngle = angleDeg + 90;
         // Flip if arc goes clockwise (endAngle < startAngle) or if moving backwards
         const arcDirection = endAngle > startAngle ? 1 : -1;
-        return (tangentAngle * 180 / Math.PI) + (direction * arcDirection === -1 ? 180 : 0);
+        return tangentAngle + (direction * arcDirection === -1 ? 180 : 0);
     }
 }
 
@@ -101,27 +103,27 @@ function getCarriagePositions(
     const positions: CarriagePosition[] = [];
     const carriageCount = train.carriageCount ?? 1;
     const spacing = train.carriageSpacing ?? DEFAULT_CARRIAGE_SPACING;
-    
+
     // Start with locomotive position
     let currentEdgeId = train.currentEdgeId;
     let currentDistance = train.distanceAlongEdge;
     let currentDirection = train.direction;
-    
+
     for (let i = 0; i < carriageCount; i++) {
         const edge = edges[currentEdgeId];
         if (!edge) break;
-        
+
         // Calculate position for this carriage
         const pos = getPositionOnEdge(edge, currentDistance);
         const rot = getRotationOnEdge(edge, currentDistance, currentDirection);
-        
+
         positions.push({
             position: pos,
             rotation: rot,
             edgeId: currentEdgeId,
             distanceAlongEdge: currentDistance,
         });
-        
+
         // For subsequent carriages, trace back along the track
         if (i < carriageCount - 1) {
             // Move backwards by spacing amount (opposite to train direction)
@@ -129,12 +131,12 @@ function getCarriagePositions(
             // Maximum iterations to prevent infinite loops in complex track layouts
             const MAX_ITERATIONS = 100;
             let iterations = 0;
-            
+
             while (remainingDistance > 0 && iterations < MAX_ITERATIONS) {
                 iterations++;
                 const edge = edges[currentEdgeId];
                 if (!edge) break;
-                
+
                 // Calculate distance available on current edge in backward direction
                 let availableDistance: number;
                 if (currentDirection === 1) {
@@ -144,7 +146,7 @@ function getCarriagePositions(
                     // Moving backward on edge, so backward = toward end
                     availableDistance = edge.length - currentDistance;
                 }
-                
+
                 if (availableDistance >= remainingDistance) {
                     // Enough room on current edge
                     if (currentDirection === 1) {
@@ -156,16 +158,16 @@ function getCarriagePositions(
                 } else {
                     // Need to transition to previous edge
                     remainingDistance -= availableDistance;
-                    
+
                     // Find the entry node (where we came from)
                     const entryNodeId = currentDirection === 1 ? edge.startNodeId : edge.endNodeId;
                     const entryNode = nodes[entryNodeId];
-                    
+
                     if (!entryNode) break;
-                    
+
                     // Find other connections (excluding current edge)
                     const otherConnections = entryNode.connections.filter(id => id !== currentEdgeId);
-                    
+
                     if (otherConnections.length === 0) {
                         // Dead end - carriage stays at edge boundary
                         if (currentDirection === 1) {
@@ -175,16 +177,16 @@ function getCarriagePositions(
                         }
                         break;
                     }
-                    
+
                     // Take first available connection (simple path following)
                     // Note: This is a simplification that works for simple track layouts.
                     // For complex junctions with multiple paths, a proper path history
                     // would need to be tracked. This is acceptable for the current toy simulation.
                     const prevEdgeId = otherConnections[0];
                     const prevEdge = edges[prevEdgeId];
-                    
+
                     if (!prevEdge) break;
-                    
+
                     // Determine how we entered the previous edge
                     currentEdgeId = prevEdgeId;
                     if (prevEdge.endNodeId === entryNodeId) {
@@ -200,7 +202,7 @@ function getCarriagePositions(
             }
         }
     }
-    
+
     return positions;
 }
 
@@ -338,17 +340,17 @@ function TrainEntity({ train }: { train: Train }) {
 function lightenColor(hex: string, percent: number): string {
     // Remove # if present
     const h = hex.replace('#', '');
-    
+
     // Parse RGB
     const r = parseInt(h.substring(0, 2), 16);
     const g = parseInt(h.substring(2, 4), 16);
     const b = parseInt(h.substring(4, 6), 16);
-    
+
     // Lighten
     const newR = Math.min(255, Math.round(r + (255 - r) * (percent / 100)));
     const newG = Math.min(255, Math.round(g + (255 - g) * (percent / 100)));
     const newB = Math.min(255, Math.round(b + (255 - b) * (percent / 100)));
-    
+
     // Convert back to hex
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }

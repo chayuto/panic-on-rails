@@ -32,17 +32,17 @@ function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; 
         const rotation = Math.atan2(end.y - start.y, end.x - start.x) * (180 / Math.PI);
         return { pos, rotation };
     } else {
-        // Arc geometry
+        // Arc geometry - angles are stored in DEGREES per constitution
         const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angle = startAngle + (endAngle - startAngle) * progress;
+        const angleDeg = startAngle + (endAngle - startAngle) * progress;
+        const angleRad = (angleDeg * Math.PI) / 180;
         const pos = {
-            x: center.x + Math.cos(angle) * radius,
-            y: center.y + Math.sin(angle) * radius,
+            x: center.x + Math.cos(angleRad) * radius,
+            y: center.y + Math.sin(angleRad) * radius,
         };
-        // Tangent angle for arc
-        const tangentAngle = angle + Math.PI / 2;
-        const rotation = tangentAngle * (180 / Math.PI);
-        return { pos, rotation };
+        // Tangent angle for arc (perpendicular to radius)
+        const tangentAngle = angleDeg + 90;
+        return { pos, rotation: tangentAngle };
     }
 }
 

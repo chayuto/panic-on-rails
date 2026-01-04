@@ -36,6 +36,12 @@ interface EditorState {
         type: 'sensor' | 'signal';
         id: SensorId | SignalId;
     } | null;
+
+    // Connect mode state
+    connectSource: {
+        nodeId: NodeId;
+        edgeId: EdgeId;
+    } | null;
 }
 
 interface EditorActions {
@@ -62,6 +68,10 @@ interface EditorActions {
     // Wire creation actions
     setWireSource: (source: { type: 'sensor' | 'signal'; id: SensorId | SignalId } | null) => void;
     clearWireSource: () => void;
+
+    // Connect mode actions
+    setConnectSource: (source: { nodeId: NodeId; edgeId: EdgeId } | null) => void;
+    clearConnectSource: () => void;
 }
 
 const initialState: EditorState = {
@@ -79,6 +89,7 @@ const initialState: EditorState = {
     ghostValid: true,
     snapTarget: null,
     wireSource: null,
+    connectSource: null,
 };
 
 export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
@@ -142,4 +153,8 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
     // Wire creation actions
     setWireSource: (source) => set({ wireSource: source }),
     clearWireSource: () => set({ wireSource: null }),
+
+    // Connect mode actions
+    setConnectSource: (source) => set({ connectSource: source }),
+    clearConnectSource: () => set({ connectSource: null }),
 }));

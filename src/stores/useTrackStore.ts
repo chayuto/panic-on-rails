@@ -40,7 +40,9 @@ interface TrackActions {
     getOpenEndpoints: () => TrackNode[];
     connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
     toggleSwitch: (nodeId: NodeId) => void;
-    // New spatial query actions
+    // Connect mode action
+    movePart: (edgeId: EdgeId, pivotNodeId: NodeId, targetPosition: Vector2, rotationDelta: number) => void;
+    // Spatial query actions
     getVisibleEdges: (viewport: BoundingBox) => EdgeId[];
     getVisibleNodes: (viewport: BoundingBox) => NodeId[];
 }
@@ -392,25 +394,26 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     edgeGeometry = { type: 'straight', start: position, end: endPosition };
                 } else if (part.geometry.type === 'curve') {
                     // Calculate arc center (perpendicular left from start direction)
-                    const startRad = (rotation * Math.PI) / 180;
-                    const centerAngle = startRad - Math.PI / 2;  // Left curve: center is 90deg CCW from direction
+                    // Use radians ONLY for cos/sin calculation
+                    const centerAngleDeg = rotation - 90;  // Left curve: center is 90° CCW from direction
+                    const centerAngleRad = (centerAngleDeg * Math.PI) / 180;
                     const arcCenter = {
-                        x: position.x + Math.cos(centerAngle) * part.geometry.radius,
-                        y: position.y + Math.sin(centerAngle) * part.geometry.radius,
+                        x: position.x + Math.cos(centerAngleRad) * part.geometry.radius,
+                        y: position.y + Math.sin(centerAngleRad) * part.geometry.radius,
                     };
 
-                    // Arc angles are measured FROM THE CENTER TO THE ARC ENDPOINTS
-                    // Start point is at angle (centerAngle + PI) from center (opposite direction)
-                    // End point is at angle (centerAngle + PI + arcSweep) from center
-                    const arcStartAngle = centerAngle + Math.PI;  // Angle from center to start point
-                    const arcSweep = (part.geometry.angle * Math.PI) / 180;  // Arc sweep in radians
+                    // Arc angles stored in DEGREES per constitution
+                    // Start point is at angle (centerAngle + 180°) from center
+                    // End point is at angle (startAngle + curveAngle) from center
+                    const arcStartAngleDeg = normalizeAngle(centerAngleDeg + 180);
+                    const arcSweepDeg = part.geometry.angle;  // Already in degrees from catalog
 
                     edgeGeometry = {
                         type: 'arc',
                         center: arcCenter,
                         radius: part.geometry.radius,
-                        startAngle: arcStartAngle,
-                        endAngle: arcStartAngle + arcSweep,
+                        startAngle: arcStartAngleDeg,
+                        endAngle: arcStartAngleDeg + arcSweepDeg,  // May exceed 360°
                     };
                 } else {
                     // Should never reach here due to early return above
@@ -618,6 +621,152 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                             },
                         },
                     };
+                });
+            },
+
+            /**
+             * Move a part to a new position by rotating around a pivot node.
+             * Used by Connect Mode to reposition Part B to connect to Part A.
+             * 
+             * @param edgeId - Any edge belonging to the part to move
+             * @param pivotNodeId - The node that will end up at targetPosition
+             * @param targetPosition - Where the pivot node should end up
+             * @param rotationDelta - Additional rotation to apply (degrees)
+             */
+            movePart: (edgeId, pivotNodeId, targetPosition, rotationDelta) => {
+                console.log('[movePart] Starting part move:', {
+                    edgeId: edgeId.slice(0, 8),
+                    pivotNodeId: pivotNodeId.slice(0, 8),
+                    targetPosition,
+                    rotationDelta,
+                });
+
+                set((state) => {
+                    const edge = state.edges[edgeId];
+                    if (!edge) {
+                        console.warn('[movePart] Edge not found');
+                        return state;
+                    }
+
+                    const partId = edge.partId;
+
+                    // Find all edges belonging to this part
+                    const partEdges = Object.values(state.edges).filter(e => e.partId === partId);
+
+                    // Find all nodes connected to these edges
+                    const partNodeIds = new Set<NodeId>();
+                    for (const e of partEdges) {
+                        partNodeIds.add(e.startNodeId);
+                        partNodeIds.add(e.endNodeId);
+                    }
+
+                    // Get pivot node current position
+                    const pivotNode = state.nodes[pivotNodeId];
+                    if (!pivotNode) {
+                        console.warn('[movePart] Pivot node not found');
+                        return state;
+                    }
+
+                    const pivotPos = pivotNode.position;
+                    const radDelta = (rotationDelta * Math.PI) / 180;
+                    const cos = Math.cos(radDelta);
+                    const sin = Math.sin(radDelta);
+
+                    // Calculate translation: after rotation, pivot should be at target
+                    // newPivotPos = pivot (because rotation is around pivot)
+                    // translation = targetPosition - pivotPos
+                    const translation = {
+                        x: targetPosition.x - pivotPos.x,
+                        y: targetPosition.y - pivotPos.y,
+                    };
+
+                    // Helper to transform a position
+                    const transformPos = (pos: Vector2): Vector2 => {
+                        // Rotate around pivot
+                        const dx = pos.x - pivotPos.x;
+                        const dy = pos.y - pivotPos.y;
+                        const rotatedX = dx * cos - dy * sin;
+                        const rotatedY = dx * sin + dy * cos;
+                        // Translate
+                        return {
+                            x: pivotPos.x + rotatedX + translation.x,
+                            y: pivotPos.y + rotatedY + translation.y,
+                        };
+                    };
+
+                    const newNodes = { ...state.nodes };
+                    const newEdges = { ...state.edges };
+
+                    // Transform all nodes
+                    for (const nodeId of partNodeIds) {
+                        const node = state.nodes[nodeId];
+                        if (!node) continue;
+
+                        const newPosition = transformPos(node.position);
+                        const newRotation = normalizeAngle(node.rotation + rotationDelta);
+
+                        newNodes[nodeId] = {
+                            ...node,
+                            position: newPosition,
+                            rotation: newRotation,
+                        };
+
+                        // Update spatial index
+                        nodeIndex.remove(nodeId);
+                        nodeIndex.insert(nodeId, getNodeBounds(newNodes[nodeId]), nodeId);
+                    }
+
+                    // Transform all edges (update geometry)
+                    for (const e of partEdges) {
+                        const startNode = newNodes[e.startNodeId];
+                        const endNode = newNodes[e.endNodeId];
+
+                        if (!startNode || !endNode) continue;
+
+                        let newGeometry: TrackEdge['geometry'];
+
+                        if (e.geometry.type === 'straight') {
+                            newGeometry = {
+                                type: 'straight',
+                                start: startNode.position,
+                                end: endNode.position,
+                            };
+                        } else {
+                            // Arc geometry - transform center and angles (in degrees)
+                            const oldCenter = e.geometry.center;
+                            const newCenter = transformPos(oldCenter);
+
+                            // Angles are stored in degrees per constitution
+                            const newStartAngle = normalizeAngle(e.geometry.startAngle + rotationDelta);
+                            // Preserve arc sweep by adding same delta (may exceed 360°)
+                            const arcSweep = e.geometry.endAngle - e.geometry.startAngle;
+                            const newEndAngle = newStartAngle + arcSweep;
+
+                            newGeometry = {
+                                type: 'arc',
+                                center: newCenter,
+                                radius: e.geometry.radius,
+                                startAngle: newStartAngle,
+                                endAngle: newEndAngle,
+                            };
+                        }
+
+                        newEdges[e.id] = {
+                            ...e,
+                            geometry: newGeometry,
+                        };
+
+                        // Update spatial index
+                        spatialIndex.remove(e.id);
+                        spatialIndex.insert(e.id, getEdgeBounds(newEdges[e.id]), e.id);
+                    }
+
+                    console.log('[movePart] Move complete:', {
+                        nodesTransformed: partNodeIds.size,
+                        edgesTransformed: partEdges.length,
+                    });
+
+                    return { nodes: newNodes, edges: newEdges };
                 });
             },
 

@@ -60,42 +60,45 @@ export function pointToLineDistance(
  * @param point - The point to test
  * @param center - Center of the arc
  * @param radius - Radius of the arc
- * @param startAngle - Start angle in radians
- * @param endAngle - End angle in radians
+ * @param startAngleDeg - Start angle in DEGREES per constitution
+ * @param endAngleDeg - End angle in DEGREES per constitution
  * @returns Approximate distance to the arc
  */
 export function pointToArcDistance(
     point: Vector2,
     center: Vector2,
     radius: number,
-    startAngle: number,
-    endAngle: number
+    startAngleDeg: number,
+    endAngleDeg: number
 ): number {
     // Calculate distance from point to center
     const dx = point.x - center.x;
     const dy = point.y - center.y;
     const distToCenter = Math.sqrt(dx * dx + dy * dy);
 
-    // Calculate angle of point relative to center
-    const pointAngle = Math.atan2(dy, dx);
+    // Calculate angle of point relative to center (in radians from atan2)
+    const pointAngleRad = Math.atan2(dy, dx);
+    const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
 
-    // Normalize angles to [0, 2π]
-    const normalizedPointAngle = (pointAngle + 2 * Math.PI) % (2 * Math.PI);
-    const normalizedStartAngle = (startAngle + 2 * Math.PI) % (2 * Math.PI);
-    let normalizedEndAngle = (endAngle + 2 * Math.PI) % (2 * Math.PI);
+    // Normalize angles to [0, 360)
+    const normalizeAngle = (a: number) => ((a % 360) + 360) % 360;
+
+    const normPointDeg = normalizeAngle(pointAngleDeg);
+    const normStartDeg = normalizeAngle(startAngleDeg);
+    let normEndDeg = normalizeAngle(endAngleDeg);
 
     // Handle wrap-around case
-    if (normalizedEndAngle < normalizedStartAngle) {
-        normalizedEndAngle += 2 * Math.PI;
+    if (normEndDeg < normStartDeg) {
+        normEndDeg += 360;
     }
 
     // Check if point angle falls within arc sweep
     let isWithinArc = false;
-    const adjustedPointAngle = normalizedPointAngle < normalizedStartAngle
-        ? normalizedPointAngle + 2 * Math.PI
-        : normalizedPointAngle;
+    const adjustedPointAngle = normPointDeg < normStartDeg
+        ? normPointDeg + 360
+        : normPointDeg;
 
-    if (adjustedPointAngle >= normalizedStartAngle && adjustedPointAngle <= normalizedEndAngle) {
+    if (adjustedPointAngle >= normStartDeg && adjustedPointAngle <= normEndDeg) {
         isWithinArc = true;
     }
 
@@ -104,13 +107,15 @@ export function pointToArcDistance(
         return Math.abs(distToCenter - radius);
     } else {
         // Point is outside arc's angular span - distance to nearest endpoint
+        const startAngleRad = (startAngleDeg * Math.PI) / 180;
+        const endAngleRad = (endAngleDeg * Math.PI) / 180;
         const startPoint: Vector2 = {
-            x: center.x + radius * Math.cos(startAngle),
-            y: center.y + radius * Math.sin(startAngle),
+            x: center.x + radius * Math.cos(startAngleRad),
+            y: center.y + radius * Math.sin(startAngleRad),
         };
         const endPoint: Vector2 = {
-            x: center.x + radius * Math.cos(endAngle),
-            y: center.y + radius * Math.sin(endAngle),
+            x: center.x + radius * Math.cos(endAngleRad),
+            y: center.y + radius * Math.sin(endAngleRad),
         };
 
         const distToStart = Math.sqrt(
@@ -232,16 +237,18 @@ function calculateT(
         return Math.max(0, Math.min(1, t));
     } else {
         // For arcs, approximate using angle
+        // Angles are stored in DEGREES per constitution
         const { center, startAngle, endAngle } = edge.geometry;
-        const pointAngle = Math.atan2(
+        const pointAngleRad = Math.atan2(
             point.y - center.y,
             point.x - center.x
         );
+        const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
 
         const totalAngle = endAngle - startAngle;
-        if (Math.abs(totalAngle) < 0.001) return 0.5;
+        if (Math.abs(totalAngle) < 0.1) return 0.5;  // Threshold for degrees
 
-        const t = (pointAngle - startAngle) / totalAngle;
+        const t = (pointAngleDeg - startAngle) / totalAngle;
         return Math.max(0, Math.min(1, t));
     }
 }

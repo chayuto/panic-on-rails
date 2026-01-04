@@ -24,8 +24,8 @@ export interface ArcGeometry {
     type: 'arc';
     center: Vector2;
     radius: number;
-    startAngle: number; // radians
-    endAngle: number;   // radians
+    startAngle: number; // degrees [0, 360), normalized
+    endAngle: number;   // degrees (may exceed 360 for arcs crossing 0°)
 }
 
 export type TrackGeometry = StraightGeometry | ArcGeometry;
