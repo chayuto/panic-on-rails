@@ -16,7 +16,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useBudgetStore } from '../stores/useBudgetStore';
 import { useIsEditing } from '../stores/useModeStore';
-import { findBestSnapForTrack } from '../utils/snapManager';
+import { findBestSnap } from '../utils/snapManager';
 import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
@@ -92,20 +92,26 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         const part = getPartById(draggedPartId);
         if (!part) return;
 
-        // Find snap target
+        // Find snap target using new multi-node snap manager
         const openEndpoints = getOpenEndpoints();
-        const bestSnap = findBestSnapForTrack(
+        const bestSnap = findBestSnap(
+            part,
             worldPos,
             userRotation,
-            part,
             openEndpoints,
             selectedSystem
         );
 
         // Update ghost position and snap state
         if (bestSnap) {
-            updateGhost(bestSnap.ghostPosition, bestSnap.ghostRotation, true);
-            setSnapTarget(bestSnap.snap);
+            updateGhost(bestSnap.ghostTransform.position, bestSnap.ghostTransform.rotation, true);
+            // Convert to legacy SnapResult format for compatibility
+            setSnapTarget({
+                targetNodeId: bestSnap.targetNodeId,
+                targetPosition: bestSnap.targetPosition,
+                targetRotation: bestSnap.targetFacade,
+                distance: bestSnap.distance,
+            });
         } else {
             updateGhost(worldPos, userRotation, true);
             setSnapTarget(null);

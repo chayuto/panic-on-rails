@@ -169,3 +169,18 @@ export type {
     WireAction,
     LogicLayoutData,
 } from './logic';
+
+// ===========================
+// Connector System (Multi-Node)
+// ===========================
+
+// Re-export from connector types
+export type {
+    ConnectorNode,
+    PartConnectors,
+    WorldConnector,
+    SnapMatchResult,
+    SnapConfig,
+} from './connector';
+
+export { DEFAULT_SNAP_CONFIG } from './connector';

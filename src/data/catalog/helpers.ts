@@ -183,3 +183,189 @@ export function calculateArcLength(radius: number, angleDegrees: number): number
     const angleRadians = (angleDegrees * Math.PI) / 180;
     return radius * angleRadians;
 }
+
+// ===========================
+// Connector Computation
+// ===========================
+
+import type { ConnectorNode, PartConnectors } from '../../types/connector';
+
+/**
+ * Compute connector nodes from part geometry.
+ * This provides backward compatibility for parts without explicit connector definitions.
+ * 
+ * Connectors are computed based on the geometry type:
+ * - **Straight**: Two connectors at each end, facades pointing outward (180° apart)
+ * - **Curve**: Two connectors, start facing back (180°), end facing outward at curve angle
+ * - **Switch**: Three connectors - entry, main exit, branch exit
+ * - **Crossing**: Four connectors for each track end
+ * 
+ * All positions are in local coordinates relative to the part's placement origin (0,0).
+ * The placement origin is at the START connector (A) by convention.
+ */
+export function computeConnectors(part: PartDefinition): PartConnectors {
+    const geometry = part.geometry;
+
+    switch (geometry.type) {
+        case 'straight': {
+            // Straight track: A at origin facing back, B at end facing forward
+            // Origin is at A (start), B is at (length, 0)
+            const nodes: ConnectorNode[] = [
+                {
+                    localId: 'A',
+                    localPosition: { x: 0, y: 0 },
+                    localFacade: 180,  // Faces left/back
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'B',
+                    localPosition: { x: geometry.length, y: 0 },
+                    localFacade: 0,  // Faces right/forward
+                    maxConnections: 1,
+                },
+            ];
+            return { nodes, primaryNodeId: 'A' };
+        }
+
+        case 'curve': {
+            // Curve track: LEFT-curving arc
+            // A at origin facing back, B at arc end facing tangent direction
+            // 
+            // For a LEFT curve with angle θ:
+            // - Arc center is perpendicular left of start (at radius distance up)
+            // - End position follows arc geometry
+            // - End facade = θ (pointing outward along arc tangent)
+
+            const { radius, angle } = geometry;
+            const angleRad = (angle * Math.PI) / 180;
+
+            // Arc center is 90° counter-clockwise from forward direction (up, negative Y in screen coords)
+            const centerX = 0;  // Start is at origin, center is directly above
+            const centerY = -radius;
+
+            // End position: rotate from start around center by the arc angle
+            // Start is at angle 90° (pointing down from center)
+            // End is at angle (90° + curveAngle) from center
+            const startAngleFromCenter = Math.PI / 2;  // 90° down from center
+            const endAngleFromCenter = startAngleFromCenter + angleRad;
+
+            const endX = centerX + Math.cos(endAngleFromCenter) * radius;
+            const endY = centerY + Math.sin(endAngleFromCenter) * radius;
+
+            const nodes: ConnectorNode[] = [
+                {
+                    localId: 'A',
+                    localPosition: { x: 0, y: 0 },
+                    localFacade: 180,  // Faces back (left)
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'B',
+                    localPosition: { x: endX, y: endY },
+                    localFacade: angle,  // Faces tangent direction at end
+                    maxConnections: 1,
+                },
+            ];
+            return { nodes, primaryNodeId: 'A' };
+        }
+
+        case 'switch': {
+            // Switch: Entry at origin, main exit straight ahead, branch exit at angle
+            const { mainLength, branchLength, branchAngle, branchDirection } = geometry;
+            const branchAngleDir = branchDirection === 'left' ? -1 : 1;
+            const branchRad = (branchAngleDir * branchAngle * Math.PI) / 180;
+
+            const nodes: ConnectorNode[] = [
+                {
+                    localId: 'entry',
+                    localPosition: { x: 0, y: 0 },
+                    localFacade: 180,  // Faces back
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'main',
+                    localPosition: { x: mainLength, y: 0 },
+                    localFacade: 0,  // Faces forward
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'branch',
+                    localPosition: {
+                        x: Math.cos(branchRad) * branchLength,
+                        y: Math.sin(branchRad) * branchLength,
+                    },
+                    localFacade: branchAngleDir * branchAngle,  // Faces along branch direction
+                    maxConnections: 1,
+                },
+            ];
+            return { nodes, primaryNodeId: 'entry' };
+        }
+
+        case 'crossing': {
+            // Crossing: Two tracks crossing at center
+            // Path A: horizontal, Path B: at crossingAngle
+            const { length, crossingAngle } = geometry;
+            const halfLength = length / 2;
+            const crossRad = (crossingAngle * Math.PI) / 180;
+
+            const nodes: ConnectorNode[] = [
+                // Path A (horizontal)
+                {
+                    localId: 'A1',
+                    localPosition: { x: -halfLength, y: 0 },
+                    localFacade: 180,
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'A2',
+                    localPosition: { x: halfLength, y: 0 },
+                    localFacade: 0,
+                    maxConnections: 1,
+                },
+                // Path B (at crossingAngle)
+                {
+                    localId: 'B1',
+                    localPosition: {
+                        x: -Math.cos(crossRad) * halfLength,
+                        y: -Math.sin(crossRad) * halfLength,
+                    },
+                    localFacade: crossingAngle + 180,
+                    maxConnections: 1,
+                },
+                {
+                    localId: 'B2',
+                    localPosition: {
+                        x: Math.cos(crossRad) * halfLength,
+                        y: Math.sin(crossRad) * halfLength,
+                    },
+                    localFacade: crossingAngle,
+                    maxConnections: 1,
+                },
+            ];
+            return { nodes, primaryNodeId: 'A1' };
+        }
+
+        default: {
+            // Fallback for unknown geometry types
+            const nodes: ConnectorNode[] = [
+                {
+                    localId: 'A',
+                    localPosition: { x: 0, y: 0 },
+                    localFacade: 180,
+                    maxConnections: 1,
+                },
+            ];
+            return { nodes, primaryNodeId: 'A' };
+        }
+    }
+}
+
+/**
+ * Get connectors for a part, using explicit definition if available,
+ * otherwise computing from geometry.
+ */
+export function getPartConnectors(part: PartDefinition): PartConnectors {
+    // Future: Check for part.connectors explicit definition
+    // For now, always compute from geometry
+    return computeConnectors(part);
+}
