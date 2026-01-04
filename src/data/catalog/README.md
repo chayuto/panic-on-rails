@@ -2,120 +2,131 @@
 
 This directory contains the track parts catalog for PanicOnRails.
 
+**Architecture Update (2026-01):** The catalog has migrated from TypeScript definitions to a **JSON-based architecture**. This allows for easier portability, potential external loading, and simpler part definitions.
+
 ## Quick Start: Adding a New Part
 
-### 1. Find Your Brand File
+### 1. Find Your Brand's JSON File
+
+Parts are now defined in `src/data/catalog/parts/*.json`.
 
 ```
-brands/
-├── kato.ts    # Kato Unitrack N-Scale
-├── brio.ts    # Brio / IKEA Wooden Railway
-└── tomix.ts   # Tomix Fine Track (coming soon)
+src/data/catalog/parts/
+├── kato.json        # Kato Unitrack N-Scale
+├── brio.json        # Brio / IKEA Wooden Railway
+└── tomix.json       # Tomix Fine Track (coming soon)
 ```
 
-### 2. Use a Helper Function
+### 2. Add Part Definition to JSON
 
-Instead of writing:
-```typescript
+Add your part object to the `parts` array in the relevant JSON file.
+
+**Example (Straight Track):**
+```json
 {
-  id: 'kato-20-000',
-  name: 'Straight 248mm',
-  brand: 'kato',
-  scale: 'n-scale',
-  geometry: { type: 'straight', length: 248 }
+  "id": "kato-20-000",
+  "name": "Straight 248mm",
+  "type": "straight",
+  "length": 248,
+  "productCode": "20-000"
 }
 ```
 
-Write this:
-```typescript
-straight('kato-20-000', 'Straight 248mm', 248, 'kato', 'n-scale')
+**Example (Curved Track):**
+```json
+{
+  "id": "kato-20-100",
+  "name": "Curve R249-45",
+  "type": "curve",
+  "radius": 249,
+  "angle": 45,
+  "productCode": "20-100"
+}
 ```
 
-### 3. Run Tests
+### 3. Verify Registration
 
-```bash
-pnpm test
-```
+Ensure the JSON file is imported and registered in `src/data/catalog/brands/index.ts`. If you are adding a completely new brand file, you must add it there.
 
 ---
 
-## Helper Functions
+## JSON Schema Reference
 
-| Function | Parameters | Example |
-|----------|------------|---------|
-| `straight()` | id, name, length, brand, scale | `straight('id', 'Name', 248, 'kato', 'n-scale')` |
-| `curve()` | id, name, radius, angle, brand, scale | `curve('id', 'Name', 315, 45, 'kato', 'n-scale')` |
-| `switchPart()` | id, name, options, brand, scale | See below |
-| `crossing()` | id, name, length, angle, brand, scale | `crossing('id', 'Name', 248, 90, 'kato', 'n-scale')` |
+Parts are validated against `PartCatalogFileSchema` in `src/data/catalog/schemas.ts`.
 
-### Switch Example
+### Common Fields (All Parts)
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier (e.g. `brand-code`) |
+| `name` | string | Display name |
+| `type` | enum | `straight`, `curve`, `switch`, `crossing` |
+| `cost` | number? | (Optional) Cost in cents |
+| `productCode` | string? | (Optional) Manufacturer code |
+| `description` | string? | (Optional) |
+| `discontinued` | boolean? | (Optional) |
 
-```typescript
-switchPart('kato-20-202', '#4 Turnout Left', {
-  mainLength: 248,
-  branchLength: 186,
-  branchAngle: 15,
-  branchDirection: 'left',
-}, 'kato', 'n-scale')
+### Part-Specific Fields
+
+#### Straight
+```json
+{
+  "type": "straight",
+  "length": 248  // Length in mm
+}
+```
+
+#### Curve
+```json
+{
+  "type": "curve",
+  "radius": 315, // Radius in mm
+  "angle": 45    // Angle in degrees
+}
+```
+
+#### Switch (Turnout)
+```json
+{
+  "type": "switch",
+  "mainLength": 124,     // Straight path length
+  "branchLength": 124,   // Diverging path length
+  "branchAngle": 15,     // Divergence angle
+  "branchDirection": "left" // "left" or "right"
+}
+```
+
+#### Crossing
+```json
+{
+  "type": "crossing",
+  "length": 124,         // Length of each track
+  "crossingAngle": 90    // Angle between tracks
+}
 ```
 
 ---
 
 ## Adding a New Brand
 
-1. Create `brands/your-brand.ts`:
+1.  **Create JSON File**: Create `src/data/catalog/parts/my-brand.json`.
+    ```json
+    {
+      "version": 1,
+      "brand": "generic",
+      "scale": "n-scale",
+      "parts": []
+    }
+    ```
 
-```typescript
-import { straight, curve } from '../helpers';
-import type { PartDefinition } from '../types';
-
-export const YOUR_BRAND_PARTS: PartDefinition[] = [
-  straight('your-brand-001', 'Straight 200mm', 200, 'generic', 'n-scale'),
-  // ... more parts
-];
-```
-
-2. Register in `brands/index.ts`:
-
-```typescript
-import { YOUR_BRAND_PARTS } from './your-brand';
-registerParts(YOUR_BRAND_PARTS);
-```
-
-3. Run tests:
-
-```bash
-pnpm test
-```
+2.  **Register It**: Edit `src/data/catalog/brands/index.ts`:
+    ```typescript
+    import myBrandJson from '../parts/my-brand.json';
+    const MY_BRAND_PARTS = parsePartsCatalog(myBrandJson);
+    registerParts(MY_BRAND_PARTS);
+    ```
 
 ---
 
-## Part ID Convention
+## Legacy Helpers (Deprecated)
 
-Format: `{brand}-{product-code}`
-
-Examples:
-- `kato-20-000` (Kato product 20-000)
-- `wooden-straight-long` (Wooden railway, no product code)
-- `tomix-1101` (Tomix product 1101)
-
----
-
-## Geometry Reference
-
-### Straight
-- `length`: Track length in millimeters
-
-### Curve
-- `radius`: Curve radius in millimeters
-- `angle`: Arc angle in degrees (e.g., 45, 30, 15)
-
-### Switch
-- `mainLength`: Length of straight-through path
-- `branchLength`: Length of diverging path
-- `branchAngle`: Angle of divergence in degrees
-- `branchDirection`: `'left'` or `'right'`
-
-### Crossing
-- `length`: Length of each crossing track
-- `crossingAngle`: Angle between tracks (90 = perpendicular)
+TypeScript helper functions (`straight()`, `curve()`, etc.) in `helpers.ts` are deprecated for defining catalogs but may still be used internally by the loader. Please prefer defining parts in JSON.

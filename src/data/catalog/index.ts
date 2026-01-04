@@ -7,7 +7,7 @@
  *   import { getPartById, getPartsByScale } from '@/data/catalog';
  * 
  * Adding parts:
- *   See ./brands/README.md for contributor guide.
+ *   See ./README.md for contributor guide.
  */
 
 // Initialize registry by importing brands
