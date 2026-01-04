@@ -102,6 +102,7 @@ export interface LayoutData {
         name?: string;
         created?: string;
         modified?: string;
+        buildTime?: string;  // Build timestamp when app was compiled
     };
     nodes: Record<NodeId, TrackNode>;
     edges: Record<EdgeId, TrackEdge>;

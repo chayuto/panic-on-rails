@@ -3,6 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 
+// Startup banner with build time
+console.log(
+    '%c🚂 Panic on Rails',
+    'color: #ff6b6b; font-weight: bold; font-size: 14px',
+    `\nBuild: ${__BUILD_TIME__}`
+);
+
 // Debug overlay hint (dev only)
 if (import.meta.env.DEV) {
     console.log(
@@ -17,3 +24,4 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>,
 )
+

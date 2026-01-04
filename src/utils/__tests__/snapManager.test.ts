@@ -36,10 +36,10 @@ const openEndpoints = [targetNode];
 
 describe('findBestSnapForTrack', () => {
     it('snaps Start Node to Target (Head-to-Head)', () => {
-        // Ghost start is at (205, 0) - close to (200, 0)
+        // Ghost start is at (205, 0) - close to target at (200, 0)
         const ghostPos = { x: 205, y: 0 };
-        // User rotates ghost to face West (180) to match
-        const ghostRot = 180;
+        // User rotates ghost to face East (0) to match target direction
+        const ghostRot = 0;
 
         const result = findBestSnapForTrack(ghostPos, ghostRot, straightPart, openEndpoints, 'n-scale');
 
@@ -50,20 +50,22 @@ describe('findBestSnapForTrack', () => {
         expect(result.snap.distance).toBe(5);
 
         // Check Ghost Transform
-        // Should align exactly to target
+        // Track goes SAME direction as target faces (0° east)
+        // Our START faces opposite (180° west), creating proper head-to-head mating
         expect(result.ghostPosition.x).toBeCloseTo(200);
         expect(result.ghostPosition.y).toBeCloseTo(0);
-        expect(result.ghostRotation).toBe(180); // Target(0) + 180
+        expect(result.ghostRotation).toBe(0); // Track goes 0° (same as target faces)
     });
 
     it('snaps End Node to Target (Tail-to-Head - Straight)', () => {
-        // We want the END of the ghost to be at (200, 0).
-        // Ghost is 100 long.
-        // So Start should be at (300, 0) if facing West (180).
+        // With new tangent-matching formula:
+        // Target faces 0° (east)
+        // targetTangent = 0 + 180 = 180°
+        // endSnapRotation = 180 - 0 + 180 = 0° (track goes east)
+        // END at (200, 0), track goes 0° (east), so START at (100, 0)
 
-        // Place ghost start at (305, 0).
-        const ghostPos = { x: 305, y: 0 };
-        const ghostRot = 180;
+        const ghostPos = { x: 105, y: 0 };
+        const ghostRot = 0;
 
         const result = findBestSnapForTrack(ghostPos, ghostRot, straightPart, openEndpoints, 'n-scale');
 
@@ -71,48 +73,39 @@ describe('findBestSnapForTrack', () => {
         if (!result) return;
 
         expect(result.snap.targetNodeId).toBe('target-1');
-        // Distance should be from End(205) to Target(200) = 5
         expect(result.snap.distance).toBe(5);
 
-        // Check Ghost Transform
-        // New End should be at Target(200, 0).
-        // New Rotation should be Target(0) + 180 = 180.
-        // New Start should be at 200 - vector(100, 180deg)
-        // cos(180) = -1. 200 - (-100) = 300.
-        expect(result.ghostPosition.x).toBeCloseTo(300);
+        // Ghost starts at (100, 0), goes east, ends at (200, 0)
+        expect(result.ghostPosition.x).toBeCloseTo(100);
         expect(result.ghostPosition.y).toBeCloseTo(0);
-        expect(result.ghostRotation).toBe(180);
+        expect(result.ghostRotation).toBe(0);
     });
 
     it('snaps End Node to Target (Tail-to-Head - Curve)', () => {
-        // Curve: R=100, Angle=90.
-        // We want End of Curve to snap to (200, 0) facing West (180).
+        // With new tangent-matching formula:
+        // Target faces 0° (east)
+        // targetTangent = 0 + 180 = 180°
+        // endSnapRotation = 180 - 90 + 180 = 270° (track goes south)
+        //
+        // For rotation 270° (going south) with R=100, angle=90°:
+        // Center is 90° CCW from direction: centerAngle = 270 - 90 = 180°
+        // Center = Start + (R * cos(180), R * sin(180)) = Start + (-100, 0)
+        // Arc sweeps 90° CCW
+        // End position relative to center at arcEndAngle = 180 + 180 + 90 = 450 = 90°
+        // End = Center + (R * cos(90), R * sin(90)) = Center + (0, 100)
+        //
+        // If End at (200, 0):
+        // Center.x = 200, Center.y = -100
+        // Start.x = Center.x + 100 = 300, Start.y = Center.y = -100
+        // Actually let me compute differently:
+        // End = (200, 0), need to find Start
+        // For rotation 270°, centerAngle = 180°, so center is to the LEFT (-x) of start
+        // Arc ends at: center + (cos(90°)*R, sin(90°)*R) = center + (0, 100)
+        // So center = end - (0, 100) = (200, -100)
+        // Start = center + (cos(360°)*R, sin(360°)*R) = center + (100, 0) = (300, -100)
 
-        // If Snap Rotation is 180.
-        // Curve adds 90 degrees.
-        // So Start Rotation + 90 = 180.
-        // Start Rotation should be 90 (Facing South).
-
-        // Let's configure ghost:
-        // User holds ghost at rough start position.
-        // Rotated roughly 90 deg.
-
-        // Where is Start if End is at (200,0) and EndRot is 180?
-        // Center calculation:
-        // StartRot = 90.
-        // CenterAngle = 90 - 90 = 0.
-        // Center = Start + (R, 0) = (Start.x + 100, Start.y).
-        // EndAngle = 0 + 180 + 90 = 270 (-90).
-        // EndPos = Center + (0, -R) = (Start.x + 100, Start.y - 100).
-
-        // We want EndPos = (200, 0).
-        // Start.x + 100 = 200 => Start.x = 100.
-        // Start.y - 100 = 0 => Start.y = 100.
-        // So ideal Start is (100, 100).
-
-        // Let's place mouse at (105, 100) - 5px error.
-        const ghostPos = { x: 105, y: 100 };
-        const ghostRot = 90;
+        const ghostPos = { x: 300, y: -95 };
+        const ghostRot = 270;
 
         const result = findBestSnapForTrack(ghostPos, ghostRot, curvePart, openEndpoints, 'n-scale');
 
@@ -121,13 +114,11 @@ describe('findBestSnapForTrack', () => {
 
         expect(result.snap.targetNodeId).toBe('target-1');
 
-        // Check alignment
-        // End Rotation Target = 180.
-        // Start Rotation = 180 - 90 = 90.
-        expect(result.ghostRotation).toBe(90);
+        // Rotation should be 270°
+        expect(result.ghostRotation).toBe(270);
 
-        // Start Position should be (100, 100)
-        expect(result.ghostPosition.x).toBeCloseTo(100);
-        expect(result.ghostPosition.y).toBeCloseTo(100);
+        // Start Position should be (300, -100)
+        expect(result.ghostPosition.x).toBeCloseTo(300);
+        expect(result.ghostPosition.y).toBeCloseTo(-100);
     });
 });

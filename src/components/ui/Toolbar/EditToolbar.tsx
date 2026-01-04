@@ -80,17 +80,54 @@ export function EditToolbar() {
             }),
         }));
 
-        const edgeList = Object.values(edges).map(edge => ({
-            id: edge.id,
-            partId: edge.partId,
-            startNodeId: edge.startNodeId,
-            endNodeId: edge.endNodeId,
-            length: edge.length,
-            geometry: edge.geometry,
-            // Verify node references are valid
-            startNodeExists: !!nodes[edge.startNodeId],
-            endNodeExists: !!nodes[edge.endNodeId],
-        }));
+        const edgeList = Object.values(edges).map(edge => {
+            // Calculate tangent directions at each end of the edge
+            let tangentAtStart: number | null = null;
+            let tangentAtEnd: number | null = null;
+            let curveDirection: string | null = null;
+
+            if (edge.geometry.type === 'straight') {
+                // Straight track: tangent is the same at both ends
+                const dx = edge.geometry.end.x - edge.geometry.start.x;
+                const dy = edge.geometry.end.y - edge.geometry.start.y;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                tangentAtStart = Math.round(((angle % 360) + 360) % 360);
+                tangentAtEnd = tangentAtStart;
+                curveDirection = 'straight';
+            } else if (edge.geometry.type === 'arc') {
+                // Arc: tangent is perpendicular to radius at each point
+                const { startAngle, endAngle } = edge.geometry;
+                // Tangent = radius angle + 90° (for CCW arc)
+                const startTangent = (startAngle * 180 / Math.PI) + 90;
+                const endTangent = (endAngle * 180 / Math.PI) + 90;
+                tangentAtStart = Math.round(((startTangent % 360) + 360) % 360);
+                tangentAtEnd = Math.round(((endTangent % 360) + 360) % 360);
+                // Determine if arc curves CW or CCW (in screen coords)
+                const sweep = endAngle - startAngle;
+                curveDirection = sweep > 0 ? 'CCW (left turn in math, curves down-right on screen)' :
+                    'CW (right turn in math, curves up-left on screen)';
+            }
+
+            return {
+                id: edge.id,
+                partId: edge.partId,
+                startNodeId: edge.startNodeId,
+                endNodeId: edge.endNodeId,
+                length: edge.length,
+                geometry: edge.geometry,
+                // Tangent analysis (helpful for debugging curve connections)
+                tangentAtStart,
+                tangentAtEnd,
+                curveDirection,
+                // Expected node rotations based on tangent
+                expectedStartNodeRotation: tangentAtStart !== null ? (tangentAtStart + 180) % 360 : null,
+                expectedEndNodeRotation: tangentAtEnd,
+                // Verify node references are valid
+                startNodeExists: !!nodes[edge.startNodeId],
+                endNodeExists: !!nodes[edge.endNodeId],
+            };
+        });
+
 
         // Find potential issues
         const issues: string[] = [];

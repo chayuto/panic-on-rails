@@ -2,22 +2,61 @@ import type { SnapResult } from '../stores/useEditorStore';
 import type { PartDefinition, Vector2, PartGeometry } from '../types';
 import type { TrackNode, NodeId } from '../types';
 
-// Snap configuration by system
+// =============================================================================
+// TRACK CONNECTION MODEL
+// =============================================================================
+//
+// Physical Model:
+// ---------------
+// Track pieces connect via "connectors" at each end. For two tracks to connect:
+// - Their connectors must be at the same position
+// - Their connectors must face OPPOSITE directions (head-to-head)
+//
+// Coordinate System:
+// ------------------
+// - X increases to the right (east)
+// - Y increases downward (south) - standard screen coordinates
+// - Rotation 0° points right (east), 90° points down (south)
+//
+// Node Rotation Convention:
+// -------------------------
+// A node's rotation indicates the direction it FACES (outward from the track).
+// For head-to-head connection, two nodes must differ by 180°.
+//
+// Example: If an existing endpoint faces 180° (west), an incoming track's
+// connector must face 0° (east) to connect properly.
+//
+// Track Geometry:
+// ---------------
+// - Straight: Both ends face the same direction (the track's forward direction)
+// - Curve: End rotation = Start rotation + curve angle (always curves LEFT)
+//   - The arc center is 90° counter-clockwise from the start heading
+//   - To curve right, you must flip/rotate the entire track piece
+//
+// Snapping Logic:
+// ---------------
+// When dragging a track piece, we check both its START and END connectors
+// against all open endpoints. The system picks the best match based on:
+// 1. Distance (closest wins)
+// 2. User's rotation hint (tiebreaker when distances are similar)
+//
+// =============================================================================
+
+// Snap configuration by system - determines how forgiving the snap detection is
 const SNAP_CONFIG = {
     'n-scale': {
-        radius: 30,      // pixels
-        maxAngle: 30,    // degrees - increased from 5 to work with curves
+        radius: 30,      // pixels - how close you need to drag to trigger snap
+        maxAngle: 30,    // degrees - unused, kept for potential future use
     },
     'wooden': {
-        radius: 40,      // pixels (more forgiving)
-        maxAngle: 45,    // degrees - increased from 15 to work with curves
+        radius: 40,      // pixels - more forgiving for wooden track
+        maxAngle: 45,    // degrees - unused, kept for potential future use
     },
 };
 
 
-
 /**
- * Calculate distance between two points
+ * Calculate Euclidean distance between two points
  */
 function distance(a: Vector2, b: Vector2): number {
     const dx = b.x - a.x;
@@ -26,24 +65,30 @@ function distance(a: Vector2, b: Vector2): number {
 }
 
 /**
- * Find open endpoints (nodes with only 1 connection)
+ * Find all open endpoints in the track graph.
+ * An "open endpoint" is a node with only one connection - it has a free side
+ * available for connecting new track pieces.
  */
 export function findOpenEndpoints(nodes: Record<NodeId, TrackNode>): TrackNode[] {
     return Object.values(nodes).filter(node => node.connections.length === 1);
 }
 
 /**
- * Check if a ghost piece can snap to any open endpoint
+ * Find the closest open endpoint within snap range of a ghost connector.
  * 
- * @param ghostConnectorPosition - Position of the ghost's connector point
- * @param ghostConnectorRotation - Rotation of the ghost's connector (degrees)
- * @param openEndpoints - List of open endpoints on existing tracks
- * @param system - Current track system ('n-scale' or 'wooden')
- * @returns SnapResult if valid snap found, null otherwise
+ * This function doesn't check angles - the snap system auto-rotates the ghost
+ * piece to align with whatever endpoint is found. This makes snapping more
+ * forgiving and lets users approach from any angle.
+ * 
+ * @param ghostConnectorPosition - World position of the ghost's connector
+ * @param _ghostConnectorRotation - Unused, kept for API compatibility  
+ * @param openEndpoints - All available endpoints to snap to
+ * @param system - Track system determines snap radius
+ * @returns Best snap target, or null if nothing in range
  */
 export function findSnapTarget(
     ghostConnectorPosition: Vector2,
-    _ghostConnectorRotation: number, // Kept for API compatibility but not used for filtering
+    _ghostConnectorRotation: number,
     openEndpoints: TrackNode[],
     system: 'n-scale' | 'wooden'
 ): SnapResult | null {
@@ -53,16 +98,12 @@ export function findSnapTarget(
     let bestDistance = Infinity;
 
     for (const endpoint of openEndpoints) {
-        // Calculate distance from ghost connector to endpoint
         const dist = distance(ghostConnectorPosition, endpoint.position);
 
-        // Skip if outside snap radius
+        // Must be within snap radius
         if (dist > config.radius) continue;
 
-        // No angle check - we auto-rotate to match the target
-        // This allows snapping from any angle and the ghost will rotate to fit
-
-        // This is a valid snap candidate - pick closest
+        // Pick the closest endpoint
         if (dist < bestDistance) {
             bestDistance = dist;
             bestMatch = {
@@ -82,13 +123,37 @@ export function findSnapTarget(
  */
 export interface BestSnapResult {
     snap: SnapResult;
-    ghostPosition: Vector2;
-    ghostRotation: number;
+    ghostPosition: Vector2;  // Where to place the track's start point
+    ghostRotation: number;   // Track's forward direction (degrees)
 }
 
 /**
- * Calculate the position of a connector based on start position, rotation, and geometry.
- * Returns the position and the rotation AT that point.
+ * Calculate the END connector position and rotation given the START position and rotation.
+ * This is the core geometry calculation for track pieces.
+ * 
+ * For STRAIGHT tracks:
+ * - End position is simply: start + (length * direction_vector)
+ * - End rotation equals start rotation (same direction throughout)
+ * 
+ * For CURVE tracks (always LEFT-curving):
+ * - Arc center is perpendicular LEFT of the start heading (90° CCW)
+ * - The curve sweeps through the specified angle
+ * - End rotation = start rotation + curve angle
+ * 
+ * Visual example of a 45° left curve starting at rotation 0° (east):
+ * 
+ *        End (rotation 45°, northeast)
+ *       /
+ *      /  ← arc curves left
+ *     /
+ *    Start (rotation 0°, east)
+ *         ↑
+ *       Center (directly above start, at distance = radius)
+ * 
+ * @param startPos - Position of the track's start connector
+ * @param startRot - Direction the track points at start (degrees)
+ * @param geometry - Part geometry (straight length or curve radius/angle)
+ * @returns End position and rotation, or null for unsupported geometry types
  */
 function calculateEndpoint(
     startPos: Vector2,
@@ -98,27 +163,32 @@ function calculateEndpoint(
     const startRad = (startRot * Math.PI) / 180;
 
     if (geometry.type === 'straight') {
+        // Straight track: move along the direction vector
         return {
             position: {
                 x: startPos.x + Math.cos(startRad) * geometry.length,
                 y: startPos.y + Math.sin(startRad) * geometry.length,
             },
-            rotation: startRot,
+            rotation: startRot,  // Straight tracks maintain direction
         };
     } else if (geometry.type === 'curve') {
         const { radius, angle } = geometry;
         const angleRad = (angle * Math.PI) / 180;
 
-        // Center is 90 degrees CCW from start heading (assuming left curve behavior for positive angle)
-        // Note: The system assumes standardized curves. If angle is positive, it curves "Left" relative to forward?
-        // Let's verify standard assumption: 
-        // In useTrackStore: centerAngle = startRad - Math.PI / 2; (Left curve)
-        // And endPosition calculation matches this.
+        // LEFT CURVE GEOMETRY:
+        // The arc center is 90° counter-clockwise from the start heading.
+        // This means the curve always bends LEFT relative to forward motion.
+        //
+        // To get a RIGHT curve, the user must rotate the entire track 180°
+        // (effectively using it "backwards").
 
-        const centerAngle = startRad - Math.PI / 2;
+        const centerAngle = startRad - Math.PI / 2;  // 90° CCW = left of heading
         const centerX = startPos.x + Math.cos(centerAngle) * radius;
         const centerY = startPos.y + Math.sin(centerAngle) * radius;
 
+        // The end point is on the arc, rotated by the curve angle from start
+        // Start is at angle (centerAngle + π) from center
+        // End is at angle (centerAngle + π + curveAngle) from center
         const endAngle = centerAngle + Math.PI + angleRad;
 
         return {
@@ -126,114 +196,265 @@ function calculateEndpoint(
                 x: centerX + Math.cos(endAngle) * radius,
                 y: centerY + Math.sin(endAngle) * radius,
             },
-            rotation: startRot + angle,
+            rotation: startRot + angle,  // Direction changes by curve angle
         };
     }
 
-    // Switch/Crossing handling could be added here
+    // Switch/Crossing geometry not handled here (they have multiple ends)
     return null;
 }
 
 /**
- * Find the best snap target by checking ALL connectors of the ghost piece.
- * Returns the snap result AND the new transform for the ghost to satisfy that map.
+ * Normalize angle to 0-360 range.
+ */
+function normalizeAngle(angle: number): number {
+    return ((angle % 360) + 360) % 360;
+}
+
+/**
+ * Calculate the smallest angular difference between two angles.
+ * Result is always in range [0, 180].
+ */
+function angleDifference(a: number, b: number): number {
+    const diff = Math.abs(normalizeAngle(a) - normalizeAngle(b));
+    return diff > 180 ? 360 - diff : diff;
+}
+
+/**
+ * Find the best snap target using FACADE-BASED mating logic.
+ * 
+ * FACADE MODEL:
+ * - Each connector has a "facade angle" - the direction it faces outward
+ * - For valid mating, two connectors' facades must face OPPOSITE directions
+ *   (differ by 180° ± tolerance)
+ * 
+ * ALGORITHM:
+ * 1. For each target endpoint (with its facade = target.rotation):
+ *    a. Calculate what ghost rotation would mate via START connector
+ *    b. Calculate what ghost rotation would mate via END connector
+ *    c. Check if resulting position is close enough to trigger snap
+ *    d. Validate that facades actually face opposite (prevents Y-forks)
+ * 2. Collect all valid candidates
+ * 3. Pick the best based on distance and user rotation preference
  */
 export function findBestSnapForTrack(
     ghostStartPos: Vector2,
     ghostRotation: number,
     part: PartDefinition,
     openEndpoints: TrackNode[],
-    system: 'n-scale' | 'wooden'
+    system: 'n-scale' | 'wooden',
+    edges?: Record<string, { startNodeId: string; endNodeId: string }>
 ): BestSnapResult | null {
-    let bestResult: BestSnapResult | null = null;
-    let minDistance = Infinity;
+    type SnapCandidate = BestSnapResult & {
+        angleDiffFromUser: number;
+        snapType: 'START' | 'END';
+        ourFacade: number;
+        targetFacade: number;
+        targetIsStart?: boolean;  // Is target the START of its edge?
+    };
+    const candidates: SnapCandidate[] = [];
+    const config = SNAP_CONFIG[system];
 
-    // 1. Check Start Node Snapping
-    // Properties of Start Node:
-    // Position: ghostStartPos
-    // Rotation: ghostRotation. (Points OUT of the track start)
-    // Wait, standard node rotation usually points OUT of the connection.
-    // If I drive onto the track at Start, I am heading in `ghostRotation`.
-    // So `ghostRotation` is the "Into Track" direction? 
-    // No, `useTrackStore`: startNode.rotation = rotation + 180.
-    // So `ghostRotation` is the Forward Vector of the track.
-    // Start Node rotation (facing away from track) is `ghostRotation + 180`.
+    // Helper: determine if target is a START or END of its connected edge
+    const getTargetRole = (target: TrackNode): 'start' | 'end' | 'unknown' => {
+        if (!edges || target.connections.length !== 1) return 'unknown';
+        const edgeId = target.connections[0];
+        const edge = edges[edgeId];
+        if (!edge) return 'unknown';
+        if (edge.startNodeId === target.id) return 'start';
+        if (edge.endNodeId === target.id) return 'end';
+        return 'unknown';
+    };
 
-    // `findSnapTarget` logic: 
-    // expectedAngle = (ghostConnectorRotation + 180) % 360;
-    // It compares expectedAngle to target.rotation.
-    // If we pass `ghostRotation` (Forward), expected is Backwards.
-    // If Target is Endpoint (facing out/backwards relative to its track), we want Backwards == Target.
-    // So passing `ghostRotation` is correct for Head-to-Head snapping.
+    // For each target, calculate snap options based on target's role
+    for (const target of openEndpoints) {
+        const targetFacade = target.rotation;
+        const targetRole = getTargetRole(target);
 
-    const startSnap = findSnapTarget(ghostStartPos, ghostRotation, openEndpoints, system);
-    if (startSnap && startSnap.distance < minDistance) {
-        minDistance = startSnap.distance;
-        bestResult = {
-            snap: startSnap,
-            // If we snap Start, ghost moves so Start is at Target.
-            ghostPosition: startSnap.targetPosition,
-            // Ghost aligns to target. Target faces X. We face X + 180.
-            ghostRotation: (startSnap.targetRotation + 180) % 360,
-        };
-    }
+        // Calculate target's TANGENT direction (the direction the track travels at this point)
+        // START nodes face backward, so tangent = facade + 180
+        // END nodes face forward, so tangent = facade
+        const targetTangent = (targetRole === 'start')
+            ? normalizeAngle(targetFacade + 180)
+            : targetFacade;
 
-    // 2. Check End Node Snapping
-    if (part.geometry.type === 'straight' || part.geometry.type === 'curve') {
-        // Calculate where the End Node is currently (based on mouse pos)
-        const currentEnd = calculateEndpoint(ghostStartPos, ghostRotation, part.geometry);
+        console.log('[snapManager] Target analysis:', {
+            targetId: target.id.slice(0, 8),
+            targetFacade,
+            targetRole,
+            targetTangent,
+        });
 
-        if (currentEnd) {
-            // Check snap at current End Node position
-            // End Node direction: currentEnd.rotation.
-            // But End Node "facing" (connector direction) is same as track direction at that point?
-            // `useTrackStore`: endNode.rotation = endRotation.
-            // So yes, it faces "Forward".
+        // =====================================================================
+        // OPTION A: Connect via our START end (A') to target
+        // =====================================================================
+        // For SMOOTH EXTENSION: our tangent at START should match target's tangent
+        //
+        // For straights: tangent at start = rotation
+        // For curves: tangent at start = rotation + 180 (due to arc geometry)
+        //
+        // So: straight → rotation = targetTangent
+        //     curve → rotation = targetTangent - 180
+        {
+            const isCurve = part.geometry.type === 'curve';
+            const startSnapRotation = isCurve
+                ? normalizeAngle(targetTangent - 180)
+                : targetTangent;
+            const startSnapPosition = target.position;
+            const startFacade = normalizeAngle(startSnapRotation + 180);
 
-            const endSnap = findSnapTarget(currentEnd.position, currentEnd.rotation, openEndpoints, system);
+            console.log('[snapManager] START option:', {
+                targetTangent,
+                isCurve,
+                startSnapRotation,
+                startFacade,
+            });
 
-            if (endSnap && endSnap.distance < minDistance) {
-                // Found a better snap at the end!
+            const distToStart = Math.hypot(
+                target.position.x - ghostStartPos.x,
+                target.position.y - ghostStartPos.y
+            );
 
-                // We want to align End Node to Target.
-                // Target faces T. We want End Node to face T + 180.
-                // So newEndRotation = T + 180.
-                const targetRotation = endSnap.targetRotation;
-                const requiredEndRotation = (targetRotation + 180) % 360;
+            if (distToStart <= config.radius) {
+                candidates.push({
+                    snap: {
+                        targetNodeId: target.id,
+                        targetPosition: target.position,
+                        targetRotation: target.rotation,
+                        distance: distToStart,
+                    },
+                    ghostPosition: startSnapPosition,
+                    ghostRotation: startSnapRotation,
+                    angleDiffFromUser: angleDifference(startSnapRotation, ghostRotation),
+                    snapType: 'START',
+                    ourFacade: startFacade,
+                    targetFacade: targetFacade,
+                });
+            }
+        }
 
-                // Track geometry dictates: EndRot = StartRot + Delta.
-                // So StartRot = EndRot - Delta.
-                let deltaAngle = 0;
-                if (part.geometry.type === 'curve') {
-                    deltaAngle = part.geometry.angle;
-                }
+        // =====================================================================
+        // OPTION B: Connect via our END end (A") to target
+        // =====================================================================
+        // For SMOOTH EXTENSION: our tangent at END should match target's tangent (targetTangent)
+        //
+        // For straights: tangent at end = rotation
+        // For curves: tangent at end = rotation + deltaAngle - 180 (due to arc geometry)
+        //
+        // So: straight → rotation = targetTangent
+        //     curve → rotation = targetTangent - deltaAngle + 180
+        if (part.geometry.type === 'straight' || part.geometry.type === 'curve') {
+            let deltaAngle = 0;
+            if (part.geometry.type === 'curve') {
+                deltaAngle = part.geometry.angle;
+            }
 
-                const newStartRotation = (requiredEndRotation - deltaAngle + 360) % 360;
+            // Use targetTangent from above (calculated based on target role)
+            const endSnapRotation = (part.geometry.type === 'curve')
+                ? normalizeAngle(targetTangent - deltaAngle + 180)
+                : targetTangent;
 
-                // Now calculate new Start Position.
-                // We know New End Position = Target Position.
-                // We need to backtrack from Target to Start.
-                // Determine vector from Start to End using NEW rotation.
-                const relativeEnd = calculateEndpoint({ x: 0, y: 0 }, newStartRotation, part.geometry);
+            const endFacade = normalizeAngle(endSnapRotation + deltaAngle);
 
-                if (relativeEnd) {
-                    const newStartPosition = {
-                        x: endSnap.targetPosition.x - relativeEnd.position.x,
-                        y: endSnap.targetPosition.y - relativeEnd.position.y,
-                    };
+            console.log('[snapManager] END option:', {
+                targetTangent,
+                isCurve: part.geometry.type === 'curve',
+                endSnapRotation,
+                endFacade,
+            });
 
-                    minDistance = endSnap.distance;
-                    bestResult = {
-                        snap: endSnap,
-                        ghostPosition: newStartPosition,
-                        ghostRotation: newStartRotation,
-                    };
+            // Calculate where START would be if END is at target
+            const relativeEnd = calculateEndpoint({ x: 0, y: 0 }, endSnapRotation, part.geometry);
+
+            if (relativeEnd) {
+                const endSnapPosition = {
+                    x: target.position.x - relativeEnd.position.x,
+                    y: target.position.y - relativeEnd.position.y,
+                };
+
+                // Distance from ghost to required position
+                const jumpDistance = Math.hypot(
+                    endSnapPosition.x - ghostStartPos.x,
+                    endSnapPosition.y - ghostStartPos.y
+                );
+
+                // Calculate distance from current ghost END to target
+                const currentEnd = calculateEndpoint(ghostStartPos, ghostRotation, part.geometry);
+                const distToEnd = currentEnd
+                    ? Math.hypot(target.position.x - currentEnd.position.x, target.position.y - currentEnd.position.y)
+                    : Infinity;
+
+                // Use smaller distance for triggering
+                const effectiveDistance = Math.min(distToEnd, jumpDistance);
+                const maxCheckRadius = config.radius * 2;
+
+                if (effectiveDistance <= maxCheckRadius) {
+                    candidates.push({
+                        snap: {
+                            targetNodeId: target.id,
+                            targetPosition: target.position,
+                            targetRotation: target.rotation,
+                            distance: effectiveDistance,
+                        },
+                        ghostPosition: endSnapPosition,
+                        ghostRotation: endSnapRotation,
+                        angleDiffFromUser: angleDifference(endSnapRotation, ghostRotation),
+                        snapType: 'END',
+                        ourFacade: endFacade,
+                        targetFacade: targetFacade,
+                    });
                 }
             }
         }
     }
 
-    return bestResult;
+    // =========================================================================
+    // SELECT BEST CANDIDATE
+    // =========================================================================
+    if (candidates.length === 0) {
+        return null;
+    }
+
+    // Debug: Log all candidates
+    console.log('[snapManager] Candidates:', candidates.map(c => ({
+        type: c.snapType,
+        ourFacade: c.ourFacade.toFixed(0),
+        targetFacade: c.targetFacade.toFixed(0),
+        facadeDiff: angleDifference(c.ourFacade, c.targetFacade).toFixed(0),
+        distance: c.snap.distance.toFixed(1),
+    })));
+
+    // For curves, ALWAYS prefer END (prevents Y-forks by design)
+    const isCurve = part.geometry.type === 'curve';
+
+    candidates.sort((a, b) => {
+        // For curves: END always wins over START
+        if (isCurve) {
+            if (a.snapType === 'END' && b.snapType === 'START') return -1;
+            if (a.snapType === 'START' && b.snapType === 'END') return 1;
+        }
+
+        // Then by distance
+        const distDiff = a.snap.distance - b.snap.distance;
+        if (Math.abs(distDiff) > 5) return distDiff;
+
+        // Then by user rotation preference
+        return a.angleDiffFromUser - b.angleDiffFromUser;
+    });
+
+    const best = candidates[0];
+
+    console.log('[snapManager] Selected:', {
+        type: best.snapType,
+        facadeDiff: angleDifference(best.ourFacade, best.targetFacade).toFixed(0),
+        reason: isCurve && best.snapType === 'END' ? 'END preferred for curve' : 'closest',
+    });
+
+    return {
+        snap: best.snap,
+        ghostPosition: best.ghostPosition,
+        ghostRotation: best.ghostRotation,
+    };
 }
 
 /**

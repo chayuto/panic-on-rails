@@ -19,6 +19,13 @@ import {
     type BoundingBox
 } from '../utils/spatialHashGrid';
 
+/**
+ * Normalize angle to 0-360 range
+ */
+function normalizeAngle(angle: number): number {
+    return ((angle % 360) + 360) % 360;
+}
+
 interface TrackState {
     nodes: Record<NodeId, TrackNode>;
     edges: Record<EdgeId, TrackEdge>;
@@ -131,7 +138,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const entryNode: TrackNode = {
                         id: entryNodeId,
                         position,
-                        rotation: rotation + 180, // Facing backwards for connection
+                        rotation: normalizeAngle(rotation + 180), // Facing backwards for connection
                         connections: [mainEdgeId, branchEdgeId],
                         type: 'switch',
                         switchState: 0, // Default to main path
@@ -141,7 +148,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const mainExitNode: TrackNode = {
                         id: mainExitNodeId,
                         position: mainExitPosition,
-                        rotation: rotation,
+                        rotation: normalizeAngle(rotation),
                         connections: [mainEdgeId],
                         type: 'endpoint',
                     };
@@ -149,7 +156,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const branchExitNode: TrackNode = {
                         id: branchExitNodeId,
                         position: branchExitPosition,
-                        rotation: rotation + (branchAngleDir * branchAngle),
+                        rotation: normalizeAngle(rotation + (branchAngleDir * branchAngle)),
                         connections: [branchEdgeId],
                         type: 'endpoint',
                     };
@@ -246,14 +253,14 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const mainStartNode: TrackNode = {
                         id: mainStartNodeId,
                         position,
-                        rotation: rotation + 180,
+                        rotation: normalizeAngle(rotation + 180),
                         connections: [mainEdgeId],
                         type: 'endpoint'
                     };
                     const mainEndNode: TrackNode = {
                         id: mainEndNodeId,
                         position: endPosition,
-                        rotation: rotation,
+                        rotation: normalizeAngle(rotation),
                         connections: [mainEdgeId],
                         type: 'endpoint'
                     };
@@ -261,14 +268,14 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const crossStartNode: TrackNode = {
                         id: crossStartNodeId,
                         position: crossStart,
-                        rotation: rotation + crossingAngle + 180,
+                        rotation: normalizeAngle(rotation + crossingAngle + 180),
                         connections: [crossEdgeId],
                         type: 'endpoint'
                     };
                     const crossEndNode: TrackNode = {
                         id: crossEndNodeId,
                         position: crossEnd,
-                        rotation: rotation + crossingAngle,
+                        rotation: normalizeAngle(rotation + crossingAngle),
                         connections: [crossEdgeId],
                         type: 'endpoint'
                     };
@@ -366,7 +373,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                 const startNode: TrackNode = {
                     id: startNodeId,
                     position,
-                    rotation: rotation + 180, // Facing backwards for connection
+                    rotation: normalizeAngle(rotation + 180), // Facing backwards for connection
                     connections: [edgeId],
                     type: 'endpoint',
                 };
@@ -374,7 +381,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                 const endNode: TrackNode = {
                     id: endNodeId,
                     position: endPosition,
-                    rotation: endRotation,
+                    rotation: normalizeAngle(endRotation),
                     connections: [edgeId],
                     type: 'endpoint',
                 };
@@ -502,6 +509,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     version: 1,
                     metadata: {
                         modified: new Date().toISOString(),
+                        buildTime: __BUILD_TIME__,
                     },
                     nodes: state.nodes,
                     edges: state.edges,
