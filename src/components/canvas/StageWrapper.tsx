@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Stage, Layer } from 'react-konva';
 import type Konva from 'konva';
 import { BackgroundLayer } from './BackgroundLayer';
@@ -13,6 +13,8 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { useEditModeHandler } from '../../hooks/useEditModeHandler';
+import { useCanvasViewport } from '../../hooks/useCanvasViewport';
+import { useCanvasCoordinates } from '../../hooks/useCanvasCoordinates';
 import { initAudio } from '../../utils/audioManager';
 
 interface StageWrapperProps {
@@ -23,7 +25,6 @@ interface StageWrapperProps {
 export function StageWrapper({ width, height }: StageWrapperProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage>(null);
-    const [dimensions, setDimensions] = useState({ width: width || 800, height: height || 600 });
 
     // Tooltip position state (screen + world coords)
     const [tooltipPosition, setTooltipPosition] = useState<{
@@ -33,10 +34,29 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         worldY: number;
     } | null>(null);
 
+    // ========================================
+    // Viewport management (extracted hook)
+    // ========================================
     const {
-        zoom, pan, setZoom, setPan, showGrid,
-        draggedPartId, ghostPosition
-    } = useEditorStore();
+        dimensions,
+        zoom,
+        pan,
+        viewport,
+        setPan,
+        handleWheelZoom,
+    } = useCanvasViewport(containerRef, { width, height });
+
+    // ========================================
+    // Coordinate conversion (extracted hook)
+    // ========================================
+    const { screenToWorld } = useCanvasCoordinates({
+        containerRef,
+        zoom,
+        pan,
+    });
+
+    // Get remaining editor state
+    const { showGrid, draggedPartId, ghostPosition } = useEditorStore();
 
     // Mode hooks for conditional rendering
     const isEditing = useIsEditing();
@@ -44,24 +64,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     // Run the game loop for train simulation
     useGameLoop();
-
-    // Handle resize
-    useEffect(() => {
-        if (width && height) return;
-
-        const updateDimensions = () => {
-            if (containerRef.current) {
-                setDimensions({
-                    width: containerRef.current.offsetWidth,
-                    height: containerRef.current.offsetHeight,
-                });
-            }
-        };
-
-        updateDimensions();
-        window.addEventListener('resize', updateDimensions);
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, [width, height]);
 
     // Initialize audio on first user interaction
     useEffect(() => {
@@ -80,16 +82,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         };
     }, []);
 
-    // Convert screen coordinates to world coordinates
-    const screenToWorld = useCallback((screenX: number, screenY: number) => {
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect) return { x: 0, y: 0 };
-
-        const x = (screenX - rect.left - pan.x) / zoom;
-        const y = (screenY - rect.top - pan.y) / zoom;
-        return { x, y };
-    }, [pan, zoom]);
-
     // ========================================
     // Edit mode handlers (extracted to hook)
     // ========================================
@@ -101,33 +93,18 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     // Canvas event handlers
     // ========================================
 
-    // Mouse wheel zoom
+    // Mouse wheel zoom - delegates to viewport hook
     const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
 
         const stage = stageRef.current;
         if (!stage) return;
 
-        const oldScale = zoom;
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
 
-        const mousePointTo = {
-            x: (pointer.x - pan.x) / oldScale,
-            y: (pointer.y - pan.y) / oldScale,
-        };
-
-        const direction = e.evt.deltaY > 0 ? -1 : 1;
-        const factor = 1.1;
-        const newScale = direction > 0 ? oldScale * factor : oldScale / factor;
-        const clampedScale = Math.max(0.2, Math.min(5, newScale));
-
-        setZoom(clampedScale);
-        setPan(
-            pointer.x - mousePointTo.x * clampedScale,
-            pointer.y - mousePointTo.y * clampedScale
-        );
-    }, [zoom, pan, setZoom, setPan]);
+        handleWheelZoom(e.evt.deltaY, pointer.x, pointer.y);
+    }, [handleWheelZoom]);
 
     // Pan with middle mouse or space+drag
     const handleDragEnd = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
@@ -135,14 +112,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
             setPan(e.target.x(), e.target.y());
         }
     }, [setPan]);
-
-    // Calculate viewport in world coordinates for visibility culling
-    const viewport = useMemo(() => ({
-        x: -pan.x / zoom,
-        y: -pan.y / zoom,
-        width: dimensions.width / zoom,
-        height: dimensions.height / zoom,
-    }), [pan.x, pan.y, zoom, dimensions.width, dimensions.height]);
 
     // Mouse move handler for simulation tooltip
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
