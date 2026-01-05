@@ -1,13 +1,24 @@
 import { useMemo } from 'react';
-import { Circle, Group, Line, Rect } from 'react-konva';
+import { Circle, Group, Line, Rect, Shape } from 'react-konva';
 import { useSimulationStore, DEFAULT_CARRIAGE_SPACING } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
 import type { Train, TrackEdge, TrackNode, Vector2, EdgeId, NodeId } from '../../types';
 
-const LOCOMOTIVE_RADIUS = 12;
-const CARRIAGE_WIDTH = 20;
-const CARRIAGE_HEIGHT = 10;
+// Locomotive dimensions (V1: Silhouette shape)
+const LOCOMOTIVE_WIDTH = 28;
+const LOCOMOTIVE_HEIGHT = 16;
+const LOCOMOTIVE_NOSE = 6;
+
+// Carriage dimensions (V2: Enhanced shape)
+const CARRIAGE_WIDTH = 22;
+const CARRIAGE_HEIGHT = 12;
+const CARRIAGE_CORNER_RADIUS = 4;
+
+// Headlight (V3: Directional indicator)
+const HEADLIGHT_RADIUS = 3;
+const HEADLIGHT_COLOR = '#FFFFCC';  // Warm white
+
 const BOUNCE_DURATION = 300; // ms
 
 /**
@@ -232,33 +243,29 @@ function TrainEntity({ train }: { train: Train }) {
                 {carriagePositions.map((carriage, index) => (
                     <Group key={index}>
                         {index === 0 ? (
-                            // Crashed locomotive - dark gray circle with red stroke
-                            <Circle
-                                x={carriage.position.x}
-                                y={carriage.position.y}
-                                radius={LOCOMOTIVE_RADIUS}
-                                fill="#444444"
-                                stroke="#FF0000"
-                                strokeWidth={3}
-                                shadowColor="red"
-                                shadowBlur={10}
-                                shadowOpacity={0.5}
+                            // Crashed locomotive - using LocomotiveShape with crashed styling
+                            <LocomotiveShape
+                                position={carriage.position}
+                                rotation={carriage.rotation}
+                                color={train.color}
+                                scaleX={1}
+                                scaleY={1}
+                                crashed={true}
                             />
                         ) : (
                             // Crashed carriage - dark gray rectangle
-                            <Rect
-                                x={carriage.position.x - CARRIAGE_WIDTH / 2}
-                                y={carriage.position.y - CARRIAGE_HEIGHT / 2}
-                                width={CARRIAGE_WIDTH}
-                                height={CARRIAGE_HEIGHT}
-                                fill="#444444"
-                                stroke="#FF0000"
-                                strokeWidth={2}
-                                cornerRadius={3}
-                                rotation={carriage.rotation}
-                                offsetX={0}
-                                offsetY={0}
-                            />
+                            <Group x={carriage.position.x} y={carriage.position.y} rotation={carriage.rotation}>
+                                <Rect
+                                    x={-CARRIAGE_WIDTH / 2}
+                                    y={-CARRIAGE_HEIGHT / 2}
+                                    width={CARRIAGE_WIDTH}
+                                    height={CARRIAGE_HEIGHT}
+                                    fill="#444444"
+                                    stroke="#FF0000"
+                                    strokeWidth={2}
+                                    cornerRadius={CARRIAGE_CORNER_RADIUS}
+                                />
+                            </Group>
                         )}
                     </Group>
                 ))}
@@ -290,25 +297,19 @@ function TrainEntity({ train }: { train: Train }) {
         <Group>
             {carriagePositions.map((carriage, index) => {
                 if (index === 0) {
-                    // Locomotive (first car) - rendered as a circle
+                    // Locomotive (first car) - rendered as stylized silhouette (V1)
                     return (
-                        <Circle
+                        <LocomotiveShape
                             key={index}
-                            x={carriage.position.x}
-                            y={carriage.position.y}
-                            radius={LOCOMOTIVE_RADIUS}
-                            fill={train.color}
-                            stroke="#FFFFFF"
-                            strokeWidth={2}
-                            shadowColor="black"
-                            shadowBlur={5}
-                            shadowOpacity={0.3}
+                            position={carriage.position}
+                            rotation={carriage.rotation}
+                            color={train.color}
                             scaleX={scaleX}
                             scaleY={scaleY}
                         />
                     );
                 } else {
-                    // Carriage - rendered as a rounded rectangle
+                    // Carriage - rendered as a rounded rectangle (V2)
                     // Use slightly lighter color for carriages
                     const carriageColor = lightenColor(train.color, 20);
                     return (
@@ -321,7 +322,7 @@ function TrainEntity({ train }: { train: Train }) {
                                 fill={carriageColor}
                                 stroke="#FFFFFF"
                                 strokeWidth={1.5}
-                                cornerRadius={3}
+                                cornerRadius={CARRIAGE_CORNER_RADIUS}
                                 shadowColor="black"
                                 shadowBlur={3}
                                 shadowOpacity={0.2}
@@ -353,6 +354,71 @@ function lightenColor(hex: string, percent: number): string {
 
     // Convert back to hex
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+/**
+ * Locomotive shape props
+ */
+interface LocomotiveShapeProps {
+    position: Vector2;
+    rotation: number;
+    color: string;
+    scaleX: number;
+    scaleY: number;
+    crashed?: boolean;
+}
+
+/**
+ * Locomotive shape component - renders a stylized train silhouette (V1)
+ * with headlight indicator (V3)
+ */
+function LocomotiveShape({ position, rotation, color, scaleX, scaleY, crashed }: LocomotiveShapeProps) {
+    const w = LOCOMOTIVE_WIDTH;
+    const h = LOCOMOTIVE_HEIGHT;
+    const nose = LOCOMOTIVE_NOSE;
+    const headlightX = w / 2 - nose / 2;
+
+    return (
+        <Group x={position.x} y={position.y} rotation={rotation} scaleX={scaleX} scaleY={scaleY}>
+            {/* Locomotive body - tapered rectangle shape */}
+            <Shape
+                sceneFunc={(context, shape) => {
+                    context.beginPath();
+                    // Start at back-left
+                    context.moveTo(-w / 2, -h / 2);
+                    // Top edge to taper start
+                    context.lineTo(w / 2 - nose, -h / 2);
+                    // Taper to front point
+                    context.lineTo(w / 2, 0);
+                    // Taper to bottom
+                    context.lineTo(w / 2 - nose, h / 2);
+                    // Bottom edge
+                    context.lineTo(-w / 2, h / 2);
+                    // Close path
+                    context.closePath();
+                    context.fillStrokeShape(shape);
+                }}
+                fill={crashed ? '#444444' : color}
+                stroke={crashed ? '#FF0000' : '#FFFFFF'}
+                strokeWidth={crashed ? 3 : 2}
+                shadowColor={crashed ? 'red' : 'black'}
+                shadowBlur={crashed ? 10 : 5}
+                shadowOpacity={crashed ? 0.5 : 0.3}
+            />
+            {/* Headlight - only shown when not crashed (V3) */}
+            {!crashed && (
+                <Circle
+                    x={headlightX}
+                    y={0}
+                    radius={HEADLIGHT_RADIUS}
+                    fill={HEADLIGHT_COLOR}
+                    shadowColor={HEADLIGHT_COLOR}
+                    shadowBlur={4}
+                    shadowOpacity={0.5}
+                />
+            )}
+        </Group>
+    );
 }
 
 /**
