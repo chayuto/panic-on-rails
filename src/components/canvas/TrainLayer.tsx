@@ -198,16 +198,21 @@ function getCarriagePositions(
 
                     if (!prevEdge) break;
 
-                    // Determine how we entered the previous edge
+                    // Determine how we entered the previous edge and set direction
+                    // for continued backward tracing
                     currentEdgeId = prevEdgeId;
                     if (prevEdge.endNodeId === entryNodeId) {
-                        // We're at the end of the previous edge, going backward means direction = -1
+                        // We're at the end of the previous edge
+                        // To trace backward (toward start), we need direction=1
+                        // because backward for direction=1 is toward start (decreasing distance)
                         currentDistance = prevEdge.length;
-                        currentDirection = -1;
+                        currentDirection = 1;
                     } else {
                         // We're at the start of the previous edge
+                        // To trace backward (toward end), we need direction=-1
+                        // because backward for direction=-1 is toward end (increasing distance)
                         currentDistance = 0;
-                        currentDirection = 1;
+                        currentDirection = -1;
                     }
                 }
             }
