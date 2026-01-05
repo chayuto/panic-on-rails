@@ -193,3 +193,137 @@ export function vectorFromAngle(angleDegrees: number): Vector2 {
     const rad = degreesToRadians(angleDegrees);
     return { x: Math.cos(rad), y: Math.sin(rad) };
 }
+
+// ===========================
+// V2: Derived World Geometry
+// ===========================
+
+import type {
+    TrackEdge,
+    TrackNode,
+    NodeId,
+    TrackGeometry,
+} from '../types';
+
+/**
+ * Calculate the center of an arc given two endpoints, radius, sweep angle, and direction.
+ * 
+ * Used to derive world geometry from intrinsic geometry.
+ * 
+ * Mathematical approach:
+ * - Find the chord midpoint between start and end
+ * - Calculate the perpendicular distance from midpoint to center (apothem)
+ * - Move along the perpendicular in the correct direction based on CW/CCW
+ * 
+ * @param start - Start point of the arc
+ * @param end - End point of the arc  
+ * @param radius - Radius of the arc
+ * @param sweepAngle - Sweep angle in degrees (positive)
+ * @param direction - 'cw' for clockwise, 'ccw' for counter-clockwise
+ * @returns Center point of the arc
+ */
+export function calculateArcCenter(
+    start: Vector2,
+    end: Vector2,
+    radius: number,
+    sweepAngle: number,
+    direction: 'cw' | 'ccw'
+): Vector2 {
+    // Chord from start to end
+    const chordX = end.x - start.x;
+    const chordY = end.y - start.y;
+    const chordLength = Math.sqrt(chordX * chordX + chordY * chordY);
+
+    if (chordLength < 0.0001) {
+        // Start and end are the same point, return midpoint (degenerate case)
+        return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+    }
+
+    // Midpoint of chord
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+
+    // Distance from midpoint to center (along perpendicular)
+    // For a chord of length c and arc of radius r with sweep θ:
+    // c = 2r * sin(θ/2)
+    // The distance from midpoint to center along the perpendicular is:
+    // d = r * cos(θ/2)
+    const sweepRad = degreesToRadians(sweepAngle);
+    const halfSweep = sweepRad / 2;
+    const apothem = radius * Math.cos(halfSweep);
+
+    // Perpendicular direction (normalized)
+    // Perpendicular to chord, pointing "left" of the chord direction
+    const perpX = -chordY / chordLength;
+    const perpY = chordX / chordLength;
+
+    // Center is apothem distance along perpendicular
+    // Direction depends on CW/CCW
+    const sign = direction === 'ccw' ? 1 : -1;
+
+    return {
+        x: midX + perpX * apothem * sign,
+        y: midY + perpY * apothem * sign,
+    };
+}
+
+/**
+ * Derive world geometry from edge's intrinsic geometry and node positions.
+ * 
+ * This is the V2 approach: store only intrinsic properties, derive world coords.
+ * Falls back to stored geometry if intrinsicGeometry is not present.
+ * 
+ * @param edge - The track edge
+ * @param nodes - All nodes in the graph
+ * @returns World geometry (same format as edge.geometry), or null if nodes missing
+ */
+export function deriveWorldGeometry(
+    edge: TrackEdge,
+    nodes: Record<NodeId, TrackNode>
+): TrackGeometry | null {
+    if (!edge.intrinsicGeometry) {
+        // No intrinsic geometry, fall back to stored geometry
+        return edge.geometry;
+    }
+
+    const startNode = nodes[edge.startNodeId];
+    const endNode = nodes[edge.endNodeId];
+
+    if (!startNode || !endNode) {
+        console.warn('[deriveWorldGeometry] Missing nodes for edge:', edge.id.slice(0, 8));
+        return null;
+    }
+
+    const startPos = startNode.position;
+    const endPos = endNode.position;
+
+    if (edge.intrinsicGeometry.type === 'straight') {
+        return {
+            type: 'straight',
+            start: { ...startPos },
+            end: { ...endPos },
+        };
+    }
+
+    // Arc geometry
+    const { radius, sweepAngle, direction } = edge.intrinsicGeometry;
+    const center = calculateArcCenter(startPos, endPos, radius, sweepAngle, direction);
+
+    // Calculate start and end angles from center
+    const startAngle = normalizeAngle(
+        radiansToDegrees(Math.atan2(startPos.y - center.y, startPos.x - center.x))
+    );
+
+    // End angle = start angle + sweep (CCW) or - sweep (CW)
+    const endAngle = direction === 'ccw'
+        ? startAngle + sweepAngle
+        : startAngle - sweepAngle;
+
+    return {
+        type: 'arc',
+        center,
+        radius,
+        startAngle,
+        endAngle,
+    };
+}

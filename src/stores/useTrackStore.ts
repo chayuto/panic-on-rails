@@ -318,6 +318,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         endNodeId: mainExitNodeId,
                         geometry: { type: 'straight', start: position, end: mainExitPosition },
                         length: mainLength,
+                        intrinsicGeometry: { type: 'straight', length: mainLength },
                     };
 
                     const branchEdge: TrackEdge = {
@@ -327,6 +328,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         endNodeId: branchExitNodeId,
                         geometry: { type: 'straight', start: position, end: branchExitPosition },
                         length: branchLength,
+                        intrinsicGeometry: { type: 'straight', length: branchLength },
                     };
 
                     // Update spatial index for new edges
@@ -436,7 +438,8 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         startNodeId: mainStartNodeId,
                         endNodeId: mainEndNodeId,
                         geometry: { type: 'straight', start: position, end: endPosition },
-                        length
+                        length,
+                        intrinsicGeometry: { type: 'straight', length },
                     };
 
                     const crossEdge: TrackEdge = {
@@ -445,7 +448,8 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         startNodeId: crossStartNodeId,
                         endNodeId: crossEndNodeId,
                         geometry: { type: 'straight', start: crossStart, end: crossEnd },
-                        length
+                        length,
+                        intrinsicGeometry: { type: 'straight', length },
                     };
 
                     // Update indices
@@ -567,6 +571,18 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     return null;
                 }
 
+                // Build intrinsic geometry for V2
+                const intrinsicGeometry = part.geometry.type === 'straight'
+                    ? { type: 'straight' as const, length: part.geometry.length }
+                    : part.geometry.type === 'curve'
+                        ? {
+                            type: 'arc' as const,
+                            radius: part.geometry.radius,
+                            sweepAngle: part.geometry.angle,
+                            direction: 'ccw' as const,  // Current curves are CCW (left-hand)
+                        }
+                        : undefined;
+
                 const edge: TrackEdge = {
                     id: edgeId,
                     partId,
@@ -574,6 +590,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     endNodeId,
                     geometry: edgeGeometry,
                     length,
+                    intrinsicGeometry,
                 };
 
                 // Update spatial index for new edge and nodes
@@ -1051,6 +1068,46 @@ export const useTrackStore = create<TrackState & TrackActions>()(
 
                     if (migratedCount > 0) {
                         console.log(`[useTrackStore] Migrated ${migratedCount} legacy arcs from radians to degrees`);
+                    }
+
+                    // V2 MIGRATION: Add intrinsicGeometry to edges that don't have it
+                    let v2MigratedCount = 0;
+                    for (const [edgeId, edge] of Object.entries(state.edges)) {
+                        if (!edge.intrinsicGeometry) {
+                            if (edge.geometry.type === 'straight') {
+                                // Calculate length from geometry
+                                const dx = edge.geometry.end.x - edge.geometry.start.x;
+                                const dy = edge.geometry.end.y - edge.geometry.start.y;
+                                const length = Math.sqrt(dx * dx + dy * dy);
+
+                                state.edges[edgeId] = {
+                                    ...edge,
+                                    intrinsicGeometry: { type: 'straight', length },
+                                };
+                                v2MigratedCount++;
+                            } else if (edge.geometry.type === 'arc') {
+                                // Calculate sweep angle from start/end angles
+                                const sweepAngle = Math.abs(edge.geometry.endAngle - edge.geometry.startAngle);
+                                // Determine direction: if endAngle > startAngle, it's CCW
+                                const direction: 'cw' | 'ccw' =
+                                    edge.geometry.endAngle > edge.geometry.startAngle ? 'ccw' : 'cw';
+
+                                state.edges[edgeId] = {
+                                    ...edge,
+                                    intrinsicGeometry: {
+                                        type: 'arc',
+                                        radius: edge.geometry.radius,
+                                        sweepAngle,
+                                        direction,
+                                    },
+                                };
+                                v2MigratedCount++;
+                            }
+                        }
+                    }
+
+                    if (v2MigratedCount > 0) {
+                        console.log(`[V2 Migration] Added intrinsicGeometry to ${v2MigratedCount} edges`);
                     }
 
                     rebuildSpatialIndices(state.nodes, state.edges);

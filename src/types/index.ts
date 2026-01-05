@@ -31,6 +31,36 @@ export interface ArcGeometry {
 export type TrackGeometry = StraightGeometry | ArcGeometry;
 
 // ===========================
+// Intrinsic Geometry Types (V2)
+// ===========================
+
+/**
+ * Intrinsic geometry for straight tracks.
+ * Contains only properties that don't change when the part moves.
+ */
+export interface IntrinsicStraightGeometry {
+    type: 'straight';
+    length: number;
+}
+
+/**
+ * Intrinsic geometry for arc/curve tracks.
+ * Contains only properties that don't change when the part moves.
+ */
+export interface IntrinsicArcGeometry {
+    type: 'arc';
+    radius: number;
+    sweepAngle: number;  // degrees, always positive
+    direction: 'cw' | 'ccw';  // clockwise or counter-clockwise
+}
+
+/**
+ * Union type for all intrinsic geometry types.
+ * Used in V2 architecture to derive world coordinates from node positions.
+ */
+export type IntrinsicGeometry = IntrinsicStraightGeometry | IntrinsicArcGeometry;
+
+// ===========================
 // Graph Data Structures
 // ===========================
 
@@ -54,6 +84,9 @@ export interface TrackEdge {
     endNodeId: NodeId;
     geometry: TrackGeometry;
     length: number; // pre-calculated for performance
+    // V2: Intrinsic geometry (does not depend on world position)
+    // Used to derive world geometry from node positions
+    intrinsicGeometry?: IntrinsicGeometry;
 }
 
 // ===========================
