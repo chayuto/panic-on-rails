@@ -19,6 +19,7 @@ import {
     type BoundingBox
 } from '../utils/spatialHashGrid';
 import { normalizeAngle } from '../utils/geometry';
+import { getNodeFacadeFromEdge } from '../utils/connectTransform';
 
 interface TrackState {
     nodes: Record<NodeId, TrackNode>;
@@ -502,6 +503,34 @@ export const useTrackStore = create<TrackState & TrackActions>()(
 
             getLayout: () => {
                 const state = get();
+
+                // Compute debug info: facade angles per node-edge pair
+                const facades: Record<NodeId, { storedRotation: number; edgeFacades: Record<EdgeId, number> }> = {};
+                const partNames: Record<EdgeId, string> = {};
+
+                // Get part names for each edge
+                for (const [edgeId, edge] of Object.entries(state.edges)) {
+                    const part = getPartById(edge.partId);
+                    partNames[edgeId] = part?.name || edge.partId;
+                }
+
+                // Compute facade angles for each node-edge pair
+                for (const [nodeId, node] of Object.entries(state.nodes)) {
+                    const edgeFacades: Record<EdgeId, number> = {};
+
+                    for (const edgeId of node.connections) {
+                        const edge = state.edges[edgeId];
+                        if (edge) {
+                            edgeFacades[edgeId] = getNodeFacadeFromEdge(nodeId, edge);
+                        }
+                    }
+
+                    facades[nodeId] = {
+                        storedRotation: node.rotation,
+                        edgeFacades,
+                    };
+                }
+
                 return {
                     version: 1,
                     metadata: {
@@ -510,6 +539,10 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     },
                     nodes: state.nodes,
                     edges: state.edges,
+                    debug: {
+                        facades,
+                        partNames,
+                    },
                 };
             },
 

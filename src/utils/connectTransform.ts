@@ -35,34 +35,78 @@ export function getNodeConnectorType(
 }
 
 /**
+ * Derive the facade direction for a node from its connected edge geometry.
+ * 
+ * Facade = the outward-facing direction at the endpoint (for connection).
+ * For endpoints: facade points away from the track, opposite to tangent direction.
+ * 
+ * This is more reliable than using stored node.rotation, especially for junctions
+ * which have multiple facades (one per connected edge).
+ * 
+ * @param nodeId - The node to get facade for
+ * @param edge - The edge connected to this node
+ * @returns Facade direction in degrees [0, 360)
+ */
+export function getNodeFacadeFromEdge(
+    nodeId: NodeId,
+    edge: TrackEdge
+): number {
+    const isStart = edge.startNodeId === nodeId;
+
+    if (edge.geometry.type === 'straight') {
+        const { start, end } = edge.geometry;
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        // Tangent direction from start to end
+        const tangent = Math.atan2(dy, dx) * 180 / Math.PI;
+        // At start: facade points opposite to tangent (away from track)
+        // At end: facade points same as tangent (away from track)
+        return normalizeAngle(isStart ? tangent + 180 : tangent);
+    } else {
+        // Arc geometry: tangent is perpendicular to radius
+        const { startAngle, endAngle } = edge.geometry;
+        // radiusAngle is the angle from center to the point on the arc
+        const radiusAngle = isStart ? startAngle : endAngle;
+        // Tangent is 90° CCW from radius (for CCW arc = increasing angles)
+        const tangent = radiusAngle + 90;
+        // At start: facade points opposite to tangent direction
+        // At end: facade points same as tangent direction
+        return normalizeAngle(isStart ? tangent + 180 : tangent);
+    }
+}
+
+/**
  * Calculate the rotation delta needed to align Part B's node to Part A's node.
  * 
- * For two connectors to mate, their facades must be 180° apart.
- * This function calculates how much Part B needs to rotate.
+ * For smooth track continuation, facades must be 180° apart for proper mating.
+ * This applies regardless of whether nodes are START or END - we always want
+ * tracks to form a smooth path.
  * 
  * @param targetFacade - The facade direction of Part A's endpoint (degrees)
  * @param sourceFacade - The facade direction of Part B's endpoint (degrees)  
- * @param isYJunction - If true, this is a Y-junction (same connector types), no rotation needed
+ * @param _isYJunction - Deprecated parameter, kept for API compatibility
  * @returns The rotation delta to apply to Part B (degrees)
  */
 export function calculateRotationForConnection(
     targetFacade: number,
     sourceFacade: number,
-    isYJunction: boolean = false
+    _isYJunction: boolean = false
 ): number {
-    // For Y-junctions (START-to-START or END-to-END), we want the tracks to 
-    // maintain their original diverging orientations, not rotate to overlap.
-    // The facades are already facing outward - just bring them to the same point.
-    if (isYJunction) {
-        return 0;
-    }
+    const normalizedTarget = normalizeAngle(targetFacade);
+    const normalizedSource = normalizeAngle(sourceFacade);
 
-    // For linear connections (END-to-START), facades must be 180° apart
-    const requiredSourceFacade = normalizeAngle(targetFacade + 180);
-    const currentSourceFacade = normalizeAngle(sourceFacade);
+    // For smooth track continuation, facades must be 180° apart
+    // This creates a seamless connection where tracks meet end-to-end
+    const requiredSourceFacade = normalizeAngle(normalizedTarget + 180);
 
     // Rotation delta = desired - current
-    const delta = normalizeAngle(requiredSourceFacade - currentSourceFacade);
+    const delta = normalizeAngle(requiredSourceFacade - normalizedSource);
+
+    // Optimize: if delta is close to 360°, treat as 0° (no rotation needed)
+    // This handles floating point edge cases
+    if (delta > 359.5) {
+        return 0;
+    }
 
     return delta;
 }

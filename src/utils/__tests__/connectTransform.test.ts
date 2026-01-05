@@ -8,6 +8,7 @@ import {
     rotateNodeAroundPivot,
     validateConnection,
     getNodeConnectorType,
+    getNodeFacadeFromEdge,
 } from '../connectTransform';
 import type { TrackNode, TrackEdge } from '../../types';
 
@@ -109,6 +110,69 @@ describe('getNodeConnectorType', () => {
 });
 
 // ===========================
+// Facade From Edge Tests
+// ===========================
+
+describe('getNodeFacadeFromEdge', () => {
+    it('returns correct facade for start of horizontal straight track', () => {
+        // Track goes from (100, 100) to (200, 100) - pointing east (0°)
+        // Start node facade should point opposite (west = 180°)
+        const facade = getNodeFacadeFromEdge('node-a1', mockEdges['edge-a']);
+        expect(facade).toBeCloseTo(180);
+    });
+
+    it('returns correct facade for end of horizontal straight track', () => {
+        // Track goes from (100, 100) to (200, 100) - pointing east (0°)
+        // End node facade should point same direction (east = 0°)
+        const facade = getNodeFacadeFromEdge('node-a2', mockEdges['edge-a']);
+        expect(facade).toBeCloseTo(0);
+    });
+
+    it('returns correct facade for arc edge at start node', () => {
+        // Arc with center at (0, 0), radius 100, start angle 90°, end angle 180°
+        const arcEdge: TrackEdge = {
+            id: 'arc-edge',
+            partId: 'arc-part',
+            startNodeId: 'arc-start',
+            endNodeId: 'arc-end',
+            geometry: {
+                type: 'arc',
+                center: { x: 0, y: 0 },
+                radius: 100,
+                startAngle: 90,  // Point is at (0, 100)
+                endAngle: 180,   // Point is at (-100, 0)
+            },
+            length: 157,
+        };
+        // At startAngle 90°, tangent is 90° + 90° = 180°
+        // Start facade = opposite of tangent = 180° + 180° = 360° = 0°
+        const facade = getNodeFacadeFromEdge('arc-start', arcEdge);
+        expect(facade).toBeCloseTo(0);
+    });
+
+    it('returns correct facade for arc edge at end node', () => {
+        const arcEdge: TrackEdge = {
+            id: 'arc-edge',
+            partId: 'arc-part',
+            startNodeId: 'arc-start',
+            endNodeId: 'arc-end',
+            geometry: {
+                type: 'arc',
+                center: { x: 0, y: 0 },
+                radius: 100,
+                startAngle: 90,
+                endAngle: 180,
+            },
+            length: 157,
+        };
+        // At endAngle 180°, tangent is 180° + 90° = 270°
+        // End facade = same as tangent = 270°
+        const facade = getNodeFacadeFromEdge('arc-end', arcEdge);
+        expect(facade).toBeCloseTo(270);
+    });
+});
+
+// ===========================
 // Rotation Calculation Tests
 // ===========================
 
@@ -140,17 +204,25 @@ describe('calculateRotationForConnection', () => {
         expect(delta).toBe(0);
     });
 
-    it('returns 0 for Y-junction connections regardless of facade angles', () => {
-        // Y-junction: same connector types (both START or both END)
-        // Should NOT rotate to avoid parallel/overlap
+    it('calculates 180° alignment even with isYJunction flag (deprecated)', () => {
+        // isYJunction parameter is now ignored - always calculates for smooth continuation
+        // Both face 180° = need 180° rotation to align at 180° apart
         const delta1 = calculateRotationForConnection(180, 180, true);
-        expect(delta1).toBe(0);
+        expect(delta1).toBe(180);
 
-        const delta2 = calculateRotationForConnection(0, 90, true);
-        expect(delta2).toBe(0);
+        // Facades 0° (target) and 45° (source)
+        // Required source = 180°, delta = 180 - 45 = 135°
+        const delta2 = calculateRotationForConnection(0, 45, true);
+        expect(delta2).toBe(135);
 
-        const delta3 = calculateRotationForConnection(45, 225, true);
+        // Facades 0° (target) and 180° (source) = already aligned
+        const delta3 = calculateRotationForConnection(0, 180, true);
         expect(delta3).toBe(0);
+
+        // Facades 0° (target) and 100° (source)
+        // Required source = 180°, delta = 180 - 100 = 80°
+        const delta4 = calculateRotationForConnection(0, 100, true);
+        expect(delta4).toBe(80);
     });
 });
 

@@ -106,6 +106,17 @@ export interface LayoutData {
     };
     nodes: Record<NodeId, TrackNode>;
     edges: Record<EdgeId, TrackEdge>;
+    // Debug info - computed at export time for debugging
+    debug?: {
+        // Facade angles computed from geometry (not stored rotation)
+        facades: Record<NodeId, {
+            storedRotation: number;
+            // facade angle per connected edge
+            edgeFacades: Record<EdgeId, number>;
+        }>;
+        // Part names for each edge
+        partNames: Record<EdgeId, string>;
+    };
 }
 
 // ===========================

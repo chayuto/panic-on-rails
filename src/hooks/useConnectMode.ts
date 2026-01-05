@@ -11,7 +11,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useModeStore } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
-import { calculateRotationForConnection, validateConnection, getNodeConnectorType } from '../utils/connectTransform';
+import { calculateRotationForConnection, validateConnection, getNodeConnectorType, getNodeFacadeFromEdge } from '../utils/connectTransform';
 import type { NodeId } from '../types';
 
 /**
@@ -112,11 +112,22 @@ export function useConnectMode() {
         });
 
         // Calculate the rotation needed
-        // For Y-junctions, don't rotate - maintain diverging orientations
+        // Derive facades from geometry for accuracy (stored rotation is unreliable for junctions)
+        const sourceEdge = edges[connectSource.edgeId];
+        const sourceFacade = getNodeFacadeFromEdge(connectSource.nodeId, sourceEdge);
+        const targetFacade = getNodeFacadeFromEdge(nodeId, edge);
+
+        console.log('[useConnectMode] Derived facades:', {
+            sourceFacade,
+            targetFacade,
+            storedSourceRotation: sourceNode.rotation,
+            storedTargetRotation: targetNode.rotation,
+        });
+
         const rotationDelta = calculateRotationForConnection(
-            sourceNode.rotation,  // Target (Part A - anchor)
-            targetNode.rotation,  // Source (Part B - moving)
-            isYJunction          // Don't rotate for Y-junctions
+            sourceFacade,   // Target (Part A - anchor) - derived from geometry
+            targetFacade,   // Source (Part B - moving) - derived from geometry
+            isYJunction
         );
 
         console.log('[useConnectMode] Rotation delta:', rotationDelta);
