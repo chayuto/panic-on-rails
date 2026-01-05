@@ -21,6 +21,20 @@ import { normalizeAngle, localToWorld } from './geometry';
 // ===========================
 
 /**
+ * Determine if a node is the START or END node of its connected edge.
+ * 
+ * @param nodeId - The node to check
+ * @param edge - The edge the node belongs to
+ * @returns 'start' if this is the start node, 'end' if end node
+ */
+export function getNodeConnectorType(
+    nodeId: NodeId,
+    edge: TrackEdge
+): 'start' | 'end' {
+    return edge.startNodeId === nodeId ? 'start' : 'end';
+}
+
+/**
  * Calculate the rotation delta needed to align Part B's node to Part A's node.
  * 
  * For two connectors to mate, their facades must be 180° apart.
@@ -28,13 +42,22 @@ import { normalizeAngle, localToWorld } from './geometry';
  * 
  * @param targetFacade - The facade direction of Part A's endpoint (degrees)
  * @param sourceFacade - The facade direction of Part B's endpoint (degrees)  
+ * @param isYJunction - If true, this is a Y-junction (same connector types), no rotation needed
  * @returns The rotation delta to apply to Part B (degrees)
  */
 export function calculateRotationForConnection(
     targetFacade: number,
-    sourceFacade: number
+    sourceFacade: number,
+    isYJunction: boolean = false
 ): number {
-    // For proper mating, source facade must equal target facade + 180
+    // For Y-junctions (START-to-START or END-to-END), we want the tracks to 
+    // maintain their original diverging orientations, not rotate to overlap.
+    // The facades are already facing outward - just bring them to the same point.
+    if (isYJunction) {
+        return 0;
+    }
+
+    // For linear connections (END-to-START), facades must be 180° apart
     const requiredSourceFacade = normalizeAngle(targetFacade + 180);
     const currentSourceFacade = normalizeAngle(sourceFacade);
 

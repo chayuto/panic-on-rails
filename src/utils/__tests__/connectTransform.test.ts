@@ -7,6 +7,7 @@ import {
     calculateConnectionTransform,
     rotateNodeAroundPivot,
     validateConnection,
+    getNodeConnectorType,
 } from '../connectTransform';
 import type { TrackNode, TrackEdge } from '../../types';
 
@@ -92,6 +93,22 @@ const mockEdges: Record<string, TrackEdge> = {
 };
 
 // ===========================
+// Node Connector Type Tests
+// ===========================
+
+describe('getNodeConnectorType', () => {
+    it('returns "start" for the start node of an edge', () => {
+        const type = getNodeConnectorType('node-a1', mockEdges['edge-a']);
+        expect(type).toBe('start');
+    });
+
+    it('returns "end" for the end node of an edge', () => {
+        const type = getNodeConnectorType('node-a2', mockEdges['edge-a']);
+        expect(type).toBe('end');
+    });
+});
+
+// ===========================
 // Rotation Calculation Tests
 // ===========================
 
@@ -121,6 +138,19 @@ describe('calculateRotationForConnection', () => {
         // Required = 350 + 180 = 530 = 170° (already matches!)
         const delta = calculateRotationForConnection(350, 170);
         expect(delta).toBe(0);
+    });
+
+    it('returns 0 for Y-junction connections regardless of facade angles', () => {
+        // Y-junction: same connector types (both START or both END)
+        // Should NOT rotate to avoid parallel/overlap
+        const delta1 = calculateRotationForConnection(180, 180, true);
+        expect(delta1).toBe(0);
+
+        const delta2 = calculateRotationForConnection(0, 90, true);
+        expect(delta2).toBe(0);
+
+        const delta3 = calculateRotationForConnection(45, 225, true);
+        expect(delta3).toBe(0);
     });
 });
 

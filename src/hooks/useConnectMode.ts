@@ -11,7 +11,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useModeStore } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
-import { calculateRotationForConnection, validateConnection } from '../utils/connectTransform';
+import { calculateRotationForConnection, validateConnection, getNodeConnectorType } from '../utils/connectTransform';
 import type { NodeId } from '../types';
 
 /**
@@ -100,10 +100,23 @@ export function useConnectMode() {
             targetNodeId: nodeId.slice(0, 8),
         });
 
+        // Determine connector types to detect Y-junction vs linear connection
+        const sourceConnectorType = getNodeConnectorType(connectSource.nodeId, edges[connectSource.edgeId]);
+        const targetConnectorType = getNodeConnectorType(nodeId, edge);
+        const isYJunction = sourceConnectorType === targetConnectorType;
+
+        console.log('[useConnectMode] Connection types:', {
+            sourceType: sourceConnectorType,
+            targetType: targetConnectorType,
+            isYJunction,
+        });
+
         // Calculate the rotation needed
+        // For Y-junctions, don't rotate - maintain diverging orientations
         const rotationDelta = calculateRotationForConnection(
             sourceNode.rotation,  // Target (Part A - anchor)
-            targetNode.rotation   // Source (Part B - moving)
+            targetNode.rotation,  // Source (Part B - moving)
+            isYJunction          // Don't rotate for Y-junctions
         );
 
         console.log('[useConnectMode] Rotation delta:', rotationDelta);
