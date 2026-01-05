@@ -8,7 +8,7 @@ import { TrainLayer } from './TrainLayer';
 import { SensorLayer } from './SensorLayer';
 import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
-import { SimulationTooltip } from '../ui/SimulationTooltip';
+import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
