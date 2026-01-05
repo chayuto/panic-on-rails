@@ -112,20 +112,6 @@ export interface LayoutData {
 // Editor State
 // ===========================
 
-/**
- * @deprecated Use PrimaryMode and EditSubMode from './mode' instead.
- * This type will be removed in a future version after migration.
- * 
- * Migration mapping:
- * - 'edit' -> primaryMode: 'edit', editSubMode: 'select'
- * - 'simulate' -> primaryMode: 'simulate'
- * - 'sensor' -> primaryMode: 'edit', editSubMode: 'sensor'
- * - 'signal' -> primaryMode: 'edit', editSubMode: 'signal'
- * - 'wire' -> primaryMode: 'edit', editSubMode: 'wire'
- * - 'delete' -> primaryMode: 'edit', editSubMode: 'delete'
- */
-export type EditorMode = 'edit' | 'simulate' | 'sensor' | 'signal' | 'wire' | 'delete';
-
 export interface SnapResult {
     targetNode: TrackNode | null;
     isValid: boolean;
@@ -149,7 +135,6 @@ export {
     isPrimaryMode,
     isEditSubMode,
     isSimulateSubMode,
-    LEGACY_MODE_MAPPING,
 } from './mode';
 
 // ===========================

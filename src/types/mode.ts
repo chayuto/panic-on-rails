@@ -125,22 +125,3 @@ export function isEditSubMode(value: unknown): value is EditSubMode {
 export function isSimulateSubMode(value: unknown): value is SimulateSubMode {
     return value === 'observe' || value === 'interact';
 }
-
-// ===========================
-// Utility Types
-// ===========================
-
-/**
- * Mapping from old EditorMode to new mode hierarchy.
- * Useful for migration and backward compatibility.
- * 
- * @deprecated For migration reference only
- */
-export const LEGACY_MODE_MAPPING: Record<string, { primary: PrimaryMode; sub: EditSubMode | SimulateSubMode }> = {
-    'edit': { primary: 'edit', sub: 'select' },
-    'simulate': { primary: 'simulate', sub: 'observe' },
-    'sensor': { primary: 'edit', sub: 'sensor' },
-    'signal': { primary: 'edit', sub: 'signal' },
-    'wire': { primary: 'edit', sub: 'wire' },
-    'delete': { primary: 'edit', sub: 'delete' },
-};
