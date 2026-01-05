@@ -14,7 +14,7 @@ import type {
     NodeId,
     EdgeId,
 } from '../types';
-import { normalizeAngle, localToWorld } from './snapManager';
+import { normalizeAngle, localToWorld } from './geometry';
 
 // ===========================
 // Connection Transform Calculation

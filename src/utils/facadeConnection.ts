@@ -10,6 +10,7 @@
  */
 
 import type { PartDefinition, Vector2, PartGeometry } from '../types';
+import { normalizeAngle, angleDifference } from './geometry';
 
 // =============================================================================
 // CONSTANTS
@@ -39,24 +40,11 @@ export interface PlacedConnectors {
 }
 
 // =============================================================================
-// ANGLE UTILITIES
+// ANGLE UTILITIES (imported from geometry.ts)
 // =============================================================================
 
-/**
- * Normalize angle to 0-360 range
- */
-export function normalizeAngle(angle: number): number {
-    return ((angle % 360) + 360) % 360;
-}
-
-/**
- * Calculate the smallest angular difference between two angles.
- * Result is always in range [0, 180].
- */
-export function angleDifference(a: number, b: number): number {
-    const diff = Math.abs(normalizeAngle(a) - normalizeAngle(b));
-    return diff > 180 ? 360 - diff : diff;
-}
+// Re-export for consumers that may import from here
+export { normalizeAngle, angleDifference };
 
 /**
  * Check if two facade angles are compatible for mating.

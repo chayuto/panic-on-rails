@@ -18,13 +18,7 @@ import {
     boundingBoxFromArc,
     type BoundingBox
 } from '../utils/spatialHashGrid';
-
-/**
- * Normalize angle to 0-360 range
- */
-function normalizeAngle(angle: number): number {
-    return ((angle % 360) + 360) % 360;
-}
+import { normalizeAngle } from '../utils/geometry';
 
 interface TrackState {
     nodes: Record<NodeId, TrackNode>;
@@ -209,10 +203,10 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     return mainEdgeId;
                 }
 
-                if ((part.geometry as any).type === 'crossing') {
+                if ((part.geometry as { type: string }).type === 'crossing') {
                     // Crossing geometry: Two straight tracks crossing at the center
-                    // Cast to any to avoid "Property 'type' does not exist on type 'never'" error
-                    const { length, crossingAngle } = part.geometry as import('../data/catalog/types').CrossingGeometry;
+                    const crossingGeom = part.geometry as import('../data/catalog/types').CrossingGeometry;
+                    const { length, crossingAngle } = crossingGeom;
                     const halfLength = length / 2;
                     const radians = (rotation * Math.PI) / 180;
 
@@ -367,8 +361,8 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     endRotation = rotation + angle;
                     length = calculateArcLength(radius, angle);
                 } else {
-                    // crossing geometry not yet supported
-                    console.warn(`Unsupported geometry type: ${part.geometry.type}`);
+                    // Other geometry types not yet supported in standard track handling
+                    console.warn('Unsupported geometry type for standard track placement');
                     return null;
                 }
 

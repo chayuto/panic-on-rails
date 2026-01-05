@@ -23,83 +23,22 @@ import type {
 import { DEFAULT_SNAP_CONFIG } from '../types';
 import { getPartConnectors } from '../data/catalog/helpers';
 
-// ===========================
-// Geometry Utilities
-// ===========================
+// Import geometry utilities from single source of truth
+import {
+    normalizeAngle,
+    angleDifference,
+    distance,
+    localToWorld,
+    rotateAroundPivot,
+} from './geometry';
 
-/**
- * Normalize angle to [0, 360) range
- */
-export function normalizeAngle(angle: number): number {
-    return ((angle % 360) + 360) % 360;
-}
-
-/**
- * Calculate the smallest angular difference between two angles.
- * Result is always in range [0, 180].
- */
-export function angleDifference(a: number, b: number): number {
-    const diff = Math.abs(normalizeAngle(a) - normalizeAngle(b));
-    return diff > 180 ? 360 - diff : diff;
-}
-
-/**
- * Euclidean distance between two points
- */
-export function distance(a: Vector2, b: Vector2): number {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    return Math.sqrt(dx * dx + dy * dy);
-}
-
-/**
- * Rotate a point around a pivot
- */
-export function rotateAroundPivot(
-    point: Vector2,
-    pivot: Vector2,
-    angleDegrees: number
-): Vector2 {
-    const angleRad = (angleDegrees * Math.PI) / 180;
-    const cos = Math.cos(angleRad);
-    const sin = Math.sin(angleRad);
-
-    // Translate to pivot origin
-    const dx = point.x - pivot.x;
-    const dy = point.y - pivot.y;
-
-    // Rotate
-    const rx = dx * cos - dy * sin;
-    const ry = dx * sin + dy * cos;
-
-    // Translate back
-    return {
-        x: rx + pivot.x,
-        y: ry + pivot.y,
-    };
-}
-
-/**
- * Transform a local position to world coordinates
- */
-export function localToWorld(
-    localPos: Vector2,
-    worldOrigin: Vector2,
-    worldRotation: number
-): Vector2 {
-    const rad = (worldRotation * Math.PI) / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    return {
-        x: worldOrigin.x + localPos.x * cos - localPos.y * sin,
-        y: worldOrigin.y + localPos.x * sin + localPos.y * cos,
-    };
-}
+// Re-export for backward compatibility
+export { normalizeAngle, angleDifference, distance, localToWorld, rotateAroundPivot };
 
 // ===========================
 // Connector Transformation
 // ===========================
+
 
 /**
  * Get all connectors for a part transformed to world coordinates.
