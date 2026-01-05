@@ -87,8 +87,8 @@ export function useConnectMode() {
             return;
         }
 
-        // Validate connection
-        const validation = validateConnection(sourceNode, targetNode, edges);
+        // Validate connection (includes cycle detection)
+        const validation = validateConnection(sourceNode, targetNode, edges, nodes);
         if (!validation.isValid) {
             console.warn('[useConnectMode] Invalid connection:', validation.error);
             playSound('bounce'); // Rejection sound

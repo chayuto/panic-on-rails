@@ -90,6 +90,158 @@ function rebuildSpatialIndices(nodes: Record<NodeId, TrackNode>, edges: Record<E
     }
 }
 
+// ===========================
+// Geometry Sync Layer
+// ===========================
+
+/**
+ * Sync edge geometry to match node positions.
+ * 
+ * This is a critical safety layer that ensures geometry never desyncs from nodes.
+ * Call this after any mutation that changes node positions.
+ * 
+ * For straight edges: geometry.start/end must match node positions
+ * For arc edges: we verify endpoints match (arc center is more complex to sync)
+ * 
+ * @param nodes - Current node state
+ * @param edges - Current edge state  
+ * @returns New edges object with synced geometry
+ */
+function syncGeometryToNodes(
+    nodes: Record<NodeId, TrackNode>,
+    edges: Record<EdgeId, TrackEdge>
+): Record<EdgeId, TrackEdge> {
+    const syncedEdges: Record<EdgeId, TrackEdge> = {};
+
+    for (const [id, edge] of Object.entries(edges)) {
+        const startNode = nodes[edge.startNodeId];
+        const endNode = nodes[edge.endNodeId];
+
+        if (!startNode || !endNode) {
+            // Node missing - keep edge as-is (will fail validation)
+            syncedEdges[id] = edge;
+            continue;
+        }
+
+        if (edge.geometry.type === 'straight') {
+            // For straight: always sync to node positions
+            syncedEdges[id] = {
+                ...edge,
+                geometry: {
+                    type: 'straight',
+                    start: { ...startNode.position },
+                    end: { ...endNode.position },
+                }
+            };
+        } else {
+            // For arc: geometry uses center + angles
+            // The endpoints SHOULD match nodes - if not, log a warning
+            // Full arc recalculation is complex, so we trust movePart did it correctly
+            // but we validate the endpoints match
+            const { center, radius, startAngle, endAngle } = edge.geometry;
+            const expectedStart = {
+                x: center.x + radius * Math.cos(startAngle * Math.PI / 180),
+                y: center.y + radius * Math.sin(startAngle * Math.PI / 180),
+            };
+            const expectedEnd = {
+                x: center.x + radius * Math.cos(endAngle * Math.PI / 180),
+                y: center.y + radius * Math.sin(endAngle * Math.PI / 180),
+            };
+
+            const startDist = Math.hypot(expectedStart.x - startNode.position.x, expectedStart.y - startNode.position.y);
+            const endDist = Math.hypot(expectedEnd.x - endNode.position.x, expectedEnd.y - endNode.position.y);
+
+            // Allow 1px tolerance for floating point
+            if (startDist > 1 || endDist > 1) {
+                console.warn('[syncGeometry] Arc endpoints mismatch:', {
+                    edgeId: id.slice(0, 8),
+                    startDist: startDist.toFixed(2),
+                    endDist: endDist.toFixed(2),
+                });
+            }
+
+            syncedEdges[id] = edge;
+        }
+    }
+
+    return syncedEdges;
+}
+
+/**
+ * Validate layout integrity - check for data corruption.
+ * 
+ * Call this in development to catch bugs early.
+ * Returns list of error messages (empty = valid).
+ */
+function validateLayoutIntegrity(
+    nodes: Record<NodeId, TrackNode>,
+    edges: Record<EdgeId, TrackEdge>
+): string[] {
+    const errors: string[] = [];
+
+    // Check 1: All edges reference existing nodes
+    for (const [edgeId, edge] of Object.entries(edges)) {
+        if (!nodes[edge.startNodeId]) {
+            errors.push(`Edge ${edgeId.slice(0, 8)} references missing startNode ${edge.startNodeId.slice(0, 8)}`);
+        }
+        if (!nodes[edge.endNodeId]) {
+            errors.push(`Edge ${edgeId.slice(0, 8)} references missing endNode ${edge.endNodeId.slice(0, 8)}`);
+        }
+    }
+
+    // Check 2: All node connections reference existing edges
+    for (const [nodeId, node] of Object.entries(nodes)) {
+        for (const edgeId of node.connections) {
+            if (!edges[edgeId]) {
+                errors.push(`Node ${nodeId.slice(0, 8)} references missing edge ${edgeId.slice(0, 8)}`);
+            }
+        }
+    }
+
+    // Check 3: Straight edge geometry matches node positions
+    for (const [edgeId, edge] of Object.entries(edges)) {
+        if (edge.geometry.type === 'straight') {
+            const startNode = nodes[edge.startNodeId];
+            const endNode = nodes[edge.endNodeId];
+
+            if (startNode && endNode) {
+                const startDist = Math.hypot(
+                    edge.geometry.start.x - startNode.position.x,
+                    edge.geometry.start.y - startNode.position.y
+                );
+                const endDist = Math.hypot(
+                    edge.geometry.end.x - endNode.position.x,
+                    edge.geometry.end.y - endNode.position.y
+                );
+
+                if (startDist > 0.1) {
+                    errors.push(`Edge ${edgeId.slice(0, 8)} geometry.start doesn't match startNode (diff: ${startDist.toFixed(2)}px)`);
+                }
+                if (endDist > 0.1) {
+                    errors.push(`Edge ${edgeId.slice(0, 8)} geometry.end doesn't match endNode (diff: ${endDist.toFixed(2)}px)`);
+                }
+            }
+        }
+    }
+
+    // Check 4: Node types match connection count
+    for (const [nodeId, node] of Object.entries(nodes)) {
+        const connCount = node.connections.length;
+        if (node.type === 'endpoint' && connCount !== 1) {
+            errors.push(`Endpoint ${nodeId.slice(0, 8)} has ${connCount} connections (expected 1)`);
+        }
+        if (node.type === 'junction' && connCount < 2) {
+            errors.push(`Junction ${nodeId.slice(0, 8)} has ${connCount} connections (expected 2+)`);
+        }
+    }
+
+    if (errors.length > 0) {
+        console.warn('[validateLayoutIntegrity] Found issues:', errors);
+    }
+
+    return errors;
+}
+
 const initialState: TrackState = {
     nodes: {},
     edges: {},
@@ -590,12 +742,36 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const newEdges = { ...state.edges };
 
                     // Update the new edge to point to survivor instead of removed node
+                    // CRITICAL: Also update geometry to match the new node position
                     const newEdge = newEdges[newEdgeId];
                     if (newEdge) {
+                        const survivorPos = newNodes[survivorNodeId].position;
+
                         if (newEdge.startNodeId === removedNodeId) {
-                            newEdges[newEdgeId] = { ...newEdge, startNodeId: survivorNodeId };
+                            // Update reference and sync geometry
+                            let updatedGeometry = newEdge.geometry;
+                            if (newEdge.geometry.type === 'straight') {
+                                updatedGeometry = { ...newEdge.geometry, start: survivorPos };
+                            }
+                            // For arcs: geometry uses center + angles, endpoints are derived
+                            // The arc geometry should already be correct from movePart
+
+                            newEdges[newEdgeId] = {
+                                ...newEdge,
+                                startNodeId: survivorNodeId,
+                                geometry: updatedGeometry
+                            };
                         } else if (newEdge.endNodeId === removedNodeId) {
-                            newEdges[newEdgeId] = { ...newEdge, endNodeId: survivorNodeId };
+                            let updatedGeometry = newEdge.geometry;
+                            if (newEdge.geometry.type === 'straight') {
+                                updatedGeometry = { ...newEdge.geometry, end: survivorPos };
+                            }
+
+                            newEdges[newEdgeId] = {
+                                ...newEdge,
+                                endNodeId: survivorNodeId,
+                                geometry: updatedGeometry
+                            };
                         }
                     }
 
@@ -675,17 +851,43 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         return state;
                     }
 
-                    const partId = edge.partId;
+                    // Find ALL nodes and edges in the connected network from pivot node using BFS
+                    // This ensures the entire connected set moves together, not just the single part
+                    const networkNodeIds = new Set<NodeId>();
+                    const networkEdgeIds = new Set<EdgeId>();
+                    const queue: NodeId[] = [pivotNodeId];
 
-                    // Find all edges belonging to this part
-                    const partEdges = Object.values(state.edges).filter(e => e.partId === partId);
+                    while (queue.length > 0) {
+                        const currentNodeId = queue.shift()!;
+                        if (networkNodeIds.has(currentNodeId)) continue;
 
-                    // Find all nodes connected to these edges
-                    const partNodeIds = new Set<NodeId>();
-                    for (const e of partEdges) {
-                        partNodeIds.add(e.startNodeId);
-                        partNodeIds.add(e.endNodeId);
+                        const currentNode = state.nodes[currentNodeId];
+                        if (!currentNode) continue;
+
+                        networkNodeIds.add(currentNodeId);
+
+                        // Traverse all connected edges
+                        for (const connEdgeId of currentNode.connections) {
+                            if (networkEdgeIds.has(connEdgeId)) continue;
+
+                            const connEdge = state.edges[connEdgeId];
+                            if (!connEdge) continue;
+
+                            networkEdgeIds.add(connEdgeId);
+
+                            // Add the other node of this edge to the queue
+                            const otherNodeId = connEdge.startNodeId === currentNodeId
+                                ? connEdge.endNodeId
+                                : connEdge.startNodeId;
+
+                            if (!networkNodeIds.has(otherNodeId)) {
+                                queue.push(otherNodeId);
+                            }
+                        }
                     }
+
+                    // Get the edges as array for transformation
+                    const networkEdges = Array.from(networkEdgeIds).map(id => state.edges[id]).filter(Boolean);
 
                     // Get pivot node current position
                     const pivotNode = state.nodes[pivotNodeId];
@@ -725,7 +927,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     const newEdges = { ...state.edges };
 
                     // Transform all nodes
-                    for (const nodeId of partNodeIds) {
+                    for (const nodeId of networkNodeIds) {
                         const node = state.nodes[nodeId];
                         if (!node) continue;
 
@@ -744,7 +946,7 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     }
 
                     // Transform all edges (update geometry)
-                    for (const e of partEdges) {
+                    for (const e of networkEdges) {
                         const startNode = newNodes[e.startNodeId];
                         const endNode = newNodes[e.endNodeId];
 
@@ -789,11 +991,22 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                     }
 
                     console.log('[movePart] Move complete:', {
-                        nodesTransformed: partNodeIds.size,
-                        edgesTransformed: partEdges.length,
+                        nodesTransformed: networkNodeIds.size,
+                        edgesTransformed: networkEdges.length,
                     });
 
-                    return { nodes: newNodes, edges: newEdges };
+                    // Sync geometry to ensure consistency (safety layer)
+                    const syncedEdges = syncGeometryToNodes(newNodes, newEdges);
+
+                    // Validate in development
+                    if (import.meta.env.DEV) {
+                        const errors = validateLayoutIntegrity(newNodes, syncedEdges);
+                        if (errors.length > 0) {
+                            console.error('[movePart] Layout integrity errors after move:', errors);
+                        }
+                    }
+
+                    return { nodes: newNodes, edges: syncedEdges };
                 });
             },
 
