@@ -26,7 +26,7 @@ interface UseCanvasCoordinatesOptions {
     /** Current zoom level */
     zoom: number;
     /** Current pan offset */
-    pan: { x: number; y: number };
+    pan: Vector2;
 }
 
 /**

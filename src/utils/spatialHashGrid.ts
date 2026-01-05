@@ -8,6 +8,8 @@
  * @template T - The type of items stored in the grid
  */
 
+import type { Vector2 } from '../types';
+
 export interface BoundingBox {
     x: number;
     y: number;
@@ -202,8 +204,8 @@ export class SpatialHashGrid<T> {
  * Helper function to calculate bounding box from two points
  */
 export function boundingBoxFromPoints(
-    p1: { x: number; y: number },
-    p2: { x: number; y: number },
+    p1: Vector2,
+    p2: Vector2,
     padding: number = 0
 ): BoundingBox {
     const minX = Math.min(p1.x, p2.x) - padding;
@@ -223,7 +225,7 @@ export function boundingBoxFromPoints(
  * Helper function to calculate bounding box for an arc
  */
 export function boundingBoxFromArc(
-    center: { x: number; y: number },
+    center: Vector2,
     radius: number,
     _startAngle: number,
     _endAngle: number,

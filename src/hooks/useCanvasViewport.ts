@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useEditorStore } from '../stores/useEditorStore';
+import type { Vector2 } from '../types';
 import type { BoundingBox } from '../utils/spatialHashGrid';
 
 /**
@@ -26,7 +27,7 @@ interface ViewportState {
     /** Current zoom level (1 = 100%) */
     zoom: number;
     /** Current pan offset in screen pixels */
-    pan: { x: number; y: number };
+    pan: Vector2;
     /** Viewport bounds in world coordinates for spatial culling */
     viewport: BoundingBox;
 }

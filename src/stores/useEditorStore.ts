@@ -19,7 +19,7 @@ interface EditorState {
     showGrid: boolean;
     showMeasurements: boolean;
     zoom: number;
-    pan: { x: number; y: number };
+    pan: Vector2;
 
     // Drag-and-drop state
     draggedPartId: PartId | null;

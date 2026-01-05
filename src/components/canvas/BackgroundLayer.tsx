@@ -1,10 +1,11 @@
 import { Line } from 'react-konva';
+import type { Vector2 } from '../../types';
 
 interface BackgroundLayerProps {
     width: number;
     height: number;
     zoom: number;
-    pan: { x: number; y: number };
+    pan: Vector2;
     showGrid: boolean;
 }
 
