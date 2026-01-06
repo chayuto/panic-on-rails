@@ -597,7 +597,7 @@ describe('useConnectMode Logic', () => {
             expect(Object.keys(getTrackState().nodes).length).toBe(3);
         });
 
-        it('should reject attempt to create a cycle', () => {
+        it('should allow closing loop (valid for train circuits)', () => {
             // Create a line of 3 tracks connected end-to-end at adjacent positions
             const track1 = placeTrack({ x: 100, y: 100 });
             const track2 = placeTrack({ x: 324, y: 100 });
@@ -615,12 +615,15 @@ describe('useConnectMode Logic', () => {
             // Now we have: track1.start, junction1, junction2, track3.end = 4 nodes
             expect(Object.keys(getTrackState().nodes).length).toBe(4);
 
-            // Try to connect track1.start to track3.end (would create cycle)
+            // Connect track1.start to track3.end (closes the loop)
+            // This should SUCCEED - closed loops are valid for train tracks
             handleFirstClick(track1.startNodeId);
-            const cycleResult = handleSecondClick(track3.endNodeId);
+            const closeResult = handleSecondClick(track3.endNodeId);
 
-            expect(cycleResult.success).toBe(false);
-            expect(cycleResult.error).toBe('Parts are already connected (would create cycle)');
+            expect(closeResult.success).toBe(true);
+
+            // Now all 3 nodes have 2 connections each (closed loop)
+            expect(Object.keys(getTrackState().nodes).length).toBe(3);
         });
     });
 

@@ -310,19 +310,24 @@ export function rotateNodeAroundPivot(
  * Rules:
  * 1. Both must be open endpoints (exactly 1 connection)
  * 2. They must belong to different physical track pieces (different edge IDs)
- * 3. They must not already be connected through the network (would create cycle)
+ * 
+ * NOTE: We intentionally DO NOT check for cycles here. Two open endpoints
+ * (each with exactly 1 connection) connecting together will create a valid
+ * closed loop, not a problematic cycle. This is essential for train tracks
+ * where closed loops allow continuous train running.
  * 
  * @param nodeA - First node
  * @param nodeB - Second node  
  * @param edges - All edges in the graph
- * @param nodes - All nodes in the graph (for cycle detection)
+ * @param _nodes - Unused, kept for API compatibility
  * @returns Object with isValid and error message
  */
 export function validateConnection(
     nodeA: TrackNode,
     nodeB: TrackNode,
     edges: Record<EdgeId, TrackEdge>,
-    nodes?: Record<NodeId, TrackNode>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _nodes?: Record<NodeId, TrackNode>
 ): { isValid: boolean; error?: string } {
     // Check both are open endpoints
     if (nodeA.connections.length !== 1) {
@@ -351,57 +356,8 @@ export function validateConnection(
         return { isValid: false, error: 'Cannot connect a part to itself' };
     }
 
-    // Check if nodes are already connected through the network (would create cycle)
-    if (nodes) {
-        if (areNodesConnected(nodeA.id, nodeB.id, nodes, edges)) {
-            return { isValid: false, error: 'Parts are already connected (would create cycle)' };
-        }
-    }
+    // No cycle detection needed - connecting two open endpoints creates
+    // a valid loop, not a problematic cycle
 
     return { isValid: true };
-}
-
-/**
- * Check if two nodes are already connected through the track network.
- * Uses BFS to traverse the graph from nodeA and check if nodeB is reachable.
- */
-function areNodesConnected(
-    nodeAId: NodeId,
-    nodeBId: NodeId,
-    nodes: Record<NodeId, TrackNode>,
-    edges: Record<EdgeId, TrackEdge>
-): boolean {
-    const visited = new Set<NodeId>();
-    const queue: NodeId[] = [nodeAId];
-
-    while (queue.length > 0) {
-        const currentId = queue.shift()!;
-
-        if (currentId === nodeBId) {
-            return true; // Found a path
-        }
-
-        if (visited.has(currentId)) continue;
-        visited.add(currentId);
-
-        const currentNode = nodes[currentId];
-        if (!currentNode) continue;
-
-        // Traverse all connected edges
-        for (const edgeId of currentNode.connections) {
-            const edge = edges[edgeId];
-            if (!edge) continue;
-
-            // Find the other node of this edge
-            const nextNodeId = edge.startNodeId === currentId
-                ? edge.endNodeId
-                : edge.startNodeId;
-
-            if (!visited.has(nextNodeId)) {
-                queue.push(nextNodeId);
-            }
-        }
-    }
-
-    return false;
 }

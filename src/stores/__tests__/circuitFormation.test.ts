@@ -372,7 +372,7 @@ describe('Circuit Formation: Oval Layout (8 Curves + 2 Straights)', () => {
             expect(getOpenEndpoints().length).toBe(2);
         });
 
-        it('blocks closing loop due to cycle detection (documented behavior)', () => {
+        it('successfully closes loop by connecting chain endpoints', () => {
             // Place and connect 8 curves into a chain
             const tracks: ReturnType<typeof placeTrack>[] = [];
             for (let i = 0; i < 8; i++) {
@@ -384,15 +384,21 @@ describe('Circuit Formation: Oval Layout (8 Curves + 2 Straights)', () => {
                 connectEndpoints(tracks[i].endNodeId, tracks[i + 1].startNodeId);
             }
 
-            // Attempt to close the loop: C8.end -> C1.start
-            // This should FAIL with cycle detection error
+            // Close the loop: C8.end -> C1.start
+            // This should SUCCEED - closed loops are valid for train tracks
             const closeResult = connectEndpoints(tracks[7].endNodeId, tracks[0].startNodeId);
 
-            expect(closeResult.success).toBe(false);
-            expect(closeResult.error).toBe('Parts are already connected (would create cycle)');
+            expect(closeResult.success).toBe(true);
 
-            // Layout remains with 2 open endpoints (not closed)
-            expect(getOpenEndpoints().length).toBe(2);
+            // Layout now has 0 open endpoints (closed loop)
+            expect(getOpenEndpoints().length).toBe(0);
+
+            // All 8 nodes should have exactly 2 connections
+            const { nodes } = getStore();
+            expect(Object.keys(nodes).length).toBe(8);
+            for (const node of Object.values(nodes)) {
+                expect(node.connections.length).toBe(2);
+            }
         });
 
         it('builds complete open-path oval (9 connections, 2 open ends)', () => {
