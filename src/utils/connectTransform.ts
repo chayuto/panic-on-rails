@@ -127,6 +127,7 @@ export function getNodeFacadeFromEdge(
 export function calculateRotationForConnection(
     targetFacade: number,
     sourceFacade: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _isYJunction: boolean = false
 ): number {
     const normalizedTarget = normalizeAngle(targetFacade);
@@ -308,7 +309,7 @@ export function rotateNodeAroundPivot(
  * 
  * Rules:
  * 1. Both must be open endpoints (exactly 1 connection)
- * 2. They must belong to different parts (different partId on their edges)
+ * 2. They must belong to different physical track pieces (different edge IDs)
  * 3. They must not already be connected through the network (would create cycle)
  * 
  * @param nodeA - First node
@@ -331,15 +332,22 @@ export function validateConnection(
         return { isValid: false, error: 'Target node is not an open endpoint' };
     }
 
-    // Get the edges to check if same part
-    const edgeA = edges[nodeA.connections[0]];
-    const edgeB = edges[nodeB.connections[0]];
+    // Get the edge IDs - these are unique per placed track piece
+    const edgeIdA = nodeA.connections[0];
+    const edgeIdB = nodeB.connections[0];
+
+    // Check that both edges exist
+    const edgeA = edges[edgeIdA];
+    const edgeB = edges[edgeIdB];
 
     if (!edgeA || !edgeB) {
         return { isValid: false, error: 'Could not find connected edges' };
     }
 
-    if (edgeA.partId === edgeB.partId) {
+    // Check if same physical track piece (same edge ID)
+    // Note: We compare edge IDs, NOT partId - partId is the catalog type
+    // (e.g., 'kato-20-020'), while edgeId is unique per placed track
+    if (edgeIdA === edgeIdB) {
         return { isValid: false, error: 'Cannot connect a part to itself' };
     }
 
