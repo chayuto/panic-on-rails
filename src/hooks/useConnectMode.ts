@@ -19,7 +19,7 @@ import type { NodeId } from '../types';
  */
 export function useConnectMode() {
     const { connectSource, setConnectSource, clearConnectSource, selectedSystem } = useEditorStore();
-    const { nodes, edges, movePart, connectNodes } = useTrackStore();
+    const { nodes, edges, connectNetworks } = useTrackStore();
     const { editSubMode, setEditSubMode } = useModeStore();
 
     /**
@@ -132,19 +132,14 @@ export function useConnectMode() {
 
         console.log('[useConnectMode] Rotation delta:', rotationDelta);
 
-        // Move Part B to connect to Part A
-        // The target node (Part B) should end up at source node's position
-        movePart(
-            edgeId,                     // Any edge of Part B
-            nodeId,                     // Pivot around the target node
-            sourceNode.position,        // Move to source node's position
-            rotationDelta              // Rotate to align facades
+        // V2: Use atomic connectNetworks instead of movePart + connectNodes
+        // This ensures the entire operation is atomic - no partial state
+        connectNetworks(
+            connectSource.nodeId,  // Anchor node (Part A - stays fixed)
+            nodeId,               // Moving node (Part B - will be moved and merged)
+            edgeId,              // Edge from Part B
+            rotationDelta        // Rotation to align facades
         );
-
-        // Merge the nodes
-        // After move, targetNode is at sourceNode's position
-        // We merge targetNode INTO sourceNode (sourceNode survives)
-        connectNodes(connectSource.nodeId, nodeId, edgeId);
 
         // Play success sound
         playSound(selectedSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
@@ -153,7 +148,7 @@ export function useConnectMode() {
         clearConnectSource();
 
         console.log('[useConnectMode] Connection complete!');
-    }, [editSubMode, nodes, edges, connectSource, setConnectSource, clearConnectSource, movePart, connectNodes, selectedSystem]);
+    }, [editSubMode, nodes, edges, connectSource, setConnectSource, clearConnectSource, connectNetworks, selectedSystem]);
 
     /**
      * Cancel current connection (clear source)

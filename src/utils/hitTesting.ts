@@ -6,7 +6,8 @@
  * for better performance with spatial indexing.
  */
 
-import type { Vector2, TrackEdge, TrackNode } from '../types';
+import type { Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../types';
+import { deriveWorldGeometry } from './geometry';
 
 /**
  * Calculate the perpendicular distance from a point to a line segment.
@@ -165,9 +166,17 @@ export function pointToEdgeDistance(
     point: Vector2,
     edge: TrackEdge,
     startNode: TrackNode,
-    endNode: TrackNode
+    endNode: TrackNode,
+    allNodes?: Record<NodeId, TrackNode>
 ): number {
-    if (edge.geometry.type === 'straight') {
+    // V2: Use derived geometry for arcs if all nodes provided
+    let geometry: TrackGeometry = edge.geometry;
+    if (allNodes && edge.intrinsicGeometry) {
+        const derived = deriveWorldGeometry(edge, allNodes);
+        if (derived) geometry = derived;
+    }
+
+    if (geometry.type === 'straight') {
         return pointToLineDistance(
             point,
             startNode.position,
@@ -175,7 +184,7 @@ export function pointToEdgeDistance(
         );
     } else {
         // Arc geometry
-        const { center, radius, startAngle, endAngle } = edge.geometry;
+        const { center, radius, startAngle, endAngle } = geometry;
         return pointToArcDistance(point, center, radius, startAngle, endAngle);
     }
 }
@@ -218,12 +227,13 @@ export function findClosestEdge(
         const endNode = nodes[edge.endNodeId];
         if (!startNode || !endNode) continue;
 
-        const distance = pointToEdgeDistance(point, edge, startNode, endNode);
+        // V2: Pass allNodes for derived geometry support
+        const distance = pointToEdgeDistance(point, edge, startNode, endNode, nodes);
 
         if (distance <= threshold) {
             if (!closest || distance < closest.distance) {
-                // Calculate approximate t (position along edge)
-                const t = calculateT(point, edge, startNode, endNode);
+                // Calculate approximate t (position along edge) - V2: pass nodes for derived geometry
+                const t = calculateT(point, edge, startNode, endNode, nodes);
                 closest = { edgeId, edge, distance, t };
             }
         }
@@ -240,9 +250,17 @@ function calculateT(
     point: Vector2,
     edge: TrackEdge,
     startNode: TrackNode,
-    endNode: TrackNode
+    endNode: TrackNode,
+    allNodes?: Record<NodeId, TrackNode>
 ): number {
-    if (edge.geometry.type === 'straight') {
+    // V2: Use derived geometry for arcs if all nodes provided
+    let geometry: TrackGeometry = edge.geometry;
+    if (allNodes && edge.intrinsicGeometry) {
+        const derived = deriveWorldGeometry(edge, allNodes);
+        if (derived) geometry = derived;
+    }
+
+    if (geometry.type === 'straight') {
         const dx = endNode.position.x - startNode.position.x;
         const dy = endNode.position.y - startNode.position.y;
         const lengthSq = dx * dx + dy * dy;
@@ -258,7 +276,7 @@ function calculateT(
     } else {
         // For arcs, approximate using angle
         // Angles are stored in DEGREES per constitution
-        const { center, startAngle, endAngle } = edge.geometry;
+        const { center, startAngle, endAngle } = geometry;
         const pointAngleRad = Math.atan2(
             point.y - center.y,
             point.x - center.x

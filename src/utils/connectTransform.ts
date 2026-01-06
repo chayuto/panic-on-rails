@@ -35,6 +35,43 @@ export function getNodeConnectorType(
 }
 
 /**
+ * Get the entry facade direction for a switch node.
+ * 
+ * Switch nodes have 3 connections: 1 entry edge and 2 exit edges (switchBranches).
+ * The entry facade is derived from the edge that is NOT in switchBranches.
+ * 
+ * @param node - The switch node
+ * @param edges - All edges in the graph
+ * @returns Entry facade direction in degrees [0, 360), or null if not a switch
+ */
+export function getSwitchEntryFacade(
+    node: TrackNode,
+    edges: Record<EdgeId, TrackEdge>
+): number | null {
+    if (node.type !== 'switch' || !node.switchBranches) {
+        return null;
+    }
+
+    // Find the entry edge (the one NOT in switchBranches)
+    const [mainEdgeId, branchEdgeId] = node.switchBranches;
+    const entryEdgeId = node.connections.find(
+        id => id !== mainEdgeId && id !== branchEdgeId
+    );
+
+    if (!entryEdgeId) {
+        // Fallback: use the first connection
+        const fallbackEdge = edges[node.connections[0]];
+        if (!fallbackEdge) return null;
+        return getNodeFacadeFromEdge(node.id, fallbackEdge);
+    }
+
+    const entryEdge = edges[entryEdgeId];
+    if (!entryEdge) return null;
+
+    return getNodeFacadeFromEdge(node.id, entryEdge);
+}
+
+/**
  * Derive the facade direction for a node from its connected edge geometry.
  * 
  * Facade = the outward-facing direction at the endpoint (for connection).

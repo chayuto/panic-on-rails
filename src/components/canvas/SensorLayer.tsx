@@ -10,7 +10,8 @@ import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore } from '../../stores/useModeStore';
-import type { Sensor, TrackEdge, Vector2 } from '../../types';
+import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import type { Sensor, TrackEdge, TrackNode, Vector2, NodeId, TrackGeometry } from '../../types';
 
 const SENSOR_HEIGHT = 12;
 const SENSOR_COLOR_ACTIVE = '#FFD93D';
@@ -19,12 +20,22 @@ const SENSOR_COLOR_SELECTED = '#00FF88';
 
 /**
  * Calculate world position and rotation for a sensor on an edge
+ * V2: Uses derived geometry when nodes are provided
  */
-function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; rotation: number } {
+function getSensorTransform(
+    edge: TrackEdge,
+    position: number,
+    nodes?: Record<NodeId, TrackNode>
+): { pos: Vector2; rotation: number } {
     const progress = Math.max(0, Math.min(1, position / edge.length));
 
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
+    // V2: Use derived geometry if nodes available
+    const geometry: TrackGeometry = nodes
+        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        : edge.geometry;
+
+    if (geometry.type === 'straight') {
+        const { start, end } = geometry;
         const pos = {
             x: start.x + (end.x - start.x) * progress,
             y: start.y + (end.y - start.y) * progress,
@@ -33,7 +44,7 @@ function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; 
         return { pos, rotation };
     } else {
         // Arc geometry - angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = edge.geometry;
+        const { center, radius, startAngle, endAngle } = geometry;
         const angleDeg = startAngle + (endAngle - startAngle) * progress;
         const angleRad = (angleDeg * Math.PI) / 180;
         const pos = {
@@ -50,7 +61,7 @@ function getSensorTransform(edge: TrackEdge, position: number): { pos: Vector2; 
  * Individual sensor component
  */
 function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boolean }) {
-    const { edges } = useTrackStore();
+    const { edges, nodes } = useTrackStore();
     const { removeSensor } = useLogicStore();
     const { wireSource, setWireSource } = useEditorStore();
     const { editSubMode } = useModeStore();
@@ -58,7 +69,8 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
 
-    const { pos, rotation } = getSensorTransform(edge, sensor.position);
+    // V2: Use derived geometry via nodes
+    const { pos, rotation } = getSensorTransform(edge, sensor.position, nodes);
 
     // Determine color based on state
     let fillColor = sensor.state === 'on' ? SENSOR_COLOR_ACTIVE : SENSOR_COLOR_INACTIVE;

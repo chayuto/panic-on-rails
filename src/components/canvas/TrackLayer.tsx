@@ -8,6 +8,8 @@ import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { useConnectMode } from '../../hooks/useConnectMode';
 import { playSound } from '../../utils/audioManager';
+import { getSwitchEntryFacade } from '../../utils/connectTransform';
+import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import type { TrackEdge, Vector2 } from '../../types';
 
 const RAIL_COLOR = '#888888';
@@ -192,8 +194,13 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                     );
                 } else {
                     // Arc rendering - using Konva Arc component
-                    // startAngle and endAngle are now in DEGREES per constitution
-                    const { center, radius, startAngle, endAngle } = edge.geometry;
+                    // V2: Use derived geometry for arcs
+                    const geometry = getEdgeWorldGeometry(edge, nodes) ?? edge.geometry;
+                    if (geometry.type !== 'arc') {
+                        // Shouldn't happen, but safety check
+                        return null;
+                    }
+                    const { center, radius, startAngle, endAngle } = geometry;
                     const sweepDeg = endAngle - startAngle;
 
                     return (
@@ -217,6 +224,14 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
             {Object.values(nodes).map((node) => {
                 // Switch nodes get special rendering
                 if (node.type === 'switch') {
+                    // Derive wedge direction from entry edge facade (V2: no dependency on stored rotation)
+                    const entryFacade = getSwitchEntryFacade(node, edges);
+                    // Entry facade points INTO the switch, wedge points OUT (opposite)
+                    // Add branch offset when branch is active
+                    const wedgeRotation = entryFacade !== null
+                        ? entryFacade + 180 + (node.switchState === 1 ? 15 : 0)
+                        : node.rotation + 180 + (node.switchState === 1 ? 15 : 0); // Fallback
+
                     return (
                         <Group key={node.id}>
                             {/* Switch indicator - larger clickable circle */}
@@ -239,7 +254,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                                 y={node.position.y}
                                 radius={6}
                                 angle={30}
-                                rotation={node.rotation + 180 + (node.switchState === 1 ? 15 : 0)}
+                                rotation={wedgeRotation}
                                 fill="#1A1A1A"
                             />
                         </Group>

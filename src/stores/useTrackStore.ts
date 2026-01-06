@@ -35,8 +35,18 @@ interface TrackActions {
     getOpenEndpoints: () => TrackNode[];
     connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
     toggleSwitch: (nodeId: NodeId) => void;
-    // Connect mode action
+    // Connect mode actions
     movePart: (edgeId: EdgeId, pivotNodeId: NodeId, targetPosition: Vector2, rotationDelta: number) => void;
+    /** 
+     * V2: Atomic connect operation - combines movePart + connectNodes into single state update.
+     * Moves the target network to align with anchor node, then merges the nodes.
+     */
+    connectNetworks: (
+        anchorNodeId: NodeId,
+        movingNodeId: NodeId,
+        movingEdgeId: EdgeId,
+        rotationDelta: number
+    ) => void;
     // Spatial query actions
     getVisibleEdges: (viewport: BoundingBox) => EdgeId[];
     getVisibleNodes: (viewport: BoundingBox) => NodeId[];
@@ -809,6 +819,218 @@ export const useTrackStore = create<TrackState & TrackActions>()(
                         totalEdges: Object.keys(newEdges).length,
                         survivorConnectionsNow: newNodes[survivorNodeId].connections.length,
                     });
+
+                    return { nodes: newNodes, edges: newEdges };
+                });
+            },
+
+            /**
+             * V2: Atomic connect operation - combines movePart + connectNodes into single state update.
+             * 
+             * This ensures connection is fully atomic - either everything succeeds or nothing changes.
+             * Eliminates the fragile two-step movePart() + connectNodes() pattern.
+             * 
+             * @param anchorNodeId - The fixed node (Part A) that the moving network connects to
+             * @param movingNodeId - The node (Part B) that will be moved and merged
+             * @param movingEdgeId - Any edge from Part B (used to identify the network)
+             * @param rotationDelta - Rotation needed to align facades (degrees)
+             */
+            connectNetworks: (anchorNodeId, movingNodeId, movingEdgeId, rotationDelta) => {
+                console.log('[connectNetworks] Starting atomic connect:', {
+                    anchorNodeId: anchorNodeId.slice(0, 8),
+                    movingNodeId: movingNodeId.slice(0, 8),
+                    movingEdgeId: movingEdgeId.slice(0, 8),
+                    rotationDelta,
+                });
+
+                set((state) => {
+                    // Validate nodes exist
+                    const anchorNode = state.nodes[anchorNodeId];
+                    const movingNode = state.nodes[movingNodeId];
+
+                    if (!anchorNode || !movingNode) {
+                        console.warn('[connectNetworks] Node not found:', {
+                            anchorExists: !!anchorNode,
+                            movingExists: !!movingNode,
+                        });
+                        return state;
+                    }
+
+                    // STEP 1: Find all nodes/edges in the moving network using BFS
+                    const networkNodeIds = new Set<NodeId>();
+                    const networkEdgeIds = new Set<EdgeId>();
+                    const queue: NodeId[] = [movingNodeId];
+
+                    while (queue.length > 0) {
+                        const currentNodeId = queue.shift()!;
+                        if (networkNodeIds.has(currentNodeId)) continue;
+
+                        const currentNode = state.nodes[currentNodeId];
+                        if (!currentNode) continue;
+
+                        networkNodeIds.add(currentNodeId);
+
+                        for (const connEdgeId of currentNode.connections) {
+                            if (networkEdgeIds.has(connEdgeId)) continue;
+
+                            const connEdge = state.edges[connEdgeId];
+                            if (!connEdge) continue;
+
+                            networkEdgeIds.add(connEdgeId);
+
+                            const otherNodeId = connEdge.startNodeId === currentNodeId
+                                ? connEdge.endNodeId
+                                : connEdge.startNodeId;
+
+                            if (!networkNodeIds.has(otherNodeId)) {
+                                queue.push(otherNodeId);
+                            }
+                        }
+                    }
+
+                    console.log('[connectNetworks] Network found:', {
+                        nodes: networkNodeIds.size,
+                        edges: networkEdgeIds.size,
+                    });
+
+                    // STEP 2: Calculate transform (rotation around pivot + translation to anchor)
+                    const pivotPos = movingNode.position;
+                    const targetPos = anchorNode.position;
+                    const radDelta = (rotationDelta * Math.PI) / 180;
+                    const cos = Math.cos(radDelta);
+                    const sin = Math.sin(radDelta);
+
+                    const translation = {
+                        x: targetPos.x - pivotPos.x,
+                        y: targetPos.y - pivotPos.y,
+                    };
+
+                    const transformPos = (pos: Vector2): Vector2 => {
+                        const dx = pos.x - pivotPos.x;
+                        const dy = pos.y - pivotPos.y;
+                        const rotatedX = dx * cos - dy * sin;
+                        const rotatedY = dx * sin + dy * cos;
+                        return {
+                            x: pivotPos.x + rotatedX + translation.x,
+                            y: pivotPos.y + rotatedY + translation.y,
+                        };
+                    };
+
+                    // STEP 3: Transform all nodes in network
+                    const newNodes = { ...state.nodes };
+                    const newEdges = { ...state.edges };
+
+                    for (const nodeId of networkNodeIds) {
+                        const node = state.nodes[nodeId];
+                        if (!node) continue;
+
+                        const newPosition = transformPos(node.position);
+                        const newRotation = normalizeAngle(node.rotation + rotationDelta);
+
+                        newNodes[nodeId] = {
+                            ...node,
+                            position: newPosition,
+                            rotation: newRotation,
+                        };
+
+                        // Update spatial index
+                        nodeIndex.remove(nodeId);
+                        nodeIndex.insert(nodeId, getNodeBounds(newNodes[nodeId]), nodeId);
+                    }
+
+                    // STEP 4: Transform all edges in network (update geometry)
+                    for (const edgeId of networkEdgeIds) {
+                        const e = state.edges[edgeId];
+                        if (!e) continue;
+
+                        const startNode = newNodes[e.startNodeId];
+                        const endNode = newNodes[e.endNodeId];
+                        if (!startNode || !endNode) continue;
+
+                        let newGeometry: TrackEdge['geometry'];
+
+                        if (e.geometry.type === 'straight') {
+                            newGeometry = {
+                                type: 'straight',
+                                start: startNode.position,
+                                end: endNode.position,
+                            };
+                        } else {
+                            // Arc geometry - transform center and angles
+                            const oldCenter = e.geometry.center;
+                            const newCenter = transformPos(oldCenter);
+                            const newStartAngle = normalizeAngle(e.geometry.startAngle + rotationDelta);
+                            const arcSweep = e.geometry.endAngle - e.geometry.startAngle;
+
+                            newGeometry = {
+                                type: 'arc',
+                                center: newCenter,
+                                radius: e.geometry.radius,
+                                startAngle: newStartAngle,
+                                endAngle: newStartAngle + arcSweep,
+                            };
+                        }
+
+                        newEdges[edgeId] = {
+                            ...e,
+                            geometry: newGeometry,
+                        };
+
+                        // Update spatial index for edge
+                        spatialIndex.remove(edgeId);
+                        spatialIndex.insert(edgeId, getEdgeBounds(newEdges[edgeId]), edgeId);
+                    }
+
+                    // STEP 5: Merge nodes (movingNode into anchorNode)
+                    const movingEdge = newEdges[movingEdgeId];
+                    if (movingEdge) {
+                        if (movingEdge.startNodeId === movingNodeId) {
+                            let updatedGeometry = movingEdge.geometry;
+                            if (movingEdge.geometry.type === 'straight') {
+                                updatedGeometry = { ...movingEdge.geometry, start: anchorNode.position };
+                            }
+                            newEdges[movingEdgeId] = {
+                                ...movingEdge,
+                                startNodeId: anchorNodeId,
+                                geometry: updatedGeometry,
+                            };
+                        } else if (movingEdge.endNodeId === movingNodeId) {
+                            let updatedGeometry = movingEdge.geometry;
+                            if (movingEdge.geometry.type === 'straight') {
+                                updatedGeometry = { ...movingEdge.geometry, end: anchorNode.position };
+                            }
+                            newEdges[movingEdgeId] = {
+                                ...movingEdge,
+                                endNodeId: anchorNodeId,
+                                geometry: updatedGeometry,
+                            };
+                        }
+                    }
+
+                    // Add edge connection to anchor and upgrade type
+                    newNodes[anchorNodeId] = {
+                        ...newNodes[anchorNodeId],
+                        connections: [...newNodes[anchorNodeId].connections, movingEdgeId],
+                        type: newNodes[anchorNodeId].connections.length >= 1 ? 'junction' : 'endpoint',
+                    };
+
+                    // Delete moving node
+                    delete newNodes[movingNodeId];
+                    nodeIndex.remove(movingNodeId);
+
+                    console.log('[connectNetworks] Atomic connect complete:', {
+                        totalNodes: Object.keys(newNodes).length,
+                        totalEdges: Object.keys(newEdges).length,
+                        anchorConnectionsNow: newNodes[anchorNodeId].connections.length,
+                    });
+
+                    // Run validation in dev mode
+                    if (import.meta.env.DEV) {
+                        const errors = validateLayoutIntegrity(newNodes, newEdges);
+                        if (errors.length > 0) {
+                            console.error('[connectNetworks] Layout integrity errors:', errors);
+                        }
+                    }
 
                     return { nodes: newNodes, edges: newEdges };
                 });

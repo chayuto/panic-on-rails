@@ -11,6 +11,8 @@
 
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
+import { getNodeFacadeFromEdge } from '../../../utils/connectTransform';
+import { angleDifference } from '../../../utils/geometry';
 import type { EditSubMode } from '../../../types/mode';
 
 interface ToolButton {
@@ -162,10 +164,14 @@ export function EditToolbar() {
                         other.position.y - node.position.y
                     );
                     if (dist < 10) {
-                        // Calculate angle compatibility for debugging
-                        let rotDiff = Math.abs(other.rotation - node.rotation);
-                        if (rotDiff > 180) rotDiff = 360 - rotDiff;
-                        const facingError = Math.abs(rotDiff - 180);
+                        // V2: Use derived facades instead of stored rotation
+                        const nodeEdge = edges[node.connections[0]];
+                        const otherEdge = edges[other.connections[0]];
+                        const nodeFacade = nodeEdge ? getNodeFacadeFromEdge(node.id, nodeEdge) : node.rotation;
+                        const otherFacade = otherEdge ? getNodeFacadeFromEdge(other.id, otherEdge) : other.rotation;
+
+                        // For smooth connection, facades should be 180° apart
+                        const facingError = Math.abs(angleDifference(nodeFacade, otherFacade) - 180);
 
                         // Determine why merge might have failed
                         const wouldSkipAngle = dist < 3;
@@ -173,7 +179,7 @@ export function EditToolbar() {
 
                         issues.push(
                             `UNCONNECTED JOINT: Node ${node.id.slice(0, 8)} and ${other.id.slice(0, 8)} are ${dist.toFixed(1)}px apart but NOT connected! ` +
-                            `[angles: ${node.rotation}° vs ${other.rotation}°, facingError=${facingError.toFixed(0)}°, ` +
+                            `[facades: ${Math.round(nodeFacade)}° vs ${Math.round(otherFacade)}°, facingError=${facingError.toFixed(0)}°, ` +
                             `wouldMerge=${angleOk ? 'YES' : 'NO'} (skipAngle=${wouldSkipAngle}, angleCheck=${facingError < 45})]`
                         );
                     }

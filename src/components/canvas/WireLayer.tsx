@@ -8,7 +8,8 @@ import { Group, Line } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useModeStore } from '../../stores/useModeStore';
-import type { Wire, Sensor, Signal, Vector2, TrackEdge } from '../../types';
+import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import type { Wire, Sensor, Signal, Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../../types';
 
 const WIRE_COLOR_ACTIVE = '#FFD93D';
 const WIRE_COLOR_INACTIVE = '#666';
@@ -16,22 +17,32 @@ const WIRE_WIDTH = 2;
 
 /**
  * Get position for a sensor (center of sensor zone)
+ * V2: Uses derived geometry when nodes are provided
  */
-function getSensorPosition(sensor: Sensor, edges: Record<string, TrackEdge>): Vector2 | null {
+function getSensorPosition(
+    sensor: Sensor,
+    edges: Record<string, TrackEdge>,
+    nodes?: Record<NodeId, TrackNode>
+): Vector2 | null {
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
 
     const progress = Math.max(0, Math.min(1, sensor.position / edge.length));
 
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
+    // V2: Use derived geometry if nodes available
+    const geometry: TrackGeometry = nodes
+        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        : edge.geometry;
+
+    if (geometry.type === 'straight') {
+        const { start, end } = geometry;
         return {
             x: start.x + (end.x - start.x) * progress,
             y: start.y + (end.y - start.y) * progress,
         };
     } else {
         // Arc geometry - angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = edge.geometry;
+        const { center, radius, startAngle, endAngle } = geometry;
         const angleDeg = startAngle + (endAngle - startAngle) * progress;
         const angleRad = (angleDeg * Math.PI) / 180;
         return {
@@ -61,12 +72,13 @@ function getSourcePosition(
     sensors: Record<string, Sensor>,
     signals: Record<string, Signal>,
     edges: Record<string, TrackEdge>,
-    nodes: Record<string, { position: Vector2 }>
+    nodes: Record<NodeId, TrackNode>
 ): Vector2 | null {
     if (wire.sourceType === 'sensor') {
         const sensor = sensors[wire.sourceId];
         if (!sensor) return null;
-        return getSensorPosition(sensor, edges);
+        // V2: Pass nodes for derived geometry
+        return getSensorPosition(sensor, edges, nodes);
     } else {
         const signal = signals[wire.sourceId];
         if (!signal) return null;

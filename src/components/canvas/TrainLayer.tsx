@@ -3,7 +3,8 @@ import { Circle, Group, Line, Rect, Shape } from 'react-konva';
 import { useSimulationStore, DEFAULT_CARRIAGE_SPACING } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
-import type { Train, TrackEdge, TrackNode, Vector2, EdgeId, NodeId } from '../../types';
+import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import type { Train, TrackEdge, TrackNode, Vector2, EdgeId, NodeId, TrackGeometry } from '../../types';
 
 // Locomotive dimensions (V1: Silhouette shape)
 const LOCOMOTIVE_WIDTH = 28;
@@ -23,19 +24,29 @@ const BOUNCE_DURATION = 300; // ms
 
 /**
  * Calculate world position from edge geometry and distance along edge
+ * V2: Uses derived geometry when nodes are provided
  */
-function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
+function getPositionOnEdge(
+    edge: TrackEdge,
+    distance: number,
+    nodes?: Record<NodeId, TrackNode>
+): Vector2 {
     const progress = Math.max(0, Math.min(1, distance / edge.length));
 
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
+    // V2: Use derived geometry if nodes available
+    const geometry: TrackGeometry = nodes
+        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        : edge.geometry;
+
+    if (geometry.type === 'straight') {
+        const { start, end } = geometry;
         return {
             x: start.x + (end.x - start.x) * progress,
             y: start.y + (end.y - start.y) * progress,
         };
     } else {
         // Arc geometry - angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = edge.geometry;
+        const { center, radius, startAngle, endAngle } = geometry;
         const angleDeg = startAngle + (endAngle - startAngle) * progress;
         const angleRad = (angleDeg * Math.PI) / 180;
         return {
@@ -72,19 +83,30 @@ function getBounceScale(bounceTime: number | undefined): { scaleX: number; scale
 
 /**
  * Calculate rotation angle (in degrees) based on edge geometry and position
+ * V2: Uses derived geometry when nodes are provided
  */
-function getRotationOnEdge(edge: TrackEdge, distance: number, direction: 1 | -1): number {
+function getRotationOnEdge(
+    edge: TrackEdge,
+    distance: number,
+    direction: 1 | -1,
+    nodes?: Record<NodeId, TrackNode>
+): number {
     const progress = Math.max(0, Math.min(1, distance / edge.length));
 
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
+    // V2: Use derived geometry if nodes available
+    const geometry: TrackGeometry = nodes
+        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        : edge.geometry;
+
+    if (geometry.type === 'straight') {
+        const { start, end } = geometry;
         const angle = Math.atan2(end.y - start.y, end.x - start.x);
         // Flip 180 degrees if moving backwards
         return (angle * 180 / Math.PI) + (direction === -1 ? 180 : 0);
     } else {
         // Arc geometry - tangent to the curve
         // Angles are stored in DEGREES per constitution
-        const { startAngle, endAngle } = edge.geometry;
+        const { startAngle, endAngle } = geometry;
         const angleDeg = startAngle + (endAngle - startAngle) * progress;
         // Tangent is perpendicular to radius (add 90 degrees)
         const tangentAngle = angleDeg + 90;
@@ -124,9 +146,9 @@ function getCarriagePositions(
         const edge = edges[currentEdgeId];
         if (!edge) break;
 
-        // Calculate position for this carriage
-        const pos = getPositionOnEdge(edge, currentDistance);
-        const rot = getRotationOnEdge(edge, currentDistance, currentDirection);
+        // Calculate position for this carriage (V2: uses derived geometry via nodes)
+        const pos = getPositionOnEdge(edge, currentDistance, nodes);
+        const rot = getRotationOnEdge(edge, currentDistance, currentDirection, nodes);
 
         positions.push({
             position: pos,
