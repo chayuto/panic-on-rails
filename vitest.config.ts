@@ -1,10 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
 
-// https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
-    base: '/', // Custom domain uses root path
     define: {
         __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
@@ -13,5 +9,8 @@ export default defineConfig({
             '@': '/src',
         },
     },
+    test: {
+        setupFiles: ['./src/setupTests.ts'],
+        globals: true,
+    },
 })
-
