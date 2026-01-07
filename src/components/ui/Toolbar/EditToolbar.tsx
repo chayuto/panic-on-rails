@@ -9,6 +9,7 @@
  * - Wire
  */
 
+import { useEffect, useCallback } from 'react';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { getNodeFacadeFromEdge } from '../../../utils/connectTransform';
@@ -65,7 +66,7 @@ export function EditToolbar() {
     const { editSubMode, setEditSubMode } = useModeStore();
     const { nodes, edges } = useTrackStore();
 
-    const handleDebugExport = () => {
+    const handleDebugExport = useCallback(() => {
         // Build debug info with connection analysis
         const nodeList = Object.values(nodes).map(node => ({
             id: node.id,
@@ -221,12 +222,14 @@ export function EditToolbar() {
         if (issues.length > 0) {
             console.warn('[DEBUG EXPORT] Issues found:', issues);
         }
-    };
+    }, [nodes, edges]);
 
     // Debug export available via console: window.debugExport()
-    if (typeof window !== 'undefined') {
-        (window as unknown as { debugExport: () => void }).debugExport = handleDebugExport;
-    }
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            (window as unknown as { debugExport: () => void }).debugExport = handleDebugExport;
+        }
+    }, [handleDebugExport]);
 
     return (
         <>

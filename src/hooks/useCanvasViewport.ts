@@ -90,7 +90,7 @@ interface UseCanvasViewportOptions {
  * ```
  */
 export function useCanvasViewport(
-    containerRef: React.RefObject<HTMLDivElement>,
+    containerRef: React.RefObject<HTMLDivElement | null>,
     options: UseCanvasViewportOptions = {}
 ): ViewportState & ViewportActions {
     const {

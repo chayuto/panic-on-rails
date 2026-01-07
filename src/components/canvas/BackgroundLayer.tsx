@@ -1,3 +1,4 @@
+import React from 'react';
 import { Line } from 'react-konva';
 import type { Vector2 } from '../../types';
 
@@ -16,7 +17,7 @@ const GRID_COLOR_MAJOR = '#3D3D3D';
 export function BackgroundLayer({ width, height, zoom, pan, showGrid }: BackgroundLayerProps) {
     if (!showGrid) return null;
 
-    const lines: JSX.Element[] = [];
+    const lines: React.ReactElement[] = [];
 
     // Calculate visible area in world coordinates
     const visibleLeft = -pan.x / zoom;

@@ -5,7 +5,7 @@
  * object counts from stores, and heap memory (Chrome only).
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useLogicStore } from '../stores/useLogicStore';
@@ -26,15 +26,16 @@ export interface PerformanceMetrics {
     heapSizeMB: number | null;  // Chrome only
 }
 
-const initialMetrics: PerformanceMetrics = {
+// FPS-only metrics stored in state (updated from animation frame)
+interface FpsMetrics {
+    fps: number;
+    frameTime: number;
+    heapSizeMB: number | null;
+}
+
+const initialFpsMetrics: FpsMetrics = {
     fps: 0,
     frameTime: 0,
-    trackCount: 0,
-    nodeCount: 0,
-    trainCount: 0,
-    sensorCount: 0,
-    signalCount: 0,
-    wireCount: 0,
     heapSizeMB: null,
 };
 
@@ -43,10 +44,10 @@ const initialMetrics: PerformanceMetrics = {
 // ===========================
 
 export function usePerformanceMetrics(): PerformanceMetrics {
-    const [metrics, setMetrics] = useState<PerformanceMetrics>(initialMetrics);
+    const [fpsMetrics, setFpsMetrics] = useState<FpsMetrics>(initialFpsMetrics);
     const frameCountRef = useRef(0);
-    const lastSecondRef = useRef(performance.now());
-    const lastFrameRef = useRef(performance.now());
+    const lastSecondRef = useRef<number | null>(null);
+    const lastFrameRef = useRef<number | null>(null);
 
     // Get counts from stores (selective subscriptions to minimize re-renders)
     const edges = useTrackStore(state => state.edges);
@@ -55,6 +56,16 @@ export function usePerformanceMetrics(): PerformanceMetrics {
     const sensors = useLogicStore(state => state.sensors);
     const signals = useLogicStore(state => state.signals);
     const wires = useLogicStore(state => state.wires);
+
+    // Derive object counts (no need for effect - computed on each render)
+    const objectCounts = useMemo(() => ({
+        trackCount: Object.keys(edges).length,
+        nodeCount: Object.keys(nodes).length,
+        trainCount: Object.keys(trains).length,
+        sensorCount: Object.keys(sensors).length,
+        signalCount: Object.keys(signals).length,
+        wireCount: Object.keys(wires).length,
+    }), [edges, nodes, trains, sensors, signals, wires]);
 
     // FPS tracking loop
     useEffect(() => {
@@ -65,6 +76,11 @@ export function usePerformanceMetrics(): PerformanceMetrics {
             if (!active) return;
 
             const now = performance.now();
+
+            // Initialize refs on first iteration (avoids impure call during render)
+            if (lastFrameRef.current === null) lastFrameRef.current = now;
+            if (lastSecondRef.current === null) lastSecondRef.current = now;
+
             frameCountRef.current++;
 
             // Calculate frame time
@@ -84,12 +100,11 @@ export function usePerformanceMetrics(): PerformanceMetrics {
                     ? Math.round(memory.usedJSHeapSize / 1024 / 1024 * 10) / 10
                     : null;
 
-                setMetrics(prev => ({
-                    ...prev,
+                setFpsMetrics({
                     fps,
                     frameTime: Math.round(frameTime * 10) / 10,
                     heapSizeMB,
-                }));
+                });
             }
 
             frameId = requestAnimationFrame(loop);
@@ -103,18 +118,9 @@ export function usePerformanceMetrics(): PerformanceMetrics {
         };
     }, []);
 
-    // Update object counts when stores change
-    useEffect(() => {
-        setMetrics(prev => ({
-            ...prev,
-            trackCount: Object.keys(edges).length,
-            nodeCount: Object.keys(nodes).length,
-            trainCount: Object.keys(trains).length,
-            sensorCount: Object.keys(sensors).length,
-            signalCount: Object.keys(signals).length,
-            wireCount: Object.keys(wires).length,
-        }));
-    }, [edges, nodes, trains, sensors, signals, wires]);
-
-    return metrics;
+    // Combine FPS metrics with object counts
+    return {
+        ...fpsMetrics,
+        ...objectCounts,
+    };
 }

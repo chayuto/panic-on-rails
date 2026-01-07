@@ -22,7 +22,7 @@ import type { Vector2 } from '../types';
  */
 interface UseCanvasCoordinatesOptions {
     /** Container element ref for bounds calculation */
-    containerRef: React.RefObject<HTMLDivElement>;
+    containerRef: React.RefObject<HTMLDivElement | null>;
     /** Current zoom level */
     zoom: number;
     /** Current pan offset */

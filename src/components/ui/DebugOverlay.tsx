@@ -102,16 +102,15 @@ function DebugOverlayContent({ metrics, onClose }: DebugOverlayContentProps) {
     );
 }
 
-export function DebugOverlay() {
-    const [isVisible, setIsVisible] = useState(false);
+// Check if debug mode should be enabled on initial load
+function getInitialDebugState(): boolean {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.has('debug') || localStorage.getItem('panic-debug') === 'true';
+}
 
-    // Check activation sources on mount
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('debug') || localStorage.getItem('panic-debug') === 'true') {
-            setIsVisible(true);
-        }
-    }, []);
+export function DebugOverlay() {
+    const [isVisible, setIsVisible] = useState(getInitialDebugState);
 
     // Keyboard shortcut: backtick (`) to toggle
     useEffect(() => {

@@ -12,7 +12,7 @@ import type { SliceCreator, ViewSlice } from './types';
 /**
  * Creates the view slice with spatial query operations.
  */
-export const createViewSlice: SliceCreator<ViewSlice> = (_set, _get) => ({
+export const createViewSlice: SliceCreator<ViewSlice> = () => ({
     /**
      * Query for visible edges within a viewport rectangle.
      * Uses spatial hash grid for O(1) performance.

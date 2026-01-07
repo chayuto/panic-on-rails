@@ -225,14 +225,19 @@ interface SimulationTooltipProps {
     worldY: number;
 }
 
+// Get initial desktop state outside component to avoid effect
+function getInitialDesktopState(): boolean {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
 export function SimulationTooltip({ screenX, screenY, worldX, worldY }: SimulationTooltipProps) {
-    const [isDesktop, setIsDesktop] = useState(true);
+    const [isDesktop, setIsDesktop] = useState(getInitialDesktopState);
     const isSimulating = useIsSimulating();
 
-    // Detect if device supports hover (desktop)
+    // Subscribe to media query changes (setState only in callback, not synchronously)
     useEffect(() => {
         const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
-        setIsDesktop(mediaQuery.matches);
 
         const handleChange = (e: MediaQueryListEvent) => {
             setIsDesktop(e.matches);

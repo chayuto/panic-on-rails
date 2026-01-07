@@ -176,7 +176,7 @@ function validateLayoutIntegrity(
 /**
  * Creates the connection slice with network manipulation operations.
  */
-export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set, _get) => ({
+export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
     connectNodes: (survivorNodeId, removedNodeId, newEdgeId) => {
         console.log('[connectNodes] Starting node merge:', {
             survivorNodeId: survivorNodeId.slice(0, 8),
