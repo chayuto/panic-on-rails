@@ -152,15 +152,6 @@ export interface LayoutData {
     };
 }
 
-// ===========================
-// Editor State
-// ===========================
-
-export interface SnapResult {
-    targetNode: TrackNode | null;
-    isValid: boolean;
-    distance: number;
-}
 
 // ===========================
 // Mode System (New)

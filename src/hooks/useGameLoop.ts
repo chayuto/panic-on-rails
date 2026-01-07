@@ -5,32 +5,8 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useIsSimulating } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
-import type { Train, TrackEdge, Vector2 } from '../types';
-
-/**
- * Calculate world position from edge geometry and distance along edge
- */
-function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
-    const progress = distance / edge.length;
-
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
-        return {
-            x: start.x + (end.x - start.x) * progress,
-            y: start.y + (end.y - start.y) * progress,
-        };
-    } else {
-        // Arc geometry - angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angleDeg = startAngle + (endAngle - startAngle) * progress;
-        // Convert to radians ONLY for cos/sin
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return {
-            x: center.x + Math.cos(angleRad) * radius,
-            y: center.y + Math.sin(angleRad) * radius,
-        };
-    }
-}
+import { getPositionOnEdge } from '../utils/trainGeometry';
+import type { Train } from '../types';
 
 /**
  * Game loop hook - updates train positions at 60fps (simulate mode only)
@@ -257,6 +233,6 @@ export function useGameLoop() {
         };
     }, [isSimulating, isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
 
-    // Return position calculator for TrainLayer
+    // Re-export position calculator from trainGeometry for backward compatibility
     return { getPositionOnEdge };
 }

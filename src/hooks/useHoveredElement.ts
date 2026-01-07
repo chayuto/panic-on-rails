@@ -11,6 +11,8 @@ import { useMemo } from 'react';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useLogicStore } from '../stores/useLogicStore';
+import { getPositionOnEdge } from '../utils/trainGeometry';
+import { pointToLineDistance, pointToArcDistance } from '../utils/hitTesting';
 import type { Vector2, Train, TrackEdge, TrackNode, Sensor, Signal } from '../types';
 
 // Detection radius for different element types
@@ -68,118 +70,15 @@ export type HoveredElement =
     | null;
 
 /**
- * Calculate position along an edge for a given distance
- */
-function getPositionOnEdge(edge: TrackEdge, distance: number): Vector2 {
-    const progress = Math.max(0, Math.min(1, distance / edge.length));
-
-    if (edge.geometry.type === 'straight') {
-        const { start, end } = edge.geometry;
-        return {
-            x: start.x + (end.x - start.x) * progress,
-            y: start.y + (end.y - start.y) * progress,
-        };
-    } else {
-        // Arc angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = edge.geometry;
-        const angleDeg = startAngle + (endAngle - startAngle) * progress;
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return {
-            x: center.x + Math.cos(angleRad) * radius,
-            y: center.y + Math.sin(angleRad) * radius,
-        };
-    }
-}
-
-/**
- * Calculate distance from a point to a line segment
- */
-function distanceToLineSegment(point: Vector2, start: Vector2, end: Vector2): number {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const lengthSq = dx * dx + dy * dy;
-
-    if (lengthSq === 0) {
-        return Math.hypot(point.x - start.x, point.y - start.y);
-    }
-
-    const t = Math.max(0, Math.min(1,
-        ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq
-    ));
-
-    const projX = start.x + t * dx;
-    const projY = start.y + t * dy;
-
-    return Math.hypot(point.x - projX, point.y - projY);
-}
-
-/**
- * Calculate distance from a point to an arc
- * Input angles are in DEGREES per constitution
- */
-function distanceToArc(
-    point: Vector2,
-    center: Vector2,
-    radius: number,
-    startAngleDeg: number,
-    endAngleDeg: number
-): number {
-    const dx = point.x - center.x;
-    const dy = point.y - center.y;
-    const distToCenter = Math.hypot(dx, dy);
-
-    // Angle from center to point (in radians from atan2)
-    const pointAngleRad = Math.atan2(dy, dx);
-    const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
-
-    // Normalize angles to [0, 360)
-    const normalizeAngle = (a: number) => ((a % 360) + 360) % 360;
-
-    const normPointDeg = normalizeAngle(pointAngleDeg);
-    const normStartDeg = normalizeAngle(startAngleDeg);
-    const normEndDeg = normalizeAngle(endAngleDeg);
-
-    // Check if angle is within arc span
-    let isInArc: boolean;
-    if (normStartDeg <= normEndDeg) {
-        isInArc = normPointDeg >= normStartDeg && normPointDeg <= normEndDeg;
-    } else {
-        // Arc crosses 0°
-        isInArc = normPointDeg >= normStartDeg || normPointDeg <= normEndDeg;
-    }
-
-    if (isInArc) {
-        // Point projects onto the arc
-        return Math.abs(distToCenter - radius);
-    } else {
-        // Point projects outside the arc, find closest endpoint
-        const startRad = (startAngleDeg * Math.PI) / 180;
-        const endRad = (endAngleDeg * Math.PI) / 180;
-        const startPoint: Vector2 = {
-            x: center.x + Math.cos(startRad) * radius,
-            y: center.y + Math.sin(startRad) * radius
-        };
-        const endPoint: Vector2 = {
-            x: center.x + Math.cos(endRad) * radius,
-            y: center.y + Math.sin(endRad) * radius
-        };
-
-        const distToStart = Math.hypot(point.x - startPoint.x, point.y - startPoint.y);
-        const distToEnd = Math.hypot(point.x - endPoint.x, point.y - endPoint.y);
-
-        return Math.min(distToStart, distToEnd);
-    }
-}
-
-/**
  * Calculate distance from a point to an edge
+ * Uses consolidated functions from hitTesting.ts
  */
 function distanceToEdge(point: Vector2, edge: TrackEdge): number {
     if (edge.geometry.type === 'straight') {
-        return distanceToLineSegment(point, edge.geometry.start, edge.geometry.end);
+        return pointToLineDistance(point, edge.geometry.start, edge.geometry.end);
     } else {
         const { center, radius, startAngle, endAngle } = edge.geometry;
-        return distanceToArc(point, center, radius, startAngle, endAngle);
+        return pointToArcDistance(point, center, radius, startAngle, endAngle);
     }
 }
 

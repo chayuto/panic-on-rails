@@ -40,3 +40,7 @@ export { getNodeFacadeFromEdge } from './connectTransform';
 
 // Snap utilities
 export { findOpenEndpoints, getConnectorById } from './snapManager';
+
+// Logging
+export { logger, type LogLevel, type LoggerConfig, type ScopedLogger } from './logger';
+
