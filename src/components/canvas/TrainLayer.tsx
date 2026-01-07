@@ -4,18 +4,21 @@
  * V1: Locomotive silhouette shape
  * V2: Enhanced carriage shapes with lighter colors
  * V3: Headlight directional indicator
+ * V7: Motion trail effect behind fast trains
+ * V8: Headlight cone projecting forward
  */
 
 import { useMemo } from 'react';
-import { Circle, Group, Line, Rect, Shape } from 'react-konva';
+import { Circle, Group, Line, Rect, Shape, Wedge } from 'react-konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
-import type { Train, Vector2 } from '../../types';
+import type { Train, Vector2, EdgeId, NodeId, TrackEdge, TrackNode } from '../../types';
 import {
     getCarriagePositions,
     getBounceScale,
     lightenColor,
+    getPositionOnEdge,
 } from '../../utils/trainGeometry';
 
 // ===========================
@@ -42,9 +45,51 @@ const HEADLIGHT = {
     COLOR: '#FFFFCC',  // Warm white
 } as const;
 
+/** Motion trail effect (V7) */
+const TRAIL = {
+    SEGMENT_COUNT: 6,
+    SEGMENT_SPACING: 12,
+    MIN_SPEED: 50,
+    BASE_OPACITY: 0.4,
+    SEGMENT_RADIUS: 4,
+} as const;
+
+/** Headlight cone effect (V8) */
+const CONE = {
+    LENGTH: 70,
+    ANGLE: 35,
+    OPACITY: 0.15,
+    COLOR: '#FFFFCC',
+} as const;
+
+
 // ===========================
 // Sub-Components
 // ===========================
+
+/**
+ * Headlight cone component (V8) - projects light forward from locomotive
+ */
+interface HeadlightConeProps {
+    x: number;
+    y: number;
+    rotation: number;
+}
+
+function HeadlightCone({ x, y, rotation }: HeadlightConeProps) {
+    return (
+        <Wedge
+            x={x}
+            y={y}
+            radius={CONE.LENGTH}
+            angle={CONE.ANGLE}
+            rotation={rotation - CONE.ANGLE / 2}  // Center the cone
+            fill={CONE.COLOR}
+            opacity={CONE.OPACITY}
+            listening={false}
+        />
+    );
+}
 
 /** Props for LocomotiveShape component */
 interface LocomotiveShapeProps {
@@ -54,13 +99,14 @@ interface LocomotiveShapeProps {
     scaleX: number;
     scaleY: number;
     crashed?: boolean;
+    showCone?: boolean;  // V8: Show headlight cone
 }
 
 /**
  * Locomotive shape component - renders a stylized train silhouette (V1)
- * with headlight indicator (V3)
+ * with headlight indicator (V3) and headlight cone (V8)
  */
-function LocomotiveShape({ position, rotation, color, scaleX, scaleY, crashed }: LocomotiveShapeProps) {
+function LocomotiveShape({ position, rotation, color, scaleX, scaleY, crashed, showCone }: LocomotiveShapeProps) {
     const w = LOCOMOTIVE.WIDTH;
     const h = LOCOMOTIVE.HEIGHT;
     const nose = LOCOMOTIVE.NOSE;
@@ -68,6 +114,14 @@ function LocomotiveShape({ position, rotation, color, scaleX, scaleY, crashed }:
 
     return (
         <Group x={position.x} y={position.y} rotation={rotation} scaleX={scaleX} scaleY={scaleY}>
+            {/* Headlight cone - renders behind locomotive (V8) */}
+            {showCone && !crashed && (
+                <HeadlightCone
+                    x={w / 2}
+                    y={0}
+                    rotation={0}  // Already rotated by parent group
+                />
+            )}
             {/* Locomotive body - tapered rectangle shape */}
             <Shape
                 sceneFunc={(context, shape) => {
@@ -174,11 +228,145 @@ function CrashMarker({ position }: CrashMarkerProps) {
 }
 
 // ===========================
+// Trail Effect (V7)
+// ===========================
+
+/**
+ * Calculate trail positions behind the train by tracing back along track
+ * Uses the same logic as carriage positioning but with different spacing
+ */
+function getTrailPositions(
+    train: Train,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>,
+    segmentCount: number
+): Vector2[] {
+    // No trail if crashed or too slow
+    if (train.crashed || train.speed < TRAIL.MIN_SPEED) return [];
+
+    // Calculate number of segments based on speed
+    const speedFactor = Math.min(1, (train.speed - TRAIL.MIN_SPEED) / 150);
+    const actualCount = Math.ceil(segmentCount * speedFactor);
+    if (actualCount === 0) return [];
+
+    const positions: Vector2[] = [];
+    const currentEdgeId = train.currentEdgeId;
+    const currentDistance = train.distanceAlongEdge;
+    const currentDirection = train.direction;
+
+    // Start from locomotive position and trace backward
+    for (let i = 1; i <= actualCount; i++) {
+        // Move backwards along track
+        let remainingDistance = TRAIL.SEGMENT_SPACING * i;
+        let tempEdgeId = currentEdgeId;
+        let tempDistance = currentDistance;
+        let tempDirection = currentDirection;
+
+        // Maximum iterations to prevent infinite loops
+        const MAX_ITERATIONS = 20;
+        let iterations = 0;
+
+        while (remainingDistance > 0 && iterations < MAX_ITERATIONS) {
+            iterations++;
+            const edge = edges[tempEdgeId];
+            if (!edge) break;
+
+            // Calculate distance available on current edge in backward direction
+            let availableDistance: number;
+            if (tempDirection === 1) {
+                availableDistance = tempDistance;
+            } else {
+                availableDistance = edge.length - tempDistance;
+            }
+
+            if (availableDistance >= remainingDistance) {
+                // Enough room on current edge
+                if (tempDirection === 1) {
+                    tempDistance -= remainingDistance;
+                } else {
+                    tempDistance += remainingDistance;
+                }
+                remainingDistance = 0;
+            } else {
+                // Need to transition to previous edge
+                remainingDistance -= availableDistance;
+                const entryNodeId = tempDirection === 1 ? edge.startNodeId : edge.endNodeId;
+                const entryNode = nodes[entryNodeId];
+                if (!entryNode) break;
+
+                const otherConnections = entryNode.connections.filter(id => id !== tempEdgeId);
+                if (otherConnections.length === 0) break;
+
+                const prevEdgeId = otherConnections[0];
+                const prevEdge = edges[prevEdgeId];
+                if (!prevEdge) break;
+
+                tempEdgeId = prevEdgeId;
+                if (prevEdge.endNodeId === entryNodeId) {
+                    tempDistance = prevEdge.length;
+                    tempDirection = 1;
+                } else {
+                    tempDistance = 0;
+                    tempDirection = -1;
+                }
+            }
+        }
+
+        // Get position on the edge
+        const edge = edges[tempEdgeId];
+        if (edge) {
+            const pos = getPositionOnEdge(edge, tempDistance, nodes);
+            positions.push(pos);
+        }
+    }
+
+    return positions;
+}
+
+/** Props for TrailEffect component */
+interface TrailEffectProps {
+    train: Train;
+    positions: Vector2[];
+}
+
+/**
+ * Trail effect component (V7) - renders fading circles behind fast trains
+ */
+function TrailEffect({ train, positions }: TrailEffectProps) {
+    if (positions.length === 0) return null;
+
+    return (
+        <Group>
+            {positions.map((pos, index) => {
+                // Opacity decreases with distance
+                const opacity = TRAIL.BASE_OPACITY * (1 - index / positions.length);
+                // Size decreases with distance
+                const radius = TRAIL.SEGMENT_RADIUS * (1 - index / positions.length * 0.5);
+
+                return (
+                    <Circle
+                        key={index}
+                        x={pos.x}
+                        y={pos.y}
+                        radius={radius}
+                        fill={train.color}
+                        opacity={opacity}
+                        listening={false}
+                    />
+                );
+            })}
+        </Group>
+    );
+}
+
+// ===========================
 // Train Entity Component
 // ===========================
 
 /**
  * Individual train component with multi-carriage support
+ * V7: Motion trail effect behind fast trains
+ * V8: Headlight cone projecting forward
  */
 function TrainEntity({ train }: { train: Train }) {
     const { edges, nodes } = useTrackStore();
@@ -186,6 +374,11 @@ function TrainEntity({ train }: { train: Train }) {
     // Calculate positions for all carriages
     const carriagePositions = useMemo(() => {
         return getCarriagePositions(train, edges, nodes);
+    }, [train, edges, nodes]);
+
+    // Calculate trail positions (V7)
+    const trailPositions = useMemo(() => {
+        return getTrailPositions(train, edges, nodes, TRAIL.SEGMENT_COUNT);
     }, [train, edges, nodes]);
 
     // Calculate bounce animation scale (only applies to locomotive)
@@ -230,6 +423,9 @@ function TrainEntity({ train }: { train: Train }) {
     // Normal train rendering with multiple carriages
     return (
         <Group>
+            {/* Motion trail effect (V7) - renders behind train */}
+            <TrailEffect train={train} positions={trailPositions} />
+
             {carriagePositions.map((carriage, index) => {
                 if (index === 0) {
                     // Locomotive (first car)
@@ -241,6 +437,7 @@ function TrainEntity({ train }: { train: Train }) {
                             color={train.color}
                             scaleX={scaleX}
                             scaleY={scaleY}
+                            showCone={true}  // V8: Headlight cone
                         />
                     );
                 } else {
