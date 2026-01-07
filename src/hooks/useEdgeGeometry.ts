@@ -28,7 +28,7 @@ export function useEdgeGeometry(
 ): TrackGeometry | null {
     return useMemo(() => {
         return deriveWorldGeometry(edge, nodes);
-    }, [edge, edge.intrinsicGeometry, nodes]);
+    }, [edge, nodes]);
 }
 
 /**

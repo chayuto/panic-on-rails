@@ -177,17 +177,6 @@ export function FileActions() {
         e.target.value = '';
     }, [loadLayout]);
 
-    const handleNewClick = useCallback(() => {
-        console.log('[FileActions] handleNewClick - edges:', Object.keys(edges).length);
-        if (Object.keys(edges).length > 0) {
-            // Show custom modal instead of native confirm
-            setShowConfirmModal(true);
-        } else {
-            // No tracks, just clear directly
-            performClear();
-        }
-    }, [edges]);
-
     const performClear = useCallback(() => {
         console.log('[FileActions] performClear - clearing layout');
 
@@ -202,6 +191,17 @@ export function FileActions() {
 
         console.log('[FileActions] ✅ Layout cleared!');
     }, [clearLayout, clearTrains]);
+
+    const handleNewClick = useCallback(() => {
+        console.log('[FileActions] handleNewClick - edges:', Object.keys(edges).length);
+        if (Object.keys(edges).length > 0) {
+            // Show custom modal instead of native confirm
+            setShowConfirmModal(true);
+        } else {
+            // No tracks, just clear directly
+            performClear();
+        }
+    }, [edges, performClear]);
 
     const handleConfirm = useCallback(() => {
         setShowConfirmModal(false);
