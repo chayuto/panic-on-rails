@@ -6,6 +6,7 @@ import { useIsSimulating } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
 import { getPositionOnEdge } from '../utils/trainGeometry';
+import { getSwitchExitEdge } from '../utils/switchRouting';
 import type { Train } from '../types';
 
 /**
@@ -49,14 +50,13 @@ export function useGameLoop() {
                         // Determine which edge to take
                         let nextEdgeId: string;
 
-                        // If this is a switch node, use switch state to decide
+                        // If this is a switch node, use proper switch routing
                         if (exitNode.type === 'switch' && exitNode.switchBranches) {
-                            const [mainEdgeId, branchEdgeId] = exitNode.switchBranches;
-                            // Use switch state: 0 = main, 1 = branch
-                            nextEdgeId = exitNode.switchState === 0 ? mainEdgeId : branchEdgeId;
-                            // Ensure the selected edge is in our available connections
-                            if (!otherConnections.includes(nextEdgeId)) {
-                                // Fallback if switch edge not available
+                            const switchExit = getSwitchExitEdge(exitNode, train.currentEdgeId);
+                            if (switchExit && otherConnections.includes(switchExit)) {
+                                nextEdgeId = switchExit;
+                            } else {
+                                // Fallback if switch routing fails
                                 nextEdgeId = otherConnections[0];
                             }
                         } else {
@@ -97,11 +97,12 @@ export function useGameLoop() {
                         // Determine which edge to take
                         let nextEdgeId: string;
 
-                        // If this is a switch node, use switch state to decide
+                        // If this is a switch node, use proper switch routing
                         if (exitNode.type === 'switch' && exitNode.switchBranches) {
-                            const [mainEdgeId, branchEdgeId] = exitNode.switchBranches;
-                            nextEdgeId = exitNode.switchState === 0 ? mainEdgeId : branchEdgeId;
-                            if (!otherConnections.includes(nextEdgeId)) {
+                            const switchExit = getSwitchExitEdge(exitNode, train.currentEdgeId);
+                            if (switchExit && otherConnections.includes(switchExit)) {
+                                nextEdgeId = switchExit;
+                            } else {
                                 nextEdgeId = otherConnections[0];
                             }
                         } else {
