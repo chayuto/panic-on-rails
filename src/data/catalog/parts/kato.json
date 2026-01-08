@@ -39,11 +39,35 @@
             "productCode": "20-040"
         },
         {
+            "id": "kato-20-046",
+            "name": "S60 Straight Left Cut",
+            "type": "straight",
+            "length": 60,
+            "productCode": "20-046L",
+            "description": "Clearance piece with left roadbed cut for #4 turnout yards."
+        },
+        {
+            "id": "kato-20-047",
+            "name": "S60 Straight Right Cut",
+            "type": "straight",
+            "length": 60,
+            "productCode": "20-046R",
+            "description": "Clearance piece with right roadbed cut for #4 turnout yards."
+        },
+        {
             "id": "kato-20-091",
             "name": "Short Straight 29mm",
             "type": "straight",
             "length": 29,
             "productCode": "20-091"
+        },
+        {
+            "id": "kato-20-092",
+            "name": "Short Straight 45.5mm",
+            "type": "straight",
+            "length": 45.5,
+            "productCode": "20-092",
+            "description": "Gap filler for complex layouts"
         },
         {
             "id": "kato-20-170",
@@ -99,55 +123,17 @@
             "type": "curve",
             "radius": 718,
             "angle": 15,
-            "productCode": "20-150"
+            "productCode": "20-150",
+            "description": "Matches #6 turnout diverging geometry for parallel track creation."
         },
         {
-            "id": "kato-20-202",
-            "name": "#4 Turnout Left",
-            "type": "switch",
-            "mainLength": 248,
-            "branchLength": 186,
-            "branchAngle": 15,
-            "branchDirection": "left",
-            "productCode": "20-202"
-        },
-        {
-            "id": "kato-20-203",
-            "name": "#4 Turnout Right",
-            "type": "switch",
-            "mainLength": 248,
-            "branchLength": 186,
-            "branchAngle": 15,
-            "branchDirection": "right",
-            "productCode": "20-203"
-        },
-        {
-            "id": "kato-20-220",
-            "name": "#6 Turnout Left",
-            "type": "switch",
-            "mainLength": 310,
-            "branchLength": 248,
-            "branchAngle": 10,
-            "branchDirection": "left",
-            "productCode": "20-220"
-        },
-        {
-            "id": "kato-20-221",
-            "name": "#6 Turnout Right",
-            "type": "switch",
-            "mainLength": 310,
-            "branchLength": 248,
-            "branchAngle": 10,
-            "branchDirection": "right",
-            "productCode": "20-221"
-        },
-        {
-            "id": "kato-20-092",
-            "name": "Short Straight 45.5mm",
-            "type": "straight",
-            "length": 45.5,
-            "productCode": "20-092",
-            "description": "Gap filler for complex layouts"
+            "id": "kato-20-160",
+            "name": "Curve R481-15° (Switch Match)",
+            "type": "curve",
+            "radius": 481,
+            "angle": 15,
+            "productCode": "20-160",
+            "description": "Matches #4 turnout diverging geometry for parallel track creation."
         },
         {
             "id": "kato-20-150-2",
@@ -159,13 +145,60 @@
             "description": "Very wide radius curve"
         },
         {
-            "id": "kato-20-160",
-            "name": "Curve R481-15°",
-            "type": "curve",
-            "radius": 481,
-            "angle": 15,
-            "productCode": "20-160",
-            "description": "Matches #4 turnout diverging geometry"
+            "id": "kato-20-220",
+            "name": "#4 Turnout Left",
+            "type": "switch",
+            "mainLength": 126,
+            "branchRadius": 481,
+            "branchAngle": 15,
+            "branchDirection": "left",
+            "productCode": "20-220",
+            "description": "Compact turnout, R481mm diverge. Requires S60 clearance for parallel tracks."
+        },
+        {
+            "id": "kato-20-221",
+            "name": "#4 Turnout Right",
+            "type": "switch",
+            "mainLength": 126,
+            "branchRadius": 481,
+            "branchAngle": 15,
+            "branchDirection": "right",
+            "productCode": "20-221",
+            "description": "Compact turnout, R481mm diverge. Requires S60 clearance for parallel tracks."
+        },
+        {
+            "id": "kato-20-202",
+            "name": "#6 Turnout Left",
+            "type": "switch",
+            "mainLength": 186,
+            "branchRadius": 718,
+            "branchAngle": 15,
+            "branchDirection": "left",
+            "productCode": "20-202",
+            "description": "Mainline turnout, R718mm diverge. Suitable for high-speed operations."
+        },
+        {
+            "id": "kato-20-203",
+            "name": "#6 Turnout Right",
+            "type": "switch",
+            "mainLength": 186,
+            "branchRadius": 718,
+            "branchAngle": 15,
+            "branchDirection": "right",
+            "productCode": "20-203",
+            "description": "Mainline turnout, R718mm diverge. Suitable for high-speed operations."
+        },
+        {
+            "id": "kato-20-222",
+            "name": "#2 Wye Turnout",
+            "type": "switch",
+            "mainLength": 126,
+            "branchRadius": 481,
+            "branchAngle": 15,
+            "branchDirection": "left",
+            "productCode": "20-222",
+            "description": "Symmetric wye turnout. Both exits diverge at 15° with R481mm radius.",
+            "isWye": true
         },
         {
             "id": "kato-20-320",

@@ -52,15 +52,21 @@ export const CurvePartSchema = z.object({
 
 /**
  * Switch/Turnout track piece schema
+ * 
+ * Supports both legacy `branchLength` and modern `branchRadius` geometry.
+ * At least one must be provided for valid switch geometry.
  */
 export const SwitchPartSchema = z.object({
     id: z.string().min(1, 'Part ID is required'),
     name: z.string().min(1, 'Part name is required'),
     type: z.literal('switch'),
     mainLength: z.number().positive('Main length must be positive'),
-    branchLength: z.number().positive('Branch length must be positive'),
+    branchRadius: z.number().positive('Branch radius must be positive').optional(),
+    branchLength: z.number().positive('Branch length must be positive').optional(),
     branchAngle: z.number().positive('Branch angle must be positive'),
     branchDirection: z.enum(['left', 'right']),
+    isWye: z.boolean().optional(),
+    isPassive: z.boolean().optional(),
     ...OptionalPartFields,
 });
 

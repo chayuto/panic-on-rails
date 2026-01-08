@@ -48,4 +48,5 @@ export {
 } from './helpers';
 
 // Export brand arrays for direct access
-export { KATO_PARTS, BRIO_PARTS } from './brands';
+export { KATO_PARTS, BRIO_PARTS, IKEA_PARTS } from './brands';
+

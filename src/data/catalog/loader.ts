@@ -47,9 +47,12 @@ function transformToPart(
             geometry = {
                 type: 'switch',
                 mainLength: jsonPart.mainLength,
+                branchRadius: jsonPart.branchRadius,
                 branchLength: jsonPart.branchLength,
                 branchAngle: jsonPart.branchAngle,
                 branchDirection: jsonPart.branchDirection,
+                isWye: jsonPart.isWye,
+                isPassive: jsonPart.isPassive,
             };
             // Default cost: $15 for switches
             defaultCost = 1500;

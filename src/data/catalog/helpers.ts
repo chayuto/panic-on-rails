@@ -184,6 +184,63 @@ export function calculateArcLength(radius: number, angleDegrees: number): number
     return radius * angleRadians;
 }
 
+/**
+ * Normalize angle to [0, 360) range
+ */
+function normalizeAngle(angle: number): number {
+    const normalized = angle % 360;
+    return normalized < 0 ? normalized + 360 : normalized;
+}
+
+/**
+ * Calculate the endpoint of an arc given start point, radius, and sweep angle.
+ * 
+ * @param startX - X coordinate of arc start
+ * @param startY - Y coordinate of arc start
+ * @param radius - Arc radius
+ * @param sweepAngleDeg - Sweep angle in degrees (positive = CCW, negative = CW)
+ * @param startDirection - Direction at start point in degrees (0 = right)
+ * @returns Endpoint position and tangent direction
+ */
+export function calculateArcEndpoint(
+    startX: number,
+    startY: number,
+    radius: number,
+    sweepAngleDeg: number,
+    startDirection: number
+): { position: { x: number; y: number }; tangentDirection: number } {
+    const sweepRad = (sweepAngleDeg * Math.PI) / 180;
+    const startDirRad = (startDirection * Math.PI) / 180;
+
+    // Arc center is perpendicular to start direction
+    // For CCW (positive sweep): center is 90° left of direction
+    // For CW (negative sweep): center is 90° right of direction
+    const perpOffset = sweepAngleDeg >= 0 ? Math.PI / 2 : -Math.PI / 2;
+    const toCenterAngle = startDirRad + perpOffset;
+
+    const centerX = startX + Math.cos(toCenterAngle) * radius;
+    const centerY = startY + Math.sin(toCenterAngle) * radius;
+
+    // Angle from center to start point
+    const startAngleFromCenter = Math.atan2(startY - centerY, startX - centerX);
+
+    // Angle from center to end point
+    const endAngleFromCenter = startAngleFromCenter + sweepRad;
+
+    // End position
+    const endX = centerX + Math.cos(endAngleFromCenter) * radius;
+    const endY = centerY + Math.sin(endAngleFromCenter) * radius;
+
+    // Tangent direction at end (perpendicular to radius)
+    const tangentDirection = ((endAngleFromCenter * 180) / Math.PI) +
+        (sweepAngleDeg >= 0 ? 90 : -90);
+
+    return {
+        position: { x: endX, y: endY },
+        tangentDirection: normalizeAngle(tangentDirection),
+    };
+}
+
 // ===========================
 // Connector Computation
 // ===========================
@@ -271,9 +328,61 @@ export function computeConnectors(part: PartDefinition): PartConnectors {
 
         case 'switch': {
             // Switch: Entry at origin, main exit straight ahead, branch exit at angle
-            const { mainLength, branchLength, branchAngle, branchDirection } = geometry;
+            const { mainLength, branchRadius, branchLength, branchAngle, branchDirection, isWye } = geometry;
             const branchAngleDir = branchDirection === 'left' ? -1 : 1;
             const branchRad = (branchAngleDir * branchAngle * Math.PI) / 180;
+
+            // Check for wye turnout (symmetric two-way diverge)
+            if (isWye && branchRadius !== undefined) {
+                // Wye: Entry + two symmetric diverging exits
+                // Both branches use the same radius but opposite angles
+                const leftBranch = calculateArcEndpoint(0, 0, branchRadius, -branchAngle, 0);
+                const rightBranch = calculateArcEndpoint(0, 0, branchRadius, branchAngle, 0);
+
+                const nodes: ConnectorNode[] = [
+                    {
+                        localId: 'entry',
+                        localPosition: { x: 0, y: 0 },
+                        localFacade: 180,  // Faces back
+                        maxConnections: 1,
+                    },
+                    {
+                        localId: 'left',
+                        localPosition: leftBranch.position,
+                        localFacade: leftBranch.tangentDirection,
+                        maxConnections: 1,
+                    },
+                    {
+                        localId: 'right',
+                        localPosition: rightBranch.position,
+                        localFacade: rightBranch.tangentDirection,
+                        maxConnections: 1,
+                    },
+                ];
+                return { nodes, primaryNodeId: 'entry' };
+            }
+
+            // Standard switch: Calculate branch exit position
+            // Prefer branchRadius (curved diverge) over branchLength (legacy straight)
+            let branchX: number;
+            let branchY: number;
+            if (branchRadius !== undefined) {
+                // Curved diverge: calculate arc endpoint
+                // Arc center is perpendicular to entry direction
+                const centerY = branchAngleDir * branchRadius;
+                const arcAngleRad = (branchAngle * Math.PI) / 180;
+                // End point on arc
+                branchX = branchRadius * Math.sin(arcAngleRad);
+                branchY = centerY - branchAngleDir * branchRadius * Math.cos(arcAngleRad);
+            } else if (branchLength !== undefined) {
+                // Legacy: straight line to branch exit
+                branchX = Math.cos(branchRad) * branchLength;
+                branchY = Math.sin(branchRad) * branchLength;
+            } else {
+                // Fallback: use mainLength as approximation
+                branchX = Math.cos(branchRad) * mainLength;
+                branchY = Math.sin(branchRad) * mainLength;
+            }
 
             const nodes: ConnectorNode[] = [
                 {
@@ -290,10 +399,7 @@ export function computeConnectors(part: PartDefinition): PartConnectors {
                 },
                 {
                     localId: 'branch',
-                    localPosition: {
-                        x: Math.cos(branchRad) * branchLength,
-                        y: Math.sin(branchRad) * branchLength,
-                    },
+                    localPosition: { x: branchX, y: branchY },
                     localFacade: branchAngleDir * branchAngle,  // Faces along branch direction
                     maxConnections: 1,
                 },

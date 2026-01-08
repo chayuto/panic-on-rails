@@ -47,7 +47,7 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
 
         // For switch geometry, we create 3 nodes and 2 edges
         if (part.geometry.type === 'switch') {
-            const { mainLength, branchLength, branchAngle, branchDirection } = part.geometry;
+            const { mainLength, branchRadius, branchLength, branchAngle, branchDirection } = part.geometry;
 
             // Generate IDs
             const entryNodeId = uuidv4();
@@ -67,10 +67,40 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
             // Calculate branch exit position (diverging)
             const branchAngleDir = branchDirection === 'left' ? -1 : 1;
             const branchRadians = radians + (branchAngleDir * branchAngle * Math.PI / 180);
-            const branchExitPosition: Vector2 = {
-                x: position.x + Math.cos(branchRadians) * branchLength,
-                y: position.y + Math.sin(branchRadians) * branchLength,
-            };
+
+            // Calculate branch position and length
+            // Prefer branchRadius (curved diverge) over branchLength (legacy straight)
+            let branchExitPosition: Vector2;
+            let effectiveBranchLength: number;
+
+            if (branchRadius !== undefined) {
+                // Curved diverge: calculate arc endpoint
+                const arcAngleRad = (branchAngle * Math.PI) / 180;
+                // Local offset from arc geometry
+                const localX = branchRadius * Math.sin(arcAngleRad);
+                const localY = branchAngleDir * branchRadius * (1 - Math.cos(arcAngleRad));
+                // Transform to world coordinates
+                branchExitPosition = {
+                    x: position.x + Math.cos(radians) * localX - Math.sin(radians) * localY,
+                    y: position.y + Math.sin(radians) * localX + Math.cos(radians) * localY,
+                };
+                // Arc length for curved diverge
+                effectiveBranchLength = branchRadius * arcAngleRad;
+            } else if (branchLength !== undefined) {
+                // Legacy: straight line to branch exit
+                branchExitPosition = {
+                    x: position.x + Math.cos(branchRadians) * branchLength,
+                    y: position.y + Math.sin(branchRadians) * branchLength,
+                };
+                effectiveBranchLength = branchLength;
+            } else {
+                // Fallback: use mainLength as approximation
+                branchExitPosition = {
+                    x: position.x + Math.cos(branchRadians) * mainLength,
+                    y: position.y + Math.sin(branchRadians) * mainLength,
+                };
+                effectiveBranchLength = mainLength;
+            }
 
             // Create nodes
             const entryNode: TrackNode = {
@@ -116,8 +146,8 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
                 startNodeId: entryNodeId,
                 endNodeId: branchExitNodeId,
                 geometry: { type: 'straight', start: position, end: branchExitPosition },
-                length: branchLength,
-                intrinsicGeometry: { type: 'straight', length: branchLength },
+                length: effectiveBranchLength,
+                intrinsicGeometry: { type: 'straight', length: effectiveBranchLength },
             };
 
             // Update spatial index for new edges

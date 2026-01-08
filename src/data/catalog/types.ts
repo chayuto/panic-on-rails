@@ -22,13 +22,29 @@ export interface CurveGeometry {
     angle: number;   // degrees
 }
 
-/** Turnout/Switch track piece */
+/**
+ * Turnout/Switch track piece
+ * 
+ * Modern N-scale switches use curved diverging paths with specific radii.
+ * Use `branchRadius` + `branchAngle` to define the diverge geometry.
+ * The `branchLength` field is deprecated but kept for backward compatibility.
+ */
 export interface SwitchGeometry {
     type: 'switch';
-    mainLength: number;      // Length of straight-through path (mm)
-    branchLength: number;    // Length of diverging path (mm)
-    branchAngle: number;     // Degrees (typically 15 for N-Scale)
+    /** Length of straight-through path (mm) */
+    mainLength: number;
+    /** Radius of curved diverge path (mm) - preferred over branchLength */
+    branchRadius?: number;
+    /** @deprecated Use branchRadius + branchAngle to calculate arc length */
+    branchLength?: number;
+    /** Diverge angle in degrees (typically 15° for N-Scale) */
+    branchAngle: number;
+    /** Direction of the diverging path */
     branchDirection: 'left' | 'right';
+    /** True for symmetric wye turnouts (both paths diverge) */
+    isWye?: boolean;
+    /** True for passive switches (Y-splitters) where train momentum determines path */
+    isPassive?: boolean;
 }
 
 /** Crossing/Diamond track piece */

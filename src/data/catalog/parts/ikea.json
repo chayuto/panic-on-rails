@@ -1,0 +1,65 @@
+{
+    "version": 1,
+    "brand": "ikea",
+    "scale": "wooden",
+    "parts": [
+        {
+            "id": "ikea-straight-long",
+            "name": "Long Straight",
+            "type": "straight",
+            "length": 216,
+            "description": "Standard long straight track piece."
+        },
+        {
+            "id": "ikea-straight-medium",
+            "name": "Medium Straight",
+            "type": "straight",
+            "length": 144,
+            "description": "Medium straight, matches switch length."
+        },
+        {
+            "id": "ikea-straight-short",
+            "name": "Short Straight",
+            "type": "straight",
+            "length": 72,
+            "description": "Short connector piece."
+        },
+        {
+            "id": "ikea-curve-large",
+            "name": "Large Curve",
+            "type": "curve",
+            "radius": 180,
+            "angle": 45,
+            "description": "Standard curve, 8 pieces make a circle."
+        },
+        {
+            "id": "ikea-curve-small",
+            "name": "Small Curve",
+            "type": "curve",
+            "radius": 90,
+            "angle": 45,
+            "description": "Tight curve for compact layouts."
+        },
+        {
+            "id": "ikea-switch-mechanical",
+            "name": "Mechanical Switch",
+            "type": "switch",
+            "mainLength": 144,
+            "branchRadius": 180,
+            "branchAngle": 45,
+            "branchDirection": "left",
+            "description": "Toggle switch with sliding plastic insert."
+        },
+        {
+            "id": "ikea-switch-y",
+            "name": "Y-Splitter",
+            "type": "switch",
+            "mainLength": 144,
+            "branchRadius": 180,
+            "branchAngle": 45,
+            "branchDirection": "left",
+            "isPassive": true,
+            "description": "Passive Y-junction. Train momentum determines path."
+        }
+    ]
+}
