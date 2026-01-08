@@ -48,7 +48,7 @@ export function SimulateToolbar() {
             <button
                 onClick={handlePlayPause}
                 className={`toolbar-btn-icon ${isRunning ? 'active' : ''}`}
-                title={isRunning ? 'Pause (M)' : 'Play (M)'}
+                title={isRunning ? 'Pause (Space)' : 'Play (Space)'}
             >
                 {isRunning ? '⏸️' : '▶️'}
             </button>

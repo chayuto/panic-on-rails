@@ -28,7 +28,7 @@ const EDIT_TOOLS: ToolButton[] = [
         mode: 'select',
         icon: '✏️',
         label: 'Edit',
-        title: 'Edit Mode - Select and move tracks'
+        title: 'Select (1) - Click to select, drag to move'
     },
     {
         mode: 'connect',
@@ -40,25 +40,25 @@ const EDIT_TOOLS: ToolButton[] = [
         mode: 'delete',
         icon: '🗑️',
         label: 'Delete',
-        title: 'Delete Tool - Click tracks to remove them'
+        title: 'Delete (3) - Click tracks to remove'
     },
     {
         mode: 'sensor',
         icon: '📡',
         label: 'Sensor',
-        title: 'Sensor Tool - Place sensors on tracks'
+        title: 'Sensor (4) - Place sensors on tracks'
     },
     {
         mode: 'signal',
         icon: '🚦',
         label: 'Signal',
-        title: 'Signal Tool - Place signals at nodes'
+        title: 'Signal (5) - Place signals at nodes'
     },
     {
         mode: 'wire',
         icon: '🔌',
         label: 'Wire',
-        title: 'Wire Tool - Connect sensors to switches/signals'
+        title: 'Wire (6) - Connect sensors to switches/signals'
     },
 ];
 

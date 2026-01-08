@@ -45,7 +45,7 @@ export function ModeToggle() {
             <button
                 className={`mode-toggle-btn edit-btn ${isEditing ? 'active' : ''}`}
                 onClick={() => !isEditing && togglePrimaryMode()}
-                title="Edit Mode - Build and modify tracks"
+                title="Edit Mode - Build tracks (M)"
                 aria-pressed={isEditing}
             >
                 <span className="mode-icon">✏️</span>
