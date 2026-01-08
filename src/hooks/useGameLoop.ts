@@ -279,6 +279,9 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
+        // Note: edges, crashedParts, and effect functions are intentionally accessed via closure
+        // to avoid restarting the game loop on every crash particle update.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSimulating, isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
 
     // Re-export position calculator from trainGeometry for backward compatibility
