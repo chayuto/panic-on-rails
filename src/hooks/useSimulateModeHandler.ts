@@ -15,7 +15,7 @@ import { useCallback } from 'react';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useIsSimulating } from '../stores/useModeStore';
 import { findClosestNode } from '../utils/hitTesting';
-import { playSound } from '../utils/audioManager';
+import { playSwitchSound } from '../utils/audioManager';
 import type { Vector2 } from '../types';
 
 interface UseSimulateModeHandlerOptions {
@@ -56,7 +56,7 @@ export function useSimulateModeHandler({ screenToWorld }: UseSimulateModeHandler
 
         if (closest) {
             toggleSwitch(closest.nodeId);
-            playSound('switch');
+            playSwitchSound('n-scale');  // Enhanced musical switch sound
             console.log('[useSimulateModeHandler] Toggled switch:', closest.nodeId.slice(0, 8));
         }
     }, [isSimulating, screenToWorld, nodes, toggleSwitch]);

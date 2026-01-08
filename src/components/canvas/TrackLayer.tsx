@@ -7,10 +7,11 @@ import { useLogicStore } from '../../stores/useLogicStore';
 import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { useConnectMode } from '../../hooks/useConnectMode';
-import { playSound } from '../../utils/audioManager';
+import { playSound, playSwitchSound, playHoverSound } from '../../utils/audioManager';
 import { getSwitchEntryFacade } from '../../utils/connectTransform';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { RAIL, SLEEPER, getParallelLinePoints, getDualArcRadii, generateStraightSleepers, generateArcSleepers } from '../../utils/trackRenderingUtils';
+import { useEffectsStore } from '../../stores/useEffectsStore';
 import type { TrackEdge, Vector2 } from '../../types';
 
 // Re-export rail constants for local use
@@ -40,6 +41,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     const { editSubMode } = useModeStore();
     const isEditing = useIsEditing();
     const { connectSource, isValidConnectTarget, handleConnectModeNodeClick } = useConnectMode();
+    const { triggerRipple, setHoveredSwitch } = useEffectsStore();
 
     // V6: Ref for caching track visuals
     const trackVisualsRef = useRef<Konva.Group>(null);
@@ -134,7 +136,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
 
         if (editSubMode === 'select') {
             toggleSwitch(nodeId);
-            playSound('switch');
+            playSwitchSound('n-scale');  // Enhanced switch sound with musical feedback
         } else if (editSubMode === 'signal') {
             addSignal(nodeId);
             playSound('switch');
@@ -366,8 +368,19 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                                 fill={SWITCH_NODE_COLOR}
                                 stroke="#1A1A1A"
                                 strokeWidth={2}
-                                onClick={() => handleSwitchClick(node.id)}
-                                onTap={() => handleSwitchClick(node.id)}
+                                onClick={() => {
+                                    handleSwitchClick(node.id);
+                                    triggerRipple(node.position, { color: '#FFD93D' });
+                                }}
+                                onTap={() => {
+                                    handleSwitchClick(node.id);
+                                    triggerRipple(node.position, { color: '#FFD93D' });
+                                }}
+                                onMouseEnter={() => {
+                                    setHoveredSwitch(node.id, node.position);
+                                    playHoverSound();
+                                }}
+                                onMouseLeave={() => setHoveredSwitch(null)}
                                 shadowColor="black"
                                 shadowBlur={4}
                                 shadowOpacity={0.3}

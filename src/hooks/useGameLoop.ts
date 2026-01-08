@@ -3,7 +3,7 @@ import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
 import { useIsSimulating } from '../stores/useModeStore';
-import { playSound } from '../utils/audioManager';
+import { playSound, playSwitchSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 import { getSwitchExitEdge } from '../utils/switchRouting';
@@ -204,7 +204,7 @@ export function useGameLoop() {
                                         const node = nodes[wire.targetId];
                                         if (node?.switchState !== 1) toggleSwitch(wire.targetId);
                                     }
-                                    playSound('switch');
+                                    playSwitchSound('n-scale');  // Enhanced musical switch sound
                                 } else if (wire.targetType === 'signal') {
                                     if (wire.action === 'toggle') {
                                         // Toggle signal

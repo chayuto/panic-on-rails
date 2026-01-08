@@ -8,6 +8,7 @@ import { TrainLayer } from './TrainLayer';
 import { SensorLayer } from './SensorLayer';
 import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
+import { EffectsLayer } from './EffectsLayer';
 import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
@@ -15,6 +16,7 @@ import { useGameLoop } from '../../hooks/useGameLoop';
 import { useEditModeHandler } from '../../hooks/useEditModeHandler';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 import { useCanvasCoordinates } from '../../hooks/useCanvasCoordinates';
+import { useSwitchInteraction } from '../../hooks/useSwitchInteraction';
 import { initAudio } from '../../utils/audioManager';
 
 interface StageWrapperProps {
@@ -64,6 +66,9 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     // Run the game loop for train simulation
     useGameLoop();
+
+    // Enable keyboard shortcuts for switch interaction during simulation
+    useSwitchInteraction({ enableKeyboard: isSimulating });
 
     // Initialize audio on first user interaction
     useEffect(() => {
@@ -183,6 +188,11 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 {/* Track layer - interactive, with viewport culling */}
                 <Layer>
                     <TrackLayer viewport={viewport} />
+                </Layer>
+
+                {/* Effects layer - visual juice (hover glow, ripples) */}
+                <Layer listening={false}>
+                    <EffectsLayer />
                 </Layer>
 
                 {/* Ghost layer - edit mode only, when dragging */}
