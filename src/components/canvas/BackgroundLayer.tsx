@@ -41,6 +41,7 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
                 points={[x, startY, x, endY]}
                 stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
                 strokeWidth={isMajor ? 1 : 0.5}
+                listening={false}
             />
         );
     }
@@ -54,9 +55,11 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
                 points={[startX, y, endX, y]}
                 stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
                 strokeWidth={isMajor ? 1 : 0.5}
+                listening={false}
             />
         );
     }
 
     return <>{lines}</>;
 }
+

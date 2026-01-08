@@ -39,7 +39,7 @@ export function GhostLayer() {
         const endY = ghostPosition.y + Math.sin(radians) * length;
 
         return (
-            <Group>
+            <Group listening={false}>
                 {/* Ghost track line */}
                 <Line
                     points={[ghostPosition.x, ghostPosition.y, endX, endY]}
@@ -97,7 +97,7 @@ export function GhostLayer() {
         const endY = centerY + Math.sin(centerAngle + Math.PI + angleRad) * radius;
 
         return (
-            <Group>
+            <Group listening={false}>
                 {/* Ghost arc - approximated with Konva Arc */}
                 <Arc
                     x={centerX}
@@ -191,7 +191,7 @@ export function GhostLayer() {
             : null;
 
         return (
-            <Group>
+            <Group listening={false}>
                 {/* Main path (only for non-wye) */}
                 {!isWye && (
                     <Line
