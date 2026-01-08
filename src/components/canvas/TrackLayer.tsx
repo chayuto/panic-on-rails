@@ -1,4 +1,4 @@
-import { Group, Line, Circle, Wedge, Arc, Ring } from 'react-konva';
+import { Group, Line, Circle, Arc, Ring } from 'react-konva';
 import { useMemo, useRef, useEffect } from 'react';
 import type Konva from 'konva';
 import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
@@ -8,10 +8,10 @@ import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { useConnectMode } from '../../hooks/useConnectMode';
 import { playSound, playSwitchSound, playHoverSound } from '../../utils/audioManager';
-import { getSwitchEntryFacade } from '../../utils/connectTransform';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { RAIL, SLEEPER, getParallelLinePoints, getDualArcRadii, generateStraightSleepers, generateArcSleepers } from '../../utils/trackRenderingUtils';
 import { useEffectsStore } from '../../stores/useEffectsStore';
+import { SwitchRenderer } from './SwitchRenderer';
 import type { TrackEdge, Vector2 } from '../../types';
 
 // Re-export rail constants for local use
@@ -22,11 +22,9 @@ const RAIL_COLOR = '#888888';
 const RAIL_SELECTED_COLOR = '#00FF88';
 const RAIL_INACTIVE_COLOR = '#555555';
 const NODE_COLOR = '#4ECDC4';
-const SWITCH_NODE_COLOR = '#FFD93D';
 const CONNECT_SOURCE_COLOR = '#00FF88';  // Green for selected source
 const CONNECT_TARGET_COLOR = '#00BFFF';  // Cyan for valid targets
 const NODE_RADIUS = 6;
-const SWITCH_NODE_RADIUS = 10;
 const CONNECT_HIGHLIGHT_RADIUS = 12;  // Outer glow radius
 
 interface TrackLayerProps {
@@ -348,53 +346,21 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
 
             {/* Render all nodes (connection points) - nodes are fewer so no culling needed */}
             {Object.values(nodes).map((node) => {
-                // Switch nodes get special rendering
+                // Switch nodes get special rendering via SwitchRenderer component
                 if (node.type === 'switch') {
-                    // Derive wedge direction from entry edge facade (V2: no dependency on stored rotation)
-                    const entryFacade = getSwitchEntryFacade(node, edges);
-                    // Entry facade points INTO the switch, wedge points OUT (opposite)
-                    // Add branch offset when branch is active
-                    const wedgeRotation = entryFacade !== null
-                        ? entryFacade + 180 + (node.switchState === 1 ? 15 : 0)
-                        : node.rotation + 180 + (node.switchState === 1 ? 15 : 0); // Fallback
-
                     return (
-                        <Group key={node.id}>
-                            {/* Switch indicator - larger clickable circle */}
-                            <Circle
-                                x={node.position.x}
-                                y={node.position.y}
-                                radius={SWITCH_NODE_RADIUS}
-                                fill={SWITCH_NODE_COLOR}
-                                stroke="#1A1A1A"
-                                strokeWidth={2}
-                                onClick={() => {
-                                    handleSwitchClick(node.id);
-                                    triggerRipple(node.position, { color: '#FFD93D' });
-                                }}
-                                onTap={() => {
-                                    handleSwitchClick(node.id);
-                                    triggerRipple(node.position, { color: '#FFD93D' });
-                                }}
-                                onMouseEnter={() => {
-                                    setHoveredSwitch(node.id, node.position);
-                                    playHoverSound();
-                                }}
-                                onMouseLeave={() => setHoveredSwitch(null)}
-                                shadowColor="black"
-                                shadowBlur={4}
-                                shadowOpacity={0.3}
-                            />
-                            {/* Direction indicator - small wedge showing active branch */}
-                            <Wedge
-                                x={node.position.x}
-                                y={node.position.y}
-                                radius={6}
-                                angle={30}
-                                rotation={wedgeRotation}
-                                fill="#1A1A1A"
-                            />
-                        </Group>
+                        <SwitchRenderer
+                            key={node.id}
+                            node={node}
+                            edges={edges}
+                            onSwitchClick={handleSwitchClick}
+                            onRipple={triggerRipple}
+                            onHoverEnter={(nodeId, pos) => {
+                                setHoveredSwitch(nodeId, pos);
+                                playHoverSound();
+                            }}
+                            onHoverLeave={() => setHoveredSwitch(null)}
+                        />
                     );
                 }
 
