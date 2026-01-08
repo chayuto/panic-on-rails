@@ -31,11 +31,10 @@
                 ],
                 "type": "switch",
                 "switchState": 0,
-                "switchBranches": {
-                    "entry": "e1",
-                    "main": "e2",
-                    "branch": "e3"
-                }
+                "switchBranches": [
+                    "e2",
+                    "e3"
+                ]
             },
             "sw2": {
                 "id": "sw2",
@@ -51,11 +50,10 @@
                 ],
                 "type": "switch",
                 "switchState": 0,
-                "switchBranches": {
-                    "entry": "e2",
-                    "main": "e4",
-                    "branch": "e5"
-                }
+                "switchBranches": [
+                    "e4",
+                    "e5"
+                ]
             },
             "n1": {
                 "id": "n1",
