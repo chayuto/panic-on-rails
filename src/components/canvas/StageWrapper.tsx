@@ -9,6 +9,7 @@ import { SensorLayer } from './SensorLayer';
 import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
 import { EffectsLayer } from './EffectsLayer';
+import { CrashLayer } from './CrashLayer';
 import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
@@ -213,6 +214,13 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 {isSimulating && (
                     <Layer>
                         <TrainLayer />
+                    </Layer>
+                )}
+
+                {/* Crash debris layer - above trains */}
+                {isSimulating && (
+                    <Layer listening={false}>
+                        <CrashLayer />
                     </Layer>
                 )}
             </Stage>

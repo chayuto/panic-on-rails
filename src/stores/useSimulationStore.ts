@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import type { TrainId, EdgeId, Train } from '../types';
+import type { CrashedPart } from '../utils/crashPhysics';
 
 interface SimulationState {
     trains: Record<TrainId, Train>;
+    crashedParts: CrashedPart[];
     isRunning: boolean;
     speedMultiplier: number;
 }
@@ -19,6 +21,10 @@ interface SimulationActions {
     toggleRunning: () => void;
     setSpeedMultiplier: (multiplier: number) => void;
     clearTrains: () => void;
+    // Crash debris actions
+    addCrashedParts: (parts: CrashedPart[]) => void;
+    setCrashedParts: (parts: CrashedPart[]) => void;
+    clearDebris: () => void;
 }
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
@@ -27,6 +33,7 @@ let trainCounter = 0;
 
 export const useSimulationStore = create<SimulationState & SimulationActions>()((set) => ({
     trains: {},
+    crashedParts: [],
     isRunning: false,
     speedMultiplier: 1.0,
 
@@ -106,4 +113,13 @@ export const useSimulationStore = create<SimulationState & SimulationActions>()(
     },
 
     clearTrains: () => set({ trains: {} }),
+
+    // Crash debris actions
+    addCrashedParts: (parts) => set((state) => ({
+        crashedParts: [...state.crashedParts, ...parts],
+    })),
+
+    setCrashedParts: (parts) => set({ crashedParts: parts }),
+
+    clearDebris: () => set({ crashedParts: [] }),
 }));

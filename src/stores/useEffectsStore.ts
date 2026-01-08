@@ -36,6 +36,12 @@ export interface HoverState {
     position: Vector2 | null;
 }
 
+export interface ScreenShake {
+    intensity: number;
+    endTime: number;
+    decay: boolean;
+}
+
 interface EffectsState {
     // Active effects
     ripples: RippleEffect[];
@@ -45,10 +51,15 @@ interface EffectsState {
     hoveredSwitchId: string | null;
     hoveredSwitchPosition: Vector2 | null;
 
+    // Screen shake
+    screenShake: ScreenShake | null;
+
     // Actions
     triggerRipple: (position: Vector2, options?: Partial<RippleEffect>) => void;
     triggerFlash: (position: Vector2, options?: Partial<FlashEffect>) => void;
     setHoveredSwitch: (nodeId: string | null, position?: Vector2 | null) => void;
+    triggerScreenShake: (intensity: number, duration: number, decay?: boolean) => void;
+    getScreenShakeOffset: () => Vector2;
     cleanupExpiredEffects: () => void;
     clearAllEffects: () => void;
 }
@@ -80,11 +91,12 @@ function generateEffectId(): string {
     return `effect-${++effectIdCounter}`;
 }
 
-export const useEffectsStore = create<EffectsState>((set) => ({
+export const useEffectsStore = create<EffectsState>((set, get) => ({
     ripples: [],
     flashes: [],
     hoveredSwitchId: null,
     hoveredSwitchPosition: null,
+    screenShake: null,
 
     triggerRipple: (position, options = {}) => {
         const ripple: RippleEffect = {
@@ -143,7 +155,52 @@ export const useEffectsStore = create<EffectsState>((set) => ({
         set(state => ({
             ripples: state.ripples.filter(r => now - r.startTime < r.duration),
             flashes: state.flashes.filter(f => now - f.startTime < f.duration),
+            screenShake: state.screenShake && now < state.screenShake.endTime
+                ? state.screenShake
+                : null,
         }));
+    },
+
+    triggerScreenShake: (intensity, duration, decay = true) => {
+        set({
+            screenShake: {
+                intensity,
+                endTime: Date.now() + duration,
+                decay,
+            },
+        });
+
+        // Auto-cleanup
+        setTimeout(() => {
+            set(state => ({
+                screenShake: state.screenShake?.endTime === Date.now() + duration
+                    ? null
+                    : state.screenShake,
+            }));
+        }, duration + 50);
+    },
+
+    getScreenShakeOffset: (): Vector2 => {
+        const shake = get().screenShake;
+        if (!shake) return { x: 0, y: 0 };
+
+        const now = Date.now();
+        if (now >= shake.endTime) return { x: 0, y: 0 };
+
+        // Calculate remaining intensity
+        const remaining = shake.endTime - now;
+        const totalDuration = shake.endTime - (shake.endTime - remaining);
+        const progress = 1 - (remaining / Math.max(totalDuration, 1));
+
+        const currentIntensity = shake.decay
+            ? shake.intensity * (1 - progress)
+            : shake.intensity;
+
+        // Random offset
+        return {
+            x: (Math.random() - 0.5) * 2 * currentIntensity,
+            y: (Math.random() - 0.5) * 2 * currentIntensity,
+        };
     },
 
     clearAllEffects: () => {
@@ -152,6 +209,7 @@ export const useEffectsStore = create<EffectsState>((set) => ({
             flashes: [],
             hoveredSwitchId: null,
             hoveredSwitchPosition: null,
+            screenShake: null,
         });
     },
 }));

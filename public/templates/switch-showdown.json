@@ -1,0 +1,234 @@
+{
+    "version": 1,
+    "template": {
+        "id": "switch-showdown",
+        "name": "Switch Showdown",
+        "description": "Two trains on a collision course! Toggle the switch to let them pass. Features switches, crash physics, and all the visual juice!",
+        "difficulty": "intermediate",
+        "system": "n-scale",
+        "estimatedCost": 6200,
+        "partCount": 10,
+        "trainCount": 2
+    },
+    "layout": {
+        "version": 1,
+        "metadata": {
+            "name": "Switch Showdown",
+            "created": "2026-01-08T00:00:00Z"
+        },
+        "nodes": {
+            "sw1": {
+                "id": "sw1",
+                "position": {
+                    "x": 300,
+                    "y": 400
+                },
+                "rotation": 0,
+                "connections": [
+                    "e1",
+                    "e2",
+                    "e3"
+                ],
+                "type": "switch",
+                "switchState": 0,
+                "switchBranches": {
+                    "entry": "e1",
+                    "main": "e2",
+                    "branch": "e3"
+                }
+            },
+            "sw2": {
+                "id": "sw2",
+                "position": {
+                    "x": 700,
+                    "y": 400
+                },
+                "rotation": 180,
+                "connections": [
+                    "e2",
+                    "e4",
+                    "e5"
+                ],
+                "type": "switch",
+                "switchState": 0,
+                "switchBranches": {
+                    "entry": "e2",
+                    "main": "e4",
+                    "branch": "e5"
+                }
+            },
+            "n1": {
+                "id": "n1",
+                "position": {
+                    "x": 100,
+                    "y": 400
+                },
+                "rotation": 0,
+                "connections": [
+                    "e1"
+                ],
+                "type": "endpoint"
+            },
+            "n2": {
+                "id": "n2",
+                "position": {
+                    "x": 900,
+                    "y": 400
+                },
+                "rotation": 180,
+                "connections": [
+                    "e4"
+                ],
+                "type": "endpoint"
+            },
+            "n3": {
+                "id": "n3",
+                "position": {
+                    "x": 300,
+                    "y": 300
+                },
+                "rotation": 270,
+                "connections": [
+                    "e3",
+                    "e6"
+                ],
+                "type": "junction"
+            },
+            "n4": {
+                "id": "n4",
+                "position": {
+                    "x": 700,
+                    "y": 300
+                },
+                "rotation": 270,
+                "connections": [
+                    "e5",
+                    "e6"
+                ],
+                "type": "junction"
+            }
+        },
+        "edges": {
+            "e1": {
+                "id": "e1",
+                "partId": "kato-20-000",
+                "startNodeId": "n1",
+                "endNodeId": "sw1",
+                "geometry": {
+                    "type": "straight",
+                    "start": {
+                        "x": 100,
+                        "y": 400
+                    },
+                    "end": {
+                        "x": 300,
+                        "y": 400
+                    }
+                },
+                "length": 200
+            },
+            "e2": {
+                "id": "e2",
+                "partId": "kato-20-000",
+                "startNodeId": "sw1",
+                "endNodeId": "sw2",
+                "geometry": {
+                    "type": "straight",
+                    "start": {
+                        "x": 300,
+                        "y": 400
+                    },
+                    "end": {
+                        "x": 700,
+                        "y": 400
+                    }
+                },
+                "length": 400
+            },
+            "e3": {
+                "id": "e3",
+                "partId": "kato-20-100",
+                "startNodeId": "sw1",
+                "endNodeId": "n3",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 300,
+                        "y": 151
+                    },
+                    "radius": 149,
+                    "startAngle": 1.5708,
+                    "endAngle": 0.7854
+                },
+                "length": 117
+            },
+            "e4": {
+                "id": "e4",
+                "partId": "kato-20-000",
+                "startNodeId": "sw2",
+                "endNodeId": "n2",
+                "geometry": {
+                    "type": "straight",
+                    "start": {
+                        "x": 700,
+                        "y": 400
+                    },
+                    "end": {
+                        "x": 900,
+                        "y": 400
+                    }
+                },
+                "length": 200
+            },
+            "e5": {
+                "id": "e5",
+                "partId": "kato-20-100",
+                "startNodeId": "sw2",
+                "endNodeId": "n4",
+                "geometry": {
+                    "type": "arc",
+                    "center": {
+                        "x": 700,
+                        "y": 151
+                    },
+                    "radius": 149,
+                    "startAngle": 1.5708,
+                    "endAngle": 2.3562
+                },
+                "length": 117
+            },
+            "e6": {
+                "id": "e6",
+                "partId": "kato-20-000",
+                "startNodeId": "n3",
+                "endNodeId": "n4",
+                "geometry": {
+                    "type": "straight",
+                    "start": {
+                        "x": 300,
+                        "y": 300
+                    },
+                    "end": {
+                        "x": 700,
+                        "y": 300
+                    }
+                },
+                "length": 400
+            }
+        }
+    },
+    "trains": [
+        {
+            "edgeId": "e1",
+            "position": 50,
+            "direction": 1,
+            "color": "#E53935"
+        },
+        {
+            "edgeId": "e4",
+            "position": 50,
+            "direction": -1,
+            "color": "#1E88E5"
+        }
+    ]
+}

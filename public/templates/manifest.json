@@ -20,6 +20,16 @@
             "estimatedCost": 2400,
             "partCount": 8,
             "trainCount": 1
+        },
+        {
+            "id": "switch-showdown",
+            "name": "Switch Showdown",
+            "description": "Two trains on a collision course! Toggle the switch to let them pass.",
+            "difficulty": "intermediate",
+            "system": "n-scale",
+            "estimatedCost": 6200,
+            "partCount": 10,
+            "trainCount": 2
         }
     ]
 }

@@ -7,6 +7,8 @@ import { playSound, playSwitchSound } from '../utils/audioManager';
 import { detectCollisions } from '../utils/collisionManager';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 import { getSwitchExitEdge } from '../utils/switchRouting';
+import { explodeTrain, updateCrashedParts, calculateCrashSeverity } from '../utils/crashPhysics';
+import { useEffectsStore } from '../stores/useEffectsStore';
 import type { Train } from '../types';
 
 /**
@@ -17,9 +19,10 @@ export function useGameLoop() {
     const animationFrameRef = useRef<number>(0);
 
     const isSimulating = useIsSimulating();
-    const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed } = useSimulationStore();
+    const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed, crashedParts, addCrashedParts, setCrashedParts } = useSimulationStore();
     const { edges, nodes, toggleSwitch } = useTrackStore();
     const { sensors, wires, setSensorState, setSignalState } = useLogicStore();
+    const { triggerScreenShake, triggerFlash } = useEffectsStore();
 
     const updateTrains = useCallback((deltaTime: number) => {
         // Scale delta by speed multiplier
@@ -163,14 +166,58 @@ export function useGameLoop() {
             // Check for collisions
             const collisions = detectCollisions(trains);
             collisions.forEach(({ trainA, trainB }) => {
-                if (!trainA.crashed) {
+                // Get train positions for explosion
+                const edgeA = edges[trainA.currentEdgeId];
+                const edgeB = edges[trainB.currentEdgeId];
+
+                if (edgeA && !trainA.crashed) {
+                    const posA = getPositionOnEdge(edgeA, trainA.distanceAlongEdge);
+                    const severity = calculateCrashSeverity(
+                        { x: trainA.speed * trainA.direction, y: 0 },
+                        { x: trainB.speed * trainB.direction, y: 0 }
+                    );
+
+                    // Create explosion debris
+                    const parts = explodeTrain({
+                        position: posA,
+                        velocity: { x: trainA.speed * trainA.direction * 0.5, y: 0 },
+                        trainColor: trainA.color,
+                        severity,
+                    });
+                    addCrashedParts(parts);
+
+                    // Visual effects
+                    triggerScreenShake(8 + severity * 4, 200 + severity * 100);
+                    triggerFlash(posA, { color: '#FFFFFF', duration: 100 });
+
                     setCrashed(trainA.id);
                 }
-                if (!trainB.crashed) {
+
+                if (edgeB && !trainB.crashed) {
+                    const posB = getPositionOnEdge(edgeB, trainB.distanceAlongEdge);
+                    const severity = calculateCrashSeverity(
+                        { x: trainB.speed * trainB.direction, y: 0 }
+                    );
+
+                    const parts = explodeTrain({
+                        position: posB,
+                        velocity: { x: trainB.speed * trainB.direction * 0.5, y: 0 },
+                        trainColor: trainB.color,
+                        severity,
+                    });
+                    addCrashedParts(parts);
+
                     setCrashed(trainB.id);
                 }
+
                 playSound('crash');
             });
+
+            // Update crashed parts physics
+            if (crashedParts.length > 0) {
+                const updatedParts = updateCrashedParts(crashedParts, cappedDelta, 500);
+                setCrashedParts(updatedParts);
+            }
 
             // Update sensor states based on train positions
             Object.values(sensors).forEach((sensor) => {
