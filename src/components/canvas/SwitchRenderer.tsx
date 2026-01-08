@@ -7,17 +7,25 @@
  * Features:
  * - Yellow circular switch indicator
  * - Directional wedge showing active branch
+ * - Animated rail points that move when toggling
  * - Hover and click feedback with audio
  * - Ripple effect on toggle
  */
 
-import { Group, Circle, Wedge } from 'react-konva';
+import { useState, useEffect, useRef } from 'react';
+import { Group, Circle, Wedge, Line } from 'react-konva';
 import type { TrackNode, TrackEdge, EdgeId, Vector2 } from '../../types';
 import { getSwitchEntryFacade } from '../../utils/connectTransform';
 
 // Visual constants
 const SWITCH_NODE_COLOR = '#FFD93D';
 const SWITCH_NODE_RADIUS = 10;
+const RAIL_POINT_LENGTH = 14;
+const RAIL_POINT_COLOR = '#888888';
+const RAIL_POINT_ACTIVE_COLOR = '#4ECDC4';
+
+// Animation constants
+const ANIMATION_DURATION = 150; // ms
 
 export interface SwitchRendererProps {
     /** The switch node to render */
@@ -35,7 +43,7 @@ export interface SwitchRendererProps {
 }
 
 /**
- * Renders a switch node with visual indicator and interaction handlers.
+ * Renders a switch node with visual indicator, animated rail points, and interaction handlers.
  */
 export function SwitchRenderer({
     node,
@@ -45,13 +53,74 @@ export function SwitchRenderer({
     onHoverEnter,
     onHoverLeave,
 }: SwitchRendererProps) {
+    // Track animated state for smooth transitions
+    const [animatedAngle, setAnimatedAngle] = useState(node.switchState === 1 ? 15 : 0);
+    const animationRef = useRef<number | null>(null);
+    const prevStateRef = useRef(node.switchState);
+
+    // Animate when switch state changes
+    useEffect(() => {
+        if (prevStateRef.current !== node.switchState) {
+            prevStateRef.current = node.switchState;
+
+            const startAngle = animatedAngle;
+            const targetAngle = node.switchState === 1 ? 15 : 0;
+            const startTime = performance.now();
+
+            const animate = (currentTime: number) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+
+                // Ease-out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const newAngle = startAngle + (targetAngle - startAngle) * eased;
+
+                setAnimatedAngle(newAngle);
+
+                if (progress < 1) {
+                    animationRef.current = requestAnimationFrame(animate);
+                }
+            };
+
+            animationRef.current = requestAnimationFrame(animate);
+
+            return () => {
+                if (animationRef.current) {
+                    cancelAnimationFrame(animationRef.current);
+                }
+            };
+        }
+    }, [node.switchState, animatedAngle]);
+
     // Derive wedge direction from entry edge facade
-    // Entry facade points INTO the switch, wedge points OUT (opposite)
-    // Add branch offset when branch is active
     const entryFacade = getSwitchEntryFacade(node, edges);
-    const wedgeRotation = entryFacade !== null
-        ? entryFacade + 180 + (node.switchState === 1 ? 15 : 0)
-        : node.rotation + 180 + (node.switchState === 1 ? 15 : 0); // Fallback
+    const baseRotation = entryFacade !== null ? entryFacade + 180 : node.rotation + 180;
+    const wedgeRotation = baseRotation + animatedAngle;
+
+    // Calculate rail point positions (small lines showing diverging rails)
+    const railPointOffset = SWITCH_NODE_RADIUS + 4;
+    const mainAngleRad = (baseRotation * Math.PI) / 180;
+    const branchAngleRad = ((baseRotation + animatedAngle) * Math.PI) / 180;
+
+    // Main rail point (always straight ahead)
+    const mainRailStart = {
+        x: node.position.x + Math.cos(mainAngleRad) * railPointOffset,
+        y: node.position.y + Math.sin(mainAngleRad) * railPointOffset,
+    };
+    const mainRailEnd = {
+        x: node.position.x + Math.cos(mainAngleRad) * (railPointOffset + RAIL_POINT_LENGTH),
+        y: node.position.y + Math.sin(mainAngleRad) * (railPointOffset + RAIL_POINT_LENGTH),
+    };
+
+    // Branch rail point (moves with animation)
+    const branchRailStart = {
+        x: node.position.x + Math.cos(branchAngleRad) * railPointOffset,
+        y: node.position.y + Math.sin(branchAngleRad) * railPointOffset,
+    };
+    const branchRailEnd = {
+        x: node.position.x + Math.cos(branchAngleRad) * (railPointOffset + RAIL_POINT_LENGTH * 0.7),
+        y: node.position.y + Math.sin(branchAngleRad) * (railPointOffset + RAIL_POINT_LENGTH * 0.7),
+    };
 
     const handleClick = () => {
         onSwitchClick(node.id);
@@ -62,8 +131,29 @@ export function SwitchRenderer({
         onHoverEnter(node.id, node.position);
     };
 
+    // Determine which rail is active
+    const mainActive = node.switchState === 0;
+
     return (
         <Group>
+            {/* Rail point indicators - shows which direction trains will go */}
+            {/* Main rail (straight) */}
+            <Line
+                points={[mainRailStart.x, mainRailStart.y, mainRailEnd.x, mainRailEnd.y]}
+                stroke={mainActive ? RAIL_POINT_ACTIVE_COLOR : RAIL_POINT_COLOR}
+                strokeWidth={mainActive ? 3 : 2}
+                lineCap="round"
+                opacity={mainActive ? 1 : 0.5}
+            />
+            {/* Branch rail (diverging) */}
+            <Line
+                points={[branchRailStart.x, branchRailStart.y, branchRailEnd.x, branchRailEnd.y]}
+                stroke={!mainActive ? RAIL_POINT_ACTIVE_COLOR : RAIL_POINT_COLOR}
+                strokeWidth={!mainActive ? 3 : 2}
+                lineCap="round"
+                opacity={!mainActive ? 1 : 0.5}
+            />
+
             {/* Switch indicator - larger clickable circle */}
             <Circle
                 x={node.position.x}
@@ -80,6 +170,7 @@ export function SwitchRenderer({
                 shadowBlur={4}
                 shadowOpacity={0.3}
             />
+
             {/* Direction indicator - small wedge showing active branch */}
             <Wedge
                 x={node.position.x}
