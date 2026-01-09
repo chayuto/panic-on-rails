@@ -175,7 +175,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                {/* Background grid layer - static, listening disabled */}
+                {/* Layer 1: Background + Effects (non-interactive) */}
                 <Layer listening={false}>
                     <BackgroundLayer
                         width={dimensions.width}
@@ -184,42 +184,28 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                         pan={pan}
                         showGrid={showGrid}
                     />
-                </Layer>
-
-                {/* Track layer - interactive, with viewport culling */}
-                <Layer>
-                    <TrackLayer viewport={viewport} />
-                </Layer>
-
-                {/* Effects layer - visual juice (hover glow, ripples) */}
-                <Layer listening={false}>
                     <EffectsLayer />
                 </Layer>
 
-                {/* Ghost layer - edit mode only, when dragging */}
+                {/* Layer 2: Track + Logic (interactive) */}
+                <Layer>
+                    <TrackLayer viewport={viewport} />
+                    <WireLayer />
+                    <SensorLayer />
+                    <SignalLayer />
+                </Layer>
+
+                {/* Layer 3: Ghost (conditional, edit mode + dragging) */}
                 {isEditing && draggedPartId && ghostPosition && (
                     <Layer listening={false}>
                         <GhostLayer />
                     </Layer>
                 )}
 
-                {/* Logic layers - sensors, signals, wires */}
-                <Layer>
-                    <WireLayer />
-                    <SensorLayer />
-                    <SignalLayer />
-                </Layer>
-
-                {/* Train layer - simulate mode only */}
+                {/* Layer 4: Simulation (conditional, trains + crash debris) */}
                 {isSimulating && (
                     <Layer>
                         <TrainLayer />
-                    </Layer>
-                )}
-
-                {/* Crash debris layer - above trains */}
-                {isSimulating && (
-                    <Layer listening={false}>
                         <CrashLayer />
                     </Layer>
                 )}
