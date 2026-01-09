@@ -48,7 +48,7 @@ export function ModeToggle() {
                 title="Edit Mode - Build tracks (M)"
                 aria-pressed={isEditing}
             >
-                <span className="mode-icon">✏️</span>
+                <span className="mode-icon">🔧</span>
                 <span className="mode-label">Edit</span>
             </button>
 
@@ -58,7 +58,7 @@ export function ModeToggle() {
                 title="Simulate Mode - Run trains (M)"
                 aria-pressed={!isEditing}
             >
-                <span className="mode-icon">▶️</span>
+                <span className="mode-icon">🚂</span>
                 <span className="mode-label">Simulate</span>
             </button>
         </div>

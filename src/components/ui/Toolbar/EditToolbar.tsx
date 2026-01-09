@@ -7,11 +7,15 @@
  * - Sensor
  * - Signal
  * - Wire
+ * 
+ * Advanced tools (Sensor, Signal, Wire) are locked during onboarding
+ * until the user completes the tutorial.
  */
 
 import { useEffect, useCallback } from 'react';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
+import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import { getNodeFacadeFromEdge } from '../../../utils/connectTransform';
 import { angleDifference } from '../../../utils/geometry';
 import type { EditSubMode } from '../../../types/mode';
@@ -21,6 +25,8 @@ interface ToolButton {
     icon: string;
     label: string;
     title: string;
+    /** Advanced tools are locked during onboarding */
+    isAdvanced?: boolean;
 }
 
 const EDIT_TOOLS: ToolButton[] = [
@@ -46,25 +52,29 @@ const EDIT_TOOLS: ToolButton[] = [
         mode: 'sensor',
         icon: '📡',
         label: 'Sensor',
-        title: 'Sensor (4) - Place sensors on tracks'
+        title: 'Sensor (4) - Place sensors on tracks',
+        isAdvanced: true,
     },
     {
         mode: 'signal',
         icon: '🚦',
         label: 'Signal',
-        title: 'Signal (5) - Place signals at nodes'
+        title: 'Signal (5) - Place signals at nodes',
+        isAdvanced: true,
     },
     {
         mode: 'wire',
         icon: '🔌',
         label: 'Wire',
-        title: 'Wire (6) - Connect sensors to switches/signals'
+        title: 'Wire (6) - Connect sensors to switches/signals',
+        isAdvanced: true,
     },
 ];
 
 export function EditToolbar() {
     const { editSubMode, setEditSubMode } = useModeStore();
     const { nodes, edges } = useTrackStore();
+    const advancedUnlocked = useOnboardingStore(s => s.advancedFeaturesUnlocked);
 
     const handleDebugExport = useCallback(() => {
         // Build debug info with connection analysis
@@ -233,16 +243,20 @@ export function EditToolbar() {
 
     return (
         <>
-            {EDIT_TOOLS.map(tool => (
-                <button
-                    key={tool.mode}
-                    onClick={() => setEditSubMode(tool.mode)}
-                    className={`toolbar-btn-icon ${editSubMode === tool.mode ? 'active' : ''}`}
-                    title={tool.title}
-                >
-                    {tool.icon}
-                </button>
-            ))}
+            {EDIT_TOOLS.map(tool => {
+                const isLocked = tool.isAdvanced && !advancedUnlocked;
+                return (
+                    <button
+                        key={tool.mode}
+                        onClick={() => !isLocked && setEditSubMode(tool.mode)}
+                        className={`toolbar-btn-icon ${editSubMode === tool.mode ? 'active' : ''} ${isLocked ? 'tool-locked' : ''}`}
+                        title={isLocked ? `${tool.title} (Complete tutorial to unlock)` : tool.title}
+                        aria-disabled={isLocked}
+                    >
+                        {tool.icon}
+                    </button>
+                );
+            })}
         </>
     );
 }

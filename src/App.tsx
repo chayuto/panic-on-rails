@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StageWrapper } from './components/canvas';
 import { Toolbar, PartsBin, TrainPanel, DebugOverlay, MeasurementOverlay } from './components/ui';
+import { OnboardingProvider, OnboardingHints } from './components/ui/Onboarding';
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -25,16 +26,20 @@ function App() {
     }, [primaryMode]);
 
     return (
-        <div className="app">
-            <Toolbar />
-            <main className="app-main">
-                {/* Conditional sidebar: PartsBin in Edit, TrainPanel in Simulate */}
-                {isEditing ? <PartsBin /> : <TrainPanel />}
-                <StageWrapper />
-            </main>
-            <DebugOverlay />
-            <MeasurementOverlay />
-        </div>
+        <OnboardingProvider>
+            <div className="app">
+                <Toolbar />
+                <main className="app-main">
+                    {/* Conditional sidebar: PartsBin in Edit, TrainPanel in Simulate */}
+                    {isEditing ? <PartsBin /> : <TrainPanel />}
+                    <StageWrapper />
+                </main>
+                <DebugOverlay />
+                <MeasurementOverlay />
+                {/* Tutorial hints overlay */}
+                <OnboardingHints />
+            </div>
+        </OnboardingProvider>
     );
 }
 
