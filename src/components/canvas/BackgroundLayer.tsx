@@ -42,6 +42,7 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
                 stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
                 strokeWidth={isMajor ? 1 : 0.5}
                 listening={false}
+                perfectDrawEnabled={false}
             />
         );
     }
@@ -56,6 +57,7 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
                 stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
                 strokeWidth={isMajor ? 1 : 0.5}
                 listening={false}
+                perfectDrawEnabled={false}
             />
         );
     }
