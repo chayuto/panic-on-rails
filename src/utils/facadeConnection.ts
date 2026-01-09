@@ -10,7 +10,7 @@
  */
 
 import type { PartDefinition, Vector2, PartGeometry } from '../types';
-import { normalizeAngle, angleDifference } from './geometry';
+import { normalizeAngle, angleDifference, calculateEndpointFromPose } from './geometry';
 
 // =============================================================================
 // CONSTANTS
@@ -104,7 +104,7 @@ export function getPlacedConnectors(
     const endFacade = getEndFacade(rotation, part.geometry);
 
     // Calculate end position based on geometry
-    const endPosition = calculateEndPosition(position, rotation, part.geometry);
+    const endPosition = calculateEndpointFromPose(position, rotation, part.geometry);
 
     return {
         start: {
@@ -122,39 +122,10 @@ export function getPlacedConnectors(
 
 /**
  * Calculate the position of the END connector given START position and rotation.
+ *
+ * @deprecated Use calculateEndpointFromPose from geometry.ts instead
  */
-export function calculateEndPosition(
-    startPos: Vector2,
-    rotation: number,
-    geometry: PartGeometry
-): Vector2 {
-    const rotRad = (rotation * Math.PI) / 180;
-
-    if (geometry.type === 'straight') {
-        return {
-            x: startPos.x + Math.cos(rotRad) * geometry.length,
-            y: startPos.y + Math.sin(rotRad) * geometry.length,
-        };
-    } else if (geometry.type === 'curve') {
-        const { radius, angle } = geometry;
-        const angleRad = (angle * Math.PI) / 180;
-
-        // Arc center is 90° counter-clockwise from heading (left curve)
-        const centerAngle = rotRad - Math.PI / 2;
-        const centerX = startPos.x + Math.cos(centerAngle) * radius;
-        const centerY = startPos.y + Math.sin(centerAngle) * radius;
-
-        // End point on arc
-        const endAngle = centerAngle + Math.PI + angleRad;
-        return {
-            x: centerX + Math.cos(endAngle) * radius,
-            y: centerY + Math.sin(endAngle) * radius,
-        };
-    }
-
-    // Default (shouldn't happen for simple tracks)
-    return startPos;
-}
+export const calculateEndPosition = calculateEndpointFromPose;
 
 // =============================================================================
 // SNAP CALCULATIONS
@@ -202,7 +173,7 @@ export function calculateStartFromEnd(
     geometry: PartGeometry
 ): Vector2 {
     // Calculate where END would be relative to origin
-    const relativeEnd = calculateEndPosition({ x: 0, y: 0 }, rotation, geometry);
+    const relativeEnd = calculateEndpointFromPose({ x: 0, y: 0 }, rotation, geometry);
 
     // START = END - relative offset
     return {

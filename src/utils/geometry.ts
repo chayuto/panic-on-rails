@@ -7,7 +7,7 @@
  * @see docs/architecture/constitution.md
  */
 
-import type { Vector2 } from '../types';
+import type { Vector2, PartGeometry } from '../types';
 import { degreesToRadians, normalizeAngle, radiansToDegrees } from './angle';
 
 export * from './angle';
@@ -64,6 +64,69 @@ export function rotateAroundPivot(
         x: pivot.x + dx * cos - dy * sin,
         y: pivot.y + dx * sin + dy * cos,
     };
+}
+
+/**
+ * Calculate the end position of a part given its start pose (position + rotation) and geometry.
+ *
+ * Used for "Forward Kinematics" - finding where the track ends.
+ *
+ * @param start - Start position
+ * @param rotation - Start rotation (heading) in degrees
+ * @param geometry - Intrinsic geometry of the part
+ * @returns End position
+ */
+export function calculateEndpointFromPose(
+    start: Vector2,
+    rotation: number,
+    geometry: PartGeometry
+): Vector2 {
+    const rad = degreesToRadians(rotation);
+
+    if (geometry.type === 'straight') {
+        return {
+            x: start.x + Math.cos(rad) * geometry.length,
+            y: start.y + Math.sin(rad) * geometry.length,
+        };
+    }
+
+    if (geometry.type === 'curve') {
+        // Curve logic from facadeConnection.ts
+        // Curves sweep counter-clockwise (left) from A to B
+        const { radius, angle } = geometry;
+        const angleRad = degreesToRadians(angle);
+
+        // Arc center is 90° counter-clockwise from heading
+        const centerAngle = rad - Math.PI / 2;
+        const centerX = start.x + Math.cos(centerAngle) * radius;
+        const centerY = start.y + Math.sin(centerAngle) * radius;
+
+        // End point on arc
+        const endAngle = centerAngle + Math.PI + angleRad;
+        return {
+            x: centerX + Math.cos(endAngle) * radius,
+            y: centerY + Math.sin(endAngle) * radius,
+        };
+    }
+
+    if (geometry.type === 'switch') {
+        // Switch main path behaves like a straight track
+        return {
+            x: start.x + Math.cos(rad) * geometry.mainLength,
+            y: start.y + Math.sin(rad) * geometry.mainLength,
+        };
+    }
+
+    if (geometry.type === 'crossing') {
+        // Crossing main path behaves like a straight track
+         return {
+            x: start.x + Math.cos(rad) * geometry.length,
+            y: start.y + Math.sin(rad) * geometry.length,
+        };
+    }
+
+    // Fallback
+    return start;
 }
 
 // ===========================

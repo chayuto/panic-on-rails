@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
     localToWorld,
     rotateAroundPivot,
+    calculateEndpointFromPose,
 } from '../geometry';
+import type { PartGeometry } from '../../types';
 
 // ===========================
 // Local to World Transform Tests
@@ -286,5 +288,57 @@ describe('deriveWorldGeometry', () => {
 
         const world = deriveWorldGeometry(edge, nodes);
         expect(world).toBeNull();
+    });
+});
+
+// ===========================
+// Calculate Endpoint From Pose Tests
+// ===========================
+
+describe('calculateEndpointFromPose', () => {
+    it('calculates endpoint for straight track', () => {
+        const geometry: PartGeometry = { type: 'straight', length: 100 };
+        const end = calculateEndpointFromPose({ x: 0, y: 0 }, 0, geometry);
+        expect(end.x).toBeCloseTo(100);
+        expect(end.y).toBeCloseTo(0);
+    });
+
+    it('calculates endpoint for rotated straight track', () => {
+        const geometry: PartGeometry = { type: 'straight', length: 100 };
+        const end = calculateEndpointFromPose({ x: 0, y: 0 }, 90, geometry);
+        expect(end.x).toBeCloseTo(0);
+        expect(end.y).toBeCloseTo(100);
+    });
+
+    it('calculates endpoint for curve', () => {
+        const geometry: PartGeometry = { type: 'curve', radius: 100, angle: 90 };
+        // Validates preservation of coordinate logic from facadeConnection.ts
+        const end = calculateEndpointFromPose({ x: 0, y: 0 }, 0, geometry);
+
+        // As established, the existing logic produces (-100, -100) for a standard left curve
+        // starting at (0,0) with 0 deg heading.
+        expect(end.x).toBeCloseTo(-100);
+        expect(end.y).toBeCloseTo(-100);
+    });
+
+    it('calculates endpoint for switch', () => {
+        const geometry: PartGeometry = {
+            type: 'switch',
+            mainLength: 200,
+            branchAngle: 15,
+            branchDirection: 'left'
+        };
+        // Should behave like straight track of length 200
+        const end = calculateEndpointFromPose({ x: 0, y: 0 }, 0, geometry);
+        expect(end.x).toBeCloseTo(200);
+        expect(end.y).toBeCloseTo(0);
+    });
+
+    it('calculates endpoint for crossing', () => {
+        const geometry: PartGeometry = { type: 'crossing', length: 150, crossingAngle: 90 };
+        // Should behave like straight track of length 150
+        const end = calculateEndpointFromPose({ x: 0, y: 0 }, 0, geometry);
+        expect(end.x).toBeCloseTo(150);
+        expect(end.y).toBeCloseTo(0);
     });
 });
