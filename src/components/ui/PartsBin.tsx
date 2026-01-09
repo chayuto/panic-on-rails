@@ -16,9 +16,22 @@ function PartCard({ part }: { part: PartDefinition }) {
 
         // Create a custom drag image (optional enhancement)
         const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
-        dragImage.style.opacity = '0.7';
+        const rect = e.currentTarget.getBoundingClientRect();
+
+        // Fix: Explicitly set dimensions to match original element
+        // otherwise it defaults to 100% width when appended to body
+        dragImage.style.width = `${rect.width}px`;
+        dragImage.style.height = `${rect.height}px`;
+        dragImage.style.position = 'absolute';
+        dragImage.style.top = '-1000px';
+        dragImage.style.left = '-1000px';
+        dragImage.style.opacity = '1'; // Browser handles drag transparency
+
         document.body.appendChild(dragImage);
-        e.dataTransfer.setDragImage(dragImage, 40, 40);
+
+        // Center the drag image cursor
+        e.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
+
         setTimeout(() => document.body.removeChild(dragImage), 0);
     }, [part.id, startDrag]);
 
