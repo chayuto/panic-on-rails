@@ -82,8 +82,8 @@
             "n3": {
                 "id": "n3",
                 "position": {
-                    "x": 300,
-                    "y": 300
+                    "x": 400,
+                    "y": 373
                 },
                 "rotation": 270,
                 "connections": [
@@ -95,8 +95,8 @@
             "n4": {
                 "id": "n4",
                 "position": {
-                    "x": 700,
-                    "y": 300
+                    "x": 600,
+                    "y": 373
                 },
                 "rotation": 270,
                 "connections": [
@@ -152,13 +152,13 @@
                     "type": "arc",
                     "center": {
                         "x": 300,
-                        "y": 151
+                        "y": 200
                     },
-                    "radius": 149,
+                    "radius": 200,
                     "startAngle": 90,
-                    "endAngle": 45
+                    "endAngle": 60
                 },
-                "length": 117
+                "length": 105
             },
             "e4": {
                 "id": "e4",
@@ -187,13 +187,13 @@
                     "type": "arc",
                     "center": {
                         "x": 700,
-                        "y": 151
+                        "y": 200
                     },
-                    "radius": 149,
+                    "radius": 200,
                     "startAngle": 90,
-                    "endAngle": 135
+                    "endAngle": 120
                 },
-                "length": 117
+                "length": 105
             },
             "e6": {
                 "id": "e6",
@@ -203,15 +203,15 @@
                 "geometry": {
                     "type": "straight",
                     "start": {
-                        "x": 300,
-                        "y": 300
+                        "x": 400,
+                        "y": 373
                     },
                     "end": {
-                        "x": 700,
-                        "y": 300
+                        "x": 600,
+                        "y": 373
                     }
                 },
-                "length": 400
+                "length": 200
             }
         }
     },

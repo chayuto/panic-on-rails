@@ -49,6 +49,31 @@ function PartCard({ part }: { part: PartDefinition }) {
                     />
                 </svg>
             );
+        } else if (part.geometry.type === 'switch') {
+            // Switch/turnout preview - Y-shape
+            return (
+                <svg viewBox="0 0 60 60" className="part-preview">
+                    {/* Main straight line */}
+                    <line
+                        x1="10" y1="30"
+                        x2="50" y2="30"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                    />
+                    {/* Diverging branch */}
+                    <line
+                        x1="30" y1="30"
+                        x2="50" y2="15"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        opacity="0.7"
+                    />
+                    {/* Switch indicator dot */}
+                    <circle cx="30" cy="30" r="4" fill="#FFD93D" />
+                </svg>
+            );
         } else {
             // Curve
             return (
@@ -113,6 +138,7 @@ export function PartsBin() {
     // Group by geometry type
     const straights = parts.filter(p => p.geometry.type === 'straight');
     const curves = parts.filter(p => p.geometry.type === 'curve');
+    const switches = parts.filter(p => p.geometry.type === 'switch');
 
     return (
         <aside className="parts-bin">
@@ -139,6 +165,17 @@ export function PartsBin() {
                         <h3>Curves</h3>
                         <div className="part-grid">
                             {curves.map(part => (
+                                <PartCard key={part.id} part={part} />
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {switches.length > 0 && (
+                    <section className="part-section">
+                        <h3>Switches</h3>
+                        <div className="part-grid">
+                            {switches.map(part => (
                                 <PartCard key={part.id} part={part} />
                             ))}
                         </div>
