@@ -1,147 +1,55 @@
+/**
+ * Game loop hook - Orchestrator for simulation systems
+ */
+
 import { useEffect, useRef, useCallback } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
 import { useIsSimulating } from '../stores/useModeStore';
-import { playSound, playSwitchSound } from '../utils/audioManager';
-import { detectCollisions } from '../utils/collisionManager';
-import { getPositionOnEdge } from '../utils/trainGeometry';
-import { getSwitchExitEdge } from '../utils/switchRouting';
-import { explodeTrain, updateCrashedParts, calculateCrashSeverity } from '../utils/crashPhysics';
 import { useEffectsStore } from '../stores/useEffectsStore';
-import type { Train } from '../types';
+import { playSound, playSwitchSound } from '../utils/audioManager';
+import { updateCrashedParts } from '../utils/crashPhysics';
 
-/**
- * Game loop hook - updates train positions at 60fps (simulate mode only)
- */
+// Sub-systems
+import { calculateTrainMovement } from '../simulation/movement';
+import { checkCollisions } from '../simulation/collision';
+import { updateSensors } from '../simulation/signals';
+import { getPositionOnEdge } from '../utils/trainGeometry'; // Re-export for compatibility
+
 export function useGameLoop() {
     const lastTimeRef = useRef<number>(0);
     const animationFrameRef = useRef<number>(0);
 
     const isSimulating = useIsSimulating();
-    const { trains, isRunning, speedMultiplier, updateTrainPosition, setCrashed, crashedParts, addCrashedParts, setCrashedParts } = useSimulationStore();
+    const {
+        trains, isRunning, speedMultiplier,
+        updateTrainPosition, setCrashed,
+        crashedParts, addCrashedParts, setCrashedParts
+    } = useSimulationStore();
     const { edges, nodes, toggleSwitch } = useTrackStore();
-    const { sensors, wires, setSensorState, setSignalState } = useLogicStore();
+    const { sensors, wires, setSensorState, setSignalState, signals } = useLogicStore();
     const { triggerScreenShake, triggerFlash } = useEffectsStore();
 
     const updateTrains = useCallback((deltaTime: number) => {
-        // Scale delta by speed multiplier
         const dt = deltaTime * speedMultiplier;
 
-        Object.values(trains).forEach((train: Train) => {
-            const edge = edges[train.currentEdgeId];
-            if (!edge) return;
-
-            // Calculate new distance along edge
-            let newDistance = train.distanceAlongEdge + train.speed * train.direction * dt;
-            let newDirection = train.direction;
-            let newEdgeId = train.currentEdgeId;
-            let bounceTime: number | undefined = undefined;
-
-            if (newDistance > edge.length) {
-                // Train went past the END of edge, so exit via endNodeId
-                const exitNodeId = edge.endNodeId;
-                const exitNode = nodes[exitNodeId];
-
-                if (exitNode) {
-                    // Find other connections (excluding current edge)
-                    const otherConnections = exitNode.connections.filter(
-                        id => id !== train.currentEdgeId
-                    );
-
-                    if (otherConnections.length > 0) {
-                        // Determine which edge to take
-                        let nextEdgeId: string;
-
-                        // If this is a switch node, use proper switch routing
-                        if (exitNode.type === 'switch' && exitNode.switchBranches) {
-                            const switchExit = getSwitchExitEdge(exitNode, train.currentEdgeId);
-                            if (switchExit && otherConnections.includes(switchExit)) {
-                                nextEdgeId = switchExit;
-                            } else {
-                                // Fallback if switch routing fails
-                                nextEdgeId = otherConnections[0];
-                            }
-                        } else {
-                            // Regular junction: take first available
-                            nextEdgeId = otherConnections[0];
-                        }
-
-                        const nextEdge = edges[nextEdgeId];
-
-                        if (nextEdge) {
-                            // Determine entry direction based on which node we entered
-                            const enterFromStart = nextEdge.startNodeId === exitNodeId;
-                            newEdgeId = nextEdgeId;
-                            newDirection = enterFromStart ? 1 : -1;
-                            newDistance = enterFromStart ? (newDistance - edge.length) : (nextEdge.length - (newDistance - edge.length));
-                        }
-                    } else {
-                        // Dead end - BOUNCE!
-                        newDirection = -train.direction as 1 | -1;
-                        newDistance = edge.length - (newDistance - edge.length);
-                        bounceTime = performance.now();
-
-                        // Play bounce sound
-                        playSound('bounce');
-                    }
-                }
-            } else if (newDistance < 0) {
-                // Train went past the START of edge (distance=0), so exit via startNodeId
-                const exitNodeId = edge.startNodeId;
-                const exitNode = nodes[exitNodeId];
-
-                if (exitNode) {
-                    const otherConnections = exitNode.connections.filter(
-                        id => id !== train.currentEdgeId
-                    );
-
-                    if (otherConnections.length > 0) {
-                        // Determine which edge to take
-                        let nextEdgeId: string;
-
-                        // If this is a switch node, use proper switch routing
-                        if (exitNode.type === 'switch' && exitNode.switchBranches) {
-                            const switchExit = getSwitchExitEdge(exitNode, train.currentEdgeId);
-                            if (switchExit && otherConnections.includes(switchExit)) {
-                                nextEdgeId = switchExit;
-                            } else {
-                                nextEdgeId = otherConnections[0];
-                            }
-                        } else {
-                            nextEdgeId = otherConnections[0];
-                        }
-
-                        const nextEdge = edges[nextEdgeId];
-
-                        if (nextEdge) {
-                            const enterFromEnd = nextEdge.endNodeId === exitNodeId;
-                            newEdgeId = nextEdgeId;
-                            newDirection = enterFromEnd ? -1 : 1;
-                            newDistance = enterFromEnd ? (nextEdge.length + newDistance) : (-newDistance);
-                        }
-                    } else {
-                        // Dead end - BOUNCE!
-                        newDirection = -train.direction as 1 | -1;
-                        newDistance = Math.abs(newDistance);
-                        bounceTime = performance.now();
-
-                        // Play bounce sound
-                        playSound('bounce');
-                    }
-                }
+        // SYSTEM 1: Movement
+        Object.values(trains).forEach((train) => {
+            const update = calculateTrainMovement(train, dt, edges, nodes);
+            if (update) {
+                updateTrainPosition(
+                    update.trainId,
+                    update.distance,
+                    update.edgeId,
+                    update.direction,
+                    update.bounceTime
+                );
             }
-
-            // Clamp distance
-            newDistance = Math.max(0, Math.min(newDistance, edges[newEdgeId]?.length || edge.length));
-
-            // Update train position (pass bounceTime if bounce occurred)
-            updateTrainPosition(train.id, newDistance, newEdgeId, newDirection, bounceTime);
         });
     }, [trains, edges, nodes, speedMultiplier, updateTrainPosition]);
 
     useEffect(() => {
-        // Only run game loop if BOTH in simulate mode AND running
         if (!isSimulating || !isRunning) {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
@@ -158,115 +66,66 @@ export function useGameLoop() {
             const deltaTime = (timestamp - lastTimeRef.current) / 1000;
             lastTimeRef.current = timestamp;
 
-            // Cap delta time to prevent huge jumps
             const cappedDelta = Math.min(deltaTime, 0.1);
 
+            // 1. Movement System
             updateTrains(cappedDelta);
 
-            // Check for collisions
-            const collisions = detectCollisions(trains);
-            collisions.forEach(({ trainA, trainB }) => {
-                // Get train positions for explosion
-                const edgeA = edges[trainA.currentEdgeId];
-                const edgeB = edges[trainB.currentEdgeId];
+            // 2. Collision System
+            const collisionEvents = checkCollisions(trains, edges);
+            collisionEvents.forEach(event => {
+                // Apply physics effects
+                addCrashedParts(event.debris);
 
-                if (edgeA && !trainA.crashed) {
-                    const posA = getPositionOnEdge(edgeA, trainA.distanceAlongEdge);
-                    const severity = calculateCrashSeverity(
-                        { x: trainA.speed * trainA.direction, y: 0 },
-                        { x: trainB.speed * trainB.direction, y: 0 }
-                    );
-
-                    // Create explosion debris
-                    const parts = explodeTrain({
-                        position: posA,
-                        velocity: { x: trainA.speed * trainA.direction * 0.5, y: 0 },
-                        trainColor: trainA.color,
-                        severity,
-                    });
-                    addCrashedParts(parts);
-
-                    // Visual effects
-                    triggerScreenShake(8 + severity * 4, 200 + severity * 100);
-                    triggerFlash(posA, { color: '#FFFFFF', duration: 100 });
-
-                    setCrashed(trainA.id);
-                }
-
-                if (edgeB && !trainB.crashed) {
-                    const posB = getPositionOnEdge(edgeB, trainB.distanceAlongEdge);
-                    const severity = calculateCrashSeverity(
-                        { x: trainB.speed * trainB.direction, y: 0 }
-                    );
-
-                    const parts = explodeTrain({
-                        position: posB,
-                        velocity: { x: trainB.speed * trainB.direction * 0.5, y: 0 },
-                        trainColor: trainB.color,
-                        severity,
-                    });
-                    addCrashedParts(parts);
-
-                    setCrashed(trainB.id);
-                }
-
+                // Visual/Audio events
+                triggerScreenShake(8 + event.severity * 4, 200 + event.severity * 100);
+                triggerFlash(event.location, { color: '#FFFFFF', duration: 100 });
                 playSound('crash');
+
+                // Mark trains as crashed
+                event.trainIds.forEach(id => setCrashed(id));
             });
 
-            // Update crashed parts physics
+            // 3. Debris System
             if (crashedParts.length > 0) {
                 const updatedParts = updateCrashedParts(crashedParts, cappedDelta, 500);
                 setCrashedParts(updatedParts);
             }
 
-            // Update sensor states based on train positions
-            Object.values(sensors).forEach((sensor) => {
-                const trainOnSensor = Object.values(trains).some((train) => {
-                    if (train.crashed) return false;
-                    if (train.currentEdgeId !== sensor.edgeId) return false;
+            // 4. Signal/Sensor System
+            const sensorUpdates = updateSensors(trains, sensors, wires);
+            sensorUpdates.forEach(update => {
+                setSensorState(update.sensorId, update.newState);
 
-                    // Check if train is within sensor zone
-                    const distance = Math.abs(train.distanceAlongEdge - sensor.position);
-                    return distance < sensor.length / 2;
-                });
+                // Handle triggered wire actions
+                update.triggeredActions.forEach(action => {
+                    if (action.targetType === 'switch') {
+                        if (action.action === 'toggle') {
+                            toggleSwitch(action.targetId);
+                        } else if (action.action === 'set_main') {
+                            const node = nodes[action.targetId];
+                            if (node?.switchState !== 0) toggleSwitch(action.targetId);
+                        } else if (action.action === 'set_branch') {
+                            const node = nodes[action.targetId];
+                            if (node?.switchState !== 1) toggleSwitch(action.targetId);
+                        }
+                        playSwitchSound('n-scale');
+                    } else if (action.targetType === 'signal') {
+                        // Access signal state from logic store safely? 
+                        // LogicStore updates usually atomic.
+                        // Ideally pass signals explicitly like trains. 
+                        // For now we access via closure or store getter if needed.
+                        const signal = signals[action.targetId];
 
-                const newState = trainOnSensor ? 'on' : 'off';
-                if (sensor.state !== newState) {
-                    setSensorState(sensor.id, newState);
-
-                    // Process wires triggered by this sensor
-                    if (newState === 'on') {
-                        Object.values(wires).forEach((wire) => {
-                            if (wire.sourceType === 'sensor' && wire.sourceId === sensor.id) {
-                                // Execute wire action
-                                if (wire.targetType === 'switch') {
-                                    if (wire.action === 'toggle') {
-                                        toggleSwitch(wire.targetId);
-                                    } else if (wire.action === 'set_main') {
-                                        // Set to main (state 0)
-                                        const node = nodes[wire.targetId];
-                                        if (node?.switchState !== 0) toggleSwitch(wire.targetId);
-                                    } else if (wire.action === 'set_branch') {
-                                        // Set to branch (state 1)
-                                        const node = nodes[wire.targetId];
-                                        if (node?.switchState !== 1) toggleSwitch(wire.targetId);
-                                    }
-                                    playSwitchSound('n-scale');  // Enhanced musical switch sound
-                                } else if (wire.targetType === 'signal') {
-                                    if (wire.action === 'toggle') {
-                                        // Toggle signal
-                                        const signal = useLogicStore.getState().signals[wire.targetId];
-                                        setSignalState(wire.targetId, signal?.state === 'red' ? 'green' : 'red');
-                                    } else if (wire.action === 'set_red') {
-                                        setSignalState(wire.targetId, 'red');
-                                    } else if (wire.action === 'set_green') {
-                                        setSignalState(wire.targetId, 'green');
-                                    }
-                                }
-                            }
-                        });
+                        if (action.action === 'toggle') {
+                            setSignalState(action.targetId, signal?.state === 'red' ? 'green' : 'red');
+                        } else if (action.action === 'set_red') {
+                            setSignalState(action.targetId, 'red');
+                        } else if (action.action === 'set_green') {
+                            setSignalState(action.targetId, 'green');
+                        }
                     }
-                }
+                });
             });
 
             animationFrameRef.current = requestAnimationFrame(loop);
@@ -279,11 +138,13 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-        // Note: edges, crashedParts, and effect functions are intentionally accessed via closure
-        // to avoid restarting the game loop on every crash particle update.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSimulating, isRunning, updateTrains, trains, nodes, sensors, wires, setCrashed, setSensorState, setSignalState, toggleSwitch]);
+    }, [
+        isSimulating, isRunning, updateTrains, trains, edges, nodes,
+        sensors, wires, signals, // Added signals to deps
+        setCrashed, setCrashedParts, crashedParts, addCrashedParts,
+        setSensorState, setSignalState, toggleSwitch,
+        triggerFlash, triggerScreenShake
+    ]);
 
-    // Re-export position calculator from trainGeometry for backward compatibility
     return { getPositionOnEdge };
 }

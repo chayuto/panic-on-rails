@@ -66,6 +66,14 @@ export function rotateAroundPivot(
     };
 }
 
+/**
+ * Calculate arc length for a curved track
+ */
+export function calculateArcLength(radius: number, angleDegrees: number): number {
+    const angleRadians = (angleDegrees * Math.PI) / 180;
+    return radius * angleRadians;
+}
+
 // ===========================
 // V2: Derived World Geometry
 // ===========================
@@ -136,6 +144,55 @@ export function calculateArcCenter(
     return {
         x: midX + perpX * apothem * sign,
         y: midY + perpY * apothem * sign,
+    };
+}
+
+/**
+ * Calculate the endpoint of an arc given start point, radius, and sweep angle.
+ * 
+ * @param startX - X coordinate of arc start
+ * @param startY - Y coordinate of arc start
+ * @param radius - Arc radius
+ * @param sweepAngleDeg - Sweep angle in degrees (positive = CCW, negative = CW)
+ * @param startDirection - Direction at start point in degrees (0 = right)
+ * @returns Endpoint position and tangent direction
+ */
+export function calculateArcEndpoint(
+    startX: number,
+    startY: number,
+    radius: number,
+    sweepAngleDeg: number,
+    startDirection: number
+): { position: { x: number; y: number }; tangentDirection: number } {
+    const sweepRad = (sweepAngleDeg * Math.PI) / 180;
+    const startDirRad = (startDirection * Math.PI) / 180;
+
+    // Arc center is perpendicular to start direction
+    // For CCW (positive sweep): center is 90° left of direction
+    // For CW (negative sweep): center is 90° right of direction
+    const perpOffset = sweepAngleDeg >= 0 ? Math.PI / 2 : -Math.PI / 2;
+    const toCenterAngle = startDirRad + perpOffset;
+
+    const centerX = startX + Math.cos(toCenterAngle) * radius;
+    const centerY = startY + Math.sin(toCenterAngle) * radius;
+
+    // Angle from center to start point
+    const startAngleFromCenter = Math.atan2(startY - centerY, startX - centerX);
+
+    // Angle from center to end point
+    const endAngleFromCenter = startAngleFromCenter + sweepRad;
+
+    // End position
+    const endX = centerX + Math.cos(endAngleFromCenter) * radius;
+    const endY = centerY + Math.sin(endAngleFromCenter) * radius;
+
+    // Tangent direction at end (perpendicular to radius)
+    const tangentDirection = ((endAngleFromCenter * 180) / Math.PI) +
+        (sweepAngleDeg >= 0 ? 90 : -90);
+
+    return {
+        position: { x: endX, y: endY },
+        tangentDirection: normalizeAngle(tangentDirection),
     };
 }
 
