@@ -59,7 +59,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     });
 
     // Get remaining editor state
-    const { showGrid, draggedPartId, ghostPosition } = useEditorStore();
+    const { showGrid, draggedPartId } = useEditorStore();
 
     // Mode hooks for conditional rendering
     const isEditing = useIsEditing();
@@ -196,7 +196,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 </Layer>
 
                 {/* Layer 3: Ghost (conditional, edit mode + dragging) */}
-                {isEditing && draggedPartId && ghostPosition && (
+                {/* Note: Layer rendered when draggedPartId exists; GhostLayer handles null position internally */}
+                {isEditing && draggedPartId && (
                     <Layer listening={false}>
                         <GhostLayer />
                     </Layer>
