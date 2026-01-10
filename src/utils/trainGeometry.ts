@@ -12,9 +12,7 @@ import type {
     Vector2,
     EdgeId,
     NodeId,
-    TrackGeometry,
 } from '../types';
-import { getEdgeWorldGeometry } from '../hooks/useEdgeGeometry';
 import { DEFAULT_CARRIAGE_SPACING } from '../stores/useSimulationStore';
 
 // ===========================
@@ -37,39 +35,67 @@ export const BOUNCE_DURATION = 300;
  * @param nodes - Optional node map for V2 derived geometry
  * @returns World position {x, y}
  */
+import { createGeometryEngine } from '../geometry/engines';
+
+/**
+ * Calculate world position from edge geometry and distance along edge.
+ * V2: Uses derived geometry when nodes are provided.
+ * Delegated to R02 Unified Geometry Engine.
+ *
+ * @param edge - The track edge
+ * @param distance - Distance along the edge (0 to edge.length)
+ * @param nodes - Optional node map for V2 derived geometry
+ * @returns World position {x, y}
+ */
 export function getPositionOnEdge(
     edge: TrackEdge,
     distance: number,
     nodes?: Record<NodeId, TrackNode>
 ): Vector2 {
-    const progress = Math.max(0, Math.min(1, distance / edge.length));
+    if (!nodes) {
+        // Fallback for legacy calls without nodes (should rely on edge.geometry)
+        // We create a temporary mock nodes record if possible, or warn
+        console.warn('[getPositionOnEdge] called without nodes, might fail for derived geometry');
+        // We can't easily use createGeometryEngine without nodes if it requires them for derivation
+        // But the engine factory accepts nodes.
+        // If we strictly enforce nodes, we might break call sites.
+        // Let's defer to original logic if no nodes, OR try to construct engine with empty nodes?
+        // createGeometryEngine throws if nodes missing for derivation.
+        // Let's preserve legacy behavior if nodes missing, BUT prefer engine if present.
 
-    // V2: Use derived geometry if nodes available
-    const geometry: TrackGeometry = nodes
-        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
-        : edge.geometry;
+        // LEGACY FALLBACK (Inline to avoid circular dep if we moved it)
+        const progress = Math.max(0, Math.min(1, distance / edge.length));
+        if (edge.geometry.type === 'straight') {
+            const { start, end } = edge.geometry;
+            return {
+                x: start.x + (end.x - start.x) * progress,
+                y: start.y + (end.y - start.y) * progress,
+            };
+        } else {
+            const { center, radius, startAngle, endAngle } = edge.geometry;
+            const angleDeg = startAngle + (endAngle - startAngle) * progress;
+            const angleRad = (angleDeg * Math.PI) / 180;
+            return {
+                x: center.x + Math.cos(angleRad) * radius,
+                y: center.y + Math.sin(angleRad) * radius,
+            };
+        }
+    }
 
-    if (geometry.type === 'straight') {
-        const { start, end } = geometry;
-        return {
-            x: start.x + (end.x - start.x) * progress,
-            y: start.y + (end.y - start.y) * progress,
-        };
-    } else {
-        // Arc geometry - angles are stored in DEGREES per constitution
-        const { center, radius, startAngle, endAngle } = geometry;
-        const angleDeg = startAngle + (endAngle - startAngle) * progress;
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return {
-            x: center.x + Math.cos(angleRad) * radius,
-            y: center.y + Math.sin(angleRad) * radius,
-        };
+    try {
+        const engine = createGeometryEngine(edge, nodes);
+        const t = engine.getParameterAtDistance(distance);
+        return engine.getPositionAt(t);
+    } catch (e) {
+        console.warn(`[getPositionOnEdge] Engine failure: ${e}`);
+        return { x: 0, y: 0 };
     }
 }
 
 /**
  * Calculate rotation angle (in degrees) based on edge geometry and position.
  * V2: Uses derived geometry when nodes are provided.
+ * Delegated to R02 Unified Geometry Engine.
  *
  * @param edge - The track edge
  * @param distance - Distance along the edge
@@ -83,28 +109,33 @@ export function getRotationOnEdge(
     direction: 1 | -1,
     nodes?: Record<NodeId, TrackNode>
 ): number {
-    const progress = Math.max(0, Math.min(1, distance / edge.length));
+    if (!nodes) {
+        // Legacy fallback
+        const progress = Math.max(0, Math.min(1, distance / edge.length));
+        if (edge.geometry.type === 'straight') {
+            const { start, end } = edge.geometry;
+            const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            return (angle * 180 / Math.PI) + (direction === -1 ? 180 : 0);
+        } else {
+            const { startAngle, endAngle } = edge.geometry;
+            const angleDeg = startAngle + (endAngle - startAngle) * progress;
+            const tangentAngle = angleDeg + 90; // Tangent to circle
+            const arcDirection = endAngle > startAngle ? 1 : -1;
+            return tangentAngle + (direction * arcDirection === -1 ? 180 : 0);
+        }
+    }
 
-    // V2: Use derived geometry if nodes available
-    const geometry: TrackGeometry = nodes
-        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
-        : edge.geometry;
+    try {
+        const engine = createGeometryEngine(edge, nodes);
+        const t = engine.getParameterAtDistance(distance);
+        const tangent = engine.getTangentAt(t);
 
-    if (geometry.type === 'straight') {
-        const { start, end } = geometry;
-        const angle = Math.atan2(end.y - start.y, end.x - start.x);
-        // Flip 180 degrees if moving backwards
-        return (angle * 180 / Math.PI) + (direction === -1 ? 180 : 0);
-    } else {
-        // Arc geometry - tangent to the curve
-        // Angles are stored in DEGREES per constitution
-        const { startAngle, endAngle } = geometry;
-        const angleDeg = startAngle + (endAngle - startAngle) * progress;
-        // Tangent is perpendicular to radius (add 90 degrees)
-        const tangentAngle = angleDeg + 90;
-        // Flip if arc goes clockwise (endAngle < startAngle) or if moving backwards
-        const arcDirection = endAngle > startAngle ? 1 : -1;
-        return tangentAngle + (direction * arcDirection === -1 ? 180 : 0);
+        // Engine returns tangent in direction of path (A->B)
+        // If train is moving backwards (-1), we need to flip 180
+        return tangent + (direction === -1 ? 180 : 0);
+    } catch (e) {
+        console.warn(`[getRotationOnEdge] Engine failure: ${e}`);
+        return 0;
     }
 }
 
