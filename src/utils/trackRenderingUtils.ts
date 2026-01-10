@@ -7,6 +7,7 @@
  */
 
 import type { Vector2 } from '../types';
+import { distance } from './vector';
 
 // ===========================
 // Dual Rail Helpers (V4)
@@ -34,7 +35,7 @@ export function getParallelLinePoints(
 ): [number, number, number, number] {
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
+    const len = distance(start, end);
 
     if (len === 0) {
         // Degenerate case: zero-length line
@@ -107,7 +108,7 @@ export function generateStraightSleepers(
 
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
+    const length = distance(start, end);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
     if (length === 0) return sleepers;
