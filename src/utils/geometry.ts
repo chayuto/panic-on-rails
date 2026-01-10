@@ -9,6 +9,7 @@
 
 import type { Vector2 } from '../types';
 import { degreesToRadians, normalizeAngle, radiansToDegrees } from './angle';
+import { distance } from './vector';
 
 export * from './angle';
 export * from './vector';
@@ -112,7 +113,7 @@ export function calculateArcCenter(
     // Chord from start to end
     const chordX = end.x - start.x;
     const chordY = end.y - start.y;
-    const chordLength = Math.sqrt(chordX * chordX + chordY * chordY);
+    const chordLength = distance(start, end);
 
     if (chordLength < 0.0001) {
         // Start and end are the same point, return midpoint (degenerate case)
