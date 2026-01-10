@@ -35,7 +35,9 @@ import {
     createStraightTrack,
     createCurveTrack,
 } from './trackCreators';
+
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
+import { LayoutDataSchema } from '../../schemas/layout';
 
 // Declare build-time constant
 declare const __BUILD_TIME__: string;
@@ -171,16 +173,27 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         });
     },
 
-    loadLayout: (data) => {
+    loadLayout: (rawData: unknown) => {
+        const result = LayoutDataSchema.safeParse(rawData);
+
+        if (!result.success) {
+            console.error('Invalid layout data:', result.error);
+            throw new Error(`Invalid layout: ${result.error.issues[0]?.message}`);
+        }
+
+        const data = result.data;
+
+        // Explicit cast to ensure compatibility with store types
+        const nodes = data.nodes as Record<NodeId, TrackNode>;
+        const edges = data.edges as Record<EdgeId, TrackEdge>;
         // Rebuild spatial indices with loaded data
-        rebuildSpatialIndices(data.nodes, data.edges);
+        rebuildSpatialIndices(nodes, edges);
 
         set({
-            nodes: data.nodes,
-            edges: data.edges,
+            nodes: nodes,
+            edges: edges,
         });
     },
-
     clearLayout: () => {
         console.log('[useTrackStore] clearLayout() called');
 

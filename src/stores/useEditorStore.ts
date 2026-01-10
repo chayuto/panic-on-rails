@@ -9,6 +9,15 @@ export interface SnapResult {
     distance: number;
 }
 
+export interface GhostState {
+    position: Vector2;
+    rotation: number;
+    valid: boolean;
+}
+
+// Transient state storage (outside Zustand to avoid re-renders)
+const ghostRef = { current: null as GhostState | null };
+
 interface EditorState {
     // Selection state
     selectedEdgeId: EdgeId | null;
@@ -72,6 +81,10 @@ interface EditorActions {
     // Connect mode actions
     setConnectSource: (source: { nodeId: NodeId; edgeId: EdgeId } | null) => void;
     clearConnectSource: () => void;
+
+    // Transient updates (high frequency, no re-render)
+    setGhostTransient: (ghost: GhostState | null) => void;
+    getGhostTransient: () => GhostState | null;
 }
 
 const initialState: EditorState = {
@@ -157,4 +170,10 @@ export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
     // Connect mode actions
     setConnectSource: (source) => set({ connectSource: source }),
     clearConnectSource: () => set({ connectSource: null }),
+
+    // Transient updates
+    setGhostTransient: (ghost) => {
+        ghostRef.current = ghost;
+    },
+    getGhostTransient: () => ghostRef.current,
 }));

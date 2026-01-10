@@ -1,5 +1,6 @@
 import { saveAs } from 'file-saver';
 import type { LayoutData } from '../types';
+import { LayoutDataSchema } from '../schemas/layout';
 
 /**
  * Export layout to JSON file
@@ -15,22 +16,17 @@ export function exportLayout(layout: LayoutData, filename = 'layout.json'): void
  */
 export async function importLayout(file: File): Promise<LayoutData> {
     const text = await file.text();
-    const data = JSON.parse(text) as LayoutData;
+    const rawData = JSON.parse(text);
 
-    // Basic validation
-    if (!data.nodes || typeof data.nodes !== 'object') {
-        throw new Error('Invalid layout: missing nodes');
-    }
-    if (!data.edges || typeof data.edges !== 'object') {
-        throw new Error('Invalid layout: missing edges');
-    }
+    // Validate using Zod schema
+    const result = LayoutDataSchema.safeParse(rawData);
 
-    // Version check (for future compatibility)
-    if (data.version && data.version > 1) {
-        console.warn(`Layout version ${data.version} may not be fully compatible`);
+    if (!result.success) {
+        console.error('Validation error:', result.error);
+        throw new Error(`Invalid layout file: ${result.error.issues[0]?.message}`);
     }
 
-    return data;
+    return result.data as LayoutData;
 }
 
 /**

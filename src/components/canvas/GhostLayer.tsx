@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Line, Arc, Circle, Group } from 'react-konva';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing } from '../../stores/useModeStore';
@@ -12,13 +13,34 @@ const GHOST_OPACITY = 0.5;
  */
 export function GhostLayer() {
     const isEditing = useIsEditing();
-    const {
-        draggedPartId,
-        ghostPosition,
-        ghostRotation,
-        ghostValid,
-        snapTarget
-    } = useEditorStore();
+    const draggedPartId = useEditorStore(state => state.draggedPartId);
+    const snapTarget = useEditorStore(state => state.snapTarget);
+
+    // Local state for high-frequency updates
+    const [ghostState, setGhostState] = useState(useEditorStore.getState().getGhostTransient());
+
+    useEffect(() => {
+        if (!draggedPartId) return;
+
+        let animationFrameId: number;
+
+        const loop = () => {
+            const current = useEditorStore.getState().getGhostTransient();
+            if (current) {
+                // Determine if we need to update (simple shallow check or just force update)
+                // Since this is 60fps loop, we want to only render if changed.
+                // But for now, just setting state is fine, React will bail out if values are identical primitives? 
+                // No, current is an object.
+                setGhostState({ ...current });
+            }
+            animationFrameId = requestAnimationFrame(loop);
+        };
+
+        animationFrameId = requestAnimationFrame(loop);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [draggedPartId]);
+
+    const { position: ghostPosition, rotation: ghostRotation = 0, valid: ghostValid = true } = ghostState || {};
 
     // Don't render in simulate mode
     if (!isEditing) return null;

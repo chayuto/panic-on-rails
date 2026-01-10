@@ -12,7 +12,7 @@
  * - Ripple effect on toggle
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Group, Circle, Wedge, Line } from 'react-konva';
 import type { TrackNode, TrackEdge, EdgeId, Vector2 } from '../../types';
 import { getSwitchEntryFacade } from '../../utils/connectTransform';
@@ -45,7 +45,7 @@ export interface SwitchRendererProps {
 /**
  * Renders a switch node with visual indicator, animated rail points, and interaction handlers.
  */
-export function SwitchRenderer({
+export const SwitchRenderer = memo(function SwitchRenderer({
     node,
     edges,
     onSwitchClick,
@@ -182,4 +182,4 @@ export function SwitchRenderer({
             />
         </Group>
     );
-}
+});
