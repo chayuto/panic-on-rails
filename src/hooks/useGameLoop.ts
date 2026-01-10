@@ -16,6 +16,7 @@ import { calculateTrainMovement } from '../simulation/movement';
 import { checkCollisions } from '../simulation/collision';
 import { updateSensors } from '../simulation/signals';
 import { getPositionOnEdge } from '../utils/trainGeometry'; // Re-export for compatibility
+import { TIMING } from '../config/timing';
 
 export function useGameLoop() {
     const lastTimeRef = useRef<number>(0);
@@ -66,7 +67,7 @@ export function useGameLoop() {
             const deltaTime = (timestamp - lastTimeRef.current) / 1000;
             lastTimeRef.current = timestamp;
 
-            const cappedDelta = Math.min(deltaTime, 0.1);
+            const cappedDelta = Math.min(deltaTime, TIMING.DELTA_TIME_CAP);
 
             // 1. Movement System
             updateTrains(cappedDelta);
@@ -88,7 +89,20 @@ export function useGameLoop() {
 
             // 3. Debris System
             if (crashedParts.length > 0) {
-                const updatedParts = updateCrashedParts(crashedParts, cappedDelta, 500);
+                const updatedParts = updateCrashedParts(crashedParts, cappedDelta, 500); // 500 is maxAge, moved to PHYSICS but passed as arg here or used default?
+                // The updateCrashedParts fn signature is (parts, dt, groundY). Wait.
+                // Looking at prev file content:
+                // export function updateCrashedParts(parts: CrashedPart[], dt: number, groundY: number = GROUND_Y): CrashedPart[]
+                // In useGameLoop line 91: updateCrashedParts(crashedParts, cappedDelta, 500);
+                // 500 passed as groundY?
+                // But in crashPhysics, groundY defaults to 600.
+                // In game loop it explicitly passes 500.
+                // I should probably keep it 500 OR use the config if 500 was just a magic number for "ground level".
+                // PHYSICS.GROUND_Y is 600.
+                // Let's assume 500 was the intent for this specific view.
+                // I will NOT replace 500 with PHYSICS.GROUND_Y if they differ.
+                // But I should check if there's a constant for it.
+                // For now, I'll only replace DELTA_TIME_CAP.
                 setCrashedParts(updatedParts);
             }
 

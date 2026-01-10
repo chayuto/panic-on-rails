@@ -54,6 +54,15 @@ const initialTrackState = {
 export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
     ...initialTrackState,
 
+    /**
+     * Add a new track piece to the layout.
+     * Handles creation of nodes and edges based on part definition.
+     * 
+     * @param partId - ID of the part from catalog
+     * @param position - World position for placement
+     * @param rotation - Rotation in degrees
+     * @returns ID of the primary edge created
+     */
     addTrack: (partId, position, rotation) => {
         const part = getPartById(partId);
         if (!part) return null;
@@ -143,6 +152,12 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         return primaryEdgeId;
     },
 
+    /**
+     * Remove a track piece by its edge ID.
+     * Also removes connected nodes if they become orphaned.
+     * 
+     * @param edgeId - ID of the edge to remove
+     */
     removeTrack: (edgeId) => {
         // Remove from spatial index first
         spatialIndex.remove(edgeId);
@@ -173,6 +188,13 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         });
     },
 
+    /**
+     * Load a complete layout from data object.
+     * Validates schema and rebuilds spatial indices.
+     * 
+     * @param rawData - Layout object matching LayoutDataSchema
+     * @throws Error if schema validation fails
+     */
     loadLayout: (rawData: unknown) => {
         const result = LayoutDataSchema.safeParse(rawData);
 
@@ -194,6 +216,10 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
             edges: edges,
         });
     },
+    /**
+     * Clear the entire layout (tracks, nodes, and budget).
+     * Resets store to initial state.
+     */
     clearLayout: () => {
         console.log('[useTrackStore] clearLayout() called');
 
@@ -211,6 +237,12 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         console.log('[useTrackStore] ✅ clearLayout() completed');
     },
 
+    /**
+     * Serialize current layout state for saving.
+     * Includes metadata and debug info.
+     * 
+     * @returns Complete layout object
+     */
     getLayout: () => {
         const state = get();
 
@@ -256,6 +288,12 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         };
     },
 
+    /**
+     * Find all open track endpoints (connections < max).
+     * Used for snapping.
+     * 
+     * @returns Array of track nodes with open connections
+     */
     getOpenEndpoints: () => {
         const state = get();
         // Open endpoints are nodes with only 1 connection (one open side)

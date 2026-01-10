@@ -10,6 +10,14 @@ let trainCounter = 0;
 const DEFAULT_CARRIAGE_SPACING = 30;
 
 export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
+    /**
+     * Spawn a new train on a specific edge.
+     * 
+     * @param edgeId - ID of the starting edge
+     * @param color - Optional color (cycles through defaults if omitted)
+     * @param carriageCount - Number of carriages (default: 1)
+     * @returns ID of the newly created train
+     */
     spawnTrain: (edgeId, color, carriageCount) => {
         const trainId = `train-${++trainCounter}`;
         const trainColor = color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
@@ -32,6 +40,11 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         return trainId;
     },
 
+    /**
+     * Remove a train from the simulation.
+     * 
+     * @param trainId - ID of the train to remove
+     */
     removeTrain: (trainId) => {
         set((state) => {
             const newTrains = { ...state.trains };
@@ -40,6 +53,16 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         });
     },
 
+    /**
+     * Update a train's physics state.
+     * Used by the game loop to move trains.
+     * 
+     * @param trainId - ID of the train
+     * @param distance - New distance along current edge
+     * @param edgeId - New edge ID (if transitioned)
+     * @param direction - New direction (if reversed)
+     * @param bounceTime - Bounce animation timestamp (if bounced)
+     */
     updateTrainPosition: (trainId, distance, edgeId, direction, bounceTime) => {
         set((state) => {
             const train = state.trains[trainId];
@@ -60,6 +83,12 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         });
     },
 
+    /**
+     * Mark a train as crashed.
+     * stops movement and triggers crash physics.
+     * 
+     * @param trainId - ID of the crashed train
+     */
     setCrashed: (trainId) => {
         set((state) => {
             const train = state.trains[trainId];
@@ -79,5 +108,8 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         });
     },
 
+    /**
+     * Remove all trains from the simulation.
+     */
     clearTrains: () => set({ trains: {} }),
 });

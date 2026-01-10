@@ -21,19 +21,63 @@ interface BudgetState {
 }
 
 // ===========================
-// Actions Interface
 // ===========================
 
 interface BudgetActions {
-    /** Attempt to spend amount. Returns false if insufficient funds. */
+
+    /**
+     * Attempt to spend a specific amount from the budget.
+     * 
+     * @param amount - Amount to spend in cents
+     * @returns `true` if transaction successful, `false` if insufficient funds
+     * 
+     * @example
+     * if (spend(500)) {
+     *   console.log('Bought item!');
+     * } else {
+     *   console.log('Not enough money');
+     * }
+     */
     spend: (amount: number) => boolean;
-    /** Refund an amount back to balance */
+
+    /**
+     * Refund an amount back to the budget balance.
+     * 
+     * @param amount - Amount to refund in cents
+     * 
+     * @example
+     * refund(500); // Balance increases by $5.00
+     */
     refund: (amount: number) => void;
-    /** Reset budget to starting amount */
+
+    /**
+     * Reset budget to the starting amount and clear total spent.
+     * 
+     * @example
+     * reset(); // Balance becomes startingBudget ($100.00)
+     */
     reset: () => void;
-    /** Set a new starting budget */
+
+    /**
+     * Set the starting budget for the session.
+     * Also resets current balance to this new amount.
+     * 
+     * @param amount - New starting budget in cents
+     * 
+     * @example
+     * setStartingBudget(20000); // Set to $200.00
+     */
     setStartingBudget: (amount: number) => void;
-    /** Check if can afford an amount */
+
+    /**
+     * Check if the user can afford a specific amount without spending it.
+     * 
+     * @param amount - Amount to check in cents
+     * @returns `true` if balance >= amount
+     * 
+     * @example
+     * if (canAfford(1000)) { ... }
+     */
     canAfford: (amount: number) => boolean;
 }
 

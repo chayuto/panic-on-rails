@@ -36,24 +36,13 @@ export interface CrashEvent {
     severity: number;  // 1-3, affects explosion force
 }
 
+import { PHYSICS } from '../config/physics';
+
 // ===========================
 // Constants
 // ===========================
 
-const GRAVITY = 400;           // pixels per second squared
-const FRICTION = 0.85;         // velocity retained per bounce
-const ANGULAR_FRICTION = 0.9;  // angular velocity decay
-const GROUND_Y = 600;          // canvas bottom (will be adjusted per context)
-const SETTLE_THRESHOLD = 5;    // velocity below which part settles
-
-// Part definitions with mass and max bounces
-const PART_DEFINITIONS: Record<CrashPartType, { mass: number; maxBounces: number }> = {
-    body: { mass: 3.0, maxBounces: 2 },
-    wheel: { mass: 0.5, maxBounces: 5 },
-    chimney: { mass: 0.3, maxBounces: 3 },
-    cab: { mass: 0.8, maxBounces: 2 },
-    cargo: { mass: 0.6, maxBounces: 4 },
-};
+const { GRAVITY, FRICTION, ANGULAR_FRICTION, GROUND_Y, SETTLE_THRESHOLD, PARTS: PART_DEFINITIONS } = PHYSICS;
 
 // ===========================
 // Part ID Generation

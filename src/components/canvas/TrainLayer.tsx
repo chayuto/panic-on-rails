@@ -21,46 +21,13 @@ import {
     getPositionOnEdge,
 } from '../../utils/trainGeometry';
 
+import { RENDERING } from '../../config/rendering';
+
 // ===========================
 // Visual Constants
 // ===========================
 
-/** Locomotive dimensions (V1: Silhouette shape) */
-const LOCOMOTIVE = {
-    WIDTH: 28,
-    HEIGHT: 16,
-    NOSE: 6,
-} as const;
-
-/** Carriage dimensions (V2: Enhanced shape) */
-const CARRIAGE = {
-    WIDTH: 22,
-    HEIGHT: 12,
-    CORNER_RADIUS: 4,
-} as const;
-
-/** Headlight dimensions (V3: Directional indicator) */
-const HEADLIGHT = {
-    RADIUS: 3,
-    COLOR: '#FFFFCC',  // Warm white
-} as const;
-
-/** Motion trail effect (V7) */
-const TRAIL = {
-    SEGMENT_COUNT: 6,
-    SEGMENT_SPACING: 12,
-    MIN_SPEED: 50,
-    BASE_OPACITY: 0.4,
-    SEGMENT_RADIUS: 4,
-} as const;
-
-/** Headlight cone effect (V8) */
-const CONE = {
-    LENGTH: 70,
-    ANGLE: 35,
-    OPACITY: 0.15,
-    COLOR: '#FFFFCC',
-} as const;
+const { LOCOMOTIVE, CARRIAGE, HEADLIGHT, TRAIL, CONE } = RENDERING;
 
 
 // ===========================

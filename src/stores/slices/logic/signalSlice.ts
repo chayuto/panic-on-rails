@@ -7,6 +7,13 @@ import type { Signal, SignalState } from '../../../types';
 import type { LogicSliceCreator, SignalSlice } from './types';
 
 export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => ({
+    /**
+     * Add a signal to a node.
+     * 
+     * @param nodeId - ID of the node to attach signal to
+     * @param offset - Visual offset from node center definition
+     * @returns ID of the new signal
+     */
     addSignal: (nodeId, offset = { x: 20, y: -20 }) => {
         const signalId = uuidv4();
         const signal: Signal = {
@@ -32,6 +39,11 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
         return signalId;
     },
 
+    /**
+     * Remove a signal and connected wires.
+     * 
+     * @param signalId - ID of the signal to remove
+     */
     removeSignal: (signalId) => {
         set((state) => {
             const remaining = Object.fromEntries(
@@ -55,6 +67,12 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
         });
     },
 
+    /**
+     * Set explicit state of a signal.
+     * 
+     * @param signalId - ID of the signal
+     * @param newState - 'red' | 'green'
+     */
     setSignalState: (signalId, newState) => {
         set((state) => {
             const signal = state.signals[signalId];
@@ -72,6 +90,11 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
         });
     },
 
+    /**
+     * Toggle a signal between red and green.
+     * 
+     * @param signalId - ID of the signal
+     */
     toggleSignal: (signalId) => {
         set((state) => {
             const signal = state.signals[signalId];
@@ -91,6 +114,11 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
         });
     },
 
+    /**
+     * Get all signals attached to a specific node.
+     * 
+     * @param nodeId - ID of the node
+     */
     getSignalsAtNode: (nodeId) => {
         const { signals } = get();
         return Object.values(signals).filter((s) => s.nodeId === nodeId);

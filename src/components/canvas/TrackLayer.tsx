@@ -13,6 +13,7 @@ import { SleeperRenderer, TrackRenderer, NodeRenderer } from './tracks';
 import { SwitchRenderer } from './SwitchRenderer';
 import { useTrackInteraction } from './hooks/useTrackInteraction';
 import { useNodeInteraction } from './hooks/useNodeInteraction';
+import { INTERACTIONS } from '../../config/interactions';
 
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
@@ -67,7 +68,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
             // Cache after a short delay to ensure render is complete
             const timer = setTimeout(() => {
                 group.cache({ pixelRatio: 2 });
-            }, 100);
+            }, INTERACTIONS.CACHE_DELAY_MS);
             return () => clearTimeout(timer);
         } else {
             // Clear cache when editing

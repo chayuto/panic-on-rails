@@ -41,36 +41,72 @@ type ModeStoreState = ModeState;
 
 interface ModeStoreActions {
     // Primary mode actions
-    /** Set primary mode directly (no side effects) */
+
+    /**
+     * Set primary mode directly without triggering side effects.
+     * Use this only when restoring state or testing.
+     * For user interactions, use `enterEditMode` or `enterSimulateMode`.
+     * 
+     * @param mode - Target primary mode ('edit' | 'simulate')
+     */
     setPrimaryMode: (mode: PrimaryMode) => void;
 
-    /** Toggle between edit and simulate modes with proper cleanup */
+    /**
+     * Toggle between edit and simulate modes.
+     * Automatically calls `enterEditMode` or `enterSimulateMode` to handle cleanup.
+     * 
+     * @example
+     * <Button onClick={togglePrimaryMode}>Switch Mode</Button>
+     */
     togglePrimaryMode: () => void;
 
     // Sub-mode actions
-    /** Set the edit sub-mode (tool selection) */
+
+    /**
+     * Set the current tool/sub-mode in Edit mode.
+     * 
+     * @param subMode - Tool to activate (e.g., 'select', 'track', 'wiring')
+     * 
+     * @example
+     * setEditSubMode('track'); // Switch to track builder
+     */
     setEditSubMode: (subMode: EditSubMode) => void;
 
-    /** Set the simulate sub-mode */
+    /**
+     * Set the current sub-mode in Simulate mode.
+     * 
+     * @param subMode - Interaction capability (e.g., 'observe', 'drive')
+     */
     setSimulateSubMode: (subMode: SimulateSubMode) => void;
 
     // Transition actions with side effects
+
     /** 
-     * Switch to Edit mode with proper cleanup.
-     * - Clears any in-progress wire connections
-     * - Does NOT stop simulation (that's controlled separately)
+     * Switch to Edit mode and perform necessary cleanup.
+     * - Clears in-progress interactions (dragging, wiring)
+     * - Resets sub-mode to default ('select')
+     * 
+     * @example
+     * enterEditMode();
      */
     enterEditMode: () => void;
 
     /**
-     * Switch to Simulate mode with proper setup.
-     * - Clears ghost/drag state
+     * Switch to Simulate mode and initialize simulation state.
+     * - Clears ghost previews
      * - Sets sub-mode to 'observe'
+     * 
+     * @example
+     * enterSimulateMode();
      */
     enterSimulateMode: () => void;
 
     // Reset
-    /** Reset mode state to defaults */
+
+    /**
+     * Reset mode state to application defaults.
+     * Primary: 'edit', Sub: 'select'
+     */
     resetMode: () => void;
 }
 

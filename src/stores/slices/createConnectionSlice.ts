@@ -16,6 +16,14 @@ import { movePartOp } from './connectionOps/move';
  * Creates the connection slice with network manipulation operations.
  */
 export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
+    /**
+     * Connect two nodes together, merging them into one.
+     * Used when placing a track that snaps to an existing one.
+     * 
+     * @param survivorNodeId - ID of the node to keep
+     * @param removedNodeId - ID of the node to remove (will merge into survivor)
+     * @param newEdgeId - ID of the new edge being created
+     */
     connectNodes: (survivorNodeId, removedNodeId, newEdgeId) => {
         set((state) => {
             return connectNodesOp(
@@ -28,6 +36,14 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
         });
     },
 
+    /**
+     * Connect two entire networks by moving one to align with the other.
+     * 
+     * @param anchorNodeId - Node in the stationary network
+     * @param movingNodeId - Node in the moving network
+     * @param movingEdgeId - Edge belonging to the moving network that connects to movingNodeId
+     * @param rotationDelta - Rotation to apply to the moving network
+     */
     connectNetworks: (anchorNodeId, movingNodeId, movingEdgeId, rotationDelta) => {
         set((state) => {
             return connectNetworksOp(
@@ -41,6 +57,14 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
         });
     },
 
+    /**
+     * Move a part and its connected network.
+     * 
+     * @param edgeId - ID of the part's primary edge
+     * @param pivotNodeId - ID of the node to rotate around
+     * @param targetPosition - New position for the pivot node
+     * @param rotationDelta - Rotation change in degrees
+     */
     movePart: (edgeId, pivotNodeId, targetPosition, rotationDelta) => {
         set((state) => {
             return movePartOp(
@@ -54,6 +78,11 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
         });
     },
 
+    /**
+     * Toggle the state of a switch/turnout.
+     * 
+     * @param nodeId - ID of the switch node
+     */
     toggleSwitch: (nodeId) => {
         set((state) => {
             const node = state.nodes[nodeId];

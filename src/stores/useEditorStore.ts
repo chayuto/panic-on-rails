@@ -55,35 +55,142 @@ interface EditorState {
 
 interface EditorActions {
     // Selection actions
+
+    /**
+     * Set the currently selected track edge.
+     * 
+     * @param edgeId - ID of the edge to select, or null to deselect
+     */
     setSelectedEdge: (edgeId: EdgeId | null) => void;
+
+    /**
+     * Set the currently selected part in the catalog.
+     * 
+     * @param partId - ID of the catalog part (e.g., 'kato-20-000')
+     */
     setSelectedPart: (partId: PartId) => void;
+
+    /**
+     * Switch the active track system catalog.
+     * 
+     * @param system - Track system ('n-scale' | 'wooden')
+     */
     setSelectedSystem: (system: 'n-scale' | 'wooden') => void;
 
     // Viewport actions
+
+    /**
+     * Toggle visibility of the background grid.
+     */
     toggleGrid: () => void;
+
+    /**
+     * Toggle visibility of measurement overlays.
+     */
     toggleMeasurements: () => void;
+
+    /**
+     * Set the viewport zoom level.
+     * Clamped between 0.1 and 5.0.
+     * 
+     * @param zoom - Zoom multiplier (1 = 100%)
+     */
     setZoom: (zoom: number) => void;
+
+    /**
+     * Set the viewport pan offset.
+     * 
+     * @param x - Horizontal offset in pixels
+     * @param y - Vertical offset in pixels
+     */
     setPan: (x: number, y: number) => void;
+
+    /**
+     * Reset viewport to default zoom (1) and pan (0,0).
+     */
     resetView: () => void;
 
     // Drag actions
+
+    /**
+     * Begin dragging a new part from the catalog.
+     * Initializes ghost state.
+     * 
+     * @param partId - ID of the part being dragged
+     */
     startDrag: (partId: PartId) => void;
+
+    /**
+     * Update the ghost preview position and rotation.
+     * 
+     * @param position - New world position
+     * @param rotation - Rotation in degrees
+     * @param valid - Whether the placement is valid (no collisions)
+     */
     updateGhost: (position: Vector2 | null, rotation?: number, valid?: boolean) => void;
+
+    /**
+     * Set the current snap target for visual feedback.
+     * 
+     * @param snap - Snap result object or null
+     */
     setSnapTarget: (snap: SnapResult | null) => void;
+
+    /**
+     * End the current drag operation.
+     * Clears all drag-related state.
+     */
     endDrag: () => void;
+
+    /**
+     * Rotate the floating ghost part 15 degrees clockwise.
+     */
     rotateGhostCW: () => void;
+
+    /**
+     * Rotate the floating ghost part 15 degrees counter-clockwise.
+     */
     rotateGhostCCW: () => void;
 
     // Wire creation actions
+
+    /**
+     * Set the source for a new wire connection.
+     * 
+     * @param source - Object containing type and ID of the source component
+     */
     setWireSource: (source: { type: 'sensor' | 'signal'; id: SensorId | SignalId } | null) => void;
+
+    /**
+     * Clear the current wire source, cancelling the operation.
+     */
     clearWireSource: () => void;
 
     // Connect mode actions
+
+    /**
+     * Set the source node for track connection mode.
+     * 
+     * @param source - Source node and edge information
+     */
     setConnectSource: (source: { nodeId: NodeId; edgeId: EdgeId } | null) => void;
+
+    /**
+     * Clear the connect source, cancelling track connection mode.
+     */
     clearConnectSource: () => void;
 
     // Transient updates (high frequency, no re-render)
+
+    /**
+     * Update the transient ghost state reference.
+     * Does not trigger React re-renders. Use for high-frequency loop updates.
+     */
     setGhostTransient: (ghost: GhostState | null) => void;
+
+    /**
+     * Get the current transient ghost state.
+     */
     getGhostTransient: () => GhostState | null;
 }
 

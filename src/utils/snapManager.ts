@@ -32,6 +32,8 @@ import {
     rotateAroundPivot,
 } from './geometry';
 
+import { INTERACTIONS } from '../config/interactions';
+
 // Re-export for backward compatibility
 export { normalizeAngle, angleDifference, distance, localToWorld, rotateAroundPivot };
 
@@ -339,7 +341,7 @@ export function rotateGhostAroundConnector(
 export function checkCollision(
     position: Vector2,
     allNodes: Record<NodeId, TrackNode>,
-    minDistance: number = 20
+    minDistance: number = INTERACTIONS.MIN_COLLISION_DISTANCE
 ): boolean {
     for (const node of Object.values(allNodes)) {
         if (distance(position, node.position) < minDistance) {
