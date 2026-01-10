@@ -94,7 +94,6 @@ export function usePerformanceMetrics(): PerformanceMetrics {
                 lastSecondRef.current = now;
 
                 // Get heap size (Chrome only)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const memory = (performance as unknown as { memory: { usedJSHeapSize: number } }).memory;
                 const heapSizeMB = memory
                     ? Math.round(memory.usedJSHeapSize / 1024 / 1024 * 10) / 10
