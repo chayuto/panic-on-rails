@@ -3,6 +3,7 @@
  */
 
 import type { StateCreator } from 'zustand';
+import 'zustand/middleware/immer';
 import type {
     SensorId, SignalId, WireId,
     Sensor, Signal, Wire,
@@ -48,4 +49,9 @@ export interface WireSlice {
 export type LogicStore = LogicStateData & SensorSlice & SignalSlice & WireSlice;
 
 // Slice Creator Type
-export type LogicSliceCreator<T> = StateCreator<LogicStore, [], [], T>;
+export type LogicSliceCreator<T> = StateCreator<
+    LogicStore,
+    [['zustand/immer', never]],
+    [],
+    T
+>;

@@ -10,9 +10,9 @@ export const createDebrisSlice: SimulationSliceCreator<DebrisSlice> = (set) => (
      * 
      * @param parts - Array of parts to add
      */
-    addCrashedParts: (parts) => set((state) => ({
-        crashedParts: [...state.crashedParts, ...parts],
-    })),
+    addCrashedParts: (parts) => set((state) => {
+        state.crashedParts.push(...parts);
+    }),
 
     /**
      * Set the entire list of crashed parts.
@@ -20,10 +20,14 @@ export const createDebrisSlice: SimulationSliceCreator<DebrisSlice> = (set) => (
      * 
      * @param parts - New array of crashed parts
      */
-    setCrashedParts: (parts) => set({ crashedParts: parts }),
+    setCrashedParts: (parts) => set((state) => {
+        state.crashedParts = parts;
+    }),
 
     /**
      * Remove all debris from the simulation.
      */
-    clearDebris: () => set({ crashedParts: [] }),
+    clearDebris: () => set((state) => {
+        state.crashedParts = [];
+    }),
 });

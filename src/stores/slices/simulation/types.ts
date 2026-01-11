@@ -3,6 +3,7 @@
  */
 
 import type { StateCreator } from 'zustand';
+import 'zustand/middleware/immer';
 import type { TrainId, EdgeId, Train } from '../../../types';
 import type { CrashedPart } from '../../../utils/crashPhysics';
 
@@ -11,6 +12,7 @@ export interface SimulationStateData {
     crashedParts: CrashedPart[];
     isRunning: boolean;
     speedMultiplier: number;
+    error: string | null;
 }
 
 export interface TrainSlice {
@@ -31,10 +33,17 @@ export interface ControlSlice {
     setRunning: (running: boolean) => void;
     toggleRunning: () => void;
     setSpeedMultiplier: (multiplier: number) => void;
+    setError: (error: string | null) => void;
+    clearError: () => void;
 }
 
 // Combined Store Type
 export type SimulationStore = SimulationStateData & TrainSlice & DebrisSlice & ControlSlice;
 
 // Slice Creator Type
-export type SimulationSliceCreator<T> = StateCreator<SimulationStore, [], [], T>;
+export type SimulationSliceCreator<T> = StateCreator<
+    SimulationStore,
+    [['zustand/immer', never]],
+    [],
+    T
+>;

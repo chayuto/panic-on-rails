@@ -33,9 +33,9 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             carriageSpacing: DEFAULT_CARRIAGE_SPACING,
         };
 
-        set((state) => ({
-            trains: { ...state.trains, [trainId]: train },
-        }));
+        set((state) => {
+            state.trains[trainId] = train;
+        });
 
         return trainId;
     },
@@ -47,9 +47,7 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
      */
     removeTrain: (trainId) => {
         set((state) => {
-            const newTrains = { ...state.trains };
-            delete newTrains[trainId];
-            return { trains: newTrains };
+            delete state.trains[trainId];
         });
     },
 
@@ -66,20 +64,12 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     updateTrainPosition: (trainId, distance, edgeId, direction, bounceTime) => {
         set((state) => {
             const train = state.trains[trainId];
-            if (!train) return state;
+            if (!train) return;
 
-            return {
-                trains: {
-                    ...state.trains,
-                    [trainId]: {
-                        ...train,
-                        distanceAlongEdge: distance,
-                        ...(edgeId && { currentEdgeId: edgeId }),
-                        ...(direction && { direction }),
-                        ...(bounceTime !== undefined && { bounceTime }),
-                    },
-                },
-            };
+            train.distanceAlongEdge = distance;
+            if (edgeId) train.currentEdgeId = edgeId;
+            if (direction) train.direction = direction;
+            if (bounceTime !== undefined) train.bounceTime = bounceTime;
         });
     },
 
@@ -92,24 +82,18 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     setCrashed: (trainId) => {
         set((state) => {
             const train = state.trains[trainId];
-            if (!train) return state;
+            if (!train) return;
 
-            return {
-                trains: {
-                    ...state.trains,
-                    [trainId]: {
-                        ...train,
-                        crashed: true,
-                        crashTime: performance.now(),
-                        speed: 0, // Stop the train
-                    },
-                },
-            };
+            train.crashed = true;
+            train.crashTime = performance.now();
+            train.speed = 0;
         });
     },
 
     /**
      * Remove all trains from the simulation.
      */
-    clearTrains: () => set({ trains: {} }),
+    clearTrains: () => set((state) => {
+        state.trains = {};
+    }),
 });

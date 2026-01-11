@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import type { Signal, SignalState } from '../../../types';
+import type { Signal } from '../../../types';
 import type { LogicSliceCreator, SignalSlice } from './types';
 
 export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => ({
@@ -23,12 +23,9 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
             offset,
         };
 
-        set((state) => ({
-            signals: {
-                ...state.signals,
-                [signalId]: signal,
-            },
-        }));
+        set((state) => {
+            state.signals[signalId] = signal;
+        });
 
         console.log('[LogicStore] Added signal:', {
             id: signalId.slice(0, 8),
@@ -46,24 +43,18 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
      */
     removeSignal: (signalId) => {
         set((state) => {
-            const remaining = Object.fromEntries(
-                Object.entries(state.signals).filter(([id]) => id !== signalId)
-            );
+            delete state.signals[signalId];
 
-            // Remove wires connected to this signal (as source or target)
-            const wiresWithoutSignal = Object.fromEntries(
-                Object.entries(state.wires).filter(
-                    ([, wire]) => !(
-                        (wire.sourceType === 'signal' && wire.sourceId === signalId) ||
-                        (wire.targetType === 'signal' && wire.targetId === signalId)
-                    )
-                )
-            );
-
-            return {
-                signals: remaining,
-                wires: wiresWithoutSignal,
-            };
+            // Remove wires connected to this signal
+            for (const wireId in state.wires) {
+                const wire = state.wires[wireId];
+                if (
+                    (wire.sourceType === 'signal' && wire.sourceId === signalId) ||
+                    (wire.targetType === 'signal' && wire.targetId === signalId)
+                ) {
+                    delete state.wires[wireId];
+                }
+            }
         });
     },
 
@@ -76,17 +67,9 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
     setSignalState: (signalId, newState) => {
         set((state) => {
             const signal = state.signals[signalId];
-            if (!signal || signal.state === newState) return state;
-
-            return {
-                signals: {
-                    ...state.signals,
-                    [signalId]: {
-                        ...signal,
-                        state: newState,
-                    },
-                },
-            };
+            if (signal && signal.state !== newState) {
+                signal.state = newState;
+            }
         });
     },
 
@@ -98,19 +81,9 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
     toggleSignal: (signalId) => {
         set((state) => {
             const signal = state.signals[signalId];
-            if (!signal) return state;
-
-            const newState: SignalState = signal.state === 'red' ? 'green' : 'red';
-
-            return {
-                signals: {
-                    ...state.signals,
-                    [signalId]: {
-                        ...signal,
-                        state: newState,
-                    },
-                },
-            };
+            if (signal) {
+                signal.state = signal.state === 'red' ? 'green' : 'red';
+            }
         });
     },
 

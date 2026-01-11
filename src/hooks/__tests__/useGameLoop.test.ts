@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useGameLoop } from '../useGameLoop';
 import { useSimulationStore } from '../../stores/useSimulationStore';
-import { useTrackStore } from '../../stores/useTrackStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useLogicStore } from '../../stores/useLogicStore';
 

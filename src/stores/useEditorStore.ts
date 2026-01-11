@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 import type { EdgeId, PartId, Vector2, NodeId, SensorId, SignalId } from '../types';
 
 // Snap result when near an open endpoint
@@ -212,75 +213,117 @@ const initialState: EditorState = {
     connectSource: null,
 };
 
-export const useEditorStore = create<EditorState & EditorActions>()((set) => ({
-    ...initialState,
+export const useEditorStore = create<EditorState & EditorActions>()(
+    immer((set) => ({
+        ...initialState,
 
-    // Selection actions
-    setSelectedEdge: (edgeId) => set({ selectedEdgeId: edgeId }),
-    setSelectedPart: (partId) => set({ selectedPartId: partId }),
-    setSelectedSystem: (system) => set({ selectedSystem: system }),
+        // Selection actions
+        setSelectedEdge: (edgeId) => set((state) => {
+            state.selectedEdgeId = edgeId;
+        }),
+        setSelectedPart: (partId) => set((state) => {
+            state.selectedPartId = partId;
+        }),
+        setSelectedSystem: (system) => set((state) => {
+            state.selectedSystem = system;
+        }),
 
-    // Viewport actions
-    toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
-    toggleMeasurements: () => set((state) => ({ showMeasurements: !state.showMeasurements })),
-    setZoom: (zoom) => set({ zoom: Math.max(0.1, Math.min(5, zoom)) }),
-    setPan: (x, y) => set({ pan: { x, y } }),
-    resetView: () => set({ zoom: 1, pan: { x: 0, y: 0 } }),
+        // Viewport actions
+        toggleGrid: () => set((state) => {
+            state.showGrid = !state.showGrid;
+        }),
+        toggleMeasurements: () => set((state) => {
+            state.showMeasurements = !state.showMeasurements;
+        }),
+        setZoom: (zoom) => set((state) => {
+            state.zoom = Math.max(0.1, Math.min(5, zoom));
+        }),
+        setPan: (x, y) => set((state) => {
+            state.pan.x = x;
+            state.pan.y = y;
+        }),
+        resetView: () => set((state) => {
+            state.zoom = 1;
+            state.pan = { x: 0, y: 0 };
+        }),
 
-    // Drag actions
-    startDrag: (partId) => set({
-        draggedPartId: partId,
-        ghostPosition: null,
-        ghostRotation: 0,
-        userRotation: 0,
-        ghostValid: true,
-        snapTarget: null,
-    }),
+        // Drag actions
+        startDrag: (partId) => set((state) => {
+            state.draggedPartId = partId;
+            state.ghostPosition = null;
+            state.ghostRotation = 0;
+            state.userRotation = 0;
+            state.ghostValid = true;
+            state.snapTarget = null;
+        }),
 
-    updateGhost: (position, rotation = 0, valid = true) => set({
-        ghostPosition: position,
-        ghostRotation: rotation,
-        ghostValid: valid,
-    }),
+        updateGhost: (position, rotation = 0, valid = true) => set((state) => {
+            state.ghostPosition = position;
+            state.ghostRotation = rotation;
+            state.ghostValid = valid;
+        }),
 
-    setSnapTarget: (snap) => set({ snapTarget: snap }),
+        setSnapTarget: (snap) => set((state) => {
+            state.snapTarget = snap;
+        }),
 
-    endDrag: () => set({
-        draggedPartId: null,
-        ghostPosition: null,
-        ghostRotation: 0,
-        userRotation: 0,
-        ghostValid: true,
-        snapTarget: null,
-    }),
+        endDrag: () => set((state) => {
+            state.draggedPartId = null;
+            state.ghostPosition = null;
+            state.ghostRotation = 0;
+            state.userRotation = 0;
+            state.ghostValid = true;
+            state.snapTarget = null;
+        }),
 
-    rotateGhostCW: () => set((state) => {
-        const newRotation = (state.userRotation + 15) % 360;
-        return {
-            userRotation: newRotation,
-            ghostRotation: newRotation, // Update visual rotation too (will be overridden if snapped)
-        };
-    }),
+        rotateGhostCW: () => set((state) => {
+            const newRotation = (state.userRotation + 15) % 360;
+            state.userRotation = newRotation;
+            state.ghostRotation = newRotation;
+        }),
 
-    rotateGhostCCW: () => set((state) => {
-        const newRotation = (state.userRotation - 15 + 360) % 360;
-        return {
-            userRotation: newRotation,
-            ghostRotation: newRotation,
-        };
-    }),
+        rotateGhostCCW: () => set((state) => {
+            const newRotation = (state.userRotation - 15 + 360) % 360;
+            state.userRotation = newRotation;
+            state.ghostRotation = newRotation;
+        }),
 
-    // Wire creation actions
-    setWireSource: (source) => set({ wireSource: source }),
-    clearWireSource: () => set({ wireSource: null }),
+        // Wire creation actions
+        setWireSource: (source) => set((state) => {
+            state.wireSource = source;
+        }),
+        clearWireSource: () => set((state) => {
+            state.wireSource = null;
+        }),
 
-    // Connect mode actions
-    setConnectSource: (source) => set({ connectSource: source }),
-    clearConnectSource: () => set({ connectSource: null }),
+        // Connect mode actions
+        setConnectSource: (source) => set((state) => {
+            state.connectSource = source;
+        }),
+        clearConnectSource: () => set((state) => {
+            state.connectSource = null;
+        }),
 
-    // Transient updates
-    setGhostTransient: (ghost) => {
-        ghostRef.current = ghost;
-    },
-    getGhostTransient: () => ghostRef.current,
-}));
+        // Transient updates
+        setGhostTransient: (ghost) => {
+            ghostRef.current = ghost;
+        },
+        getGhostTransient: () => ghostRef.current,
+    }))
+);
+
+// Named Selectors
+export const selectSelectedEdgeId = (state: EditorState) => state.selectedEdgeId;
+export const selectSelectedPartId = (state: EditorState) => state.selectedPartId;
+export const selectSelectedSystem = (state: EditorState) => state.selectedSystem;
+export const selectShowGrid = (state: EditorState) => state.showGrid;
+export const selectShowMeasurements = (state: EditorState) => state.showMeasurements;
+export const selectZoom = (state: EditorState) => state.zoom;
+export const selectPan = (state: EditorState) => state.pan;
+export const selectDraggedPartId = (state: EditorState) => state.draggedPartId;
+export const selectGhostPosition = (state: EditorState) => state.ghostPosition;
+export const selectGhostRotation = (state: EditorState) => state.ghostRotation;
+export const selectGhostValid = (state: EditorState) => state.ghostValid;
+export const selectSnapTarget = (state: EditorState) => state.snapTarget;
+export const selectWireSource = (state: EditorState) => state.wireSource;
+export const selectConnectSource = (state: EditorState) => state.connectSource;

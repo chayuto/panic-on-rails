@@ -25,12 +25,9 @@ export const createSensorSlice: LogicSliceCreator<SensorSlice> = (set, get) => (
             state: 'off',
         };
 
-        set((state) => ({
-            sensors: {
-                ...state.sensors,
-                [sensorId]: sensor,
-            },
-        }));
+        set((state) => {
+            state.sensors[sensorId] = sensor;
+        });
 
         console.log('[LogicStore] Added sensor:', {
             id: sensorId.slice(0, 8),
@@ -48,21 +45,15 @@ export const createSensorSlice: LogicSliceCreator<SensorSlice> = (set, get) => (
      */
     removeSensor: (sensorId) => {
         set((state) => {
-            const remaining = Object.fromEntries(
-                Object.entries(state.sensors).filter(([id]) => id !== sensorId)
-            );
+            delete state.sensors[sensorId];
 
             // Also remove any wires connected to this sensor
-            const wiresWithoutSource = Object.fromEntries(
-                Object.entries(state.wires).filter(
-                    ([, wire]) => !(wire.sourceType === 'sensor' && wire.sourceId === sensorId)
-                )
-            );
-
-            return {
-                sensors: remaining,
-                wires: wiresWithoutSource,
-            };
+            for (const wireId in state.wires) {
+                const wire = state.wires[wireId];
+                if (wire.sourceType === 'sensor' && wire.sourceId === sensorId) {
+                    delete state.wires[wireId];
+                }
+            }
         });
     },
 
@@ -76,17 +67,9 @@ export const createSensorSlice: LogicSliceCreator<SensorSlice> = (set, get) => (
     setSensorState: (sensorId, newState) => {
         set((state) => {
             const sensor = state.sensors[sensorId];
-            if (!sensor || sensor.state === newState) return state;
-
-            return {
-                sensors: {
-                    ...state.sensors,
-                    [sensorId]: {
-                        ...sensor,
-                        state: newState,
-                    },
-                },
-            };
+            if (sensor && sensor.state !== newState) {
+                sensor.state = newState;
+            }
         });
     },
 

@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 
 // ===========================
 // State Interface
@@ -100,7 +101,7 @@ const initialState: BudgetState = {
 
 export const useBudgetStore = create<BudgetState & BudgetActions>()(
     persist(
-        (set, get) => ({
+        immer((set, get) => ({
             ...initialState,
 
             spend: (amount: number) => {
@@ -113,10 +114,10 @@ export const useBudgetStore = create<BudgetState & BudgetActions>()(
                     return false;
                 }
 
-                set((state) => ({
-                    balance: state.balance - amount,
-                    totalSpent: state.totalSpent + amount,
-                }));
+                set((state) => {
+                    state.balance -= amount;
+                    state.totalSpent += amount;
+                });
 
                 console.log('[BudgetStore] Spent:', {
                     amount: `$${(amount / 100).toFixed(2)}`,
@@ -127,10 +128,10 @@ export const useBudgetStore = create<BudgetState & BudgetActions>()(
             },
 
             refund: (amount: number) => {
-                set((state) => ({
-                    balance: state.balance + amount,
-                    totalSpent: Math.max(0, state.totalSpent - amount),
-                }));
+                set((state) => {
+                    state.balance += amount;
+                    state.totalSpent = Math.max(0, state.totalSpent - amount);
+                });
 
                 console.log('[BudgetStore] Refunded:', {
                     amount: `$${(amount / 100).toFixed(2)}`,
@@ -140,30 +141,39 @@ export const useBudgetStore = create<BudgetState & BudgetActions>()(
 
             reset: () => {
                 const { startingBudget } = get();
-                set({
-                    balance: startingBudget,
-                    totalSpent: 0,
+                set((state) => {
+                    state.balance = startingBudget;
+                    state.totalSpent = 0;
                 });
                 console.log('[BudgetStore] Reset to:', `$${(startingBudget / 100).toFixed(2)}`);
             },
 
             setStartingBudget: (amount: number) => {
-                set({
-                    startingBudget: amount,
-                    balance: amount,
-                    totalSpent: 0,
+                set((state) => {
+                    state.startingBudget = amount;
+                    state.balance = amount;
+                    state.totalSpent = 0;
                 });
             },
 
             canAfford: (amount: number) => {
                 return get().balance >= amount;
             },
-        }),
+        })),
         {
             name: 'panic-on-rails-budget-v1',
         }
     )
 );
+
+// ===========================
+// Named Selectors
+// ===========================
+
+export const selectBalance = (state: BudgetState) => state.balance;
+export const selectTotalSpent = (state: BudgetState) => state.totalSpent;
+export const selectStartingBudget = (state: BudgetState) => state.startingBudget;
+export const selectCanAfford = (state: BudgetState & BudgetActions) => state.canAfford;
 
 // ===========================
 // Utility Functions

@@ -6,6 +6,7 @@
  */
 
 import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 import type { Vector2 } from '../types';
 
 // ===========================
@@ -91,125 +92,140 @@ function generateEffectId(): string {
     return `effect-${++effectIdCounter}`;
 }
 
-export const useEffectsStore = create<EffectsState>((set, get) => ({
-    ripples: [],
-    flashes: [],
-    hoveredSwitchId: null,
-    hoveredSwitchPosition: null,
-    screenShake: null,
+export const useEffectsStore = create<EffectsState>()(
+    immer((set, get) => ({
+        ripples: [],
+        flashes: [],
+        hoveredSwitchId: null,
+        hoveredSwitchPosition: null,
+        screenShake: null,
 
-    triggerRipple: (position, options = {}) => {
-        const ripple: RippleEffect = {
-            id: generateEffectId(),
-            position,
-            startTime: Date.now(),
-            duration: options.duration ?? DEFAULT_RIPPLE.duration,
-            color: options.color ?? DEFAULT_RIPPLE.color,
-            startRadius: options.startRadius ?? DEFAULT_RIPPLE.startRadius,
-            endRadius: options.endRadius ?? DEFAULT_RIPPLE.endRadius,
-        };
+        triggerRipple: (position, options = {}) => {
+            const ripple: RippleEffect = {
+                id: generateEffectId(),
+                position,
+                startTime: Date.now(),
+                duration: options.duration ?? DEFAULT_RIPPLE.duration,
+                color: options.color ?? DEFAULT_RIPPLE.color,
+                startRadius: options.startRadius ?? DEFAULT_RIPPLE.startRadius,
+                endRadius: options.endRadius ?? DEFAULT_RIPPLE.endRadius,
+            };
 
-        set(state => ({
-            ripples: [...state.ripples, ripple],
-        }));
+            set((state) => {
+                state.ripples.push(ripple);
+            });
 
-        // Auto-cleanup after duration
-        setTimeout(() => {
-            set(state => ({
-                ripples: state.ripples.filter(r => r.id !== ripple.id),
-            }));
-        }, ripple.duration + 50);
-    },
+            // Auto-cleanup after duration
+            setTimeout(() => {
+                set((state) => {
+                    const index = state.ripples.findIndex(r => r.id === ripple.id);
+                    if (index !== -1) {
+                        state.ripples.splice(index, 1);
+                    }
+                });
+            }, ripple.duration + 50);
+        },
 
-    triggerFlash: (position, options = {}) => {
-        const flash: FlashEffect = {
-            id: generateEffectId(),
-            position,
-            startTime: Date.now(),
-            duration: options.duration ?? DEFAULT_FLASH.duration,
-            color: options.color ?? DEFAULT_FLASH.color,
-            radius: options.radius ?? DEFAULT_FLASH.radius,
-        };
+        triggerFlash: (position, options = {}) => {
+            const flash: FlashEffect = {
+                id: generateEffectId(),
+                position,
+                startTime: Date.now(),
+                duration: options.duration ?? DEFAULT_FLASH.duration,
+                color: options.color ?? DEFAULT_FLASH.color,
+                radius: options.radius ?? DEFAULT_FLASH.radius,
+            };
 
-        set(state => ({
-            flashes: [...state.flashes, flash],
-        }));
+            set((state) => {
+                state.flashes.push(flash);
+            });
 
-        // Auto-cleanup after duration
-        setTimeout(() => {
-            set(state => ({
-                flashes: state.flashes.filter(f => f.id !== flash.id),
-            }));
-        }, flash.duration + 50);
-    },
+            // Auto-cleanup after duration
+            setTimeout(() => {
+                set((state) => {
+                    const index = state.flashes.findIndex(f => f.id === flash.id);
+                    if (index !== -1) {
+                        state.flashes.splice(index, 1);
+                    }
+                });
+            }, flash.duration + 50);
+        },
 
-    setHoveredSwitch: (nodeId, position = null) => {
-        set({
-            hoveredSwitchId: nodeId,
-            hoveredSwitchPosition: position,
-        });
-    },
+        setHoveredSwitch: (nodeId, position = null) => {
+            set((state) => {
+                state.hoveredSwitchId = nodeId;
+                state.hoveredSwitchPosition = position;
+            });
+        },
 
-    cleanupExpiredEffects: () => {
-        const now = Date.now();
-        set(state => ({
-            ripples: state.ripples.filter(r => now - r.startTime < r.duration),
-            flashes: state.flashes.filter(f => now - f.startTime < f.duration),
-            screenShake: state.screenShake && now < state.screenShake.endTime
-                ? state.screenShake
-                : null,
-        }));
-    },
+        cleanupExpiredEffects: () => {
+            const now = Date.now();
+            set((state) => {
+                state.ripples = state.ripples.filter(r => now - r.startTime < r.duration);
+                state.flashes = state.flashes.filter(f => now - f.startTime < f.duration);
+                if (state.screenShake && now >= state.screenShake.endTime) {
+                    state.screenShake = null;
+                }
+            });
+        },
 
-    triggerScreenShake: (intensity, duration, decay = true) => {
-        set({
-            screenShake: {
-                intensity,
-                endTime: Date.now() + duration,
-                decay,
-            },
-        });
+        triggerScreenShake: (intensity, duration, decay = true) => {
+            set((state) => {
+                state.screenShake = {
+                    intensity,
+                    endTime: Date.now() + duration,
+                    decay,
+                };
+            });
 
-        // Auto-cleanup
-        setTimeout(() => {
-            set(state => ({
-                screenShake: state.screenShake?.endTime === Date.now() + duration
-                    ? null
-                    : state.screenShake,
-            }));
-        }, duration + 50);
-    },
+            // Auto-cleanup
+            setTimeout(() => {
+                set((state) => {
+                    if (state.screenShake?.endTime && state.screenShake.endTime <= Date.now()) {
+                        state.screenShake = null;
+                    }
+                });
+            }, duration + 50);
+        },
 
-    getScreenShakeOffset: (): Vector2 => {
-        const shake = get().screenShake;
-        if (!shake) return { x: 0, y: 0 };
+        getScreenShakeOffset: (): Vector2 => {
+            const shake = get().screenShake;
+            if (!shake) return { x: 0, y: 0 };
 
-        const now = Date.now();
-        if (now >= shake.endTime) return { x: 0, y: 0 };
+            const now = Date.now();
+            if (now >= shake.endTime) return { x: 0, y: 0 };
 
-        // Calculate remaining intensity
-        const remaining = shake.endTime - now;
-        const totalDuration = shake.endTime - (shake.endTime - remaining);
-        const progress = 1 - (remaining / Math.max(totalDuration, 1));
+            // Calculate remaining intensity
+            const remaining = shake.endTime - now;
+            const totalDuration = shake.endTime - (shake.endTime - remaining);
+            const progress = 1 - (remaining / Math.max(totalDuration, 1));
 
-        const currentIntensity = shake.decay
-            ? shake.intensity * (1 - progress)
-            : shake.intensity;
+            const currentIntensity = shake.decay
+                ? shake.intensity * (1 - progress)
+                : shake.intensity;
 
-        // Random offset
-        return {
-            x: (Math.random() - 0.5) * 2 * currentIntensity,
-            y: (Math.random() - 0.5) * 2 * currentIntensity,
-        };
-    },
+            // Random offset
+            return {
+                x: (Math.random() - 0.5) * 2 * currentIntensity,
+                y: (Math.random() - 0.5) * 2 * currentIntensity,
+            };
+        },
 
-    clearAllEffects: () => {
-        set({
-            ripples: [],
-            flashes: [],
-            hoveredSwitchId: null,
-            hoveredSwitchPosition: null,
-            screenShake: null,
-        });
-    },
-}));
+        clearAllEffects: () => {
+            set((state) => {
+                state.ripples = [];
+                state.flashes = [];
+                state.hoveredSwitchId = null;
+                state.hoveredSwitchPosition = null;
+                state.screenShake = null;
+            });
+        },
+    }))
+);
+
+// Named Selectors
+export const selectRipples = (state: EffectsState) => state.ripples;
+export const selectFlashes = (state: EffectsState) => state.flashes;
+export const selectHoveredSwitchId = (state: EffectsState) => state.hoveredSwitchId;
+export const selectHoveredSwitchPosition = (state: EffectsState) => state.hoveredSwitchPosition;
+export const selectScreenShake = (state: EffectsState) => state.screenShake;

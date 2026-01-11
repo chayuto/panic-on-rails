@@ -29,12 +29,9 @@ export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
             triggerOn: 'rising', // Default to trigger on activation
         };
 
-        set((state) => ({
-            wires: {
-                ...state.wires,
-                [wireId]: wire,
-            },
-        }));
+        set((state) => {
+            state.wires[wireId] = wire;
+        });
 
         console.log('[LogicStore] Added wire:', {
             id: wireId.slice(0, 8),
@@ -53,10 +50,7 @@ export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
      */
     removeWire: (wireId) => {
         set((state) => {
-            const remaining = Object.fromEntries(
-                Object.entries(state.wires).filter(([id]) => id !== wireId)
-            );
-            return { wires: remaining };
+            delete state.wires[wireId];
         });
     },
 
@@ -64,10 +58,10 @@ export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
      * Clear all logic components (sensors, signals, wires).
      */
     clearLogic: () => {
-        set({
-            sensors: {},
-            signals: {},
-            wires: {},
+        set((state) => {
+            state.sensors = {};
+            state.signals = {};
+            state.wires = {};
         });
     },
 
