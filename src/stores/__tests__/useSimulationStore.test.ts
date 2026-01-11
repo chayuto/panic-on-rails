@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import type { CrashedPart } from '../../utils/crashPhysics';
 import { useSimulationStore } from '../useSimulationStore';
 
 describe('useSimulationStore', () => {
@@ -78,7 +79,7 @@ describe('useSimulationStore', () => {
 
             // Mock parts - we interpret them as CrashedPart
             // We need to cast as any to bypass strict type checks for tests if we don't construct full objects
-            const parts: any[] = [{ id: 'part-1' }, { id: 'part-2' }];
+            const parts = [{ id: 'part-1' }, { id: 'part-2' }] as unknown as CrashedPart[];
             addCrashedParts(parts);
 
             expect(useSimulationStore.getState().crashedParts).toHaveLength(2);
@@ -89,7 +90,7 @@ describe('useSimulationStore', () => {
 
         it('should set crashed parts explicitly', () => {
             const { setCrashedParts } = useSimulationStore.getState();
-            const parts: any[] = [{ id: 'p1' }];
+            const parts = [{ id: 'p1' }] as unknown as CrashedPart[];
             setCrashedParts(parts);
             expect(useSimulationStore.getState().crashedParts).toHaveLength(1);
         });

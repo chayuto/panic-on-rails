@@ -5,6 +5,7 @@ import { useGameLoop } from '../useGameLoop';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useLogicStore } from '../../stores/useLogicStore';
+import type { Train } from '../../types';
 
 // Mock subsystems
 vi.mock('../../simulation/movement', () => ({
@@ -71,10 +72,11 @@ describe('useGameLoop', () => {
         const trainId = spawnTrain('e1');
 
         // Setup mock movement - return null if dt is 0
-        (calculateTrainMovement as any).mockImplementation((t: any, dt: number) => {
+        vi.mocked(calculateTrainMovement).mockImplementation((t: unknown, dt: number) => {
+            const train = t as Train;
             if (dt === 0) return null;
             return {
-                trainId: t.id,
+                trainId: train.id,
                 distance: 100,
                 edgeId: 'e1',
                 direction: 1,
@@ -84,7 +86,7 @@ describe('useGameLoop', () => {
         renderHook(() => useGameLoop());
 
         // Simulate frame callback
-        const loop = (window.requestAnimationFrame as any).mock.calls[0][0];
+        const loop = vi.mocked(window.requestAnimationFrame).mock.calls[0][0] as FrameRequestCallback;
 
         act(() => {
             // First call initializes time (delta = 0)
@@ -113,7 +115,8 @@ describe('useGameLoop', () => {
         const t2 = spawnTrain('e1');
 
         // Mock collision
-        (checkCollisions as any).mockReturnValue([{
+        vi.mocked(checkCollisions).mockReturnValue([{
+            type: 'collision',
             trainIds: [t1, t2],
             location: { x: 0, y: 0 },
             debris: [],
@@ -121,7 +124,7 @@ describe('useGameLoop', () => {
         }]);
 
         renderHook(() => useGameLoop());
-        const loop = (window.requestAnimationFrame as any).mock.calls[0][0];
+        const loop = vi.mocked(window.requestAnimationFrame).mock.calls[0][0] as FrameRequestCallback;
 
         act(() => {
             loop(1000);
@@ -133,3 +136,4 @@ describe('useGameLoop', () => {
         expect(s.trains[t2].crashed).toBe(true);
     });
 });
+

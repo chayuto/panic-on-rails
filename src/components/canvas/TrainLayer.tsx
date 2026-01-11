@@ -13,7 +13,8 @@ import { Circle, Group, Line, Rect, Shape, Wedge } from 'react-konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
-import type { Train, Vector2, EdgeId, NodeId, TrackEdge, TrackNode } from '../../types';
+import type { Train, Vector2, EdgeId, NodeId, TrackEdge, TrackNode, BoundingBox } from '../../types';
+
 import {
     getCarriagePositions,
     getBounceScale,
@@ -428,11 +429,17 @@ function TrainEntity({ train }: { train: Train }) {
 // Main TrainLayer Component
 // ===========================
 
+
+export interface TrainLayerProps {
+    viewport: BoundingBox | null;
+}
+
 /**
  * Train layer - renders all active trains (simulate mode only)
  */
-export function TrainLayer() {
+export function TrainLayer({ viewport }: TrainLayerProps) {
     const { trains } = useSimulationStore();
+    const { edges, nodes } = useTrackStore();
     const isSimulating = useIsSimulating();
 
     // Safety check - don't render if not in simulate mode
@@ -440,11 +447,36 @@ export function TrainLayer() {
         return null;
     }
 
+    // R14: Viewport culling for trains
+    // Trains are dynamic, so we check inclusion every frame (render)
+    // We add a generous margin (200px) to prevent pop-in
+    const MARGIN = 200;
+
     return (
         <Group>
-            {Object.values(trains).map((train: Train) => (
-                <TrainEntity key={train.id} train={train} />
-            ))}
+            {Object.values(trains).map((train: Train) => {
+                // If viewport is active, check if train is visible
+                if (viewport) {
+                    const edge = edges[train.currentEdgeId];
+                    // Skip if edge not found (data consistency issue)
+                    if (!edge) return null;
+
+                    // Calculate locomotive position for culling check
+                    // We only check the locomotive position to save performance
+                    // compared to calculating all carriages.
+                    const position = getPositionOnEdge(edge, train.distanceAlongEdge, nodes);
+
+                    const isVisible =
+                        position.x >= viewport.x - MARGIN &&
+                        position.x <= viewport.x + viewport.width + MARGIN &&
+                        position.y >= viewport.y - MARGIN &&
+                        position.y <= viewport.y + viewport.height + MARGIN;
+
+                    if (!isVisible) return null;
+                }
+
+                return <TrainEntity key={train.id} train={train} />;
+            })}
         </Group>
     );
 }

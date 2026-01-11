@@ -206,7 +206,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 {/* Layer 4: Simulation (conditional, trains + crash debris) */}
                 {isSimulating && (
                     <Layer>
-                        <TrainLayer />
+                        <TrainLayer viewport={viewport} />
                         <CrashLayer />
                     </Layer>
                 )}

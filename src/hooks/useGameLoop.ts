@@ -142,6 +142,7 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isSimulating, isRunning, updateTrains, trains, edges, nodes,
         sensors, wires, signals, // Added signals to deps
