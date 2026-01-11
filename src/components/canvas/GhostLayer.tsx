@@ -53,6 +53,8 @@ export function GhostLayer() {
 
     const color = ghostValid ? GHOST_VALID_COLOR : GHOST_INVALID_COLOR;
 
+
+
     // Calculate end position based on geometry
     if (part.geometry.type === 'straight') {
         const length = part.geometry.length;
@@ -299,8 +301,94 @@ export function GhostLayer() {
                 )}
             </Group>
         );
+    } else if (part.geometry.type === 'crossing') {
+        const { length, crossingAngle } = part.geometry;
+        const radians = (ghostRotation * Math.PI) / 180;
+        const halfLength = length / 2;
+
+        // Main path (aligned with ghost rotation)
+        const mainEndX = ghostPosition.x + Math.cos(radians) * length;
+        const mainEndY = ghostPosition.y + Math.sin(radians) * length;
+
+        // Calculate center for crossing path
+        const centerX = ghostPosition.x + Math.cos(radians) * halfLength;
+        const centerY = ghostPosition.y + Math.sin(radians) * halfLength;
+
+        // Cross path (rotated by crossingAngle)
+        const crossRadians = radians + (crossingAngle * Math.PI / 180);
+        const crossStartX = centerX - Math.cos(crossRadians) * halfLength;
+        const crossStartY = centerY - Math.sin(crossRadians) * halfLength;
+        const crossEndX = centerX + Math.cos(crossRadians) * halfLength;
+        const crossEndY = centerY + Math.sin(crossRadians) * halfLength;
+
+        return (
+            <Group listening={false}>
+                {/* Main Path */}
+                <Line
+                    points={[ghostPosition.x, ghostPosition.y, mainEndX, mainEndY]}
+                    stroke={color}
+                    strokeWidth={6}
+                    lineCap="round"
+                    opacity={GHOST_OPACITY}
+                />
+
+                {/* Cross Path */}
+                <Line
+                    points={[crossStartX, crossStartY, crossEndX, crossEndY]}
+                    stroke={color}
+                    strokeWidth={6}
+                    lineCap="round"
+                    opacity={GHOST_OPACITY}
+                />
+
+                {/* Connector Points - Main */}
+                <Circle
+                    x={ghostPosition.x}
+                    y={ghostPosition.y}
+                    radius={6}
+                    fill={color}
+                    opacity={GHOST_OPACITY}
+                />
+                <Circle
+                    x={mainEndX}
+                    y={mainEndY}
+                    radius={6}
+                    fill={color}
+                    opacity={GHOST_OPACITY}
+                />
+
+                {/* Connector Points - Cross */}
+                <Circle
+                    x={crossStartX}
+                    y={crossStartY}
+                    radius={6}
+                    fill={color}
+                    opacity={GHOST_OPACITY}
+                />
+                <Circle
+                    x={crossEndX}
+                    y={crossEndY}
+                    radius={6}
+                    fill={color}
+                    opacity={GHOST_OPACITY}
+                />
+
+                {/* Snap indicator */}
+                {snapTarget && (
+                    <Circle
+                        x={snapTarget.targetPosition.x}
+                        y={snapTarget.targetPosition.y}
+                        radius={15}
+                        stroke="#00FF88"
+                        strokeWidth={3}
+                        fill="transparent"
+                        opacity={0.8}
+                    />
+                )}
+            </Group>
+        );
     } else {
-        // Crossing or other types - simplified rectangle
+        // Other types
         return null;
     }
 }

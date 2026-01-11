@@ -257,11 +257,21 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             state.snapTarget = null;
         }),
 
-        updateGhost: (position, rotation = 0, valid = true) => set((state) => {
-            state.ghostPosition = position;
-            state.ghostRotation = rotation;
-            state.ghostValid = valid;
-        }),
+        updateGhost: (position, rotation = 0, valid = true) => {
+            // Update transient state for high-frequency renderers (GhostLayer)
+            if (position) {
+                ghostRef.current = { position, rotation, valid };
+            } else {
+                ghostRef.current = null;
+            }
+
+            // Update reactive state
+            set((state) => {
+                state.ghostPosition = position;
+                state.ghostRotation = rotation;
+                state.ghostValid = valid;
+            });
+        },
 
         setSnapTarget: (snap) => set((state) => {
             state.snapTarget = snap;
