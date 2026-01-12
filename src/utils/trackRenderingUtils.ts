@@ -7,6 +7,8 @@
  */
 
 import type { Vector2 } from '../types';
+import { distance } from './vector';
+import { degreesToRadians, radiansToDegrees } from './angle';
 
 // ===========================
 // Dual Rail Helpers (V4)
@@ -34,7 +36,7 @@ export function getParallelLinePoints(
 ): [number, number, number, number] {
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
+    const len = distance(start, end);
 
     if (len === 0) {
         // Degenerate case: zero-length line
@@ -107,8 +109,8 @@ export function generateStraightSleepers(
 
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const length = distance(start, end);
+    const angle = radiansToDegrees(Math.atan2(dy, dx));
 
     if (length === 0) return sleepers;
 
@@ -146,7 +148,7 @@ export function generateArcSleepers(
     const sleepers: SleeperPosition[] = [];
 
     // Calculate arc length
-    const sweepRad = Math.abs(endAngle - startAngle) * Math.PI / 180;
+    const sweepRad = degreesToRadians(Math.abs(endAngle - startAngle));
     const arcLength = radius * sweepRad;
 
     if (arcLength === 0) return sleepers;
@@ -156,7 +158,7 @@ export function generateArcSleepers(
     for (let i = 0; i <= count; i++) {
         const t = count === 0 ? 0.5 : i / count;
         const angleDeg = startAngle + (endAngle - startAngle) * t;
-        const angleRad = angleDeg * Math.PI / 180;
+        const angleRad = degreesToRadians(angleDeg);
 
         sleepers.push({
             x: center.x + Math.cos(angleRad) * radius,
