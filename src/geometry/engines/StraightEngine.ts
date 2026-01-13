@@ -1,6 +1,6 @@
 import type { GeometryEngine } from '../types';
 import type { Vector2, BoundingBox } from '../../types';
-import { normalizeAngle, radiansToDegrees } from '../../utils/angle';
+import { distance, vectorSubtract, vectorAngle, vectorAdd, vectorScale } from '../../utils/vector';
 
 interface StraightGeometryData {
     start: Vector2;
@@ -17,21 +17,18 @@ export class StraightEngine implements GeometryEngine {
         this.start = geometry.start;
         this.end = geometry.end;
 
-        const dx = this.end.x - this.start.x;
-        const dy = this.end.y - this.start.y;
-
-        this.length = Math.sqrt(dx * dx + dy * dy);
-        this.angle = normalizeAngle(radiansToDegrees(Math.atan2(dy, dx)));
+        const diff = vectorSubtract(this.end, this.start);
+        this.length = distance(this.start, this.end);
+        this.angle = vectorAngle(diff);
     }
 
     getPositionAt(t: number): Vector2 {
         // Clamp t to [0, 1]
         const clampedT = Math.max(0, Math.min(1, t));
 
-        return {
-            x: this.start.x + (this.end.x - this.start.x) * clampedT,
-            y: this.start.y + (this.end.y - this.start.y) * clampedT
-        };
+        const diff = vectorSubtract(this.end, this.start);
+        const offset = vectorScale(diff, clampedT);
+        return vectorAdd(this.start, offset);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

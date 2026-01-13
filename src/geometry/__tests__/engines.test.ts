@@ -35,6 +35,34 @@ describe('StraightEngine', () => {
         expect(engine.getPositionAt(-1)).toEqual({ x: 0, y: 0 });
         expect(engine.getPositionAt(2)).toEqual({ x: 100, y: 0 });
     });
+
+    it('handles angled lines (45 degrees)', () => {
+        const angledEngine = new StraightEngine({
+            start: { x: 0, y: 0 },
+            end: { x: 100, y: 100 }
+        });
+        expect(angledEngine.getLength()).toBeCloseTo(Math.sqrt(100*100 + 100*100));
+        expect(angledEngine.getTangentAt(0)).toBe(45);
+        expect(angledEngine.getPositionAt(0.5)).toEqual({ x: 50, y: 50 });
+    });
+
+    it('handles vertical lines (90 degrees)', () => {
+        const verticalEngine = new StraightEngine({
+            start: { x: 0, y: 0 },
+            end: { x: 0, y: 100 }
+        });
+        expect(verticalEngine.getLength()).toBe(100);
+        expect(verticalEngine.getTangentAt(0)).toBe(90);
+    });
+
+    it('handles reverse lines (180 degrees)', () => {
+        const reverseEngine = new StraightEngine({
+            start: { x: 100, y: 0 },
+            end: { x: 0, y: 0 }
+        });
+        expect(reverseEngine.getLength()).toBe(100);
+        expect(reverseEngine.getTangentAt(0)).toBe(180);
+    });
 });
 
 describe('ArcEngine', () => {
