@@ -160,3 +160,42 @@ describe('vectorScale', () => {
         expect(result.y).toBe(10);
     });
 });
+
+import { vectorRotate } from '../vector';
+
+describe('vectorRotate', () => {
+    it('should rotate vector by 0 degrees', () => {
+        const v = { x: 10, y: 5 };
+        const result = vectorRotate(v, 0);
+        expect(result.x).toBeCloseTo(10);
+        expect(result.y).toBeCloseTo(5);
+    });
+
+    it('should rotate vector by 90 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(1);
+    });
+
+    it('should rotate vector by 180 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 180);
+        expect(result.x).toBeCloseTo(-1);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should rotate vector by 270 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 270);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-1);
+    });
+
+    it('should rotate vector by 45 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 45);
+        expect(result.x).toBeCloseTo(Math.SQRT1_2);
+        expect(result.y).toBeCloseTo(Math.SQRT1_2);
+    });
+});
