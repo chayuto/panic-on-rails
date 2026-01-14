@@ -51,6 +51,25 @@ export function vectorFromAngle(angleDegrees: number): Vector2 {
     return { x: Math.cos(rad), y: Math.sin(rad) };
 }
 
+/**
+ * Rotate a vector by an angle (in degrees).
+ *
+ * @param v - Vector to rotate
+ * @param angleDegrees - Angle in degrees (positive = clockwise in screen coords usually, but depends on coordinate system)
+ *                       Note: In standard Cartesian, positive is CCW. In screen (y-down), positive is CW.
+ *                       This function uses standard trig functions.
+ * @returns Rotated vector
+ */
+export function vectorRotate(v: Vector2, angleDegrees: number): Vector2 {
+    const rad = degreesToRadians(angleDegrees);
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    return {
+        x: v.x * cos - v.y * sin,
+        y: v.x * sin + v.y * cos
+    };
+}
+
 // ===========================
 // Distance Utilities
 // ===========================

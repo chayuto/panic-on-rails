@@ -9,6 +9,13 @@
 
 import type { Vector2 } from '../types';
 import { degreesToRadians, normalizeAngle, radiansToDegrees } from './angle';
+import {
+    vectorAdd,
+    vectorSubtract,
+    vectorScale,
+    vectorRotate,
+    distance,
+} from './vector';
 
 export * from './angle';
 export * from './vector';
@@ -30,14 +37,8 @@ export function localToWorld(
     worldOrigin: Vector2,
     worldRotation: number
 ): Vector2 {
-    const rad = degreesToRadians(worldRotation);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    return {
-        x: worldOrigin.x + localPos.x * cos - localPos.y * sin,
-        y: worldOrigin.y + localPos.x * sin + localPos.y * cos,
-    };
+    // Rotate local position by world rotation, then add world origin
+    return vectorAdd(worldOrigin, vectorRotate(localPos, worldRotation));
 }
 
 /**
@@ -53,24 +54,19 @@ export function rotateAroundPivot(
     pivot: Vector2,
     angleDegrees: number
 ): Vector2 {
-    const rad = degreesToRadians(angleDegrees);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    const dx = point.x - pivot.x;
-    const dy = point.y - pivot.y;
-
-    return {
-        x: pivot.x + dx * cos - dy * sin,
-        y: pivot.y + dx * sin + dy * cos,
-    };
+    // 1. Translate point to be relative to pivot
+    const relative = vectorSubtract(point, pivot);
+    // 2. Rotate relative vector
+    const rotated = vectorRotate(relative, angleDegrees);
+    // 3. Translate back
+    return vectorAdd(pivot, rotated);
 }
 
 /**
  * Calculate arc length for a curved track
  */
 export function calculateArcLength(radius: number, angleDegrees: number): number {
-    const angleRadians = (angleDegrees * Math.PI) / 180;
+    const angleRadians = degreesToRadians(angleDegrees);
     return radius * angleRadians;
 }
 
@@ -109,19 +105,15 @@ export function calculateArcCenter(
     sweepAngle: number,
     direction: 'cw' | 'ccw'
 ): Vector2 {
-    // Chord from start to end
-    const chordX = end.x - start.x;
-    const chordY = end.y - start.y;
-    const chordLength = Math.sqrt(chordX * chordX + chordY * chordY);
+    const chordLength = distance(start, end);
 
     if (chordLength < 0.0001) {
         // Start and end are the same point, return midpoint (degenerate case)
-        return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+        return vectorScale(vectorAdd(start, end), 0.5);
     }
 
     // Midpoint of chord
-    const midX = (start.x + end.x) / 2;
-    const midY = (start.y + end.y) / 2;
+    const mid = vectorScale(vectorAdd(start, end), 0.5);
 
     // Distance from midpoint to center (along perpendicular)
     // For a chord of length c and arc of radius r with sweep θ:
@@ -132,19 +124,24 @@ export function calculateArcCenter(
     const halfSweep = sweepRad / 2;
     const apothem = radius * Math.cos(halfSweep);
 
+    // Chord vector
+    const chord = vectorSubtract(end, start);
+
     // Perpendicular direction (normalized)
     // Perpendicular to chord, pointing "left" of the chord direction
-    const perpX = -chordY / chordLength;
-    const perpY = chordX / chordLength;
+    // If chord is (dx, dy), left perp is (-dy, dx)
+    // Normalized: (-dy/L, dx/L)
+    const perp = {
+        x: -chord.y / chordLength,
+        y: chord.x / chordLength
+    };
 
     // Center is apothem distance along perpendicular
     // Direction depends on CW/CCW
     const sign = direction === 'ccw' ? 1 : -1;
 
-    return {
-        x: midX + perpX * apothem * sign,
-        y: midY + perpY * apothem * sign,
-    };
+    // center = mid + perp * apothem * sign
+    return vectorAdd(mid, vectorScale(perp, apothem * sign));
 }
 
 /**
