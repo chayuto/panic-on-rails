@@ -15,8 +15,8 @@ importers:
         specifier: ^11.1.3
         version: 11.1.3
       konva:
-        specifier: ^10.0.12
-        version: 10.0.12
+        specifier: ^10.1.0
+        version: 10.1.0
       react:
         specifier: ^19.0.0
         version: 19.2.3
@@ -25,7 +25,7 @@ importers:
         version: 19.2.3(react@19.2.3)
       react-konva:
         specifier: ^19.0.10
-        version: 19.2.1(@types/react@19.2.7)(konva@10.0.12)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 19.2.1(@types/react@19.2.7)(konva@10.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -33,8 +33,8 @@ importers:
         specifier: ^4.3.5
         version: 4.3.5
       zustand:
-        specifier: ^5.0.2
-        version: 5.0.2(@types/react@19.2.7)(immer@11.1.3)(react@19.2.3)
+        specifier: ^5.0.10
+        version: 5.0.10(@types/react@19.2.7)(immer@11.1.3)(react@19.2.3)
     devDependencies:
       '@eslint/js':
         specifier: ^9.17.0
@@ -1125,8 +1125,8 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
-  konva@10.0.12:
-    resolution: {integrity: sha512-DHmkeG5FbW6tLCkbMQTi1ihWycfzljrn0V7umUUuewxx7aoINcI71ksgBX9fTPNXhlsK4/JoMgKwI/iCde+BRw==}
+  konva@10.1.0:
+    resolution: {integrity: sha512-tW/WvPpGqewXMhjHKEQ2HgrRmUvNpgbTHIrbfTpdpOjfnf7LsrOPvVRjiGWS4FhjDesbrtby6e9XK7u2dtgbwg==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -1530,8 +1530,8 @@ packages:
   zod@4.3.5:
     resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
 
-  zustand@5.0.2:
-    resolution: {integrity: sha512-8qNdnJVJlHlrKXi50LDqqUNmUbuBjoKLrYQBnoChIbVph7vni+sY+YpvdjXG9YLd/Bxr6scMcR+rm5H3aSqPaw==}
+  zustand@5.0.10:
+    resolution: {integrity: sha512-U1AiltS1O9hSy3rul+Ub82ut2fqIAefiSuwECWt6jlMVUGejvf+5omLcRBSzqbRagSM3hQZbtzdeRc6QVScXTg==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -2551,7 +2551,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  konva@10.0.12: {}
+  konva@10.1.0: {}
 
   levn@0.4.1:
     dependencies:
@@ -2654,11 +2654,11 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-konva@19.2.1(@types/react@19.2.7)(konva@10.0.12)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  react-konva@19.2.1(@types/react@19.2.7)(konva@10.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@types/react-reconciler': 0.32.3(@types/react@19.2.7)
       its-fine: 2.0.0(@types/react@19.2.7)(react@19.2.3)
-      konva: 10.0.12
+      konva: 10.1.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       react-reconciler: 0.33.0(react@19.2.3)
@@ -2892,7 +2892,7 @@ snapshots:
 
   zod@4.3.5: {}
 
-  zustand@5.0.2(@types/react@19.2.7)(immer@11.1.3)(react@19.2.3):
+  zustand@5.0.10(@types/react@19.2.7)(immer@11.1.3)(react@19.2.3):
     optionalDependencies:
       '@types/react': 19.2.7
       immer: 11.1.3
