@@ -7,6 +7,7 @@ import {
     vectorAdd,
     vectorSubtract,
     vectorScale,
+    vectorRotate,
 } from '../vector';
 
 // ===========================
@@ -158,5 +159,41 @@ describe('vectorScale', () => {
         const result = vectorScale({ x: 10, y: 20 }, 0.5);
         expect(result.x).toBe(5);
         expect(result.y).toBe(10);
+    });
+});
+
+// ===========================
+// Vector Rotation Tests
+// ===========================
+
+describe('vectorRotate', () => {
+    it('should rotate vector by 90 degrees', () => {
+        const result = vectorRotate({ x: 10, y: 0 }, 90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(10);
+    });
+
+    it('should rotate vector by 180 degrees', () => {
+        const result = vectorRotate({ x: 10, y: 0 }, 180);
+        expect(result.x).toBeCloseTo(-10);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should rotate vector by 270 degrees', () => {
+        const result = vectorRotate({ x: 10, y: 0 }, 270);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-10);
+    });
+
+    it('should rotate vector by 360 degrees', () => {
+        const result = vectorRotate({ x: 10, y: 0 }, 360);
+        expect(result.x).toBeCloseTo(10);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should rotate vector by negative angle', () => {
+        const result = vectorRotate({ x: 10, y: 0 }, -90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-10);
     });
 });

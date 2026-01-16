@@ -9,6 +9,7 @@
 
 import type { Vector2 } from '../types';
 import { degreesToRadians, normalizeAngle, radiansToDegrees } from './angle';
+import { vectorAdd, vectorRotate, vectorSubtract } from './vector';
 
 export * from './angle';
 export * from './vector';
@@ -30,14 +31,8 @@ export function localToWorld(
     worldOrigin: Vector2,
     worldRotation: number
 ): Vector2 {
-    const rad = degreesToRadians(worldRotation);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    return {
-        x: worldOrigin.x + localPos.x * cos - localPos.y * sin,
-        y: worldOrigin.y + localPos.x * sin + localPos.y * cos,
-    };
+    const rotated = vectorRotate(localPos, worldRotation);
+    return vectorAdd(worldOrigin, rotated);
 }
 
 /**
@@ -53,24 +48,16 @@ export function rotateAroundPivot(
     pivot: Vector2,
     angleDegrees: number
 ): Vector2 {
-    const rad = degreesToRadians(angleDegrees);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    const dx = point.x - pivot.x;
-    const dy = point.y - pivot.y;
-
-    return {
-        x: pivot.x + dx * cos - dy * sin,
-        y: pivot.y + dx * sin + dy * cos,
-    };
+    const dx = vectorSubtract(point, pivot);
+    const rotated = vectorRotate(dx, angleDegrees);
+    return vectorAdd(pivot, rotated);
 }
 
 /**
  * Calculate arc length for a curved track
  */
 export function calculateArcLength(radius: number, angleDegrees: number): number {
-    const angleRadians = (angleDegrees * Math.PI) / 180;
+    const angleRadians = degreesToRadians(angleDegrees);
     return radius * angleRadians;
 }
 
@@ -164,8 +151,8 @@ export function calculateArcEndpoint(
     sweepAngleDeg: number,
     startDirection: number
 ): { position: { x: number; y: number }; tangentDirection: number } {
-    const sweepRad = (sweepAngleDeg * Math.PI) / 180;
-    const startDirRad = (startDirection * Math.PI) / 180;
+    const sweepRad = degreesToRadians(sweepAngleDeg);
+    const startDirRad = degreesToRadians(startDirection);
 
     // Arc center is perpendicular to start direction
     // For CCW (positive sweep): center is 90° left of direction
@@ -187,7 +174,7 @@ export function calculateArcEndpoint(
     const endY = centerY + Math.sin(endAngleFromCenter) * radius;
 
     // Tangent direction at end (perpendicular to radius)
-    const tangentDirection = ((endAngleFromCenter * 180) / Math.PI) +
+    const tangentDirection = radiansToDegrees(endAngleFromCenter) +
         (sweepAngleDeg >= 0 ? 90 : -90);
 
     return {
