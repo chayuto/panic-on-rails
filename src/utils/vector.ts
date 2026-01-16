@@ -51,6 +51,23 @@ export function vectorFromAngle(angleDegrees: number): Vector2 {
     return { x: Math.cos(rad), y: Math.sin(rad) };
 }
 
+/**
+ * Rotate a vector by an angle.
+ *
+ * @param v - Vector to rotate
+ * @param angleDegrees - Angle to rotate by in degrees
+ * @returns Rotated vector
+ */
+export function vectorRotate(v: Vector2, angleDegrees: number): Vector2 {
+    const rad = degreesToRadians(angleDegrees);
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    return {
+        x: v.x * cos - v.y * sin,
+        y: v.x * sin + v.y * cos
+    };
+}
+
 // ===========================
 // Distance Utilities
 // ===========================
