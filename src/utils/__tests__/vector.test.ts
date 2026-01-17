@@ -7,6 +7,7 @@ import {
     vectorAdd,
     vectorSubtract,
     vectorScale,
+    vectorRotate,
 } from '../vector';
 
 // ===========================
@@ -158,5 +159,44 @@ describe('vectorScale', () => {
         const result = vectorScale({ x: 10, y: 20 }, 0.5);
         expect(result.x).toBe(5);
         expect(result.y).toBe(10);
+    });
+});
+
+describe('vectorRotate', () => {
+    it('should rotate vector by 90 degrees CCW', () => {
+        const result = vectorRotate({ x: 1, y: 0 }, 90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(1);
+    });
+
+    it('should rotate vector by 180 degrees', () => {
+        const result = vectorRotate({ x: 1, y: 0 }, 180);
+        expect(result.x).toBeCloseTo(-1);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should rotate vector by 270 degrees', () => {
+        const result = vectorRotate({ x: 1, y: 0 }, 270);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-1);
+    });
+
+    it('should rotate vector by 0 degrees', () => {
+        const result = vectorRotate({ x: 5, y: 3 }, 0);
+        expect(result.x).toBeCloseTo(5);
+        expect(result.y).toBeCloseTo(3);
+    });
+
+    it('should rotate arbitrary vector', () => {
+        const v = { x: 1, y: 1 }; // 45 degrees
+        const result = vectorRotate(v, 45); // Should be at 90 degrees (0, sqrt(2))
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(Math.sqrt(2));
+    });
+
+    it('should handle negative angles', () => {
+        const result = vectorRotate({ x: 1, y: 0 }, -90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-1);
     });
 });

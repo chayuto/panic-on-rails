@@ -9,6 +9,7 @@
 
 import type { Vector2 } from '../types';
 import { degreesToRadians, normalizeAngle, radiansToDegrees } from './angle';
+import { vectorAdd, vectorRotate, vectorSubtract } from './vector';
 
 export * from './angle';
 export * from './vector';
@@ -30,14 +31,8 @@ export function localToWorld(
     worldOrigin: Vector2,
     worldRotation: number
 ): Vector2 {
-    const rad = degreesToRadians(worldRotation);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    return {
-        x: worldOrigin.x + localPos.x * cos - localPos.y * sin,
-        y: worldOrigin.y + localPos.x * sin + localPos.y * cos,
-    };
+    const rotated = vectorRotate(localPos, worldRotation);
+    return vectorAdd(worldOrigin, rotated);
 }
 
 /**
@@ -53,17 +48,9 @@ export function rotateAroundPivot(
     pivot: Vector2,
     angleDegrees: number
 ): Vector2 {
-    const rad = degreesToRadians(angleDegrees);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    const dx = point.x - pivot.x;
-    const dy = point.y - pivot.y;
-
-    return {
-        x: pivot.x + dx * cos - dy * sin,
-        y: pivot.y + dx * sin + dy * cos,
-    };
+    const diff = vectorSubtract(point, pivot);
+    const rotated = vectorRotate(diff, angleDegrees);
+    return vectorAdd(pivot, rotated);
 }
 
 /**
