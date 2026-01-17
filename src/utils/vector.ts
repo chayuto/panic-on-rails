@@ -33,6 +33,23 @@ export function vectorScale(v: Vector2, scalar: number): Vector2 {
 }
 
 /**
+ * Rotate a vector by an angle in degrees.
+ *
+ * @param v - Vector to rotate
+ * @param angleDegrees - Angle to rotate by (positive = CCW)
+ * @returns Rotated vector
+ */
+export function vectorRotate(v: Vector2, angleDegrees: number): Vector2 {
+    const rad = degreesToRadians(angleDegrees);
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    return {
+        x: v.x * cos - v.y * sin,
+        y: v.x * sin + v.y * cos
+    };
+}
+
+/**
  * Calculate the angle of a vector from origin (in degrees).
  * Returns angle in [0, 360) range.
  */
