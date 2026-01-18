@@ -14,7 +14,7 @@ import type {
     NodeId,
     EdgeId,
 } from '../types';
-import { normalizeAngle, localToWorld } from './geometry';
+import { normalizeAngle, localToWorld, rotateAroundPivot } from './geometry';
 
 // ===========================
 // Connection Transform Calculation
@@ -291,17 +291,7 @@ export function rotateNodeAroundPivot(
     pivotPosition: Vector2,
     rotationDelta: number
 ): Vector2 {
-    const rad = (rotationDelta * Math.PI) / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-
-    const dx = nodePosition.x - pivotPosition.x;
-    const dy = nodePosition.y - pivotPosition.y;
-
-    return {
-        x: pivotPosition.x + dx * cos - dy * sin,
-        y: pivotPosition.y + dx * sin + dy * cos,
-    };
+    return rotateAroundPivot(nodePosition, pivotPosition, rotationDelta);
 }
 
 /**
