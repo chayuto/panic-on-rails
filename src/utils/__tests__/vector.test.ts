@@ -4,6 +4,7 @@ import {
     distanceSquared,
     vectorAngle,
     vectorFromAngle,
+    vectorRotate,
     vectorAdd,
     vectorSubtract,
     vectorScale,
@@ -47,6 +48,43 @@ describe('distanceSquared', () => {
 
     it('should calculate horizontal squared distance', () => {
         expect(distanceSquared({ x: 0, y: 0 }, { x: 10, y: 0 })).toBe(100);
+    });
+});
+
+describe('vectorRotate', () => {
+    it('should rotate vector by 90 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 90);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(1);
+    });
+
+    it('should rotate vector by 180 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 180);
+        expect(result.x).toBeCloseTo(-1);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should rotate vector by 270 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 270);
+        expect(result.x).toBeCloseTo(0);
+        expect(result.y).toBeCloseTo(-1);
+    });
+
+    it('should rotate vector by 360 degrees', () => {
+        const v = { x: 1, y: 0 };
+        const result = vectorRotate(v, 360);
+        expect(result.x).toBeCloseTo(1);
+        expect(result.y).toBeCloseTo(0);
+    });
+
+    it('should preserve magnitude', () => {
+        const v = { x: 3, y: 4 };
+        const result = vectorRotate(v, 37); // arbitrary angle
+        const dist = Math.sqrt(result.x * result.x + result.y * result.y);
+        expect(dist).toBeCloseTo(5);
     });
 });
 
