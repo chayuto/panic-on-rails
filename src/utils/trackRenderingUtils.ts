@@ -7,6 +7,8 @@
  */
 
 import type { Vector2 } from '../types';
+import { distance, vectorAngle, vectorSubtract, vectorFromAngle, vectorScale } from './vector';
+import { degreesToRadians } from './angle';
 
 // ===========================
 // Dual Rail Helpers (V4)
@@ -32,14 +34,15 @@ export function getParallelLinePoints(
     end: Vector2,
     offset: number
 ): [number, number, number, number] {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
+    const len = distance(start, end);
 
     if (len === 0) {
         // Degenerate case: zero-length line
         return [start.x, start.y, end.x, end.y];
     }
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
 
     // Perpendicular unit vector
     const perpX = -dy / len;
@@ -105,20 +108,21 @@ export function generateStraightSleepers(
 ): SleeperPosition[] {
     const sleepers: SleeperPosition[] = [];
 
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const length = distance(start, end);
 
     if (length === 0) return sleepers;
+
+    // We still need dx/dy for interpolation, but we can use vectorSubtract
+    const diff = vectorSubtract(end, start);
+    const angle = vectorAngle(diff);
 
     // Generate sleepers along the track
     const count = Math.floor(length / spacing);
     for (let i = 0; i <= count; i++) {
         const t = count === 0 ? 0.5 : i / count;
         sleepers.push({
-            x: start.x + dx * t,
-            y: start.y + dy * t,
+            x: start.x + diff.x * t,
+            y: start.y + diff.y * t,
             rotation: angle + 90,  // Perpendicular to track
         });
     }
@@ -146,7 +150,7 @@ export function generateArcSleepers(
     const sleepers: SleeperPosition[] = [];
 
     // Calculate arc length
-    const sweepRad = Math.abs(endAngle - startAngle) * Math.PI / 180;
+    const sweepRad = degreesToRadians(Math.abs(endAngle - startAngle));
     const arcLength = radius * sweepRad;
 
     if (arcLength === 0) return sleepers;
@@ -156,11 +160,14 @@ export function generateArcSleepers(
     for (let i = 0; i <= count; i++) {
         const t = count === 0 ? 0.5 : i / count;
         const angleDeg = startAngle + (endAngle - startAngle) * t;
-        const angleRad = angleDeg * Math.PI / 180;
+
+        // Calculate position using vector utilities
+        // vectorFromAngle returns unit vector for angleDeg
+        const offset = vectorScale(vectorFromAngle(angleDeg), radius);
 
         sleepers.push({
-            x: center.x + Math.cos(angleRad) * radius,
-            y: center.y + Math.sin(angleRad) * radius,
+            x: center.x + offset.x,
+            y: center.y + offset.y,
             rotation: angleDeg + 90,  // Perpendicular to radius (tangent + 90)
         });
     }
