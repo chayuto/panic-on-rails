@@ -96,6 +96,7 @@ function PartCard({ part }: { part: PartDefinition }) {
             draggable
             onDragStart={handleDragStart}
             title={part.name}
+            data-testid={`part-card-${part.id}`}
         >
             {renderPreview()}
             <span className="part-label">{part.name}</span>
@@ -141,7 +142,7 @@ export function PartsBin() {
     const switches = parts.filter(p => p.geometry.type === 'switch');
 
     return (
-        <aside className="parts-bin">
+        <aside className="parts-bin" data-testid="parts-bin">
             <div className="parts-bin-header">
                 <h2>Parts</h2>
             </div>

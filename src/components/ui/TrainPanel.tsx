@@ -51,7 +51,7 @@ export function TrainPanel() {
     }, []);
 
     return (
-        <div className="train-panel">
+        <div className="train-panel" data-testid="train-panel">
             <div className="train-panel-header">
                 <h2>🚂 Trains</h2>
                 <span className="train-count">{trainList.length}</span>
@@ -63,6 +63,7 @@ export function TrainPanel() {
                     className={`control-btn play-btn ${isRunning ? 'active' : ''}`}
                     onClick={toggleRunning}
                     title={isRunning ? 'Pause' : 'Play'}
+                    data-testid="train-play-btn"
                 >
                     {isRunning ? '⏸️' : '▶️'}
                 </button>
@@ -72,6 +73,7 @@ export function TrainPanel() {
                     onClick={handleSpawnTrain}
                     disabled={!hasEdges}
                     title="Add Train"
+                    data-testid="train-add-btn"
                 >
                     ➕ Add Train
                 </button>

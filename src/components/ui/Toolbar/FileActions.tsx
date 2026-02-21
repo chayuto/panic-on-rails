@@ -215,7 +215,7 @@ export function FileActions() {
 
     return (
         <>
-            <button onClick={handleNewClick} title="New Layout" className="toolbar-btn-icon">
+            <button onClick={handleNewClick} title="New Layout" className="toolbar-btn-icon" data-testid="file-new">
                 📄
             </button>
             <select
@@ -224,6 +224,7 @@ export function FileActions() {
                 disabled={loadingTemplate}
                 title="Load Template"
                 className="template-selector-compact"
+                data-testid="file-template-selector"
             >
                 <option value="">📋</option>
                 {templates.map(t => (
@@ -232,10 +233,10 @@ export function FileActions() {
                     </option>
                 ))}
             </select>
-            <button onClick={handleSave} title="Save to File" className="toolbar-btn-icon">
+            <button onClick={handleSave} title="Save to File" className="toolbar-btn-icon" data-testid="file-save">
                 💾
             </button>
-            <button onClick={handleLoad} title="Load from File" className="toolbar-btn-icon">
+            <button onClick={handleLoad} title="Load from File" className="toolbar-btn-icon" data-testid="file-load">
                 📂
             </button>
 

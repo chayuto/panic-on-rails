@@ -27,9 +27,9 @@ function App() {
 
     return (
         <OnboardingProvider>
-            <div className="app">
+            <div className="app" data-testid="app">
                 <Toolbar />
-                <main className="app-main">
+                <main className="app-main" data-testid="app-main">
                     {/* Conditional sidebar: PartsBin in Edit, TrainPanel in Simulate */}
                     {isEditing ? <PartsBin /> : <TrainPanel />}
                     <StageWrapper />

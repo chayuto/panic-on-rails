@@ -156,6 +156,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         <div
             ref={containerRef}
             className="canvas-container"
+            data-testid="canvas-container"
             style={{ cursor }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}

@@ -252,6 +252,7 @@ export function EditToolbar() {
                         className={`toolbar-btn-icon ${editSubMode === tool.mode ? 'active' : ''} ${isLocked ? 'tool-locked' : ''}`}
                         title={isLocked ? `${tool.title} (Complete tutorial to unlock)` : tool.title}
                         aria-disabled={isLocked}
+                        data-testid={`edit-tool-${tool.mode}`}
                     >
                         {tool.icon}
                     </button>
