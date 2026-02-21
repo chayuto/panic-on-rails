@@ -43,4 +43,4 @@ test-results/
 # TypeScript
 *.tsbuildinfo
 docs/personal/
-docs/internal/
+docs/internal/node_modules/

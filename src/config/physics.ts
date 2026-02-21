@@ -14,6 +14,10 @@ export const PHYSICS = {
     CRASH_SPEED_THRESHOLD_LOW: 50,
     CRASH_SPEED_THRESHOLD_HIGH: 150,
 
+    // Ground Friction (post-bounce sliding decay per frame)
+    GROUND_FRICTION: 0.95,
+    GROUND_ANGULAR_FRICTION: 0.95,
+
     // Debris Lifetime
     DEBRIS_MAX_AGE_MS: 500, // Time before cleanup (referenced in useGameLoop)
 

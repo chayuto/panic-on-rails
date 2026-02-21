@@ -16,6 +16,7 @@ import {
     type CrashedPart,
     type CrashEvent,
 } from '../crashPhysics';
+import { PHYSICS } from '../../config/physics';
 
 describe('crashPhysics', () => {
     describe('explodeTrain', () => {
@@ -290,6 +291,65 @@ describe('crashPhysics', () => {
 
             const result = cleanupOldParts(parts);
             expect(result).toHaveLength(1);
+        });
+    });
+
+    describe('config integration', () => {
+        it('uses CRASH_SPEED_THRESHOLD_LOW for severity boundary', () => {
+            const justBelow = PHYSICS.CRASH_SPEED_THRESHOLD_LOW - 1;
+            const atThreshold = PHYSICS.CRASH_SPEED_THRESHOLD_LOW;
+
+            expect(calculateCrashSeverity({ x: justBelow, y: 0 })).toBe(1);
+            expect(calculateCrashSeverity({ x: atThreshold, y: 0 })).toBe(2);
+        });
+
+        it('uses CRASH_SPEED_THRESHOLD_HIGH for severity boundary', () => {
+            const justBelow = PHYSICS.CRASH_SPEED_THRESHOLD_HIGH - 1;
+            const atThreshold = PHYSICS.CRASH_SPEED_THRESHOLD_HIGH;
+
+            expect(calculateCrashSeverity({ x: justBelow, y: 0 })).toBe(2);
+            expect(calculateCrashSeverity({ x: atThreshold, y: 0 })).toBe(3);
+        });
+
+        it('applies GROUND_FRICTION to sliding parts after max bounces', () => {
+            const part: CrashedPart = {
+                id: 'friction-test',
+                type: 'body',
+                position: { x: 100, y: 100 },
+                velocity: { x: 100, y: 0 },
+                rotation: 0,
+                angularVelocity: 5,
+                mass: 1,
+                bounceCount: 3,
+                maxBounces: 3,
+                color: '#FF0000',
+                settled: false,
+            };
+
+            const updated = updateCrashedParts([part], 0.001);
+            // After max bounces with speed > SETTLE_THRESHOLD,
+            // ground friction should be applied
+            expect(updated[0].velocity.x).toBeCloseTo(100 * PHYSICS.GROUND_FRICTION, 0);
+        });
+
+        it('applies GROUND_ANGULAR_FRICTION to sliding parts after max bounces', () => {
+            const part: CrashedPart = {
+                id: 'angular-friction-test',
+                type: 'body',
+                position: { x: 100, y: 100 },
+                velocity: { x: 100, y: 0 },
+                rotation: 0,
+                angularVelocity: 5,
+                mass: 1,
+                bounceCount: 3,
+                maxBounces: 3,
+                color: '#FF0000',
+                settled: false,
+            };
+
+            const updated = updateCrashedParts([part], 0.001);
+            // Angular velocity should be decayed by GROUND_ANGULAR_FRICTION
+            expect(updated[0].angularVelocity).toBeCloseTo(5 * PHYSICS.GROUND_ANGULAR_FRICTION, 1);
         });
     });
 });
