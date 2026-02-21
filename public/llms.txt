@@ -1,0 +1,41 @@
+# PanicOnRails
+
+> Free, open-source browser-based train track planner and sandbox simulation with Kato N-Scale accuracy.
+
+PanicOnRails is a web application for designing model train layouts and simulating train operations entirely in the browser. It requires no installation, no account, and is 100% free under the MIT license.
+
+## Key Information
+
+- **URL**: [https://panic-on-rails.chayuto.com/](https://panic-on-rails.chayuto.com/)
+- **Source Code**: [https://github.com/chayuto/panic-on-rails](https://github.com/chayuto/panic-on-rails)
+- **License**: MIT
+- **Author**: Chayuto
+- **Cost**: Free, no ads, no subscriptions
+
+## Features
+
+- Browser-based train track planner — no download or installation required
+- Kato N-Scale track geometry with real-world accuracy (1:160 scale)
+- Graph-based train simulation with multiple trains running simultaneously
+- Snap-to-connect track placement with automatic alignment
+- Export and import layouts as JSON files
+- Auto-save to browser local storage
+- Template library with pre-built layouts
+- Dark theme interface optimized for extended use
+- Keyboard shortcuts for efficient editing
+- Touch and tablet support
+
+## Technology
+
+- React 19, TypeScript 5.9, Vite 7
+- HTML5 Canvas rendering via React-Konva
+- Zustand state management
+- Deployed on GitHub Pages
+
+## Documentation
+
+- [Features](https://github.com/chayuto/panic-on-rails/blob/main/docs/FEATURES.md): Complete feature documentation
+- [FAQ](https://github.com/chayuto/panic-on-rails/blob/main/docs/FAQ.md): Frequently asked questions
+- [Keyboard Shortcuts](https://github.com/chayuto/panic-on-rails/blob/main/docs/KEYBOARD_SHORTCUTS.md): All keyboard shortcuts
+- [Contributing Guide](https://github.com/chayuto/panic-on-rails/blob/main/CONTRIBUTING.md): How to contribute
+- [Full LLM Context](https://panic-on-rails.chayuto.com/llms-full.txt): Extended information for language models
