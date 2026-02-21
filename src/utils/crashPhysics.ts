@@ -42,7 +42,12 @@ import { PHYSICS } from '../config/physics';
 // Constants
 // ===========================
 
-const { GRAVITY, FRICTION, ANGULAR_FRICTION, GROUND_Y, SETTLE_THRESHOLD, PARTS: PART_DEFINITIONS } = PHYSICS;
+const {
+    GRAVITY, FRICTION, ANGULAR_FRICTION, GROUND_Y, SETTLE_THRESHOLD,
+    GROUND_FRICTION, GROUND_ANGULAR_FRICTION,
+    CRASH_SPEED_THRESHOLD_LOW, CRASH_SPEED_THRESHOLD_HIGH,
+    PARTS: PART_DEFINITIONS,
+} = PHYSICS;
 
 // ===========================
 // Part ID Generation
@@ -201,8 +206,8 @@ export function updateCrashedParts(
                 part.angularVelocity = 0;
             } else {
                 // Apply ground friction
-                part.velocity.x *= 0.95;
-                part.angularVelocity *= 0.95;
+                part.velocity.x *= GROUND_FRICTION;
+                part.angularVelocity *= GROUND_ANGULAR_FRICTION;
             }
         }
 
@@ -234,7 +239,7 @@ export function calculateCrashSeverity(
     const speed = Math.sqrt(relativeVx * relativeVx + relativeVy * relativeVy);
 
     // Map speed to severity 1-3
-    if (speed < 50) return 1;
-    if (speed < 150) return 2;
+    if (speed < CRASH_SPEED_THRESHOLD_LOW) return 1;
+    if (speed < CRASH_SPEED_THRESHOLD_HIGH) return 2;
     return 3;
 }
