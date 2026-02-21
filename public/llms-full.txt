@@ -1,0 +1,95 @@
+# PanicOnRails — Full Context for Language Models
+
+> Free, open-source browser-based train track planner and sandbox simulation with Kato N-Scale accuracy.
+
+## Overview
+
+PanicOnRails is an open-source web application for designing model train layouts and simulating train operations. It runs entirely in the browser with no installation, no account creation, and no cost. The application is built with React 19, TypeScript, and HTML5 Canvas (via React-Konva), and is deployed as a static site on GitHub Pages.
+
+**Live Application**: https://panic-on-rails.chayuto.com/
+**Source Code**: https://github.com/chayuto/panic-on-rails
+**License**: MIT — free forever, no ads, no subscriptions
+
+## Core Features
+
+### Track Building
+- Snap-to-connect placement: Tracks automatically align and connect when placed near each other
+- Kato N-Scale accuracy: Real-world track geometry and dimensions at 1:160 scale with 9mm gauge
+- Multiple track types: Straight tracks (various lengths), curved tracks (various radii), switches/turnouts, and crossings
+- Rotation and flip controls for full track orientation
+- Undo/redo support for non-destructive editing
+
+### Train Simulation
+- Graph-based movement: Trains follow track topology intelligently using a graph data structure
+- Multiple trains: Run several trains simultaneously on the same layout
+- Speed control: Adjust train velocity in real-time
+- Direction control: Reverse trains on demand
+- Collision awareness: Visual feedback for potential train collisions
+
+### Layout Management
+- Auto-save: Layouts persist automatically in browser local storage
+- Export to JSON: Download layouts as portable JSON files
+- Import layouts: Load previously saved designs from JSON files
+- Template library: Start from pre-built layout templates for quick setup
+
+### User Interface
+- Pan and zoom: Navigate large layouts smoothly with mouse or touch
+- Keyboard shortcuts: Efficient editing workflow (R=rotate, F=flip, Delete=remove, Ctrl+Z=undo, Space=pan)
+- Touch support: Works on tablets and touch screens
+- Dark theme: Comfortable for long design sessions
+- Desktop-first design: Optimized for precision with mouse input
+
+## Technical Specifications
+
+| Specification | Value |
+|--------------|-------|
+| Track Scale | Kato N-Scale (1:160) |
+| Track Gauge | 9mm (modeled accurately) |
+| Rendering Engine | HTML5 Canvas via Konva |
+| UI Framework | React 19 with TypeScript 5.9 |
+| Build Tool | Vite 7 |
+| State Management | Zustand 5 |
+| Data Format | JSON |
+| Browser Support | Chrome, Firefox, Safari, Edge |
+| Hosting | GitHub Pages (static site) |
+| Package Manager | pnpm |
+
+## Frequently Asked Questions
+
+### Is PanicOnRails free?
+Yes, 100% free. PanicOnRails is open source under the MIT license. No ads, no subscriptions, no hidden costs. Free forever.
+
+### Does it work on mobile?
+PanicOnRails is designed desktop-first for precision track placement. It works on tablets, but mobile phones are not recommended due to screen size limitations.
+
+### Can I save and share my layouts?
+Yes. Layouts are automatically saved to browser local storage. You can also export layouts as JSON files for sharing or backup. Others can import the JSON files into their instance.
+
+### What track types are available?
+Currently focused on Kato N-Scale including straight tracks (various lengths), curved tracks (various radii), switches/turnouts, and crossings. More track types are planned.
+
+### Is my data private?
+Yes. All data stays in your browser. PanicOnRails does not send layouts to any server. Designs are stored locally on the user's device.
+
+### Who created PanicOnRails?
+PanicOnRails was created by Chayuto (https://github.com/chayuto) as an open-source project.
+
+### Why the name "PanicOnRails"?
+A playful name combining the excitement of train simulation with a well-known programming error pattern ("panic" in Go/Rust + "on Rails" from Ruby on Rails). No actual panics here — just trains!
+
+## Project Status
+
+The project is under active development. Current capabilities include track placement and visualization, pan and zoom controls, layout persistence, file export/import, snap-to-connect placement, and train simulation with graph-based movement. Planned features include an extended part catalog, URL-based layout sharing, collision detection improvements, and multiplayer mode.
+
+## How to Contribute
+
+Contributions are welcome via GitHub. Fork the repository, create a feature branch, commit changes, and open a Pull Request. See the Contributing Guide at https://github.com/chayuto/panic-on-rails/blob/main/CONTRIBUTING.md for full details.
+
+## Documentation Links
+
+- Features: https://github.com/chayuto/panic-on-rails/blob/main/docs/FEATURES.md
+- FAQ: https://github.com/chayuto/panic-on-rails/blob/main/docs/FAQ.md
+- Keyboard Shortcuts: https://github.com/chayuto/panic-on-rails/blob/main/docs/KEYBOARD_SHORTCUTS.md
+- Architecture: https://github.com/chayuto/panic-on-rails/blob/main/docs/architecture/constitution.md
+- Contributing: https://github.com/chayuto/panic-on-rails/blob/main/CONTRIBUTING.md
+- Code of Conduct: https://github.com/chayuto/panic-on-rails/blob/main/CODE_OF_CONDUCT.md

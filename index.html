@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
@@ -12,10 +11,17 @@
     <meta name="description"
         content="Build train layouts in your browser for free. Open-source sandbox with Kato N-Scale track geometry, graph-based simulation, and no installation required. Design, share, and export model railroad layouts." />
     <meta name="keywords"
-        content="train track planner, model railroad, N-scale, Kato, train simulation, track layout, browser game, free, open source, train sandbox" />
+        content="train track planner, model railroad, N-scale, Kato, train simulation, track layout, browser game, free, open source, train sandbox, model train, layout designer" />
     <meta name="author" content="Chayuto" />
+    <meta name="application-name" content="PanicOnRails" />
     <meta name="theme-color" content="#1A1A1A" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="canonical" href="https://panic-on-rails.chayuto.com/" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/og-image.png" />
 
     <!-- Open Graph / Facebook / Discord / LinkedIn -->
     <meta property="og:type" content="website" />
@@ -24,7 +30,11 @@
     <meta property="og:description"
         content="Build train layouts in your browser for free. Open-source sandbox with Kato N-Scale tracks, graph-based simulation, and no installation required." />
     <meta property="og:image" content="https://panic-on-rails.chayuto.com/og-image.png" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" />
+    <meta property="og:image:alt" content="PanicOnRails train track planner application screenshot" />
     <meta property="og:site_name" content="PanicOnRails" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -33,29 +43,93 @@
     <meta name="twitter:description"
         content="Build train layouts in your browser for free. Open-source with Kato N-Scale tracks." />
     <meta name="twitter:image" content="https://panic-on-rails.chayuto.com/og-image.png" />
+    <meta name="twitter:image:alt" content="PanicOnRails train track planner application screenshot" />
 
-    <!-- Schema.org JSON-LD for LLM and Rich Results -->
+    <!-- Schema.org JSON-LD for Rich Results -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "PanicOnRails",
-        "description": "Browser-based train track planner and sandbox simulation with Kato N-Scale accuracy",
+        "alternateName": "Panic on Rails",
+        "description": "Free, open-source browser-based train track planner and sandbox simulation with Kato N-Scale accuracy. Design, simulate, and share model railroad layouts.",
         "url": "https://panic-on-rails.chayuto.com/",
         "applicationCategory": "GameApplication",
+        "applicationSubCategory": "Simulation",
         "operatingSystem": "Web Browser",
         "browserRequirements": "Requires JavaScript. Works best in Chrome, Firefox, Safari, Edge.",
         "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "USD"
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
         },
         "author": {
             "@type": "Person",
-            "name": "Chayuto"
+            "name": "Chayuto",
+            "url": "https://github.com/chayuto"
         },
         "license": "https://opensource.org/licenses/MIT",
-        "keywords": "train track planner, model railroad, N-scale, Kato, train simulation, browser game"
+        "keywords": "train track planner, model railroad, N-scale, Kato, train simulation, browser game, layout designer",
+        "inLanguage": "en",
+        "isAccessibleForFree": true,
+        "screenshot": "https://panic-on-rails.chayuto.com/og-image.png",
+        "softwareVersion": "0.1.0",
+        "sourceOrganization": {
+            "@type": "Person",
+            "name": "Chayuto",
+            "url": "https://github.com/chayuto"
+        }
+    }
+    </script>
+
+    <!-- FAQ Schema for LLM and Rich Results -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Is PanicOnRails free?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, PanicOnRails is 100% free and open source under the MIT license. No ads, no subscriptions, no hidden costs. Free forever."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does PanicOnRails work on mobile?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "PanicOnRails is designed desktop-first for precision track placement. It works on tablets, but mobile phones are not recommended due to screen size limitations."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I save and share my train layouts?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes! Layouts are automatically saved to your browser's local storage. You can also export layouts as JSON files for sharing or backup. Others can import the JSON files into their instance of PanicOnRails."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What track types are available in PanicOnRails?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Currently focused on Kato N-Scale including straight tracks (various lengths), curved tracks (various radii), switches/turnouts, and crossings. More track types are planned for future releases."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is my data private in PanicOnRails?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. All data stays in your browser. PanicOnRails does not send your layouts to any server. Your designs are stored locally on your device."
+                }
+            }
+        ]
     }
     </script>
 </head>
@@ -63,6 +137,26 @@
 <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Noscript fallback for search engines and LLM crawlers -->
+    <noscript>
+        <div style="max-width: 800px; margin: 40px auto; padding: 20px; font-family: sans-serif; color: #eee; background: #1a1a1a;">
+            <h1>PanicOnRails — Free Browser-Based Train Track Planner</h1>
+            <p>PanicOnRails is a free, open-source web application for designing model train layouts and simulating train operations. It runs entirely in your browser with no installation required.</p>
+            <h2>Features</h2>
+            <ul>
+                <li>Kato N-Scale track geometry with real-world accuracy</li>
+                <li>Snap-to-connect track placement</li>
+                <li>Graph-based train simulation with multiple trains</li>
+                <li>Export and import layouts as JSON files</li>
+                <li>Auto-save to browser local storage</li>
+                <li>Template library with pre-built layouts</li>
+                <li>Keyboard shortcuts for efficient editing</li>
+            </ul>
+            <p>JavaScript is required to use PanicOnRails. Please enable JavaScript in your browser.</p>
+            <p><a href="https://github.com/chayuto/panic-on-rails" style="color: #4A90D9;">View source code on GitHub</a></p>
+        </div>
+    </noscript>
 </body>
 
 </html>
