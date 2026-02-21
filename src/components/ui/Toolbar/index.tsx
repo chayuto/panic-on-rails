@@ -26,7 +26,7 @@ export function Toolbar() {
     const isEditing = primaryMode === 'edit';
 
     return (
-        <header className="toolbar toolbar-compact">
+        <header className="toolbar toolbar-compact" data-testid="toolbar">
             {/* App title */}
             <div className="toolbar-title">
                 <span>🚂</span>

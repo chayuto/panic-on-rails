@@ -41,12 +41,13 @@ export function ModeToggle() {
     }, [togglePrimaryMode]);
 
     return (
-        <div className="mode-toggle-container">
+        <div className="mode-toggle-container" data-testid="mode-toggle">
             <button
                 className={`mode-toggle-btn edit-btn ${isEditing ? 'active' : ''}`}
                 onClick={() => !isEditing && togglePrimaryMode()}
                 title="Edit Mode - Build tracks (M)"
                 aria-pressed={isEditing}
+                data-testid="mode-edit-btn"
             >
                 <span className="mode-icon">🔧</span>
                 <span className="mode-label">Edit</span>
@@ -57,6 +58,7 @@ export function ModeToggle() {
                 onClick={() => isEditing && togglePrimaryMode()}
                 title="Simulate Mode - Run trains (M)"
                 aria-pressed={!isEditing}
+                data-testid="mode-simulate-btn"
             >
                 <span className="mode-icon">🚂</span>
                 <span className="mode-label">Simulate</span>

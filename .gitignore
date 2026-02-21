@@ -29,6 +29,11 @@ lerna-debug.log*
 
 # Testing
 coverage
+e2e-results/
+e2e-report/
+playwright-report/
+blob-report/
+test-results/
 
 # Environment
 .env

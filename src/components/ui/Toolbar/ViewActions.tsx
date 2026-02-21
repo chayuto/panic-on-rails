@@ -23,7 +23,7 @@ function MuteToggle() {
     }, []);
 
     return (
-        <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'} className="toolbar-btn-icon">
+        <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'} className="toolbar-btn-icon" data-testid="view-mute-toggle">
             {muted ? '🔇' : '🔊'}
         </button>
     );
@@ -34,7 +34,7 @@ export function ViewActions() {
 
     return (
         <>
-            <button onClick={toggleGrid} title="Toggle Grid" className="toolbar-btn-icon">
+            <button onClick={toggleGrid} title="Toggle Grid" className="toolbar-btn-icon" data-testid="view-grid-toggle">
                 {showGrid ? '🔲' : '⬜'}
             </button>
             <MuteToggle />
