@@ -24,8 +24,8 @@ importers:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
       react-konva:
-        specifier: ^19.2.2
-        version: 19.2.2(@types/react@19.2.14)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -718,8 +718,8 @@ packages:
     peerDependencies:
       '@types/react': '*'
 
-  '@types/react-reconciler@0.32.3':
-    resolution: {integrity: sha512-cMi5ZrLG7UtbL7LTK6hq9w/EZIRk4Mf1Z5qHoI+qBh7/WkYkFXQ7gOto2yfUvPzF5ERMAhaXS5eTQ2SAnHjLzA==}
+  '@types/react-reconciler@0.33.0':
+    resolution: {integrity: sha512-HZOXsKT0tGI9LlUw2LuedXsVeB88wFa536vVL0M6vE8zN63nI+sSr1ByxmPToP5K5bukaVscyeCJcF9guVNJ1g==}
     peerDependencies:
       '@types/react': '*'
 
@@ -1327,8 +1327,8 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-konva@19.2.2:
-    resolution: {integrity: sha512-fgIevJSiZ6mYxouR0XLq7oKgQkfHHySHyNpyc1f/3in0xXq8BV7M7Y82obyoBPOAj35TBUPuZ568qZcelYm3ag==}
+  react-konva@19.2.3:
+    resolution: {integrity: sha512-VsO5CJZwUo12xFa33UEIDOQn6ZZBeE6jlkStGFvpR/3NiDA/9RPQTzw6Ri++C0Pnh3Arco1AehB8qJNv9YCRwg==}
     peerDependencies:
       konva: ^8.0.1 || ^7.2.5 || ^9.0.0 || ^10.0.0
       react: ^19.2.0
@@ -2190,7 +2190,7 @@ snapshots:
     dependencies:
       '@types/react': 19.2.14
 
-  '@types/react-reconciler@0.32.3(@types/react@19.2.14)':
+  '@types/react-reconciler@0.33.0(@types/react@19.2.14)':
     dependencies:
       '@types/react': 19.2.14
 
@@ -2848,9 +2848,9 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-konva@19.2.2(@types/react@19.2.14)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  react-konva@19.2.3(@types/react@19.2.14)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
-      '@types/react-reconciler': 0.32.3(@types/react@19.2.14)
+      '@types/react-reconciler': 0.33.0(@types/react@19.2.14)
       its-fine: 2.0.0(@types/react@19.2.14)(react@19.2.4)
       konva: 10.2.0
       react: 19.2.4
