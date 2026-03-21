@@ -44,7 +44,7 @@ export function useConnectMode() {
         if (connectSource.edgeId === targetEdgeId) return false;
 
         return true;
-    }, [nodes, edges, connectSource]);
+    }, [nodes, connectSource]);
 
     /**
      * Handle a node click in connect mode

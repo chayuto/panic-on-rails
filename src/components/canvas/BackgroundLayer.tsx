@@ -15,8 +15,6 @@ const GRID_COLOR = '#2D2D2D';
 const GRID_COLOR_MAJOR = '#3D3D3D';
 
 export function BackgroundLayer({ width, height, zoom, pan, showGrid }: BackgroundLayerProps) {
-    if (!showGrid) return null;
-
     // Calculate visible area in world coordinates
     const visibleLeft = -pan.x / zoom;
     const visibleTop = -pan.y / zoom;
@@ -31,6 +29,8 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
     const endY = Math.ceil((visibleTop + visibleHeight + padding) / GRID_SIZE) * GRID_SIZE;
 
     const lines = useMemo(() => {
+        if (!showGrid) return null;
+
         const result: React.ReactElement[] = [];
 
         // Vertical lines
@@ -64,8 +64,9 @@ export function BackgroundLayer({ width, height, zoom, pan, showGrid }: Backgrou
         }
 
         return result;
-    }, [startX, startY, endX, endY]);
+    }, [showGrid, startX, startY, endX, endY]);
+
+    if (!lines) return null;
 
     return <>{lines}</>;
 }
-

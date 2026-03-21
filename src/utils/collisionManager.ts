@@ -6,7 +6,7 @@
  * Supports multi-car trains by considering the full train length.
  */
 
-import type { Train, TrackEdge, TrackNode, EdgeId, NodeId } from '../types';
+import type { Train, TrackEdge, EdgeId, NodeId } from '../types';
 import { DEFAULT_CARRIAGE_SPACING } from '../stores/useSimulationStore';
 
 /** Base distance threshold for collision detection (in edge units) */
@@ -77,8 +77,7 @@ function distanceToNode(
  */
 export function detectCollisions(
     trains: Record<string, Train>,
-    edges?: Record<EdgeId, TrackEdge>,
-    _nodes?: Record<NodeId, TrackNode>
+    edges?: Record<EdgeId, TrackEdge>
 ): CollisionResult[] {
     const collisions: CollisionResult[] = [];
     const trainList = Object.values(trains);
