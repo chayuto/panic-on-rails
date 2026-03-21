@@ -38,12 +38,10 @@ export function useConnectMode() {
         // Must be different from source
         if (nodeId === connectSource.nodeId) return false;
 
-        // Must be from a different part
-        const sourceEdge = edges[connectSource.edgeId];
-        const targetEdge = edges[node.connections[0]];
-
-        if (!sourceEdge || !targetEdge) return false;
-        if (sourceEdge.partId === targetEdge.partId) return false;
+        // Must be from a different edge (not the same track segment)
+        const targetEdgeId = node.connections[0];
+        if (!targetEdgeId) return false;
+        if (connectSource.edgeId === targetEdgeId) return false;
 
         return true;
     }, [nodes, edges, connectSource]);

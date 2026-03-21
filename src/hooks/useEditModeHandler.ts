@@ -17,6 +17,7 @@ import { useTrackStore } from '../stores/useTrackStore';
 import { useBudgetStore } from '../stores/useBudgetStore';
 import { useIsEditing } from '../stores/useModeStore';
 import { findBestSnap } from '../utils/snapManager';
+import { angleDifference } from '../utils/angle';
 import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
@@ -233,18 +234,11 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
                             ep.position.y - newNode.position.y
                         );
                         if (dist < MERGE_THRESHOLD && dist < nearestDist) {
-                            // Forgiving merge logic for close placements:
-                            // - Very close (< 3px): skip angle check entirely - clearly intentional
-                            // - Close (3-10px): use 45° tolerance to catch arc misalignments
-                            const skipAngleCheck = dist < 3;
-
-                            let angleOk = skipAngleCheck;
-                            if (!skipAngleCheck) {
-                                let rotDiff = Math.abs(ep.rotation - newNode.rotation);
-                                if (rotDiff > 180) rotDiff = 360 - rotDiff; // Normalize to [0, 180]
-                                const facingError = Math.abs(rotDiff - 180); // How far from facing each other
-                                angleOk = facingError < 45; // 45 degree tolerance for near-misses
-                            }
+                            // Merge requires facades to face each other (180° apart)
+                            // Always check angle — even very close placements can be misaligned
+                            const rotDiff = angleDifference(ep.rotation, newNode.rotation);
+                            const facingError = Math.abs(rotDiff - 180);
+                            const angleOk = facingError < 20; // 20° tolerance matches constitution
 
                             if (angleOk) {
                                 nearestEndpoint = ep;

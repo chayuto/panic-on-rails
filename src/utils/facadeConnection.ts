@@ -62,33 +62,33 @@ export function canMate(facadeA: number, facadeB: number, tolerance = MATE_ANGLE
 
 /**
  * Calculate the facade angle for a track's START connector.
- * The START connector faces BACKWARD (opposite to track direction).
- * 
- * @param trackRotation - The track's forward direction (degrees)
+ * @deprecated Use computeConnectors() from catalog system for multi-node parts.
+ * Only valid for straight/curve parts.
+ *
+ * @param trackRotation - The placement rotation (degrees)
  * @returns Facade angle (degrees, 0-360)
  */
 export function getStartFacade(trackRotation: number): number {
-    // Start connector faces backward (opposite of track direction)
     return normalizeAngle(trackRotation + 180);
 }
 
 /**
  * Calculate the facade angle for a track's END connector.
- * The END connector faces FORWARD (same as track direction at that point).
- * 
- * @param trackRotation - The track's forward direction at start (degrees)
+ * @deprecated Use computeConnectors() from catalog system for multi-node parts.
+ * Only valid for straight/curve parts. Returns incorrect results for switches/crossings.
+ *
+ * @param trackRotation - The placement rotation at start (degrees)
  * @param geometry - Part geometry (determines how direction changes)
  * @returns Facade angle (degrees, 0-360)
  */
 export function getEndFacade(trackRotation: number, geometry: PartGeometry): number {
     if (geometry.type === 'straight') {
-        // Straight track: direction doesn't change
         return normalizeAngle(trackRotation);
     } else if (geometry.type === 'curve') {
-        // Curve: direction changes by the curve angle
         return normalizeAngle(trackRotation + geometry.angle);
     }
-    // Default for switches/crossings (would need more complex logic)
+    // Switch/crossing: this is incorrect — use computeConnectors() instead
+    console.warn('[getEndFacade] Called with unsupported geometry type:', geometry.type);
     return normalizeAngle(trackRotation);
 }
 
