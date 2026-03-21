@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
+import { PartyPopper, X } from 'lucide-react';
 import './Onboarding.css';
 
 interface ToastProps {
@@ -16,7 +17,7 @@ interface ToastProps {
     variant?: 'success' | 'info';
 
     /** Icon to display */
-    icon?: string;
+    icon?: ReactNode;
 
     /** Title (bold text) */
     title?: string;
@@ -31,7 +32,7 @@ interface ToastProps {
 export function Toast({
     children,
     variant = 'success',
-    icon = '🎉',
+    icon = <PartyPopper size={20} />,
     title,
     duration = 4000,
     onDismiss,
@@ -71,7 +72,7 @@ export function Toast({
                 onClick={handleDismiss}
                 aria-label="Dismiss notification"
             >
-                ✕
+                <X size={16} />
             </button>
         </div>
     );

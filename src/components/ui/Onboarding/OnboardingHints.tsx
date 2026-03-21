@@ -5,6 +5,7 @@
  * Also handles the skip tutorial button and completion toast.
  */
 
+import { ArrowLeft, RefreshCw, TrainFront, Plus, Play, PartyPopper } from 'lucide-react';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { Hint } from './Hint';
@@ -45,7 +46,7 @@ function FirstTrackHint() {
         <Hint
             id="first-track"
             position="right"
-            icon="👈"
+            icon={<ArrowLeft size={20} />}
             style={{
                 top: '180px',
                 left: '240px',
@@ -64,7 +65,7 @@ function LoopCreationHint() {
         <Hint
             id="loop-creation"
             position="bottom"
-            icon="🔄"
+            icon={<RefreshCw size={20} />}
             style={{
                 top: '100px',
                 left: '50%',
@@ -84,7 +85,7 @@ function ModeSwitchHint() {
         <Hint
             id="mode-switch"
             position="bottom"
-            icon="🚂"
+            icon={<TrainFront size={20} />}
             shortcut="M"
             style={{
                 top: '60px',
@@ -104,7 +105,7 @@ function AddTrainHint() {
         <Hint
             id="add-train"
             position="right"
-            icon="➕"
+            icon={<Plus size={20} />}
             style={{
                 top: '120px',
                 left: '240px',
@@ -123,7 +124,7 @@ function StartSimulationHint() {
         <Hint
             id="start-simulation"
             position="bottom"
-            icon="▶️"
+            icon={<Play size={20} />}
             shortcut="Space"
             style={{
                 top: '60px',
@@ -143,7 +144,7 @@ function CompletionToast() {
     return (
         <Toast
             variant="success"
-            icon="🎉"
+            icon={<PartyPopper size={20} />}
             title="You did it!"
             duration={5000}
         >

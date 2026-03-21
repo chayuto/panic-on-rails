@@ -119,7 +119,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
                 <Text
                     x={-sensor.length / 2}
                     y={-SENSOR_HEIGHT / 2 - 14}
-                    text="📡"
+                    text="S"
                     fontSize={10}
                 />
             )}

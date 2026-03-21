@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Wrench, X } from 'lucide-react';
 import { usePerformanceMetrics, PerformanceMetrics } from '../../hooks/usePerformanceMetrics';
 import './DebugOverlay.css';
 
@@ -57,8 +58,8 @@ function DebugOverlayContent({ metrics, onClose }: DebugOverlayContentProps) {
     return (
         <div className="debug-overlay">
             <div className="debug-header">
-                <span>🔧 Debug</span>
-                <button onClick={onClose} title="Close (`)">✕</button>
+                <span><Wrench size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />Debug</span>
+                <button onClick={onClose} title="Close (`)"><X size={14} /></button>
             </div>
 
             <div className="debug-section">

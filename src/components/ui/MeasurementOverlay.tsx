@@ -9,6 +9,7 @@
  */
 
 import { useMemo } from 'react';
+import { Ruler, X } from 'lucide-react';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import './MeasurementOverlay.css';
@@ -155,8 +156,8 @@ function MeasurementOverlayContent({ data, onClose }: MeasurementOverlayContentP
     return (
         <div className="measurement-overlay">
             <div className="measurement-header">
-                <span>📐 Measurements</span>
-                <button onClick={onClose} title="Close (Shift+M)">✕</button>
+                <span><Ruler size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />Measurements</span>
+                <button onClick={onClose} title="Close (Shift+M)"><X size={14} /></button>
             </div>
 
             {data.bounds ? (

@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
+import { MousePointer, Link, Trash2, Radio, TrafficCone, Cable, type LucideIcon } from 'lucide-react';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
@@ -22,7 +23,7 @@ import type { EditSubMode } from '../../../types/mode';
 
 interface ToolButton {
     mode: EditSubMode;
-    icon: string;
+    icon: LucideIcon;
     label: string;
     title: string;
     /** Advanced tools are locked during onboarding */
@@ -32,39 +33,39 @@ interface ToolButton {
 const EDIT_TOOLS: ToolButton[] = [
     {
         mode: 'select',
-        icon: '✏️',
+        icon: MousePointer,
         label: 'Edit',
         title: 'Select (1) - Click to select, drag to move'
     },
     {
         mode: 'connect',
-        icon: '🔗',
+        icon: Link,
         label: 'Connect',
         title: 'Connect Mode - Click two endpoints to connect tracks'
     },
     {
         mode: 'delete',
-        icon: '🗑️',
+        icon: Trash2,
         label: 'Delete',
         title: 'Delete (3) - Click tracks to remove'
     },
     {
         mode: 'sensor',
-        icon: '📡',
+        icon: Radio,
         label: 'Sensor',
         title: 'Sensor (4) - Place sensors on tracks',
         isAdvanced: true,
     },
     {
         mode: 'signal',
-        icon: '🚦',
+        icon: TrafficCone,
         label: 'Signal',
         title: 'Signal (5) - Place signals at nodes',
         isAdvanced: true,
     },
     {
         mode: 'wire',
-        icon: '🔌',
+        icon: Cable,
         label: 'Wire',
         title: 'Wire (6) - Connect sensors to switches/signals',
         isAdvanced: true,
@@ -254,7 +255,7 @@ export function EditToolbar() {
                         aria-disabled={isLocked}
                         data-testid={`edit-tool-${tool.mode}`}
                     >
-                        {tool.icon}
+                        <tool.icon size={16} />
                     </button>
                 );
             })}

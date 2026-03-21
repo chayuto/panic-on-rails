@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { useSimulationStore, selectError } from '../../stores/useSimulationStore';
 
 export const ErrorBanner: React.FC = () => {
@@ -25,7 +26,7 @@ export const ErrorBanner: React.FC = () => {
             fontFamily: 'Inter, system-ui, sans-serif',
             maxWidth: '400px',
         }}>
-            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <AlertTriangle size={20} />
             <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>Simulation Error</div>
                 <div style={{ fontSize: '14px', opacity: 0.9 }}>{error}</div>

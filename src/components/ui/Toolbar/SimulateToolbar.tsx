@@ -7,6 +7,7 @@
  */
 
 import { useCallback } from 'react';
+import { Play, Pause, TrainFront } from 'lucide-react';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useModeStore } from '../../../stores/useModeStore';
@@ -51,7 +52,7 @@ export function SimulateToolbar() {
                 title={isRunning ? 'Pause (Space)' : 'Play (Space)'}
                 data-testid="sim-play-pause"
             >
-                {isRunning ? '⏸️' : '▶️'}
+                {isRunning ? <Pause size={16} /> : <Play size={16} />}
             </button>
             <button
                 onClick={handleAddTrain}
@@ -60,7 +61,7 @@ export function SimulateToolbar() {
                 className="toolbar-btn-icon"
                 data-testid="sim-add-train"
             >
-                🚂
+                <TrainFront size={16} />
             </button>
         </>
     );

@@ -10,6 +10,7 @@
  */
 
 import { useEffect } from 'react';
+import { Wrench, TrainFront } from 'lucide-react';
 import { useModeStore } from '../../../stores/useModeStore';
 import './ModeToggle.css';
 
@@ -49,7 +50,7 @@ export function ModeToggle() {
                 aria-pressed={isEditing}
                 data-testid="mode-edit-btn"
             >
-                <span className="mode-icon">🔧</span>
+                <span className="mode-icon"><Wrench size={16} /></span>
                 <span className="mode-label">Edit</span>
             </button>
 
@@ -60,7 +61,7 @@ export function ModeToggle() {
                 aria-pressed={!isEditing}
                 data-testid="mode-simulate-btn"
             >
-                <span className="mode-icon">🚂</span>
+                <span className="mode-icon"><TrainFront size={16} /></span>
                 <span className="mode-label">Simulate</span>
             </button>
         </div>

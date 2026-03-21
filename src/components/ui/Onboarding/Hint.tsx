@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
+import { X } from 'lucide-react';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import './Onboarding.css';
 
@@ -25,7 +26,7 @@ interface HintProps {
     shortcut?: string;
 
     /** Icon to show before content */
-    icon?: string;
+    icon?: ReactNode;
 
     /** Whether hint can be dismissed by clicking X */
     dismissible?: boolean;
@@ -80,7 +81,7 @@ export function Hint({
                     onClick={handleDismiss}
                     aria-label="Dismiss hint"
                 >
-                    ✕
+                    <X size={14} />
                 </button>
             )}
             <div className="onboarding-hint__content">
