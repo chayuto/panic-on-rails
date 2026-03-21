@@ -33,6 +33,13 @@ const TEMPLATES = [
         expectedTrains: 2,
         isCircuit: false,
     },
+    {
+        id: 'crossover-express',
+        name: 'Crossover Express',
+        expectedEdges: 13,
+        expectedTrains: 2,
+        isCircuit: true,
+    },
 ];
 
 for (const tmpl of TEMPLATES) {

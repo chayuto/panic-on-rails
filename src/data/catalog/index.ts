@@ -23,6 +23,10 @@ export type {
     CurveGeometry,
     SwitchGeometry,
     CrossingGeometry,
+    CompoundGeometry,
+    CompoundSubPart,
+    CompoundJoint,
+    CompoundExternalConnector,
 } from './types';
 
 // Export registry functions
@@ -44,6 +48,7 @@ export {
     curve,
     switchPart,
     crossing,
+    compoundPart,
     calculateArcLength,
 } from './helpers';
 

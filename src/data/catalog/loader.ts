@@ -67,6 +67,18 @@ function transformToPart(
             // Default cost: $20 for crossings
             defaultCost = 2000;
             break;
+
+        case 'compound':
+            geometry = {
+                type: 'compound',
+                subParts: jsonPart.subParts,
+                joints: jsonPart.joints,
+                externalConnectors: jsonPart.externalConnectors,
+                boundingBox: jsonPart.boundingBox,
+            };
+            // Default cost: $30 for compound parts
+            defaultCost = 3000;
+            break;
     }
 
     return {

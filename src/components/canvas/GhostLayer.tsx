@@ -395,6 +395,104 @@ export function GhostLayer() {
                 )}
             </Group>
         );
+    } else if (part.geometry.type === 'compound') {
+        // Compound ghost - render each sub-part as simplified lines
+        const { subParts, boundingBox } = part.geometry;
+        const radians = (ghostRotation * Math.PI) / 180;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+
+        // Helper to transform sub-part offset to world position
+        const toWorld = (offset: { x: number; y: number }) => ({
+            x: ghostPosition.x + cos * offset.x - sin * offset.y,
+            y: ghostPosition.y + sin * offset.x + cos * offset.y,
+        });
+
+        // Render a simplified bounding rectangle + sub-part entry points
+        const halfW = boundingBox.width / 2;
+        const halfH = boundingBox.height / 2;
+        const corners = [
+            toWorld({ x: -halfW * 0.1, y: -halfH * 0.5 }),
+            toWorld({ x: boundingBox.width * 0.9, y: -halfH * 0.5 }),
+            toWorld({ x: boundingBox.width * 0.9, y: halfH * 0.5 }),
+            toWorld({ x: -halfW * 0.1, y: halfH * 0.5 }),
+        ];
+        const rectPoints = corners.flatMap(c => [c.x, c.y]);
+
+        // Render each sub-part as a line from its offset in its direction
+        const subLines: { x1: number; y1: number; x2: number; y2: number }[] = [];
+        for (const sp of subParts) {
+            const subPart = getPartById(sp.partRef);
+            if (!subPart) continue;
+            const start = toWorld(sp.offset);
+            const subRot = ghostRotation + sp.rotation;
+            const subRad = (subRot * Math.PI) / 180;
+            // Estimate sub-part length
+            let len = 100;
+            const geo = subPart.geometry;
+            if (geo.type === 'straight') len = geo.length;
+            else if (geo.type === 'curve') len = geo.radius * (geo.angle * Math.PI / 180);
+            else if (geo.type === 'switch') len = geo.mainLength;
+            else if (geo.type === 'crossing') len = geo.length;
+
+            subLines.push({
+                x1: start.x,
+                y1: start.y,
+                x2: start.x + Math.cos(subRad) * len,
+                y2: start.y + Math.sin(subRad) * len,
+            });
+        }
+
+        return (
+            <Group listening={false}>
+                {/* Bounding outline */}
+                <Line
+                    points={rectPoints}
+                    stroke={color}
+                    strokeWidth={2}
+                    closed
+                    dash={[8, 4]}
+                    opacity={GHOST_OPACITY * 0.5}
+                />
+
+                {/* Sub-part lines */}
+                {subLines.map((line, i) => (
+                    <Line
+                        key={i}
+                        points={[line.x1, line.y1, line.x2, line.y2]}
+                        stroke={color}
+                        strokeWidth={5}
+                        lineCap="round"
+                        opacity={GHOST_OPACITY}
+                    />
+                ))}
+
+                {/* Sub-part start points */}
+                {subLines.map((line, i) => (
+                    <Circle
+                        key={`c${i}`}
+                        x={line.x1}
+                        y={line.y1}
+                        radius={5}
+                        fill={color}
+                        opacity={GHOST_OPACITY}
+                    />
+                ))}
+
+                {/* Snap indicator */}
+                {snapTarget && (
+                    <Circle
+                        x={snapTarget.targetPosition.x}
+                        y={snapTarget.targetPosition.y}
+                        radius={15}
+                        stroke="#00FF88"
+                        strokeWidth={3}
+                        fill="transparent"
+                        opacity={0.8}
+                    />
+                )}
+            </Group>
+        );
     } else {
         // Other types
         return null;

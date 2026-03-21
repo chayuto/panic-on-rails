@@ -1,0 +1,29 @@
+{
+    "version": 2,
+    "template": {
+        "id": "crossover-express",
+        "name": "Crossover Express",
+        "description": "A double-track oval with a #4 crossover — switch tracks mid-run!",
+        "difficulty": "intermediate",
+        "system": "n-scale",
+        "estimatedCost": 8500,
+        "partCount": 11,
+        "trainCount": 2
+    },
+    "parts": [
+        { "partId": "kato-20-230", "position": { "x": 400, "y": 600 }, "rotation": 0 },
+        { "partId": "kato-20-100", "position": { "x": 648, "y": 600 }, "rotation": 0 },
+        { "partId": "kato-20-100", "position": { "x": 471.9, "y": 527.1 }, "rotation": 45 },
+        { "partId": "kato-20-100", "position": { "x": 399, "y": 351 }, "rotation": 90 },
+        { "partId": "kato-20-100", "position": { "x": 471.9, "y": 174.9 }, "rotation": 135 },
+        { "partId": "kato-20-000", "position": { "x": 648, "y": 102 }, "rotation": 180 },
+        { "partId": "kato-20-100", "position": { "x": 400, "y": 102 }, "rotation": 180 },
+        { "partId": "kato-20-100", "position": { "x": 576.1, "y": 174.9 }, "rotation": 225 },
+        { "partId": "kato-20-100", "position": { "x": 649, "y": 351 }, "rotation": 270 },
+        { "partId": "kato-20-100", "position": { "x": 576.1, "y": 527.1 }, "rotation": 315 }
+    ],
+    "trains": [
+        { "partIndex": 1, "color": "#E53935" },
+        { "partIndex": 5, "color": "#1E88E5" }
+    ]
+}

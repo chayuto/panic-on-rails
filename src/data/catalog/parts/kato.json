@@ -210,13 +210,92 @@
             "description": "Perpendicular track crossing for junctions"
         },
         {
-            "id": "kato-20-310",
-            "name": "15° Crossing 248mm",
+            "id": "kato-20-300",
+            "name": "15° Crossing Left 186mm",
             "type": "crossing",
-            "length": 248,
+            "length": 186,
             "crossingAngle": 15,
-            "productCode": "20-310",
-            "description": "Shallow angle crossing for complex interlockings"
+            "productCode": "20-300",
+            "description": "Shallow angle diamond crossing (left). Creates 49.5mm track spacing."
+        },
+        {
+            "id": "kato-20-301",
+            "name": "15° Crossing Right 186mm",
+            "type": "crossing",
+            "length": 186,
+            "crossingAngle": 15,
+            "productCode": "20-301",
+            "description": "Shallow angle diamond crossing (right). Creates 49.5mm track spacing."
+        },
+        {
+            "id": "kato-20-230",
+            "name": "#4 Single Crossover Left",
+            "type": "compound",
+            "productCode": "20-230",
+            "description": "Two #4 turnouts connecting parallel tracks 33mm apart. 248mm total length.",
+            "cost": 3500,
+            "subParts": [
+                {
+                    "partRef": "kato-20-220",
+                    "offset": { "x": 0, "y": 0 },
+                    "rotation": 0,
+                    "label": "turnout-upper"
+                },
+                {
+                    "partRef": "kato-20-221",
+                    "offset": { "x": 248, "y": 33 },
+                    "rotation": 180,
+                    "label": "turnout-lower"
+                }
+            ],
+            "joints": [
+                {
+                    "a": { "subPart": "turnout-upper", "connector": "branch" },
+                    "b": { "subPart": "turnout-lower", "connector": "branch" }
+                }
+            ],
+            "externalConnectors": [
+                { "subPart": "turnout-upper", "connector": "entry", "externalId": "A1" },
+                { "subPart": "turnout-upper", "connector": "main", "externalId": "A2" },
+                { "subPart": "turnout-lower", "connector": "entry", "externalId": "B1" },
+                { "subPart": "turnout-lower", "connector": "main", "externalId": "B2" }
+            ],
+            "boundingBox": { "width": 248, "height": 33 }
+        },
+        {
+            "id": "kato-20-231",
+            "name": "#4 Single Crossover Right",
+            "type": "compound",
+            "productCode": "20-231",
+            "description": "Two #4 turnouts connecting parallel tracks 33mm apart. 248mm total length. Mirror of 20-230.",
+            "cost": 3500,
+            "subParts": [
+                {
+                    "partRef": "kato-20-221",
+                    "offset": { "x": 0, "y": 0 },
+                    "rotation": 0,
+                    "label": "turnout-upper"
+                },
+                {
+                    "partRef": "kato-20-220",
+                    "offset": { "x": 248, "y": -33 },
+                    "rotation": 180,
+                    "label": "turnout-lower"
+                }
+            ],
+            "joints": [
+                {
+                    "a": { "subPart": "turnout-upper", "connector": "branch" },
+                    "b": { "subPart": "turnout-lower", "connector": "branch" }
+                }
+            ],
+            "externalConnectors": [
+                { "subPart": "turnout-upper", "connector": "entry", "externalId": "A1" },
+                { "subPart": "turnout-upper", "connector": "main", "externalId": "A2" },
+                { "subPart": "turnout-lower", "connector": "entry", "externalId": "B1" },
+                { "subPart": "turnout-lower", "connector": "main", "externalId": "B2" }
+            ],
+            "boundingBox": { "width": 248, "height": 33 }
         }
     ]
 }

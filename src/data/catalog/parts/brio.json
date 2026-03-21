@@ -52,6 +52,14 @@
             "branchLength": 108,
             "branchAngle": 90,
             "branchDirection": "right"
+        },
+        {
+            "id": "wooden-crossing-90",
+            "name": "Cross Track",
+            "type": "crossing",
+            "length": 108,
+            "crossingAngle": 90,
+            "description": "90° crossing for wooden railways"
         }
     ]
 }
