@@ -5,6 +5,7 @@ import { OnboardingProvider, OnboardingHints } from './components/ui/Onboarding'
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { initDebugBridge } from './utils/debugBridge';
 
 function App() {
     const primaryMode = useModeStore(s => s.primaryMode);
@@ -12,6 +13,11 @@ function App() {
 
     // Centralized keyboard shortcuts
     useKeyboardShortcuts();
+
+    // Expose stores to window for E2E testing and agentic dev workflows
+    useEffect(() => {
+        initDebugBridge();
+    }, []);
 
     // Handle mode change side effects
     useEffect(() => {

@@ -31,6 +31,7 @@ lerna-debug.log*
 coverage
 e2e-results/
 e2e-report/
+e2e-screenshots/
 playwright-report/
 blob-report/
 test-results/
