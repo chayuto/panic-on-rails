@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import type { TrainId } from '../types';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
@@ -57,12 +58,25 @@ export function useGameLoop() {
                 const { triggerScreenShake, triggerFlash } = useEffectsStore.getState();
 
                 const dt = cappedDelta * speedMultiplier;
+                const { logEvent, tickElapsed } = simState;
+
+                // Advance simulation clock
+                tickElapsed(dt);
 
                 // 1. Movement System — read trains fresh, update each
                 const trainsBefore = useSimulationStore.getState().trains;
                 Object.values(trainsBefore).forEach((train) => {
                     const update = calculateTrainMovement(train, dt, edges, nodes);
                     if (update) {
+                        // Log edge transitions and bounces
+                        if (update.edgeId !== train.currentEdgeId) {
+                            const part = edges[update.edgeId]?.partId ?? '?';
+                            logEvent('traverse', train.id, update.edgeId,
+                                `${edges[train.currentEdgeId]?.partId ?? '?'} → ${part}`);
+                        }
+                        if (update.bounceTime !== undefined) {
+                            logEvent('bounce', train.id, update.edgeId, 'dead end');
+                        }
                         updateTrainPosition(
                             update.trainId,
                             update.distance,
@@ -85,8 +99,15 @@ export function useGameLoop() {
                     triggerFlash(event.location, { color: '#FFFFFF', duration: 100 });
                     playSound('crash');
 
-                    // Mark trains as crashed
-                    event.trainIds.forEach(id => setCrashed(id));
+                    // Mark trains as crashed and log collision
+                    event.trainIds.forEach(id => {
+                        setCrashed(id);
+                        const train = freshTrains[id];
+                        if (train) {
+                            logEvent('collision', id, train.currentEdgeId,
+                                `crashed with ${event.trainIds.filter(t => t !== id).join(', ')}`);
+                        }
+                    });
                 });
 
                 // 3. Debris System
@@ -100,6 +121,15 @@ export function useGameLoop() {
                 const sensorUpdates = updateSensors(freshTrains, sensors, wires);
                 sensorUpdates.forEach(update => {
                     setSensorState(update.sensorId, update.newState);
+
+                    // Log sensor trigger
+                    if (update.newState === 'on') {
+                        const sensor = sensors[update.sensorId];
+                        if (sensor) {
+                            logEvent('sensor', '' as TrainId, sensor.edgeId,
+                                `sensor ${update.sensorId.slice(0, 8)} triggered`);
+                        }
+                    }
 
                     // Handle triggered wire actions
                     update.triggeredActions.forEach(action => {

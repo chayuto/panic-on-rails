@@ -1,5 +1,3 @@
-import type { LayoutData } from '../../types';
-
 export type TemplateDifficulty = 'beginner' | 'intermediate' | 'advanced';
 export type TemplateSystem = 'n-scale' | 'wooden';
 
@@ -19,23 +17,39 @@ export interface TemplateMetadata {
 }
 
 /**
- * Train placement configuration for template
+ * A part placement instruction in a template recipe.
+ * The app uses addTrack() to create each part with correct catalog geometry.
  */
-export interface TemplateTrainPlacement {
-    edgeId: string;        // Must match an edge in the layout
-    position: number;      // Distance along edge (pixels)
-    direction: 1 | -1;     // Movement direction
-    color: string;         // Train color (hex)
+export interface TemplatePart {
+    partId: string;
+    position: { x: number; y: number };
+    rotation: number;  // degrees
 }
 
 /**
- * Complete template file structure
+ * Train placement in a template.
+ * `partIndex` references the index in the parts array whose primary edge
+ * the train should spawn on.
+ */
+export interface TemplateTrainPlacement {
+    partIndex: number;
+    color: string;
+}
+
+/**
+ * Complete template file structure (v2 - recipe-based).
+ *
+ * Templates store a recipe of part placements, not pre-baked geometry.
+ * The app's addTrack() pipeline generates correct geometry from catalog
+ * definitions, so templates always stay in sync with the catalog.
  */
 export interface TrackTemplate {
     version: number;
     template: TemplateMetadata;
-    layout: LayoutData;
+    parts: TemplatePart[];
     trains: TemplateTrainPlacement[];
+    /** Distance threshold for auto-connecting nearby endpoints (default: 3) */
+    connectThreshold?: number;
 }
 
 /**

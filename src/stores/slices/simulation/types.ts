@@ -6,6 +6,7 @@ import type { StateCreator } from 'zustand';
 import 'zustand/middleware/immer';
 import type { TrainId, EdgeId, Train } from '../../../types';
 import type { CrashedPart } from '../../../utils/crashPhysics';
+import type { SimEvent, SimEventType } from './eventLogSlice';
 
 export interface SimulationStateData {
     trains: Record<TrainId, Train>;
@@ -13,6 +14,9 @@ export interface SimulationStateData {
     isRunning: boolean;
     speedMultiplier: number;
     error: string | null;
+    simLog: SimEvent[];
+    simLogSeq: number;
+    simElapsed: number;
 }
 
 export interface TrainSlice {
@@ -37,8 +41,14 @@ export interface ControlSlice {
     clearError: () => void;
 }
 
+export interface EventLogSliceActions {
+    logEvent: (type: SimEventType, trainId: TrainId, edgeId: EdgeId, detail: string) => void;
+    tickElapsed: (dt: number) => void;
+    clearLog: () => void;
+}
+
 // Combined Store Type
-export type SimulationStore = SimulationStateData & TrainSlice & DebrisSlice & ControlSlice;
+export type SimulationStore = SimulationStateData & TrainSlice & DebrisSlice & ControlSlice & EventLogSliceActions;
 
 // Slice Creator Type
 export type SimulationSliceCreator<T> = StateCreator<
