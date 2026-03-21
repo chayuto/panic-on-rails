@@ -1,5 +1,5 @@
 {
-    "version": 1,
+    "version": 2,
     "templates": [
         {
             "id": "simple-oval",
@@ -24,11 +24,11 @@
         {
             "id": "switch-showdown",
             "name": "Switch Showdown",
-            "description": "Two trains on a collision course! Toggle the switch to let them pass.",
-            "difficulty": "intermediate",
+            "description": "Two trains on a collision course! Can you stop them in time?",
+            "difficulty": "beginner",
             "system": "n-scale",
-            "estimatedCost": 6200,
-            "partCount": 10,
+            "estimatedCost": 3720,
+            "partCount": 4,
             "trainCount": 2
         }
     ]

@@ -10,6 +10,7 @@ import {
     createTrainSlice,
     createDebrisSlice,
     createControlSlice,
+    createEventLogSlice,
 } from './slices/simulation';
 import { immer } from 'zustand/middleware/immer';
 
@@ -28,6 +29,7 @@ export const useSimulationStore = create<SimulationStore>()(
         ...createTrainSlice(...args),
         ...createDebrisSlice(...args),
         ...createControlSlice(...args),
+        ...createEventLogSlice(...args),
     }))
 );
 

@@ -1,15 +1,15 @@
 /**
  * Template Validation Tests
  *
- * Validates that template JSON files conform to expected types.
- * Catches issues like switchBranches being an object instead of array.
+ * Validates that template JSON files conform to the v2 recipe format.
+ * Templates store part placements, not pre-baked geometry.
  */
 
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { TrackTemplate } from '../types';
-import type { TrackNode, TrackEdge } from '../../../types';
+import { getPartById } from '../../catalog';
 
 const TEMPLATES_DIR = path.resolve(__dirname, '../../../../public/templates');
 
@@ -32,7 +32,7 @@ describe('Template JSON Validation', () => {
         const template: TrackTemplate = JSON.parse(rawContent);
 
         it('should have valid version', () => {
-            expect(template.version).toBe(1);
+            expect(template.version).toBe(2);
         });
 
         it('should have required template metadata', () => {
@@ -41,71 +41,36 @@ describe('Template JSON Validation', () => {
             expect(template.template.name).toBeTruthy();
         });
 
-        it('should have valid layout structure', () => {
-            expect(template.layout).toBeDefined();
-            expect(template.layout.nodes).toBeDefined();
-            expect(template.layout.edges).toBeDefined();
+        it('should have parts array', () => {
+            expect(Array.isArray(template.parts)).toBe(true);
+            expect(template.parts.length).toBeGreaterThan(0);
         });
 
-        describe('nodes validation', () => {
-            const nodes = Object.values(template.layout.nodes) as TrackNode[];
-
-            it('should have at least one node', () => {
-                expect(nodes.length).toBeGreaterThan(0);
-            });
-
-            it.each(nodes.filter(n => n.type === 'switch'))(
-                'switch node $id should have switchBranches as array',
-                (node) => {
-                    expect(node.switchBranches).toBeDefined();
-                    expect(Array.isArray(node.switchBranches)).toBe(true);
-                    expect(node.switchBranches).toHaveLength(2);
-                    // Each element should be a string (EdgeId)
-                    node.switchBranches!.forEach(edgeId => {
-                        expect(typeof edgeId).toBe('string');
-                    });
-                }
-            );
-
-            it.each(nodes.filter(n => n.type === 'switch'))(
-                'switch node $id should have switchState as 0 or 1',
-                (node) => {
-                    expect(node.switchState).toBeDefined();
-                    expect([0, 1]).toContain(node.switchState);
-                }
-            );
-
-            it.each(nodes)(
-                'node $id connections should reference existing edges',
-                (node) => {
-                    const edgeIds = Object.keys(template.layout.edges);
-                    node.connections.forEach(connId => {
-                        expect(edgeIds).toContain(connId);
-                    });
-                }
-            );
+        it('should match metadata partCount', () => {
+            expect(template.parts.length).toBe(template.template.partCount);
         });
 
-        describe('edges validation', () => {
-            const edges = Object.values(template.layout.edges) as TrackEdge[];
+        it('should match metadata trainCount', () => {
+            expect(template.trains.length).toBe(template.template.trainCount);
+        });
 
-            it('should have at least one edge', () => {
-                expect(edges.length).toBeGreaterThan(0);
-            });
-
-            it.each(edges)(
-                'edge $id should reference existing nodes',
-                (edge) => {
-                    const nodeIds = Object.keys(template.layout.nodes);
-                    expect(nodeIds).toContain(edge.startNodeId);
-                    expect(nodeIds).toContain(edge.endNodeId);
+        describe('parts validation', () => {
+            it.each(template.parts.map((p, i) => ({ ...p, _index: i })))(
+                'part $_index ($partId) should reference a valid catalog part',
+                (part) => {
+                    const catalogPart = getPartById(part.partId);
+                    expect(catalogPart).toBeTruthy();
                 }
             );
 
-            it.each(edges)(
-                'edge $id should have valid geometry type',
-                (edge) => {
-                    expect(['straight', 'arc']).toContain(edge.geometry.type);
+            it.each(template.parts.map((p, i) => ({ ...p, _index: i })))(
+                'part $_index should have valid position and rotation',
+                (part) => {
+                    expect(typeof part.position.x).toBe('number');
+                    expect(typeof part.position.y).toBe('number');
+                    expect(typeof part.rotation).toBe('number');
+                    expect(part.rotation).toBeGreaterThanOrEqual(0);
+                    expect(part.rotation).toBeLessThan(360);
                 }
             );
         });
@@ -115,11 +80,19 @@ describe('Template JSON Validation', () => {
                 expect(Array.isArray(template.trains)).toBe(true);
             });
 
-            it.each(template.trains)(
-                'train on edge $edgeId should reference existing edge',
+            it.each(template.trains.map((t, i) => ({ ...t, _index: i })))(
+                'train $_index should reference a valid part index',
                 (train) => {
-                    const edgeIds = Object.keys(template.layout.edges);
-                    expect(edgeIds).toContain(train.edgeId);
+                    expect(train.partIndex).toBeGreaterThanOrEqual(0);
+                    expect(train.partIndex).toBeLessThan(template.parts.length);
+                }
+            );
+
+            it.each(template.trains.map((t, i) => ({ ...t, _index: i })))(
+                'train $_index should have a color',
+                (train) => {
+                    expect(train.color).toBeTruthy();
+                    expect(train.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
                 }
             );
         });

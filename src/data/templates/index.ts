@@ -40,20 +40,22 @@ export async function loadTemplate(templateId: string): Promise<TrackTemplate> {
     return response.json();
 }
 
+/** Distance threshold for merging nearby endpoints */
+const CONNECT_THRESHOLD = 3;
+
 /**
- * Apply a template to the stores
- * 
- * @param template - The template to apply
- * @param clearLayout - Function to clear the current layout
- * @param loadLayout - Function to load layout data
- * @param spawnTrain - Function to spawn a train on an edge
- * @param startSimulation - Function to start the simulation
- * @param autoStart - Whether to auto-start the simulation (default: true)
+ * Apply a template by building it through the real addTrack() pipeline.
+ *
+ * Instead of loading pre-baked geometry, this places each part using the
+ * catalog's track creation system, then auto-connects nearby endpoints.
+ * This guarantees geometry always matches the catalog definitions.
  */
 export function applyTemplate(
     template: TrackTemplate,
     clearLayout: () => void,
-    loadLayout: (data: unknown) => void,
+    addTrack: (partId: string, position: { x: number; y: number }, rotation: number) => string | null,
+    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[] }>,
+    connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
     spawnTrain: (edgeId: string, color?: string) => string,
     startSimulation: () => void,
     autoStart: boolean = true
@@ -61,22 +63,65 @@ export function applyTemplate(
     // Clear existing layout
     clearLayout();
 
-    // Load the template layout
-    loadLayout(template.layout);
+    // Place each part through the real catalog pipeline
+    const edgeIds: (string | null)[] = [];
+    for (const part of template.parts) {
+        const edgeId = addTrack(part.partId, part.position, part.rotation);
+        edgeIds.push(edgeId);
+        if (!edgeId) {
+            console.warn(`[Templates] Failed to place part: ${part.partId}`);
+        }
+    }
 
-    // Spawn trains at specified positions
-    // Note: Current spawnTrain doesn't support position/direction, 
-    // train spawns at start of edge with direction 1
+    // Auto-connect nearby open endpoints
+    const threshold = template.connectThreshold ?? CONNECT_THRESHOLD;
+    autoConnectEndpoints(getNodes, connectNodes, threshold);
+
+    // Spawn trains on the edges of the referenced parts
     for (const train of template.trains) {
-        spawnTrain(train.edgeId, train.color);
+        const edgeId = edgeIds[train.partIndex];
+        if (edgeId) {
+            spawnTrain(edgeId, train.color);
+        }
     }
 
     // Auto-start simulation if requested
     if (autoStart && template.trains.length > 0) {
-        // Small delay to let React re-render
         setTimeout(() => {
             startSimulation();
         }, 100);
+    }
+}
+
+/**
+ * Find pairs of open endpoints within threshold distance and merge them.
+ */
+function autoConnectEndpoints(
+    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[] }>,
+    connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
+    threshold: number
+): void {
+    // Keep connecting until no more pairs found (iterative because merges change the graph)
+    let merged = true;
+    while (merged) {
+        merged = false;
+        const nodes = getNodes();
+        const endpoints = Object.values(nodes).filter(n => n.connections.length === 1);
+
+        for (let i = 0; i < endpoints.length; i++) {
+            for (let j = i + 1; j < endpoints.length; j++) {
+                const a = endpoints[i];
+                const b = endpoints[j];
+                const dx = a.position.x - b.position.x;
+                const dy = a.position.y - b.position.y;
+                if (dx * dx + dy * dy < threshold * threshold) {
+                    connectNodes(a.id, b.id, b.connections[0]);
+                    merged = true;
+                    break;
+                }
+            }
+            if (merged) break;
+        }
     }
 }
 

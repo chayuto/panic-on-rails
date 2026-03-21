@@ -103,7 +103,7 @@ function ConfirmModal({
 export function FileActions() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { getLayout, loadLayout, clearLayout, edges } = useTrackStore();
+    const { getLayout, loadLayout, clearLayout, addTrack, edges, connectNodes } = useTrackStore();
     const { spawnTrain, clearTrains, setRunning } = useSimulationStore();
 
     // Template state
@@ -136,10 +136,13 @@ export function FileActions() {
             localStorage.removeItem('panic-on-rails-logic-v1');
 
             const template = await loadTemplate(templateId);
+            clearTrains();
             applyTemplate(
                 template,
                 clearLayout,
-                loadLayout as (data: unknown) => void,
+                addTrack,
+                () => useTrackStore.getState().nodes,
+                connectNodes,
                 spawnTrain,
                 () => setRunning(true),
                 true // autoStart
@@ -150,7 +153,7 @@ export function FileActions() {
         } finally {
             setLoadingTemplate(false);
         }
-    }, [edges, clearLayout, loadLayout, spawnTrain, setRunning]);
+    }, [edges, clearLayout, clearTrains, addTrack, connectNodes, spawnTrain, setRunning]);
 
     // File operations
     const handleSave = useCallback(() => {
