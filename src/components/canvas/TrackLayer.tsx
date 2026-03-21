@@ -76,21 +76,22 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         }
     }, [isEditing, selectedEdgeId, contentHash]);
 
-    // Helper to determine if edge is the active branch of a switch
-    const isEdgeActiveOnSwitch = (edgeId: string): boolean | null => {
-        // Find switch nodes connected to this edge
+    // Pre-compute switch-edge activity map (O(N) once, then O(1) per lookup)
+    const switchEdgeActivity = useMemo(() => {
+        const map = new Map<string, boolean>();
         for (const node of Object.values(nodes)) {
             if (node.type === 'switch' && node.switchBranches) {
                 const [mainEdgeId, branchEdgeId] = node.switchBranches;
-                if (edgeId === mainEdgeId) {
-                    return node.switchState === 0; // Active if state is 0
-                }
-                if (edgeId === branchEdgeId) {
-                    return node.switchState === 1; // Active if state is 1
-                }
+                map.set(mainEdgeId, node.switchState === 0);
+                map.set(branchEdgeId, node.switchState === 1);
             }
         }
-        return null; // Not part of a switch
+        return map;
+    }, [nodes]);
+
+    // Helper to determine if edge is the active branch of a switch
+    const isEdgeActiveOnSwitch = (edgeId: string): boolean | null => {
+        return switchEdgeActivity.has(edgeId) ? switchEdgeActivity.get(edgeId)! : null;
     };
 
     return (

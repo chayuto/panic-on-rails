@@ -47,16 +47,18 @@ export function createCrossingTrack(
     const halfLength = length / 2;
     const radians = degreesToRadians(rotation);
 
-    // Main track (Path A) - follows placement position/rotation
-    const endPosition = {
-        x: position.x + Math.cos(radians) * length,
-        y: position.y + Math.sin(radians) * length,
-    };
+    // Position is the part origin (center of crossing), matching connector convention
+    // where A1 is at (-halfLength, 0) in local space.
+    const center: Vector2 = position;
 
-    // Calculate Center Point (intersection)
-    const center: Vector2 = {
-        x: position.x + Math.cos(radians) * halfLength,
-        y: position.y + Math.sin(radians) * halfLength,
+    // Main track (Path A) endpoints
+    const mainStart: Vector2 = {
+        x: center.x - Math.cos(radians) * halfLength,
+        y: center.y - Math.sin(radians) * halfLength,
+    };
+    const endPosition: Vector2 = {
+        x: center.x + Math.cos(radians) * halfLength,
+        y: center.y + Math.sin(radians) * halfLength,
     };
 
     // Cross track (Path B) - rotated by crossingAngle relative to main
@@ -85,7 +87,7 @@ export function createCrossingTrack(
     // Create Nodes
     const mainStartNode: TrackNode = {
         id: mainStartNodeId,
-        position,
+        position: mainStart,
         rotation: normalizeAngle(rotation + 180),
         connections: [mainEdgeId],
         type: 'endpoint'
@@ -119,7 +121,7 @@ export function createCrossingTrack(
         partId,
         startNodeId: mainStartNodeId,
         endNodeId: mainEndNodeId,
-        geometry: { type: 'straight', start: position, end: endPosition },
+        geometry: { type: 'straight', start: mainStart, end: endPosition },
         length,
         intrinsicGeometry: { type: 'straight', length },
     };
