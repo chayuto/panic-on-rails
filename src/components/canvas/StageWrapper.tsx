@@ -19,6 +19,7 @@ import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 import { useCanvasCoordinates } from '../../hooks/useCanvasCoordinates';
 import { useSwitchInteraction } from '../../hooks/useSwitchInteraction';
 import { initAudio } from '../../utils/audioManager';
+import { setStageRef } from '../../utils/debugBridge';
 
 interface StageWrapperProps {
     width?: number;
@@ -70,6 +71,12 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     // Enable keyboard shortcuts for switch interaction during simulation
     useSwitchInteraction({ enableKeyboard: isSimulating });
+
+    // Expose Konva stage ref for E2E testing
+    useEffect(() => {
+        setStageRef(stageRef.current);
+        return () => setStageRef(null);
+    }, []);
 
     // Initialize audio on first user interaction
     useEffect(() => {
