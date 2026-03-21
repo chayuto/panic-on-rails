@@ -276,24 +276,6 @@ export const usePrimaryMode = (): PrimaryMode =>
 export const useEditSubMode = (): EditSubMode =>
     useModeStore(selectEditSubMode);
 
-/**
- * Hook: Get mode actions without subscribing to state.
- * Useful in event handlers to avoid re-renders.
- * 
- * @example
- * const actions = useModeActions();
- * onClick={() => actions.togglePrimaryMode()}
- */
-export const useModeActions = () => ({
-    setPrimaryMode: useModeStore.getState().setPrimaryMode,
-    togglePrimaryMode: useModeStore.getState().togglePrimaryMode,
-    setEditSubMode: useModeStore.getState().setEditSubMode,
-    setSimulateSubMode: useModeStore.getState().setSimulateSubMode,
-    enterEditMode: useModeStore.getState().enterEditMode,
-    enterSimulateMode: useModeStore.getState().enterSimulateMode,
-    resetMode: useModeStore.getState().resetMode,
-});
-
 // ===========================
 // Type Exports
 // ===========================

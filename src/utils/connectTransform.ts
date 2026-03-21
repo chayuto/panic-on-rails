@@ -123,15 +123,12 @@ export function getNodeFacadeFromEdge(
  * tracks to form a smooth path.
  * 
  * @param targetFacade - The facade direction of Part A's endpoint (degrees)
- * @param sourceFacade - The facade direction of Part B's endpoint (degrees)  
- * @param _isYJunction - Deprecated parameter, kept for API compatibility
+ * @param sourceFacade - The facade direction of Part B's endpoint (degrees)
  * @returns The rotation delta to apply to Part B (degrees)
  */
 export function calculateRotationForConnection(
     targetFacade: number,
     sourceFacade: number,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _isYJunction: boolean = false
 ): number {
     const normalizedTarget = normalizeAngle(targetFacade);
     const normalizedSource = normalizeAngle(sourceFacade);
@@ -320,17 +317,14 @@ export function rotateNodeAroundPivot(
  * where closed loops allow continuous train running.
  * 
  * @param nodeA - First node
- * @param nodeB - Second node  
+ * @param nodeB - Second node
  * @param edges - All edges in the graph
- * @param _nodes - Unused, kept for API compatibility
  * @returns Object with isValid and error message
  */
 export function validateConnection(
     nodeA: TrackNode,
     nodeB: TrackNode,
     edges: Record<EdgeId, TrackEdge>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _nodes?: Record<NodeId, TrackNode>
 ): { isValid: boolean; error?: string } {
     // Check both are open endpoints
     if (nodeA.connections.length !== 1) {

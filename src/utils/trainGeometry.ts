@@ -26,15 +26,6 @@ export const BOUNCE_DURATION = 300;
 // Position Calculations
 // ===========================
 
-/**
- * Calculate world position from edge geometry and distance along edge.
- * V2: Uses derived geometry when nodes are provided.
- *
- * @param edge - The track edge
- * @param distance - Distance along the edge (0 to edge.length)
- * @param nodes - Optional node map for V2 derived geometry
- * @returns World position {x, y}
- */
 import { createGeometryEngine } from '../geometry/engines';
 import { normalizeAngle, degreesToRadians, radiansToDegrees } from './angle';
 

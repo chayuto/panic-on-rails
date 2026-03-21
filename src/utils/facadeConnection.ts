@@ -62,6 +62,7 @@ export function canMate(facadeA: number, facadeB: number, tolerance = MATE_ANGLE
 
 /**
  * Calculate the facade angle for a track's START connector.
+ * The start facade faces away from the track interior (opposite to the track heading).
  * @deprecated Use computeConnectors() from catalog system for multi-node parts.
  * Only valid for straight/curve parts.
  *
@@ -74,6 +75,7 @@ export function getStartFacade(trackRotation: number): number {
 
 /**
  * Calculate the facade angle for a track's END connector.
+ * The end facade faces away from the track interior (along the track heading at the end).
  * @deprecated Use computeConnectors() from catalog system for multi-node parts.
  * Only valid for straight/curve parts. Returns incorrect results for switches/crossings.
  *

@@ -17,7 +17,7 @@ import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useBudgetStore } from '../../stores/useBudgetStore';
-import { validateConnection, getNodeConnectorType, getNodeFacadeFromEdge, calculateRotationForConnection } from '../../utils/connectTransform';
+import { validateConnection, getNodeFacadeFromEdge, calculateRotationForConnection } from '../../utils/connectTransform';
 import type { NodeId } from '../../types';
 
 // ===========================
@@ -141,7 +141,7 @@ function handleSecondClick(targetNodeId: NodeId): { success: boolean; error?: st
     }
 
     // Validate connection
-    const validation = validateConnection(sourceNode, targetNode, edges, nodes);
+    const validation = validateConnection(sourceNode, targetNode, edges);
     if (!validation.isValid) {
         return { success: false, error: validation.error };
     }
@@ -158,10 +158,7 @@ function handleSecondClick(targetNodeId: NodeId): { success: boolean; error?: st
     // Calculate rotation
     const sourceFacade = getNodeFacadeFromEdge(connectSource.nodeId, sourceEdge);
     const targetFacade = getNodeFacadeFromEdge(targetNodeId, targetEdge);
-    const sourceConnectorType = getNodeConnectorType(connectSource.nodeId, sourceEdge);
-    const targetConnectorType = getNodeConnectorType(targetNodeId, targetEdge);
-    const isYJunction = sourceConnectorType === targetConnectorType;
-    const rotationDelta = calculateRotationForConnection(sourceFacade, targetFacade, isYJunction);
+    const rotationDelta = calculateRotationForConnection(sourceFacade, targetFacade);
 
     // Perform connection
     connectNetworks(
@@ -643,7 +640,7 @@ describe('useConnectMode Logic', () => {
             const junctionNode = getTrackState().nodes[track1.endNodeId];
             const targetNode = getTrackState().nodes[track3.startNodeId];
 
-            const result = validateConnection(junctionNode, targetNode, getTrackState().edges, getTrackState().nodes);
+            const result = validateConnection(junctionNode, targetNode, getTrackState().edges);
 
             expect(result.isValid).toBe(false);
             expect(result.error).toBe('Source node is not an open endpoint');
@@ -660,7 +657,7 @@ describe('useConnectMode Logic', () => {
             const sourceNode = getTrackState().nodes[track1.startNodeId];
             const junctionNode = getTrackState().nodes[track2.endNodeId];
 
-            const result = validateConnection(sourceNode, junctionNode, getTrackState().edges, getTrackState().nodes);
+            const result = validateConnection(sourceNode, junctionNode, getTrackState().edges);
 
             expect(result.isValid).toBe(false);
             expect(result.error).toBe('Target node is not an open endpoint');
@@ -678,7 +675,7 @@ describe('useConnectMode Logic', () => {
             expect(sourceNode.connections.length).toBe(1);
             expect(targetNode.connections.length).toBe(1);
 
-            const result = validateConnection(sourceNode, targetNode, getTrackState().edges, getTrackState().nodes);
+            const result = validateConnection(sourceNode, targetNode, getTrackState().edges);
 
             expect(result.isValid).toBe(true);
         });

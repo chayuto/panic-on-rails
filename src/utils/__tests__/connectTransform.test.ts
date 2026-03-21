@@ -204,24 +204,23 @@ describe('calculateRotationForConnection', () => {
         expect(delta).toBe(0);
     });
 
-    it('calculates 180° alignment even with isYJunction flag (deprecated)', () => {
-        // isYJunction parameter is now ignored - always calculates for smooth continuation
+    it('calculates correct alignment for various facade pairs', () => {
         // Both face 180° = need 180° rotation to align at 180° apart
-        const delta1 = calculateRotationForConnection(180, 180, true);
+        const delta1 = calculateRotationForConnection(180, 180);
         expect(delta1).toBe(180);
 
         // Facades 0° (target) and 45° (source)
         // Required source = 180°, delta = 180 - 45 = 135°
-        const delta2 = calculateRotationForConnection(0, 45, true);
+        const delta2 = calculateRotationForConnection(0, 45);
         expect(delta2).toBe(135);
 
         // Facades 0° (target) and 180° (source) = already aligned
-        const delta3 = calculateRotationForConnection(0, 180, true);
+        const delta3 = calculateRotationForConnection(0, 180);
         expect(delta3).toBe(0);
 
         // Facades 0° (target) and 100° (source)
         // Required source = 180°, delta = 180 - 100 = 80°
-        const delta4 = calculateRotationForConnection(0, 100, true);
+        const delta4 = calculateRotationForConnection(0, 100);
         expect(delta4).toBe(80);
     });
 });

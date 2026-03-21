@@ -20,8 +20,8 @@ export interface CrashedPart {
     type: CrashPartType;
     position: Vector2;
     velocity: Vector2;
-    rotation: number;           // radians
-    angularVelocity: number;    // radians per second
+    rotation: number;           // degrees
+    angularVelocity: number;    // degrees per second
     mass: number;
     bounceCount: number;
     maxBounces: number;
@@ -132,8 +132,8 @@ function createPart(
             x: baseVelocity.vx * massScale,
             y: baseVelocity.vy * massScale,
         },
-        rotation: randomSpread(Math.PI),
-        angularVelocity: randomSpread(10) * massScale,
+        rotation: randomSpread(180),
+        angularVelocity: randomSpread(600) * massScale,
         mass: def.mass,
         bounceCount: 0,
         maxBounces: def.maxBounces,

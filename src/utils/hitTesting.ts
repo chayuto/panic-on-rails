@@ -57,18 +57,7 @@ export function pointToLineDistance(
 /**
  * Calculate distance from a point to an arc (circular segment).
  * Uses a simplified approximation for performance.
- * 
- * @param point - The point to test
- * @param center - Center of the arc
- * @param radius - Radius of the arc
- * @param startAngleDeg - Start angle in DEGREES per constitution
- * @param endAngleDeg - End angle in DEGREES per constitution
- * @returns Approximate distance to the arc
- */
-/**
- * Calculate distance from a point to an arc (circular segment).
- * Uses a simplified approximation for performance.
- * 
+ *
  * @param point - The point to test
  * @param center - Center of the arc
  * @param radius - Radius of the arc

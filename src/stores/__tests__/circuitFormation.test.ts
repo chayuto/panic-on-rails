@@ -18,7 +18,6 @@ import {
     validateConnection,
     getNodeFacadeFromEdge,
     calculateRotationForConnection,
-    getNodeConnectorType
 } from '../../utils/connectTransform';
 import type { NodeId, Vector2 } from '../../types';
 
@@ -74,7 +73,7 @@ function canConnect(nodeA: NodeId, nodeB: NodeId): { isValid: boolean; error?: s
     const a = nodes[nodeA];
     const b = nodes[nodeB];
     if (!a || !b) return { isValid: false, error: 'Node does not exist' };
-    return validateConnection(a, b, edges, nodes);
+    return validateConnection(a, b, edges);
 }
 
 /**
@@ -113,10 +112,7 @@ function connectEndpoints(
     // Calculate rotation for alignment
     const anchorFacade = getNodeFacadeFromEdge(anchorNodeId, anchorEdge);
     const movingFacade = getNodeFacadeFromEdge(movingNodeId, movingEdge);
-    const anchorConnectorType = getNodeConnectorType(anchorNodeId, anchorEdge);
-    const movingConnectorType = getNodeConnectorType(movingNodeId, movingEdge);
-    const isYJunction = anchorConnectorType === movingConnectorType;
-    const rotationDelta = calculateRotationForConnection(anchorFacade, movingFacade, isYJunction);
+    const rotationDelta = calculateRotationForConnection(anchorFacade, movingFacade);
 
     // Execute connection
     connectNetworks(anchorNodeId, movingNodeId, movingEdgeId, rotationDelta);
