@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X } from 'lucide-react';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import './TrainPanel.css';
@@ -53,7 +54,7 @@ export function TrainPanel() {
     return (
         <div className="train-panel" data-testid="train-panel">
             <div className="train-panel-header">
-                <h2>🚂 Trains</h2>
+                <h2><TrainFront size={18} style={{ verticalAlign: 'middle', marginRight: 6 }} />Trains</h2>
                 <span className="train-count">{trainList.length}</span>
             </div>
 
@@ -65,7 +66,7 @@ export function TrainPanel() {
                     title={isRunning ? 'Pause' : 'Play'}
                     data-testid="train-play-btn"
                 >
-                    {isRunning ? '⏸️' : '▶️'}
+                    {isRunning ? <Pause size={14} /> : <Play size={14} />}
                 </button>
 
                 <button
@@ -75,7 +76,7 @@ export function TrainPanel() {
                     title="Add Train"
                     data-testid="train-add-btn"
                 >
-                    ➕ Add Train
+                    <Plus size={14} /> Add Train
                 </button>
 
                 <button
@@ -84,7 +85,7 @@ export function TrainPanel() {
                     disabled={trainList.length === 0}
                     title="Clear All Trains"
                 >
-                    🗑️
+                    <Trash2 size={14} />
                 </button>
             </div>
 
@@ -142,14 +143,14 @@ export function TrainPanel() {
                                 )}
                             </span>
                             <span className="train-status">
-                                {train.crashed ? '💥' : isRunning ? '🚂' : '⏸️'}
+                                {train.crashed ? <Zap size={14} /> : isRunning ? <TrainFront size={14} /> : <Pause size={14} />}
                             </span>
                             <button
                                 className="remove-btn"
                                 onClick={() => removeTrain(train.id)}
                                 title="Remove Train"
                             >
-                                ✕
+                                <X size={14} />
                             </button>
                         </div>
                     ))
@@ -159,7 +160,7 @@ export function TrainPanel() {
             {/* Crash Warning */}
             {trainList.some(t => t.crashed) && (
                 <div className="crash-warning">
-                    ⚠️ Some trains have crashed!
+                    <AlertTriangle size={14} /> Some trains have crashed!
                 </div>
             )}
         </div>

@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { FilePlus, Save, FolderOpen } from 'lucide-react';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { exportLayout, importLayout } from '../../../utils/fileManager';
@@ -216,7 +217,7 @@ export function FileActions() {
     return (
         <>
             <button onClick={handleNewClick} title="New Layout" className="toolbar-btn-icon" data-testid="file-new">
-                📄
+                <FilePlus size={16} />
             </button>
             <select
                 value=""
@@ -226,7 +227,7 @@ export function FileActions() {
                 className="template-selector-compact"
                 data-testid="file-template-selector"
             >
-                <option value="">📋</option>
+                <option value="">Templates</option>
                 {templates.map(t => (
                     <option key={t.id} value={t.id}>
                         {t.name}
@@ -234,10 +235,10 @@ export function FileActions() {
                 ))}
             </select>
             <button onClick={handleSave} title="Save to File" className="toolbar-btn-icon" data-testid="file-save">
-                💾
+                <Save size={16} />
             </button>
             <button onClick={handleLoad} title="Load from File" className="toolbar-btn-icon" data-testid="file-load">
-                📂
+                <FolderOpen size={16} />
             </button>
 
             {/* Hidden file input */}

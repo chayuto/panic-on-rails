@@ -2,6 +2,7 @@
  * BudgetTicker - Displays current budget in the toolbar
  */
 
+import { Coins, RotateCcw } from 'lucide-react';
 import { useBudgetStore, formatCurrency } from '../../stores/useBudgetStore';
 import './BudgetTicker.css';
 
@@ -19,7 +20,7 @@ export function BudgetTicker() {
     return (
         <div className={`budget-ticker ${statusClass}`}>
             <span className="budget-balance" title="Current Balance">
-                💰 {formatCurrency(balance)}
+                <Coins size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />{formatCurrency(balance)}
             </span>
             {totalSpent > 0 && (
                 <span className="budget-spent" title="Total Spent">
@@ -31,7 +32,7 @@ export function BudgetTicker() {
                 onClick={reset}
                 title="Reset Budget"
             >
-                🔄
+                <RotateCcw size={14} />
             </button>
         </div>
     );

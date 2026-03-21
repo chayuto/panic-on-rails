@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { TrainFront, RailSymbol, Circle, GitBranch, Radio, TrafficCone } from 'lucide-react';
 import { useIsSimulating } from '../../stores/useModeStore';
 import { useHoveredElement, type HoveredElement } from '../../hooks/useHoveredElement';
 import './SimulationTooltip.css';
@@ -19,7 +20,7 @@ function TrainTooltipContent({ element }: { element: Extract<HoveredElement, { t
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">🚂</span>
+                <span className="icon"><TrainFront size={14} /></span>
                 <span>Train</span>
             </div>
             <div className="simulation-tooltip-section">
@@ -55,7 +56,7 @@ function EdgeTooltipContent({ element }: { element: Extract<HoveredElement, { ty
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">🛤️</span>
+                <span className="icon"><RailSymbol size={14} /></span>
                 <span>Track Edge</span>
             </div>
             <div className="simulation-tooltip-section">
@@ -93,7 +94,7 @@ function NodeTooltipContent({ element }: { element: Extract<HoveredElement, { ty
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">⚫</span>
+                <span className="icon"><Circle size={14} /></span>
                 <span>Node</span>
             </div>
             <div className="simulation-tooltip-section">
@@ -123,7 +124,7 @@ function SwitchTooltipContent({ element }: { element: Extract<HoveredElement, { 
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">🔀</span>
+                <span className="icon"><GitBranch size={14} /></span>
                 <span>Switch</span>
             </div>
             <div className="simulation-tooltip-section">
@@ -151,7 +152,7 @@ function SensorTooltipContent({ element }: { element: Extract<HoveredElement, { 
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">📡</span>
+                <span className="icon"><Radio size={14} /></span>
                 <span>Sensor</span>
             </div>
             <div className="simulation-tooltip-section">
@@ -187,7 +188,7 @@ function SignalTooltipContent({ element }: { element: Extract<HoveredElement, { 
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon">🚦</span>
+                <span className="icon"><TrafficCone size={14} /></span>
                 <span>Signal</span>
             </div>
             <div className="simulation-tooltip-section">

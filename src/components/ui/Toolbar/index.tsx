@@ -11,6 +11,7 @@
  * The toolbar is the primary navigation and control panel for the application.
  */
 
+import { TrainFront } from 'lucide-react';
 import { useEditorStore } from '../../../stores/useEditorStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { BudgetTicker } from '../BudgetTicker';
@@ -29,7 +30,7 @@ export function Toolbar() {
         <header className="toolbar toolbar-compact" data-testid="toolbar">
             {/* App title */}
             <div className="toolbar-title">
-                <span>🚂</span>
+                <TrainFront size={18} />
                 <span>PanicOnRails</span>
             </div>
 

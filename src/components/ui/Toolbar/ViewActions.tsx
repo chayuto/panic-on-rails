@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { Grid3x3, Volume2, VolumeX } from 'lucide-react';
 import { useEditorStore } from '../../../stores/useEditorStore';
 import { isMuted, toggleMute } from '../../../utils/audioManager';
 
@@ -24,18 +25,18 @@ function MuteToggle() {
 
     return (
         <button onClick={handleToggle} title={muted ? 'Unmute' : 'Mute'} className="toolbar-btn-icon" data-testid="view-mute-toggle">
-            {muted ? '🔇' : '🔊'}
+            {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
     );
 }
 
 export function ViewActions() {
-    const { toggleGrid, showGrid } = useEditorStore();
+    const { toggleGrid } = useEditorStore();
 
     return (
         <>
             <button onClick={toggleGrid} title="Toggle Grid" className="toolbar-btn-icon" data-testid="view-grid-toggle">
-                {showGrid ? '🔲' : '⬜'}
+                <Grid3x3 size={16} />
             </button>
             <MuteToggle />
         </>
