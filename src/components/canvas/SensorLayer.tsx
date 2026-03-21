@@ -61,10 +61,12 @@ function getSensorTransform(
  * Individual sensor component
  */
 function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boolean }) {
-    const { edges, nodes } = useTrackStore();
-    const { removeSensor } = useLogicStore();
-    const { wireSource, setWireSource } = useEditorStore();
-    const { editSubMode } = useModeStore();
+    const edges = useTrackStore(s => s.edges);
+    const nodes = useTrackStore(s => s.nodes);
+    const removeSensor = useLogicStore(s => s.removeSensor);
+    const wireSource = useEditorStore(s => s.wireSource);
+    const setWireSource = useEditorStore(s => s.setWireSource);
+    const editSubMode = useModeStore(s => s.editSubMode);
 
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
@@ -129,7 +131,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
  * SensorLayer - Renders all sensors
  */
 export function SensorLayer() {
-    const { sensors } = useLogicStore();
+    const sensors = useLogicStore(s => s.sensors);
 
     return (
         <Group>

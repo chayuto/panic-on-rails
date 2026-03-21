@@ -52,11 +52,9 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     }, [edges, visibleEdgeIds]);
 
     // V6: Track content hash for cache invalidation
+    // Use simple count-based hash - edges/nodes are new refs on any change
     const contentHash = useMemo(() => {
-        return JSON.stringify({
-            edgeIds: Object.keys(edges).sort(),
-            nodePositions: Object.values(nodes).map(n => `${n.id}:${n.position.x},${n.position.y}`).sort(),
-        });
+        return Object.keys(edges).length + '|' + Object.keys(nodes).length;
     }, [edges, nodes]);
 
     // V6: Cache track visuals when not editing for performance

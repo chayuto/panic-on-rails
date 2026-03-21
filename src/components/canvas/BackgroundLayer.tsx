@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Line } from 'react-konva';
 import type { Vector2 } from '../../types';
 
@@ -17,50 +17,54 @@ const GRID_COLOR_MAJOR = '#3D3D3D';
 export function BackgroundLayer({ width, height, zoom, pan, showGrid }: BackgroundLayerProps) {
     if (!showGrid) return null;
 
-    const lines: React.ReactElement[] = [];
-
     // Calculate visible area in world coordinates
     const visibleLeft = -pan.x / zoom;
     const visibleTop = -pan.y / zoom;
     const visibleWidth = width / zoom;
     const visibleHeight = height / zoom;
 
-    // Add some padding
+    // Snap to grid boundaries so small pan/zoom changes don't regenerate lines
     const padding = GRID_SIZE * 2;
     const startX = Math.floor((visibleLeft - padding) / GRID_SIZE) * GRID_SIZE;
     const startY = Math.floor((visibleTop - padding) / GRID_SIZE) * GRID_SIZE;
-    const endX = visibleLeft + visibleWidth + padding;
-    const endY = visibleTop + visibleHeight + padding;
+    const endX = Math.ceil((visibleLeft + visibleWidth + padding) / GRID_SIZE) * GRID_SIZE;
+    const endY = Math.ceil((visibleTop + visibleHeight + padding) / GRID_SIZE) * GRID_SIZE;
 
-    // Vertical lines
-    for (let x = startX; x <= endX; x += GRID_SIZE) {
-        const isMajor = x % (GRID_SIZE * 5) === 0;
-        lines.push(
-            <Line
-                key={`v-${x}`}
-                points={[x, startY, x, endY]}
-                stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
-                strokeWidth={isMajor ? 1 : 0.5}
-                listening={false}
-                perfectDrawEnabled={false}
-            />
-        );
-    }
+    const lines = useMemo(() => {
+        const result: React.ReactElement[] = [];
 
-    // Horizontal lines
-    for (let y = startY; y <= endY; y += GRID_SIZE) {
-        const isMajor = y % (GRID_SIZE * 5) === 0;
-        lines.push(
-            <Line
-                key={`h-${y}`}
-                points={[startX, y, endX, y]}
-                stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
-                strokeWidth={isMajor ? 1 : 0.5}
-                listening={false}
-                perfectDrawEnabled={false}
-            />
-        );
-    }
+        // Vertical lines
+        for (let x = startX; x <= endX; x += GRID_SIZE) {
+            const isMajor = x % (GRID_SIZE * 5) === 0;
+            result.push(
+                <Line
+                    key={`v-${x}`}
+                    points={[x, startY, x, endY]}
+                    stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
+                    strokeWidth={isMajor ? 1 : 0.5}
+                    listening={false}
+                    perfectDrawEnabled={false}
+                />
+            );
+        }
+
+        // Horizontal lines
+        for (let y = startY; y <= endY; y += GRID_SIZE) {
+            const isMajor = y % (GRID_SIZE * 5) === 0;
+            result.push(
+                <Line
+                    key={`h-${y}`}
+                    points={[startX, y, endX, y]}
+                    stroke={isMajor ? GRID_COLOR_MAJOR : GRID_COLOR}
+                    strokeWidth={isMajor ? 1 : 0.5}
+                    listening={false}
+                    perfectDrawEnabled={false}
+                />
+            );
+        }
+
+        return result;
+    }, [startX, startY, endX, endY]);
 
     return <>{lines}</>;
 }

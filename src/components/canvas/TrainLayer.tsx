@@ -8,7 +8,7 @@
  * V8: Headlight cone projecting forward
  */
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Circle, Group, Line, Rect, Shape, Wedge } from 'react-konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
@@ -336,8 +336,9 @@ function TrailEffect({ train, positions }: TrailEffectProps) {
  * V7: Motion trail effect behind fast trains
  * V8: Headlight cone projecting forward
  */
-function TrainEntity({ train }: { train: Train }) {
-    const { edges, nodes } = useTrackStore();
+const TrainEntity = React.memo(function TrainEntity({ train }: { train: Train }) {
+    const edges = useTrackStore(s => s.edges);
+    const nodes = useTrackStore(s => s.nodes);
 
     // Calculate positions for all carriages
     const carriagePositions = useMemo(() => {
@@ -423,7 +424,7 @@ function TrainEntity({ train }: { train: Train }) {
             })}
         </Group>
     );
-}
+});
 
 // ===========================
 // Main TrainLayer Component
@@ -438,8 +439,9 @@ export interface TrainLayerProps {
  * Train layer - renders all active trains (simulate mode only)
  */
 export function TrainLayer({ viewport }: TrainLayerProps) {
-    const { trains } = useSimulationStore();
-    const { edges, nodes } = useTrackStore();
+    const trains = useSimulationStore(s => s.trains);
+    const edges = useTrackStore(s => s.edges);
+    const nodes = useTrackStore(s => s.nodes);
     const isSimulating = useIsSimulating();
 
     // Safety check - don't render if not in simulate mode

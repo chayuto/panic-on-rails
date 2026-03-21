@@ -18,10 +18,14 @@ const SIGNAL_RADIUS = 8;
  * Individual signal component
  */
 function SignalEntity({ signal }: { signal: Signal }) {
-    const { nodes } = useTrackStore();
-    const { toggleSignal, removeSignal, addWire } = useLogicStore();
-    const { wireSource, setWireSource, clearWireSource } = useEditorStore();
-    const { editSubMode } = useModeStore();
+    const nodes = useTrackStore(s => s.nodes);
+    const toggleSignal = useLogicStore(s => s.toggleSignal);
+    const removeSignal = useLogicStore(s => s.removeSignal);
+    const addWire = useLogicStore(s => s.addWire);
+    const wireSource = useEditorStore(s => s.wireSource);
+    const setWireSource = useEditorStore(s => s.setWireSource);
+    const clearWireSource = useEditorStore(s => s.clearWireSource);
+    const editSubMode = useModeStore(s => s.editSubMode);
     const isSimulating = useIsSimulating();
 
     const node = nodes[signal.nodeId];
@@ -117,7 +121,7 @@ function SignalEntity({ signal }: { signal: Signal }) {
  * SignalLayer - Renders all signals
  */
 export function SignalLayer() {
-    const { signals } = useLogicStore();
+    const signals = useLogicStore(s => s.signals);
 
     return (
         <Group>
