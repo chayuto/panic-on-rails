@@ -41,7 +41,8 @@ export async function loadTemplate(templateId: string): Promise<TrackTemplate> {
 }
 
 /** Distance threshold for merging nearby endpoints */
-const CONNECT_THRESHOLD = 3;
+/** Template positions are rounded, so endpoint gaps up to ~5px can occur from accumulated rounding. */
+const CONNECT_THRESHOLD = 10;
 
 /**
  * Apply a template by building it through the real addTrack() pipeline.

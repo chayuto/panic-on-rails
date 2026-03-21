@@ -68,6 +68,8 @@ export interface PanicStoreBridge {
             speedMultiplier: number;
             error: string | null;
             crashedParts: unknown[];
+            simLog: { seq: number; time: number; type: string; trainId: string; edgeId: string; detail: string }[];
+            simElapsed: number;
         };
         spawnTrain: (edgeId: string, color?: string, carriageCount?: number) => string;
         removeTrain: (trainId: string) => void;
@@ -75,6 +77,7 @@ export interface PanicStoreBridge {
         toggleRunning: () => void;
         clearTrains: () => void;
         setSpeedMultiplier: (multiplier: number) => void;
+        clearLog: () => void;
     };
     editor: {
         getState: () => {
@@ -184,6 +187,8 @@ export function initDebugBridge(): void {
                     speedMultiplier: s.speedMultiplier,
                     error: s.error,
                     crashedParts: s.crashedParts,
+                    simLog: s.simLog,
+                    simElapsed: s.simElapsed,
                 };
             },
             spawnTrain: (edgeId, color?, carriageCount?) =>
@@ -198,6 +203,8 @@ export function initDebugBridge(): void {
                 useSimulationStore.getState().clearTrains(),
             setSpeedMultiplier: (multiplier) =>
                 useSimulationStore.getState().setSpeedMultiplier(multiplier),
+            clearLog: () =>
+                useSimulationStore.getState().clearLog(),
         },
         editor: {
             getState: () => {

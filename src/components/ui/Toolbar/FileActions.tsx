@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FilePlus, Save, FolderOpen } from 'lucide-react';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
+import { useModeStore } from '../../../stores/useModeStore';
 import { exportLayout, importLayout } from '../../../utils/fileManager';
 import { getTemplateList, loadTemplate, applyTemplate } from '../../../data/templates';
 import type { TemplateMetadata } from '../../../data/templates';
@@ -144,7 +145,7 @@ export function FileActions() {
                 () => useTrackStore.getState().nodes,
                 connectNodes,
                 spawnTrain,
-                () => setRunning(true),
+                () => { useModeStore.getState().enterSimulateMode(); setRunning(true); },
                 true // autoStart
             );
         } catch (error) {

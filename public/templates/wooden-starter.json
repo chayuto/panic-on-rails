@@ -12,13 +12,13 @@
     },
     "parts": [
         { "partId": "wooden-curve-large", "position": { "x": 500, "y": 367 }, "rotation": 0 },
-        { "partId": "wooden-curve-large", "position": { "x": 628.7, "y": 313.7 }, "rotation": 45 },
-        { "partId": "wooden-curve-large", "position": { "x": 682, "y": 185 }, "rotation": 90 },
-        { "partId": "wooden-curve-large", "position": { "x": 628.7, "y": 56.3 }, "rotation": 135 },
+        { "partId": "wooden-curve-large", "position": { "x": 371.3, "y": 313.7 }, "rotation": 45 },
+        { "partId": "wooden-curve-large", "position": { "x": 318, "y": 185 }, "rotation": 90 },
+        { "partId": "wooden-curve-large", "position": { "x": 371.3, "y": 56.3 }, "rotation": 135 },
         { "partId": "wooden-curve-large", "position": { "x": 500, "y": 3 }, "rotation": 180 },
-        { "partId": "wooden-curve-large", "position": { "x": 371.3, "y": 56.3 }, "rotation": 225 },
-        { "partId": "wooden-curve-large", "position": { "x": 318, "y": 185 }, "rotation": 270 },
-        { "partId": "wooden-curve-large", "position": { "x": 371.3, "y": 313.7 }, "rotation": 315 }
+        { "partId": "wooden-curve-large", "position": { "x": 628.7, "y": 56.3 }, "rotation": 225 },
+        { "partId": "wooden-curve-large", "position": { "x": 682, "y": 185 }, "rotation": 270 },
+        { "partId": "wooden-curve-large", "position": { "x": 628.7, "y": 313.7 }, "rotation": 315 }
     ],
     "trains": [
         { "partIndex": 0, "color": "#4CAF50" }

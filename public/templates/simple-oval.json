@@ -12,13 +12,13 @@
     },
     "parts": [
         { "partId": "kato-20-100", "position": { "x": 500, "y": 300 }, "rotation": 0 },
-        { "partId": "kato-20-100", "position": { "x": 676.1, "y": 372.9 }, "rotation": 45 },
-        { "partId": "kato-20-100", "position": { "x": 749, "y": 549 }, "rotation": 90 },
-        { "partId": "kato-20-100", "position": { "x": 676.1, "y": 725.1 }, "rotation": 135 },
-        { "partId": "kato-20-100", "position": { "x": 500, "y": 798 }, "rotation": 180 },
-        { "partId": "kato-20-100", "position": { "x": 323.9, "y": 725.1 }, "rotation": 225 },
-        { "partId": "kato-20-100", "position": { "x": 251, "y": 549 }, "rotation": 270 },
-        { "partId": "kato-20-100", "position": { "x": 323.9, "y": 372.9 }, "rotation": 315 }
+        { "partId": "kato-20-100", "position": { "x": 323.9, "y": 227.1 }, "rotation": 45 },
+        { "partId": "kato-20-100", "position": { "x": 251, "y": 51 }, "rotation": 90 },
+        { "partId": "kato-20-100", "position": { "x": 323.9, "y": -125.1 }, "rotation": 135 },
+        { "partId": "kato-20-100", "position": { "x": 500, "y": -198 }, "rotation": 180 },
+        { "partId": "kato-20-100", "position": { "x": 676.1, "y": -125.1 }, "rotation": 225 },
+        { "partId": "kato-20-100", "position": { "x": 749, "y": 51 }, "rotation": 270 },
+        { "partId": "kato-20-100", "position": { "x": 676.1, "y": 227.1 }, "rotation": 315 }
     ],
     "trains": [
         { "partIndex": 0, "color": "#E53935" }
