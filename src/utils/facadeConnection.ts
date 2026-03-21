@@ -10,7 +10,7 @@
  */
 
 import type { PartDefinition, Vector2, PartGeometry } from '../types';
-import { normalizeAngle, angleDifference } from './geometry';
+import { normalizeAngle, angleDifference, degreesToRadians } from './geometry';
 
 // =============================================================================
 // CONSTANTS
@@ -20,7 +20,7 @@ import { normalizeAngle, angleDifference } from './geometry';
 export const MATE_DISTANCE_THRESHOLD = 10;
 
 /** Maximum facade angle difference from 180° for valid mating (degrees) */
-export const MATE_ANGLE_TOLERANCE = 45;
+export const MATE_ANGLE_TOLERANCE = 20;
 
 // =============================================================================
 // TYPES
@@ -128,7 +128,7 @@ export function calculateEndPosition(
     rotation: number,
     geometry: PartGeometry
 ): Vector2 {
-    const rotRad = (rotation * Math.PI) / 180;
+    const rotRad = degreesToRadians(rotation);
 
     if (geometry.type === 'straight') {
         return {
@@ -137,7 +137,7 @@ export function calculateEndPosition(
         };
     } else if (geometry.type === 'curve') {
         const { radius, angle } = geometry;
-        const angleRad = (angle * Math.PI) / 180;
+        const angleRad = degreesToRadians(angle);
 
         // Arc center is 90° counter-clockwise from heading (left curve)
         const centerAngle = rotRad - Math.PI / 2;

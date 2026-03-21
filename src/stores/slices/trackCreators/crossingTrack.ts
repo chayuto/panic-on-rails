@@ -10,7 +10,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { NodeId, EdgeId, TrackNode, TrackEdge, Vector2, PartId } from '../../../types';
 import type { CrossingGeometry } from '../../../data/catalog/types';
-import { normalizeAngle } from '../../../utils/geometry';
+import { normalizeAngle, degreesToRadians } from '../../../utils/geometry';
 
 /**
  * Result of creating a crossing track piece.
@@ -45,7 +45,7 @@ export function createCrossingTrack(
 ): CrossingTrackResult {
     const { length, crossingAngle } = geometry;
     const halfLength = length / 2;
-    const radians = (rotation * Math.PI) / 180;
+    const radians = degreesToRadians(rotation);
 
     // Main track (Path A) - follows placement position/rotation
     const endPosition = {
@@ -60,7 +60,7 @@ export function createCrossingTrack(
     };
 
     // Cross track (Path B) - rotated by crossingAngle relative to main
-    const crossRadians = radians + (crossingAngle * Math.PI / 180);
+    const crossRadians = radians + degreesToRadians(crossingAngle);
 
     // Calculate Start/End for Cross Track
     // Start is half-length BACKWARDS from center

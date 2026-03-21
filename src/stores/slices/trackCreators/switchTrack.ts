@@ -10,7 +10,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { NodeId, EdgeId, TrackNode, TrackEdge, Vector2, PartId } from '../../../types';
 import type { SwitchGeometry } from '../../../data/catalog/types';
-import { normalizeAngle } from '../../../utils/geometry';
+import { normalizeAngle, degreesToRadians } from '../../../utils/geometry';
 
 /**
  * Result of creating a switch track piece.
@@ -53,7 +53,7 @@ export function createSwitchTrack(
     const mainEdgeId = uuidv4() as EdgeId;
     const branchEdgeId = uuidv4() as EdgeId;
 
-    const radians = (rotation * Math.PI) / 180;
+    const radians = degreesToRadians(rotation);
 
     // Calculate main exit position (straight through)
     const mainExitPosition: Vector2 = {
@@ -63,7 +63,7 @@ export function createSwitchTrack(
 
     // Calculate branch exit position (diverging)
     const branchAngleDir = branchDirection === 'left' ? -1 : 1;
-    const branchRadians = radians + (branchAngleDir * branchAngle * Math.PI / 180);
+    const branchRadians = radians + (branchAngleDir * degreesToRadians(branchAngle));
 
     // Calculate branch position and length
     // Prefer branchRadius (curved diverge) over branchLength (legacy straight)
@@ -72,7 +72,7 @@ export function createSwitchTrack(
 
     if (branchRadius !== undefined) {
         // Curved diverge: calculate arc endpoint
-        const arcAngleRad = (branchAngle * Math.PI) / 180;
+        const arcAngleRad = degreesToRadians(branchAngle);
         // Local offset from arc geometry
         const localX = branchRadius * Math.sin(arcAngleRad);
         const localY = branchAngleDir * branchRadius * (1 - Math.cos(arcAngleRad));

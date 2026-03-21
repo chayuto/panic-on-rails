@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { NodeId, EdgeId, TrackNode, TrackEdge, Vector2, PartId } from '../../../types';
 import type { StraightGeometry, CurveGeometry } from '../../../data/catalog/types';
 import { calculateArcLength } from '../../../data/catalog';
-import { normalizeAngle } from '../../../utils/geometry';
+import { normalizeAngle, degreesToRadians } from '../../../utils/geometry';
 
 /**
  * Result of creating a standard (straight or curve) track piece.
@@ -43,7 +43,7 @@ export function createStraightTrack(
     const startNodeId = uuidv4() as NodeId;
     const endNodeId = uuidv4() as NodeId;
 
-    const radians = (rotation * Math.PI) / 180;
+    const radians = degreesToRadians(rotation);
     const endPosition: Vector2 = {
         x: position.x + Math.cos(radians) * geometry.length,
         y: position.y + Math.sin(radians) * geometry.length,
@@ -102,8 +102,8 @@ export function createCurveTrack(
     const endNodeId = uuidv4() as NodeId;
 
     const { radius, angle } = geometry;
-    const angleRad = (angle * Math.PI) / 180;
-    const startRad = (rotation * Math.PI) / 180;
+    const angleRad = degreesToRadians(angle);
+    const startRad = degreesToRadians(rotation);
 
     // Arc center is perpendicular to start direction
     const centerAngle = startRad - Math.PI / 2; // Left curve by default

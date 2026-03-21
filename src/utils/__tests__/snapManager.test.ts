@@ -165,7 +165,7 @@ describe('computeConnectors', () => {
 
         expect(entry.localFacade).toBe(180);
         expect(main.localFacade).toBe(0);
-        expect(branch.localFacade).toBe(-15);  // Left branch = negative angle
+        expect(branch.localFacade).toBe(345);  // normalizeAngle(-15) = 345
     });
 });
 

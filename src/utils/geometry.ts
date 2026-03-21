@@ -70,7 +70,7 @@ export function rotateAroundPivot(
  * Calculate arc length for a curved track
  */
 export function calculateArcLength(radius: number, angleDegrees: number): number {
-    const angleRadians = (angleDegrees * Math.PI) / 180;
+    const angleRadians = degreesToRadians(angleDegrees);
     return radius * angleRadians;
 }
 
@@ -164,8 +164,8 @@ export function calculateArcEndpoint(
     sweepAngleDeg: number,
     startDirection: number
 ): { position: { x: number; y: number }; tangentDirection: number } {
-    const sweepRad = (sweepAngleDeg * Math.PI) / 180;
-    const startDirRad = (startDirection * Math.PI) / 180;
+    const sweepRad = degreesToRadians(sweepAngleDeg);
+    const startDirRad = degreesToRadians(startDirection);
 
     // Arc center is perpendicular to start direction
     // For CCW (positive sweep): center is 90° left of direction
@@ -187,7 +187,7 @@ export function calculateArcEndpoint(
     const endY = centerY + Math.sin(endAngleFromCenter) * radius;
 
     // Tangent direction at end (perpendicular to radius)
-    const tangentDirection = ((endAngleFromCenter * 180) / Math.PI) +
+    const tangentDirection = radiansToDegrees(endAngleFromCenter) +
         (sweepAngleDeg >= 0 ? 90 : -90);
 
     return {
