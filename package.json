@@ -11,7 +11,7 @@
         "preview": "vite preview",
         "test": "vitest",
         "e2e": "playwright test --project=chromium",
-        "e2e:dev": "playwright test --project=dev",
+        "e2e:dev": "PLAYWRIGHT_DEV=1 playwright test --project=dev",
         "e2e:headed": "playwright test --headed",
         "e2e:ui": "playwright test --ui",
         "e2e:report": "playwright show-report e2e-report"

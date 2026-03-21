@@ -8,11 +8,22 @@ import { defineConfig, devices } from '@playwright/test';
  *   Builds app and starts preview server automatically.
  * - dev: Live dev server tests (agentic mid-session workflow)
  *   Expects `pnpm dev` to be running already on port 5173.
+ *   Set PLAYWRIGHT_DEV=1 to skip the webServer build.
  *
  * @see https://playwright.dev/docs/test-configuration
  */
 
-const isDevProject = process.argv.includes('--project=dev');
+// When PLAYWRIGHT_DEV is set, skip the build/preview webServer
+const skipWebServer = !!process.env.PLAYWRIGHT_DEV;
+
+const webServerConfig = skipWebServer ? {} : {
+    webServer: {
+        command: 'npm run build && npm run preview',
+        url: 'http://localhost:4173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+    },
+};
 
 export default defineConfig({
     testDir: './e2e',
@@ -54,14 +65,5 @@ export default defineConfig({
         },
     ],
 
-    // Only start the preview server for the chromium project.
-    // The dev project expects `pnpm dev` to be running already.
-    ...(!isDevProject && {
-        webServer: {
-            command: 'npm run build && npm run preview',
-            url: 'http://localhost:4173',
-            reuseExistingServer: !process.env.CI,
-            timeout: 120_000,
-        },
-    }),
+    ...webServerConfig,
 });
