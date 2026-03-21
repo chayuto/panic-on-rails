@@ -5,7 +5,7 @@
  */
 
 import type { NodeId, EdgeId, TrackNode, TrackEdge } from '../../../types';
-import { nodeIndex } from '../spatialHelpers';
+import { nodeIndex, spatialIndex, getEdgeBounds } from '../spatialHelpers';
 
 /**
  * Connects two nodes by merging the removed node into the survivor node.
@@ -72,16 +72,26 @@ export function connectNodesOp(
     }
 
     // Add the new edge connection to survivor
+    // Preserve switch type — only upgrade endpoint→junction, never overwrite switch
+    const newType = survivorNode.type === 'switch'
+        ? 'switch'
+        : (survivorNode.connections.length >= 1 ? 'junction' : 'endpoint');
     newNodes[survivorNodeId] = {
         ...survivorNode,
         connections: [...survivorNode.connections, newEdgeId],
-        // Upgrade to junction if now has 2+ connections
-        type: survivorNode.connections.length >= 1 ? 'junction' : 'endpoint',
+        type: newType,
     };
 
     // Delete the removed node and remove from spatial index
     delete newNodes[removedNodeId];
     nodeIndex.remove(removedNodeId);
+
+    // Rebuild spatial index for modified edge (geometry may have changed)
+    const updatedEdge = newEdges[newEdgeId];
+    if (updatedEdge) {
+        spatialIndex.remove(newEdgeId);
+        spatialIndex.insert(newEdgeId, getEdgeBounds(updatedEdge), newEdgeId);
+    }
 
     console.log('[connectNodesOp] Merge complete:', {
         totalNodes: Object.keys(newNodes).length,

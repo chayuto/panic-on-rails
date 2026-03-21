@@ -19,6 +19,7 @@ import type {
 import { getPartById } from '../../data/catalog';
 import type { SwitchGeometry, CrossingGeometry, StraightGeometry, CurveGeometry } from '../../data/catalog/types';
 import { useBudgetStore } from '../useBudgetStore';
+import { useLogicStore } from '../useLogicStore';
 import {
     spatialIndex,
     nodeIndex,
@@ -162,6 +163,13 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         // Remove from spatial index first
         spatialIndex.remove(edgeId);
 
+        // Cascade-delete orphaned sensors/signals on this edge and its nodes
+        const logicStore = useLogicStore.getState();
+        const orphanedSensors = logicStore.getSensorsOnEdge(edgeId);
+        for (const sensor of orphanedSensors) {
+            logicStore.removeSensor(sensor.id);
+        }
+
         set((state) => {
             const edge = state.edges[edgeId];
             if (!edge) return state;
@@ -172,14 +180,21 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
             // Remove edge
             delete newEdges[edgeId];
 
-            // Clean up orphaned nodes
+            // Clean up orphaned nodes (immutable — create new node objects)
             [edge.startNodeId, edge.endNodeId].forEach((nodeId) => {
                 const node = newNodes[nodeId];
                 if (node) {
-                    node.connections = node.connections.filter((id) => id !== edgeId);
-                    if (node.connections.length === 0) {
+                    const filteredConnections = node.connections.filter((id) => id !== edgeId);
+                    if (filteredConnections.length === 0) {
                         delete newNodes[nodeId];
                         nodeIndex.remove(nodeId);
+                        // Clean up signals attached to orphaned nodes
+                        const orphanedSignals = logicStore.getSignalsAtNode(nodeId);
+                        for (const signal of orphanedSignals) {
+                            logicStore.removeSignal(signal.id);
+                        }
+                    } else {
+                        newNodes[nodeId] = { ...node, connections: filteredConnections };
                     }
                 }
             });
