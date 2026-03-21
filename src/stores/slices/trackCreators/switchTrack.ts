@@ -137,15 +137,60 @@ export function createSwitchTrack(
         intrinsicGeometry: { type: 'straight', length: mainLength },
     };
 
-    const branchEdge: TrackEdge = {
-        id: branchEdgeId,
-        partId,
-        startNodeId: entryNodeId,
-        endNodeId: branchExitNodeId,
-        geometry: { type: 'straight', start: position, end: branchExitPosition },
-        length: effectiveBranchLength,
-        intrinsicGeometry: { type: 'straight', length: effectiveBranchLength },
-    };
+    // Build branch edge geometry — arc when branchRadius is provided, straight otherwise
+    let branchEdge: TrackEdge;
+
+    if (branchRadius !== undefined) {
+        // Arc geometry for curved diverge
+        // The arc center is perpendicular to the entry direction
+        const perpDir = branchDirection === 'left' ? -1 : 1;
+        const arcCenter = {
+            x: position.x - Math.sin(radians) * perpDir * branchRadius,
+            y: position.y + Math.cos(radians) * perpDir * branchRadius,
+        };
+
+        // Start angle: from center to entry point
+        // Entry point is at `position`, center is at `arcCenter`
+        const startAngleRad = Math.atan2(position.y - arcCenter.y, position.x - arcCenter.x);
+        const startAngleDeg = normalizeAngle((startAngleRad * 180) / Math.PI);
+
+        // End angle: from center to branch exit point
+        const endAngleRad = Math.atan2(branchExitPosition.y - arcCenter.y, branchExitPosition.x - arcCenter.x);
+        const endAngleDeg = normalizeAngle((endAngleRad * 180) / Math.PI);
+
+        const arcDirection: 'cw' | 'ccw' = branchDirection === 'right' ? 'cw' : 'ccw';
+
+        branchEdge = {
+            id: branchEdgeId,
+            partId,
+            startNodeId: entryNodeId,
+            endNodeId: branchExitNodeId,
+            geometry: {
+                type: 'arc',
+                center: arcCenter,
+                radius: branchRadius,
+                startAngle: startAngleDeg,
+                endAngle: endAngleDeg,
+            },
+            length: effectiveBranchLength,
+            intrinsicGeometry: {
+                type: 'arc',
+                radius: branchRadius,
+                sweepAngle: branchAngle,
+                direction: arcDirection,
+            },
+        };
+    } else {
+        branchEdge = {
+            id: branchEdgeId,
+            partId,
+            startNodeId: entryNodeId,
+            endNodeId: branchExitNodeId,
+            geometry: { type: 'straight', start: position, end: branchExitPosition },
+            length: effectiveBranchLength,
+            intrinsicGeometry: { type: 'straight', length: effectiveBranchLength },
+        };
+    }
 
     return {
         nodes: [entryNode, mainExitNode, branchExitNode],
