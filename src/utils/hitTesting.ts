@@ -57,18 +57,7 @@ export function pointToLineDistance(
 /**
  * Calculate distance from a point to an arc (circular segment).
  * Uses a simplified approximation for performance.
- * 
- * @param point - The point to test
- * @param center - Center of the arc
- * @param radius - Radius of the arc
- * @param startAngleDeg - Start angle in DEGREES per constitution
- * @param endAngleDeg - End angle in DEGREES per constitution
- * @returns Approximate distance to the arc
- */
-/**
- * Calculate distance from a point to an arc (circular segment).
- * Uses a simplified approximation for performance.
- * 
+ *
  * @param point - The point to test
  * @param center - Center of the arc
  * @param radius - Radius of the arc
@@ -281,12 +270,27 @@ function calculateT(
             point.y - center.y,
             point.x - center.x
         );
-        const pointAngleDeg = (pointAngleRad * 180) / Math.PI;
+        // Normalize point angle to [0, 360) to match startAngle convention
+        let pointAngleDeg = (pointAngleRad * 180) / Math.PI;
+        pointAngleDeg = ((pointAngleDeg % 360) + 360) % 360;
 
         const totalAngle = endAngle - startAngle;
         if (Math.abs(totalAngle) < 0.1) return 0.5;  // Threshold for degrees
 
-        const t = (pointAngleDeg - startAngle) / totalAngle;
+        // Handle arcs that cross the 0°/360° boundary:
+        // Adjust pointAngleDeg to be within the swept range
+        let adjustedPointAngle = pointAngleDeg;
+        if (totalAngle > 0) {
+            // CCW arc: angles increase from startAngle
+            while (adjustedPointAngle < startAngle) adjustedPointAngle += 360;
+            while (adjustedPointAngle > startAngle + 360) adjustedPointAngle -= 360;
+        } else {
+            // CW arc: angles decrease from startAngle
+            while (adjustedPointAngle > startAngle) adjustedPointAngle -= 360;
+            while (adjustedPointAngle < startAngle - 360) adjustedPointAngle += 360;
+        }
+
+        const t = (adjustedPointAngle - startAngle) / totalAngle;
         return Math.max(0, Math.min(1, t));
     }
 }

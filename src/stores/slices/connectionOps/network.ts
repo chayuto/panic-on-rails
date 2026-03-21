@@ -7,6 +7,7 @@
 
 import type { NodeId, EdgeId, TrackNode, TrackEdge } from '../../../types';
 import { normalizeAngle } from '../../../utils/geometry';
+import { angleDifference } from '../../../utils/angle';
 import {
     spatialIndex,
     nodeIndex,
@@ -158,6 +159,20 @@ export function connectNetworksOp(
         spatialIndex.insert(edgeId, getEdgeBounds(newEdges[edgeId]), edgeId);
     }
 
+    // STEP 4.5: Validate facade alignment after transform
+    const transformedMoving = newNodes[movingNodeId];
+    if (transformedMoving) {
+        const facadeDiff = angleDifference(anchorNode.rotation, transformedMoving.rotation);
+        const facadeError = Math.abs(facadeDiff - 180);
+        if (facadeError > 20) {
+            console.warn('[connectNetworksOp] Facade misalignment after transform:', {
+                anchorFacade: anchorNode.rotation,
+                movingFacade: transformedMoving.rotation,
+                error: facadeError.toFixed(1) + '°',
+            });
+        }
+    }
+
     // STEP 5: Merge nodes (movingNode into anchorNode)
     const movingEdge = newEdges[movingEdgeId];
     if (movingEdge) {
@@ -184,11 +199,15 @@ export function connectNetworksOp(
         }
     }
 
-    // Add edge connection to anchor and upgrade type
+    // Add edge connection to anchor and upgrade type (preserve switch)
+    const anchorCurrent = newNodes[anchorNodeId];
+    const mergedType = anchorCurrent.type === 'switch'
+        ? 'switch'
+        : (anchorCurrent.connections.length >= 1 ? 'junction' : 'endpoint');
     newNodes[anchorNodeId] = {
-        ...newNodes[anchorNodeId],
-        connections: [...newNodes[anchorNodeId].connections, movingEdgeId],
-        type: newNodes[anchorNodeId].connections.length >= 1 ? 'junction' : 'endpoint',
+        ...anchorCurrent,
+        connections: [...anchorCurrent.connections, movingEdgeId],
+        type: mergedType,
     };
 
     // Delete moving node

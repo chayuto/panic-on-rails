@@ -57,7 +57,7 @@ interface CrashPartRendererProps {
 
 function CrashPartRenderer({ part }: CrashPartRendererProps) {
     const dim = PART_DIMENSIONS[part.type];
-    const rotationDeg = (part.rotation * 180) / Math.PI;
+    const rotationDeg = part.rotation;
 
     // Fade out settled parts
     const opacity = part.settled ? 0.6 : 1.0;

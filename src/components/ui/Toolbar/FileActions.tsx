@@ -130,8 +130,8 @@ export function FileActions() {
         setLoadingTemplate(true);
         try {
             // Clear persisted stores first
-            localStorage.removeItem('panic-on-rails-track-v1');
-            localStorage.removeItem('panic-on-rails-simulation-v1');
+            localStorage.removeItem('panic-on-rails-v1');
+
             localStorage.removeItem('panic-on-rails-logic-v1');
 
             const template = await loadTemplate(templateId);
@@ -181,7 +181,7 @@ export function FileActions() {
         console.log('[FileActions] performClear - clearing layout');
 
         // Clear persisted stores from localStorage
-        localStorage.removeItem('panic-on-rails-track-v1');
+        localStorage.removeItem('panic-on-rails-v1');
         localStorage.removeItem('panic-on-rails-simulation-v1');
         localStorage.removeItem('panic-on-rails-logic-v1');
         localStorage.removeItem('panic-on-rails-budget-v1');

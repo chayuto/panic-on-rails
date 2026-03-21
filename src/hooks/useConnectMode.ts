@@ -11,7 +11,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useModeStore } from '../stores/useModeStore';
 import { playSound } from '../utils/audioManager';
-import { calculateRotationForConnection, validateConnection, getNodeConnectorType, getNodeFacadeFromEdge } from '../utils/connectTransform';
+import { calculateRotationForConnection, validateConnection, getNodeFacadeFromEdge } from '../utils/connectTransform';
 import type { NodeId } from '../types';
 
 /**
@@ -38,15 +38,13 @@ export function useConnectMode() {
         // Must be different from source
         if (nodeId === connectSource.nodeId) return false;
 
-        // Must be from a different part
-        const sourceEdge = edges[connectSource.edgeId];
-        const targetEdge = edges[node.connections[0]];
-
-        if (!sourceEdge || !targetEdge) return false;
-        if (sourceEdge.partId === targetEdge.partId) return false;
+        // Must be from a different edge (not the same track segment)
+        const targetEdgeId = node.connections[0];
+        if (!targetEdgeId) return false;
+        if (connectSource.edgeId === targetEdgeId) return false;
 
         return true;
-    }, [nodes, edges, connectSource]);
+    }, [nodes, connectSource]);
 
     /**
      * Handle a node click in connect mode
@@ -88,7 +86,7 @@ export function useConnectMode() {
         }
 
         // Validate connection (includes cycle detection)
-        const validation = validateConnection(sourceNode, targetNode, edges, nodes);
+        const validation = validateConnection(sourceNode, targetNode, edges);
         if (!validation.isValid) {
             console.warn('[useConnectMode] Invalid connection:', validation.error);
             playSound('bounce'); // Rejection sound
@@ -98,17 +96,6 @@ export function useConnectMode() {
         console.log('[useConnectMode] Connecting nodes:', {
             sourceNodeId: connectSource.nodeId.slice(0, 8),
             targetNodeId: nodeId.slice(0, 8),
-        });
-
-        // Determine connector types to detect Y-junction vs linear connection
-        const sourceConnectorType = getNodeConnectorType(connectSource.nodeId, edges[connectSource.edgeId]);
-        const targetConnectorType = getNodeConnectorType(nodeId, edge);
-        const isYJunction = sourceConnectorType === targetConnectorType;
-
-        console.log('[useConnectMode] Connection types:', {
-            sourceType: sourceConnectorType,
-            targetType: targetConnectorType,
-            isYJunction,
         });
 
         // Calculate the rotation needed
@@ -127,7 +114,6 @@ export function useConnectMode() {
         const rotationDelta = calculateRotationForConnection(
             sourceFacade,   // Target (Part A - anchor) - derived from geometry
             targetFacade,   // Source (Part B - moving) - derived from geometry
-            isYJunction
         );
 
         console.log('[useConnectMode] Rotation delta:', rotationDelta);

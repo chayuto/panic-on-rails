@@ -5,6 +5,7 @@
 import type { ConnectorNode, PartConnectors } from '../../../types/connector';
 import type { SwitchGeometry } from '../types';
 import { calculateArcEndpoint } from '../../../utils/geometry';
+import { normalizeAngle } from '../../../utils/angle';
 
 export function computeSwitchConnectors(geometry: SwitchGeometry): PartConnectors {
     // Switch: Entry at origin, main exit straight ahead, branch exit at angle
@@ -80,7 +81,7 @@ export function computeSwitchConnectors(geometry: SwitchGeometry): PartConnector
         {
             localId: 'branch',
             localPosition: { x: branchX, y: branchY },
-            localFacade: branchAngleDir * branchAngle,  // Faces along branch direction
+            localFacade: normalizeAngle(branchAngleDir * branchAngle),  // Faces along branch direction
             maxConnections: 1,
         },
     ];

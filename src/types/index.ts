@@ -54,6 +54,8 @@ export type {
     Sensor,
     Signal,
     Wire,
+    WireSourceType,
+    WireTargetType,
     WireAction,
     LogicLayoutData,
 } from './logic';

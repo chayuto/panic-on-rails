@@ -25,7 +25,7 @@ export function checkCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>
 ): CollisionEvent[] {
-    const detected = detectCollisions(trains);
+    const detected = detectCollisions(trains, edges);
     const events: CollisionEvent[] = [];
 
     detected.forEach(({ trainA, trainB }) => {

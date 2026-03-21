@@ -39,6 +39,7 @@ export interface HoverState {
 
 export interface ScreenShake {
     intensity: number;
+    duration: number;
     endTime: number;
     decay: boolean;
 }
@@ -173,6 +174,7 @@ export const useEffectsStore = create<EffectsState>()(
             set((state) => {
                 state.screenShake = {
                     intensity,
+                    duration,
                     endTime: Date.now() + duration,
                     decay,
                 };
@@ -195,10 +197,9 @@ export const useEffectsStore = create<EffectsState>()(
             const now = Date.now();
             if (now >= shake.endTime) return { x: 0, y: 0 };
 
-            // Calculate remaining intensity
+            // Calculate decay progress (0 = just started, 1 = about to end)
             const remaining = shake.endTime - now;
-            const totalDuration = shake.endTime - (shake.endTime - remaining);
-            const progress = 1 - (remaining / Math.max(totalDuration, 1));
+            const progress = 1 - (remaining / Math.max(shake.duration, 1));
 
             const currentIntensity = shake.decay
                 ? shake.intensity * (1 - progress)

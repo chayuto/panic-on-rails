@@ -1,15 +1,19 @@
 /**
  * Collision Manager for PanicOnRails
- * 
- * Detects train-to-train collisions on the same edge.
+ *
+ * Detects train-to-train collisions on the same edge,
+ * and cross-edge collisions at shared nodes.
  * Supports multi-car trains by considering the full train length.
  */
 
-import type { Train } from '../types';
+import type { Train, TrackEdge, EdgeId, NodeId } from '../types';
 import { DEFAULT_CARRIAGE_SPACING } from '../stores/useSimulationStore';
 
 /** Base distance threshold for collision detection (in edge units) */
 const BASE_COLLISION_THRESHOLD = 15;
+
+/** Distance from edge endpoint to be considered "near a node" */
+const NEAR_NODE_THRESHOLD = 20;
 
 export interface CollisionResult {
     trainA: Train;
@@ -28,14 +32,52 @@ export function getTrainLength(train: Train): number {
 }
 
 /**
+ * Find the shared node ID between two edges, or null if they share none.
+ */
+function findSharedNode(
+    edgeA: TrackEdge,
+    edgeB: TrackEdge
+): NodeId | null {
+    if (edgeA.startNodeId === edgeB.startNodeId || edgeA.startNodeId === edgeB.endNodeId) {
+        return edgeA.startNodeId;
+    }
+    if (edgeA.endNodeId === edgeB.startNodeId || edgeA.endNodeId === edgeB.endNodeId) {
+        return edgeA.endNodeId;
+    }
+    return null;
+}
+
+/**
+ * Get the distance from a train to a specific node on its edge.
+ * Returns the distance along the edge to the node endpoint.
+ */
+function distanceToNode(
+    train: Train,
+    edge: TrackEdge,
+    nodeId: NodeId
+): number {
+    if (edge.startNodeId === nodeId) {
+        // Node is at the start of the edge (distance 0)
+        return train.distanceAlongEdge;
+    } else {
+        // Node is at the end of the edge (distance = edge.length)
+        return edge.length - train.distanceAlongEdge;
+    }
+}
+
+/**
  * Check for collisions between all pairs of trains.
  * Returns array of collision pairs.
- * 
+ *
  * For multi-car trains, collision is detected if any carriage of one train
  * is within threshold distance of any carriage of another train.
+ *
+ * Also detects cross-edge collisions where two trains on different edges
+ * are both near a shared node.
  */
 export function detectCollisions(
-    trains: Record<string, Train>
+    trains: Record<string, Train>,
+    edges?: Record<EdgeId, TrackEdge>
 ): CollisionResult[] {
     const collisions: CollisionResult[] = [];
     const trainList = Object.values(trains);
@@ -49,29 +91,51 @@ export function detectCollisions(
             // Skip if already crashed
             if (trainA.crashed || trainB.crashed) continue;
 
-            // Check if on same edge (simplified - for more accurate multi-car collision,
-            // we would need to check if any carriage of train A is on the same edge as
-            // any carriage of train B, but this is a reasonable approximation)
-            if (trainA.currentEdgeId !== trainB.currentEdgeId) continue;
+            // Same-edge collision check
+            if (trainA.currentEdgeId === trainB.currentEdgeId) {
+                // Get distance between train locomotives
+                const distance = Math.abs(trainA.distanceAlongEdge - trainB.distanceAlongEdge);
 
-            // Get distance between train locomotives
-            const distance = Math.abs(trainA.distanceAlongEdge - trainB.distanceAlongEdge);
+                // Calculate effective collision threshold considering train lengths
+                const trainALength = getTrainLength(trainA);
+                const trainBLength = getTrainLength(trainB);
+                const effectiveThreshold = BASE_COLLISION_THRESHOLD + (trainALength / 2) + (trainBLength / 2);
 
-            // Calculate effective collision threshold considering train lengths
-            // If trains are approaching, the rear of one train can collide with front of another
-            const trainALength = getTrainLength(trainA);
-            const trainBLength = getTrainLength(trainB);
-            
-            // The collision threshold is the base threshold plus half the length of each train
-            // This accounts for the case where locomotives are far apart but carriages overlap
-            const effectiveThreshold = BASE_COLLISION_THRESHOLD + (trainALength / 2) + (trainBLength / 2);
+                if (distance < effectiveThreshold) {
+                    collisions.push({
+                        trainA,
+                        trainB,
+                        edgeId: trainA.currentEdgeId,
+                    });
+                }
+                continue;
+            }
 
-            if (distance < effectiveThreshold) {
-                collisions.push({
-                    trainA,
-                    trainB,
-                    edgeId: trainA.currentEdgeId,
-                });
+            // Cross-edge collision check at shared nodes
+            if (edges) {
+                const edgeA = edges[trainA.currentEdgeId];
+                const edgeB = edges[trainB.currentEdgeId];
+
+                if (!edgeA || !edgeB) continue;
+
+                const sharedNodeId = findSharedNode(edgeA, edgeB);
+                if (!sharedNodeId) continue;
+
+                // Both trains must be near the shared node
+                const distA = distanceToNode(trainA, edgeA, sharedNodeId);
+                const distB = distanceToNode(trainB, edgeB, sharedNodeId);
+
+                const trainALength = getTrainLength(trainA);
+                const trainBLength = getTrainLength(trainB);
+                const effectiveThreshold = NEAR_NODE_THRESHOLD + (trainALength / 2) + (trainBLength / 2);
+
+                if (distA + distB < effectiveThreshold) {
+                    collisions.push({
+                        trainA,
+                        trainB,
+                        edgeId: trainA.currentEdgeId,
+                    });
+                }
             }
         }
     }

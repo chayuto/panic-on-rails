@@ -14,7 +14,7 @@ import type {
     NodeId,
     EdgeId,
 } from '../types';
-import { normalizeAngle, localToWorld } from './geometry';
+import { normalizeAngle, localToWorld, radiansToDegrees, degreesToRadians } from './geometry';
 
 // ===========================
 // Connection Transform Calculation
@@ -95,7 +95,7 @@ export function getNodeFacadeFromEdge(
         const dx = end.x - start.x;
         const dy = end.y - start.y;
         // Tangent direction from start to end
-        const tangent = Math.atan2(dy, dx) * 180 / Math.PI;
+        const tangent = radiansToDegrees(Math.atan2(dy, dx));
         // At start: facade points opposite to tangent (away from track)
         // At end: facade points same as tangent (away from track)
         return normalizeAngle(isStart ? tangent + 180 : tangent);
@@ -104,8 +104,11 @@ export function getNodeFacadeFromEdge(
         const { startAngle, endAngle } = edge.geometry;
         // radiusAngle is the angle from center to the point on the arc
         const radiusAngle = isStart ? startAngle : endAngle;
-        // Tangent is 90° CCW from radius (for CCW arc = increasing angles)
-        const tangent = radiusAngle + 90;
+        // Tangent direction depends on arc sweep direction:
+        // CCW (endAngle > startAngle): tangent = radius + 90
+        // CW (endAngle < startAngle): tangent = radius - 90
+        const isCCW = endAngle > startAngle;
+        const tangent = isCCW ? radiusAngle + 90 : radiusAngle - 90;
         // At start: facade points opposite to tangent direction
         // At end: facade points same as tangent direction
         return normalizeAngle(isStart ? tangent + 180 : tangent);
@@ -120,15 +123,12 @@ export function getNodeFacadeFromEdge(
  * tracks to form a smooth path.
  * 
  * @param targetFacade - The facade direction of Part A's endpoint (degrees)
- * @param sourceFacade - The facade direction of Part B's endpoint (degrees)  
- * @param _isYJunction - Deprecated parameter, kept for API compatibility
+ * @param sourceFacade - The facade direction of Part B's endpoint (degrees)
  * @returns The rotation delta to apply to Part B (degrees)
  */
 export function calculateRotationForConnection(
     targetFacade: number,
     sourceFacade: number,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _isYJunction: boolean = false
 ): number {
     const normalizedTarget = normalizeAngle(targetFacade);
     const normalizedSource = normalizeAngle(sourceFacade);
@@ -203,7 +203,7 @@ export function getPartRotation(edge: TrackEdge): number {
         const { start, end } = edge.geometry;
         const dx = end.x - start.x;
         const dy = end.y - start.y;
-        return normalizeAngle(Math.atan2(dy, dx) * 180 / Math.PI);
+        return normalizeAngle(radiansToDegrees(Math.atan2(dy, dx)));
     } else {
         // For arcs, rotation is based on the start angle
         // startAngle is now stored in DEGREES per constitution
@@ -291,7 +291,7 @@ export function rotateNodeAroundPivot(
     pivotPosition: Vector2,
     rotationDelta: number
 ): Vector2 {
-    const rad = (rotationDelta * Math.PI) / 180;
+    const rad = degreesToRadians(rotationDelta);
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
 
@@ -317,17 +317,14 @@ export function rotateNodeAroundPivot(
  * where closed loops allow continuous train running.
  * 
  * @param nodeA - First node
- * @param nodeB - Second node  
+ * @param nodeB - Second node
  * @param edges - All edges in the graph
- * @param _nodes - Unused, kept for API compatibility
  * @returns Object with isValid and error message
  */
 export function validateConnection(
     nodeA: TrackNode,
     nodeB: TrackNode,
     edges: Record<EdgeId, TrackEdge>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _nodes?: Record<NodeId, TrackNode>
 ): { isValid: boolean; error?: string } {
     // Check both are open endpoints
     if (nodeA.connections.length !== 1) {

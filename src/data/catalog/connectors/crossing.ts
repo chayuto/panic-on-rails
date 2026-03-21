@@ -4,13 +4,14 @@
 
 import type { ConnectorNode, PartConnectors } from '../../../types/connector';
 import type { CrossingGeometry } from '../types';
+import { normalizeAngle, degreesToRadians } from '../../../utils/angle';
 
 export function computeCrossingConnectors(geometry: CrossingGeometry): PartConnectors {
     // Crossing: Two tracks crossing at center
     // Path A: horizontal, Path B: at crossingAngle
     const { length, crossingAngle } = geometry;
     const halfLength = length / 2;
-    const crossRad = (crossingAngle * Math.PI) / 180;
+    const crossRad = degreesToRadians(crossingAngle);
 
     const nodes: ConnectorNode[] = [
         // Path A (horizontal)
@@ -33,7 +34,7 @@ export function computeCrossingConnectors(geometry: CrossingGeometry): PartConne
                 x: -Math.cos(crossRad) * halfLength,
                 y: -Math.sin(crossRad) * halfLength,
             },
-            localFacade: crossingAngle + 180,
+            localFacade: normalizeAngle(crossingAngle + 180),
             maxConnections: 1,
         },
         {

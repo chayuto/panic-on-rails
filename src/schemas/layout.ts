@@ -28,7 +28,7 @@ const TrackEdgeSchema = z.object({
         z.object({ type: z.literal('straight'), length: z.number() }),
         z.object({ type: z.literal('arc'), radius: z.number(), sweepAngle: z.number(), direction: z.enum(['cw', 'ccw']) }),
     ]).optional(), // Optional for now to support legacy, but good to have
-    length: z.number().optional(), // Deprecated but might exist
+    length: z.number(), // Required, matching TypeScript TrackEdge
 });
 
 export const LayoutDataSchema = z.object({
@@ -37,9 +37,14 @@ export const LayoutDataSchema = z.object({
         name: z.string().optional(),
         created: z.string().optional(),
         modified: z.string().optional(),
+        buildTime: z.string().optional(),
     }).optional(),
     nodes: z.record(z.string(), TrackNodeSchema),
     edges: z.record(z.string(), TrackEdgeSchema),
+    debug: z.object({
+        facades: z.record(z.string(), z.any()),
+        partNames: z.record(z.string(), z.string()),
+    }).optional(),
 });
 
 export type ValidatedLayoutData = z.infer<typeof LayoutDataSchema>;

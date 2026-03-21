@@ -64,30 +64,51 @@ export class ArcEngine implements GeometryEngine {
     }
 
     getBounds(): BoundingBox {
-        // Precise bounding box for an arc is complex (min/max x/y could be at endpoints or at cardinal angles)
-        // For now, we'll use a simplified bounding box enclosing start and end points
-        // TODO: Improve to check cardinal points (0, 90, 180, 270) if they lie within the arc
-
-        // Quick approximation: include start, end, and center+/-radius
-        // This is a loose bound but safe for frustration culling
-
         const startPos = this.getPositionAt(0);
         const endPos = this.getPositionAt(1);
 
-        // Check if cardinal directions are included in the sweep
-        // This is non-trivial due to angle wrapping, might implement later if culling needs it
+        let minX = Math.min(startPos.x, endPos.x);
+        let maxX = Math.max(startPos.x, endPos.x);
+        let minY = Math.min(startPos.y, endPos.y);
+        let maxY = Math.max(startPos.y, endPos.y);
 
-        const minX = Math.min(startPos.x, endPos.x);
-        const maxX = Math.max(startPos.x, endPos.x);
-        const minY = Math.min(startPos.y, endPos.y);
-        const maxY = Math.max(startPos.y, endPos.y);
+        // Check cardinal angles (0°, 90°, 180°, 270°) — if any falls within
+        // the swept range, the arc reaches the full radius in that direction.
+        const cardinals = [0, 90, 180, 270];
+        for (const cardinal of cardinals) {
+            if (this.isAngleInSweep(cardinal)) {
+                const rad = degreesToRadians(cardinal);
+                const px = this.center.x + Math.cos(rad) * this.radius;
+                const py = this.center.y + Math.sin(rad) * this.radius;
+                minX = Math.min(minX, px);
+                maxX = Math.max(maxX, px);
+                minY = Math.min(minY, py);
+                maxY = Math.max(maxY, py);
+            }
+        }
 
         return {
             x: minX,
             y: minY,
             width: maxX - minX,
-            height: maxY - minY
+            height: maxY - minY,
         };
+    }
+
+    /** Check if a given angle (degrees) lies within the arc's swept range */
+    private isAngleInSweep(angle: number): boolean {
+        // Normalize the test angle relative to startAngle
+        let rel = angle - this.startAngle;
+        // Normalize to (-360, 360)
+        rel = ((rel % 360) + 360) % 360;
+        if (this.sweepAngle >= 0) {
+            // CCW sweep: angle is in range if rel is in [0, sweepAngle]
+            return rel <= this.sweepAngle;
+        } else {
+            // CW sweep: angle is in range if rel is in [360+sweepAngle, 360]
+            // (sweepAngle is negative, so 360+sweepAngle < 360)
+            return rel >= 360 + this.sweepAngle;
+        }
     }
 
     getParameterAtDistance(distance: number): number {

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Line, Arc, Circle, Group } from 'react-konva';
-import { useEditorStore } from '../../stores/useEditorStore';
+import { useEditorStore, type GhostState } from '../../stores/useEditorStore';
 import { useIsEditing } from '../../stores/useModeStore';
 import { getPartById } from '../../data/catalog';
 
@@ -18,6 +18,7 @@ export function GhostLayer() {
 
     // Local state for high-frequency updates
     const [ghostState, setGhostState] = useState(useEditorStore.getState().getGhostTransient());
+    const lastGhostRef = useRef<GhostState | null>(null);
 
     useEffect(() => {
         if (!draggedPartId) return;
@@ -27,11 +28,18 @@ export function GhostLayer() {
         const loop = () => {
             const current = useEditorStore.getState().getGhostTransient();
             if (current) {
-                // Determine if we need to update (simple shallow check or just force update)
-                // Since this is 60fps loop, we want to only render if changed.
-                // But for now, just setting state is fine, React will bail out if values are identical primitives? 
-                // No, current is an object.
-                setGhostState({ ...current });
+                const last = lastGhostRef.current;
+                // Only update state if position or rotation actually changed
+                if (
+                    !last ||
+                    last.position.x !== current.position.x ||
+                    last.position.y !== current.position.y ||
+                    last.rotation !== current.rotation ||
+                    last.valid !== current.valid
+                ) {
+                    lastGhostRef.current = current;
+                    setGhostState({ ...current });
+                }
             }
             animationFrameId = requestAnimationFrame(loop);
         };

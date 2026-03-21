@@ -97,9 +97,12 @@ export function curve(
 
 interface SwitchOptions {
     mainLength: number;
-    branchLength: number;
+    branchLength?: number;
+    branchRadius?: number;
     branchAngle: number;
     branchDirection: 'left' | 'right';
+    isWye?: boolean;
+    isPassive?: boolean;
 }
 
 /**
@@ -136,9 +139,12 @@ export function switchPart(
         geometry: {
             type: 'switch',
             mainLength: opts.mainLength,
-            branchLength: opts.branchLength,
+            ...(opts.branchLength !== undefined && { branchLength: opts.branchLength }),
+            ...(opts.branchRadius !== undefined && { branchRadius: opts.branchRadius }),
             branchAngle: opts.branchAngle,
             branchDirection: opts.branchDirection,
+            ...(opts.isWye !== undefined && { isWye: opts.isWye }),
+            ...(opts.isPassive !== undefined && { isPassive: opts.isPassive }),
         },
         cost,
     };

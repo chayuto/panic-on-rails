@@ -26,16 +26,8 @@ export const BOUNCE_DURATION = 300;
 // Position Calculations
 // ===========================
 
-/**
- * Calculate world position from edge geometry and distance along edge.
- * V2: Uses derived geometry when nodes are provided.
- *
- * @param edge - The track edge
- * @param distance - Distance along the edge (0 to edge.length)
- * @param nodes - Optional node map for V2 derived geometry
- * @returns World position {x, y}
- */
 import { createGeometryEngine } from '../geometry/engines';
+import { normalizeAngle, degreesToRadians, radiansToDegrees } from './angle';
 
 /**
  * Calculate world position from edge geometry and distance along edge.
@@ -74,7 +66,7 @@ export function getPositionOnEdge(
         } else {
             const { center, radius, startAngle, endAngle } = edge.geometry;
             const angleDeg = startAngle + (endAngle - startAngle) * progress;
-            const angleRad = (angleDeg * Math.PI) / 180;
+            const angleRad = degreesToRadians(angleDeg);
             return {
                 x: center.x + Math.cos(angleRad) * radius,
                 y: center.y + Math.sin(angleRad) * radius,
@@ -115,13 +107,15 @@ export function getRotationOnEdge(
         if (edge.geometry.type === 'straight') {
             const { start, end } = edge.geometry;
             const angle = Math.atan2(end.y - start.y, end.x - start.x);
-            return (angle * 180 / Math.PI) + (direction === -1 ? 180 : 0);
+            return radiansToDegrees(angle) + (direction === -1 ? 180 : 0);
         } else {
             const { startAngle, endAngle } = edge.geometry;
             const angleDeg = startAngle + (endAngle - startAngle) * progress;
-            const tangentAngle = angleDeg + 90; // Tangent to circle
-            const arcDirection = endAngle > startAngle ? 1 : -1;
-            return tangentAngle + (direction * arcDirection === -1 ? 180 : 0);
+            // Tangent direction depends on arc sweep: CCW (+90) or CW (-90)
+            const isCCW = endAngle > startAngle;
+            const tangentAngle = isCCW ? angleDeg + 90 : angleDeg - 90;
+            // Flip 180° if train is moving backwards along the arc
+            return normalizeAngle(tangentAngle + (direction === -1 ? 180 : 0));
         }
     }
 

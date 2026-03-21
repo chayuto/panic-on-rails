@@ -137,7 +137,7 @@ describe('computeConnectors', () => {
             // Branch should be at approximately 15° angle (negative Y for left)
             const branch = connectors.nodes[2];
             expect(branch.localPosition.y).toBeLessThan(0);  // Left = negative Y
-            expect(branch.localFacade).toBe(-15);
+            expect(branch.localFacade).toBe(345);  // normalizeAngle(-15) = 345
         });
 
         it('calculates correct connectors for #6 turnout right', () => {

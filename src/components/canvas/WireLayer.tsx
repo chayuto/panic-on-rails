@@ -109,9 +109,12 @@ function getTargetPosition(
  * Individual wire component
  */
 function WireEntity({ wire }: { wire: Wire }) {
-    const { sensors, signals, removeWire } = useLogicStore();
-    const { edges, nodes } = useTrackStore();
-    const { editSubMode } = useModeStore();
+    const sensors = useLogicStore(s => s.sensors);
+    const signals = useLogicStore(s => s.signals);
+    const removeWire = useLogicStore(s => s.removeWire);
+    const edges = useTrackStore(s => s.edges);
+    const nodes = useTrackStore(s => s.nodes);
+    const editSubMode = useModeStore(s => s.editSubMode);
 
     const sourcePos = getSourcePosition(wire, sensors, signals, edges, nodes);
     const targetPos = getTargetPosition(wire, signals, nodes);
@@ -176,8 +179,9 @@ function WireEntity({ wire }: { wire: Wire }) {
  * WireLayer - Renders all wires
  */
 export function WireLayer() {
-    const { wires } = useLogicStore();
-    const { primaryMode, editSubMode } = useModeStore();
+    const wires = useLogicStore(s => s.wires);
+    const primaryMode = useModeStore(s => s.primaryMode);
+    const editSubMode = useModeStore(s => s.editSubMode);
 
     // Show wires in wire mode, select mode, or simulate mode
     const showWires = editSubMode === 'wire' || editSubMode === 'select' || primaryMode === 'simulate';

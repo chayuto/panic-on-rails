@@ -26,9 +26,10 @@ import {
 /**
  * Combined track store using slice pattern.
  *
- * Usage:
+ * Usage (always use atomic selectors for optimal re-renders):
  * ```typescript
- * const { nodes, edges, addTrack, connectNetworks } = useTrackStore();
+ * const nodes = useTrackStore(s => s.nodes);
+ * const addTrack = useTrackStore(s => s.addTrack);
  * ```
  */
 export const useTrackStore = create<TrackStore>()(

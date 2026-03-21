@@ -1,8 +1,11 @@
 /**
  * Game loop hook - Orchestrator for simulation systems
+ *
+ * Uses getState() inside rAF to avoid tearing down the loop on every state change.
+ * The useEffect only depends on isSimulating and isRunning.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
@@ -23,33 +26,7 @@ export function useGameLoop() {
     const animationFrameRef = useRef<number>(0);
 
     const isSimulating = useIsSimulating();
-    const {
-        trains, isRunning, speedMultiplier,
-        updateTrainPosition, setCrashed,
-        crashedParts, addCrashedParts, setCrashedParts,
-        setError
-    } = useSimulationStore();
-    const { edges, nodes, toggleSwitch } = useTrackStore();
-    const { sensors, wires, setSensorState, setSignalState, signals } = useLogicStore();
-    const { triggerScreenShake, triggerFlash } = useEffectsStore();
-
-    const updateTrains = useCallback((deltaTime: number) => {
-        const dt = deltaTime * speedMultiplier;
-
-        // SYSTEM 1: Movement
-        Object.values(trains).forEach((train) => {
-            const update = calculateTrainMovement(train, dt, edges, nodes);
-            if (update) {
-                updateTrainPosition(
-                    update.trainId,
-                    update.distance,
-                    update.edgeId,
-                    update.direction,
-                    update.bounceTime
-                );
-            }
-        });
-    }, [trains, edges, nodes, speedMultiplier, updateTrainPosition]);
+    const isRunning = useSimulationStore(s => s.isRunning);
 
     useEffect(() => {
         if (!isSimulating || !isRunning) {
@@ -71,11 +48,34 @@ export function useGameLoop() {
             const cappedDelta = Math.min(deltaTime, TIMING.DELTA_TIME_CAP);
 
             try {
-                // 1. Movement System
-                updateTrains(cappedDelta);
+                // Read fresh state inside rAF
+                const { edges, nodes, toggleSwitch } = useTrackStore.getState();
+                const simState = useSimulationStore.getState();
+                const { speedMultiplier, updateTrainPosition, setCrashed, addCrashedParts, setCrashedParts } = simState;
+                const logicState = useLogicStore.getState();
+                const { sensors, wires, setSensorState, setSignalState, signals } = logicState;
+                const { triggerScreenShake, triggerFlash } = useEffectsStore.getState();
 
-                // 2. Collision System
-                const collisionEvents = checkCollisions(trains, edges);
+                const dt = cappedDelta * speedMultiplier;
+
+                // 1. Movement System — read trains fresh, update each
+                const trainsBefore = useSimulationStore.getState().trains;
+                Object.values(trainsBefore).forEach((train) => {
+                    const update = calculateTrainMovement(train, dt, edges, nodes);
+                    if (update) {
+                        updateTrainPosition(
+                            update.trainId,
+                            update.distance,
+                            update.edgeId,
+                            update.direction,
+                            update.bounceTime
+                        );
+                    }
+                });
+
+                // 2. Collision System — re-read trains after movement for fresh positions
+                const freshTrains = useSimulationStore.getState().trains;
+                const collisionEvents = checkCollisions(freshTrains, edges);
                 collisionEvents.forEach(event => {
                     // Apply physics effects
                     addCrashedParts(event.debris);
@@ -90,13 +90,14 @@ export function useGameLoop() {
                 });
 
                 // 3. Debris System
+                const { crashedParts } = useSimulationStore.getState();
                 if (crashedParts.length > 0) {
                     const updatedParts = updateCrashedParts(crashedParts, cappedDelta, 500);
                     setCrashedParts(updatedParts);
                 }
 
                 // 4. Signal/Sensor System
-                const sensorUpdates = updateSensors(trains, sensors, wires);
+                const sensorUpdates = updateSensors(freshTrains, sensors, wires);
                 sensorUpdates.forEach(update => {
                     setSensorState(update.sensorId, update.newState);
 
@@ -128,7 +129,9 @@ export function useGameLoop() {
                 });
             } catch (err) {
                 console.error("Simulation Loop Error:", err);
+                const { setError, setRunning } = useSimulationStore.getState();
                 setError(err instanceof Error ? err.message : 'Unknown simulation error');
+                setRunning(false);
                 return; // Stop the loop
             }
 
@@ -142,14 +145,7 @@ export function useGameLoop() {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        isSimulating, isRunning, updateTrains, trains, edges, nodes,
-        sensors, wires, signals, // Added signals to deps
-        setCrashed, setCrashedParts, crashedParts, addCrashedParts,
-        setSensorState, setSignalState, toggleSwitch,
-        triggerFlash, triggerScreenShake
-    ]);
+    }, [isSimulating, isRunning]);
 
     return { getPositionOnEdge };
 }
