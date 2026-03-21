@@ -145,10 +145,14 @@ export interface SnapConfig {
 /**
  * Default snap configurations by track system.
  */
-export const DEFAULT_SNAP_CONFIG: Record<'n-scale' | 'wooden', SnapConfig> = {
+export const DEFAULT_SNAP_CONFIG: Record<'n-scale' | 'ho-scale' | 'wooden', SnapConfig> = {
     'n-scale': {
         snapRadius: 30,
         angleTolerance: 15,  // ±15° from perfect 180°
+    },
+    'ho-scale': {
+        snapRadius: 35,
+        angleTolerance: 15,
     },
     'wooden': {
         snapRadius: 40,

@@ -56,19 +56,24 @@ export const CurvePartSchema = z.object({
  * Supports both legacy `branchLength` and modern `branchRadius` geometry.
  * At least one must be provided for valid switch geometry.
  */
-export const SwitchPartSchema = z.object({
+const SwitchPartBaseSchema = z.object({
     id: z.string().min(1, 'Part ID is required'),
     name: z.string().min(1, 'Part name is required'),
     type: z.literal('switch'),
     mainLength: z.number().positive('Main length must be positive'),
     branchRadius: z.number().positive('Branch radius must be positive').optional(),
     branchLength: z.number().positive('Branch length must be positive').optional(),
-    branchAngle: z.number().positive('Branch angle must be positive'),
+    branchAngle: z.number().positive('Branch angle must be positive').max(90, 'Branch angle must be <= 90'),
     branchDirection: z.enum(['left', 'right']),
     isWye: z.boolean().optional(),
     isPassive: z.boolean().optional(),
     ...OptionalPartFields,
 });
+
+export const SwitchPartSchema = SwitchPartBaseSchema.refine(
+    (data) => data.branchRadius !== undefined || data.branchLength !== undefined,
+    { message: 'At least one of branchRadius or branchLength must be provided' }
+);
 
 /**
  * Crossing/Diamond track piece schema
@@ -87,14 +92,24 @@ export const CrossingPartSchema = z.object({
 // ===========================
 
 /**
- * Union of all part types using discriminated union
+ * Union of all part types using discriminated union on 'type'.
+ * Cross-field refinements (e.g., switch branchRadius/branchLength) are applied via superRefine.
  */
 export const PartSchema = z.discriminatedUnion('type', [
     StraightPartSchema,
     CurvePartSchema,
-    SwitchPartSchema,
+    SwitchPartBaseSchema,
     CrossingPartSchema,
-]);
+]).superRefine((data, ctx) => {
+    if (data.type === 'switch') {
+        if (data.branchRadius === undefined && data.branchLength === undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'At least one of branchRadius or branchLength must be provided',
+            });
+        }
+    }
+});
 
 // ===========================
 // Catalog File Schema

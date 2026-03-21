@@ -1,6 +1,6 @@
 import { saveAs } from 'file-saver';
 import type { LayoutData } from '../types';
-import { LayoutDataSchema } from '../schemas/layout';
+import { LayoutDataSchema, type ValidatedLayoutData } from '../schemas/layout';
 
 /**
  * Export layout to JSON file
@@ -26,7 +26,9 @@ export async function importLayout(file: File): Promise<LayoutData> {
         throw new Error(`Invalid layout file: ${result.error.issues[0]?.message}`);
     }
 
-    return result.data as LayoutData;
+    // Zod-validated data is structurally compatible with LayoutData
+    const validated: ValidatedLayoutData = result.data;
+    return validated as LayoutData;
 }
 
 /**
