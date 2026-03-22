@@ -88,6 +88,42 @@ export const CrossingPartSchema = z.object({
 });
 
 // ===========================
+// Compound Part Schemas
+// ===========================
+
+const CompoundSubPartSchema = z.object({
+    partRef: z.string().min(1, 'Sub-part reference is required'),
+    offset: z.object({ x: z.number(), y: z.number() }),
+    rotation: z.number(),
+    label: z.string().min(1, 'Sub-part label is required'),
+});
+
+const CompoundJointSchema = z.object({
+    a: z.object({ subPart: z.string(), connector: z.string() }),
+    b: z.object({ subPart: z.string(), connector: z.string() }),
+});
+
+const CompoundExternalConnectorSchema = z.object({
+    subPart: z.string(),
+    connector: z.string(),
+    externalId: z.string().min(1),
+});
+
+/**
+ * Compound track piece schema (crossovers, scissors, slips)
+ */
+const CompoundPartBaseSchema = z.object({
+    id: z.string().min(1, 'Part ID is required'),
+    name: z.string().min(1, 'Part name is required'),
+    type: z.literal('compound'),
+    subParts: z.array(CompoundSubPartSchema).min(2, 'Compound must have at least 2 sub-parts'),
+    joints: z.array(CompoundJointSchema).min(1, 'Compound must have at least 1 internal joint'),
+    externalConnectors: z.array(CompoundExternalConnectorSchema).min(2, 'Compound must expose at least 2 connectors'),
+    boundingBox: z.object({ width: z.number().positive(), height: z.number().positive() }),
+    ...OptionalPartFields,
+});
+
+// ===========================
 // Combined Part Schema
 // ===========================
 
@@ -100,6 +136,7 @@ export const PartSchema = z.discriminatedUnion('type', [
     CurvePartSchema,
     SwitchPartBaseSchema,
     CrossingPartSchema,
+    CompoundPartBaseSchema,
 ]).superRefine((data, ctx) => {
     if (data.type === 'switch') {
         if (data.branchRadius === undefined && data.branchLength === undefined) {
@@ -154,6 +191,9 @@ export type JsonSwitchPart = z.infer<typeof SwitchPartSchema>;
 
 /** Inferred type for crossing part from JSON */
 export type JsonCrossingPart = z.infer<typeof CrossingPartSchema>;
+
+/** Inferred type for compound part from JSON */
+export type JsonCompoundPart = z.infer<typeof CompoundPartBaseSchema>;
 
 /** Inferred type for complete catalog file */
 export type PartCatalogFile = z.infer<typeof PartCatalogFileSchema>;

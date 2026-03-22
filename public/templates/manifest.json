@@ -30,6 +30,16 @@
             "estimatedCost": 3720,
             "partCount": 4,
             "trainCount": 2
+        },
+        {
+            "id": "crossover-express",
+            "name": "Crossover Express",
+            "description": "A double-track oval with a #4 crossover — switch tracks mid-run!",
+            "difficulty": "intermediate",
+            "system": "n-scale",
+            "estimatedCost": 8500,
+            "partCount": 10,
+            "trainCount": 2
         }
     ]
 }

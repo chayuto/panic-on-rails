@@ -22,6 +22,8 @@ export interface StandardTrackResult {
     edges: TrackEdge[];
     /** The edge ID */
     primaryEdgeId: EdgeId;
+    /** Maps connector localId to generated node ID */
+    connectorNodeMap: Record<string, NodeId>;
 }
 
 /**
@@ -79,6 +81,7 @@ export function createStraightTrack(
         nodes: [startNode, endNode],
         edges: [edge],
         primaryEdgeId: edgeId,
+        connectorNodeMap: { 'A': startNodeId, 'B': endNodeId },
     };
 }
 
@@ -166,5 +169,6 @@ export function createCurveTrack(
         nodes: [startNode, endNode],
         edges: [edge],
         primaryEdgeId: edgeId,
+        connectorNodeMap: { 'A': startNodeId, 'B': endNodeId },
     };
 }

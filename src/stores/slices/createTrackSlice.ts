@@ -17,7 +17,7 @@ import type {
     TrackEdge,
 } from '../../types';
 import { getPartById } from '../../data/catalog';
-import type { SwitchGeometry, CrossingGeometry, StraightGeometry, CurveGeometry } from '../../data/catalog/types';
+import type { SwitchGeometry, CrossingGeometry, StraightGeometry, CurveGeometry, CompoundGeometry } from '../../data/catalog/types';
 import { useBudgetStore } from '../useBudgetStore';
 import { useLogicStore } from '../useLogicStore';
 import {
@@ -35,6 +35,7 @@ import {
     createCrossingTrack,
     createStraightTrack,
     createCurveTrack,
+    createCompoundTrack,
 } from './trackCreators';
 
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
@@ -122,6 +123,18 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
                 primaryEdgeId = result.primaryEdgeId;
                 break;
             }
+            case 'compound': {
+                const result = createCompoundTrack(
+                    partId,
+                    position,
+                    rotation,
+                    part.geometry as CompoundGeometry
+                );
+                nodes = result.nodes;
+                edges = result.edges;
+                primaryEdgeId = result.primaryEdgeId;
+                break;
+            }
             default:
                 console.warn('Unsupported geometry type:', (part.geometry as { type: string }).type);
                 return null;
@@ -160,35 +173,61 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      * @param edgeId - ID of the edge to remove
      */
     removeTrack: (edgeId) => {
-        // Remove from spatial index first
-        spatialIndex.remove(edgeId);
+        const state = get();
+        const edge = state.edges[edgeId];
+        if (!edge) return;
 
-        // Cascade-delete orphaned sensors/signals on this edge and its nodes
+        // Collect all edges to remove (cascade by placementId for compound parts)
+        const edgeIdsToRemove: EdgeId[] = [];
+        if (edge.placementId) {
+            // Find all sibling edges in this compound placement
+            for (const [id, e] of Object.entries(state.edges)) {
+                if (e.placementId === edge.placementId) {
+                    edgeIdsToRemove.push(id as EdgeId);
+                }
+            }
+        } else {
+            edgeIdsToRemove.push(edgeId);
+        }
+
+        // Remove from spatial index and clean up logic for all edges
         const logicStore = useLogicStore.getState();
-        const orphanedSensors = logicStore.getSensorsOnEdge(edgeId);
-        for (const sensor of orphanedSensors) {
-            logicStore.removeSensor(sensor.id);
+        for (const eid of edgeIdsToRemove) {
+            spatialIndex.remove(eid);
+            const orphanedSensors = logicStore.getSensorsOnEdge(eid);
+            for (const sensor of orphanedSensors) {
+                logicStore.removeSensor(sensor.id);
+            }
         }
 
         set((state) => {
-            const edge = state.edges[edgeId];
-            if (!edge) return state;
-
             const newNodes = { ...state.nodes };
             const newEdges = { ...state.edges };
+            const removedEdgeIds = new Set(edgeIdsToRemove);
 
-            // Remove edge
-            delete newEdges[edgeId];
+            // Remove all edges
+            for (const eid of edgeIdsToRemove) {
+                delete newEdges[eid];
+            }
 
-            // Clean up orphaned nodes (immutable — create new node objects)
-            [edge.startNodeId, edge.endNodeId].forEach((nodeId) => {
+            // Collect all nodes referenced by removed edges
+            const affectedNodeIds = new Set<string>();
+            for (const eid of edgeIdsToRemove) {
+                const e = state.edges[eid];
+                if (e) {
+                    affectedNodeIds.add(e.startNodeId);
+                    affectedNodeIds.add(e.endNodeId);
+                }
+            }
+
+            // Clean up orphaned nodes
+            for (const nodeId of affectedNodeIds) {
                 const node = newNodes[nodeId];
                 if (node) {
-                    const filteredConnections = node.connections.filter((id) => id !== edgeId);
+                    const filteredConnections = node.connections.filter(id => !removedEdgeIds.has(id as EdgeId));
                     if (filteredConnections.length === 0) {
                         delete newNodes[nodeId];
                         nodeIndex.remove(nodeId);
-                        // Clean up signals attached to orphaned nodes
                         const orphanedSignals = logicStore.getSignalsAtNode(nodeId);
                         for (const signal of orphanedSignals) {
                             logicStore.removeSignal(signal.id);
@@ -197,7 +236,7 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
                         newNodes[nodeId] = { ...node, connections: filteredConnections };
                     }
                 }
-            });
+            }
 
             return { nodes: newNodes, edges: newEdges };
         });

@@ -12,7 +12,7 @@
  * straight('kato-20-000', 'Straight 248mm', 248, 'kato', 'n-scale')
  */
 
-import type { PartDefinition, PartBrand, PartScale } from './types';
+import type { PartDefinition, PartBrand, PartScale, CompoundSubPart, CompoundJoint, CompoundExternalConnector } from './types';
 import type { PartConnectors } from '../../types/connector';
 import { calculateArcLength } from '../../utils/geometry';
 export { calculateArcLength, calculateArcEndpoint } from '../../utils/geometry';
@@ -180,6 +180,44 @@ export function crossing(
         brand,
         scale,
         geometry: { type: 'crossing', length, crossingAngle },
+        cost,
+    };
+}
+
+// ===========================
+// Compound Part
+// ===========================
+
+interface CompoundOptions {
+    subParts: CompoundSubPart[];
+    joints: CompoundJoint[];
+    externalConnectors: CompoundExternalConnector[];
+    boundingBox: { width: number; height: number };
+}
+
+/**
+ * Create a compound track part (crossovers, scissors, slips)
+ */
+export function compoundPart(
+    id: string,
+    name: string,
+    opts: CompoundOptions,
+    brand: PartBrand,
+    scale: PartScale,
+    cost: number = 3000
+): PartDefinition {
+    return {
+        id,
+        name,
+        brand,
+        scale,
+        geometry: {
+            type: 'compound',
+            subParts: opts.subParts,
+            joints: opts.joints,
+            externalConnectors: opts.externalConnectors,
+            boundingBox: opts.boundingBox,
+        },
         cost,
     };
 }

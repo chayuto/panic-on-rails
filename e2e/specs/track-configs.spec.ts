@@ -709,7 +709,7 @@ test.describe('Track Configuration Matrix', () => {
         // ==============================================
         {
             await cleanSlate(stores, page);
-            await stores.addTrack('kato-20-310', { x: 400, y: 400 }, 0);
+            await stores.addTrack('kato-20-300', { x: 400, y: 400 }, 0);
             await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();

@@ -22,6 +22,8 @@ export interface SwitchTrackResult {
     edges: TrackEdge[];
     /** The primary edge ID (main path) for identification */
     primaryEdgeId: EdgeId;
+    /** Maps connector localId to generated node ID */
+    connectorNodeMap: Record<string, NodeId>;
 }
 
 /**
@@ -196,5 +198,6 @@ export function createSwitchTrack(
         nodes: [entryNode, mainExitNode, branchExitNode],
         edges: [mainEdge, branchEdge],
         primaryEdgeId: mainEdgeId,
+        connectorNodeMap: { 'entry': entryNodeId, 'main': mainExitNodeId, 'branch': branchExitNodeId },
     };
 }

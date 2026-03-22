@@ -29,6 +29,7 @@ const TrackEdgeSchema = z.object({
         z.object({ type: z.literal('arc'), radius: z.number(), sweepAngle: z.number(), direction: z.enum(['cw', 'ccw']) }),
     ]).optional(), // Optional for now to support legacy, but good to have
     length: z.number(), // Required, matching TypeScript TrackEdge
+    placementId: z.string().optional(), // Shared ID for compound part edges
 });
 
 export const LayoutDataSchema = z.object({

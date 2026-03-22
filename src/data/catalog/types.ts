@@ -54,12 +54,60 @@ export interface CrossingGeometry {
     crossingAngle: number;  // Degrees (90 for perpendicular, 45 for diagonal)
 }
 
+// ===========================
+// Compound Geometry (Crossovers, Scissors, Slips)
+// ===========================
+
+/** A sub-component within a compound part */
+export interface CompoundSubPart {
+    /** Reference to an existing catalog part ID (must be non-compound) */
+    partRef: string;
+    /** Position offset from compound origin (mm) */
+    offset: { x: number; y: number };
+    /** Rotation offset from compound's base direction (degrees) */
+    rotation: number;
+    /** Label for this sub-part within the compound (e.g., 'turnout-A') */
+    label: string;
+}
+
+/** Defines which sub-part connectors are fused into internal joints */
+export interface CompoundJoint {
+    /** First endpoint */
+    a: { subPart: string; connector: string };
+    /** Second endpoint */
+    b: { subPart: string; connector: string };
+}
+
+/** Defines which sub-part connectors are exposed externally */
+export interface CompoundExternalConnector {
+    /** Which sub-part this connector belongs to */
+    subPart: string;
+    /** The connector localId on that sub-part */
+    connector: string;
+    /** The external connector label (e.g., 'A1', 'A2', 'B1', 'B2') */
+    externalId: string;
+}
+
+/** Compound track piece - assembled from multiple primitives */
+export interface CompoundGeometry {
+    type: 'compound';
+    /** Sub-parts that make up this compound */
+    subParts: CompoundSubPart[];
+    /** Internal joints where sub-part connectors are fused */
+    joints: CompoundJoint[];
+    /** Connectors exposed externally for user connections */
+    externalConnectors: CompoundExternalConnector[];
+    /** Overall bounding dimensions for ghost preview (mm) */
+    boundingBox: { width: number; height: number };
+}
+
 /** Union of all geometry types */
 export type PartGeometry =
     | StraightGeometry
     | CurveGeometry
     | SwitchGeometry
-    | CrossingGeometry;
+    | CrossingGeometry
+    | CompoundGeometry;
 
 // ===========================
 // Brand & Scale

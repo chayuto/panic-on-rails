@@ -22,6 +22,8 @@ export interface CrossingTrackResult {
     edges: TrackEdge[];
     /** The primary edge ID (main path) for identification */
     primaryEdgeId: EdgeId;
+    /** Maps connector localId to generated node ID */
+    connectorNodeMap: Record<string, NodeId>;
 }
 
 /**
@@ -140,5 +142,6 @@ export function createCrossingTrack(
         nodes: [mainStartNode, mainEndNode, crossStartNode, crossEndNode],
         edges: [mainEdge, crossEdge],
         primaryEdgeId: mainEdgeId,
+        connectorNodeMap: { 'A1': mainStartNodeId, 'A2': mainEndNodeId, 'B1': crossStartNodeId, 'B2': crossEndNodeId },
     };
 }

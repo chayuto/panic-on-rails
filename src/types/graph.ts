@@ -28,4 +28,6 @@ export interface TrackEdge {
     // V2: Intrinsic geometry (does not depend on world position)
     // Used to derive world geometry from node positions
     intrinsicGeometry?: IntrinsicGeometry;
+    /** Shared ID for all edges from a single compound part placement */
+    placementId?: string;
 }
