@@ -95,7 +95,14 @@ export function applyTemplate(
 }
 
 /**
- * Find pairs of open endpoints within threshold distance and merge them.
+ * Find open endpoints within threshold distance of other nodes and merge them.
+ *
+ * Endpoints (1 connection) can merge with:
+ * - Other endpoints (simple track-to-track connection)
+ * - Switch/junction nodes (connecting a track to a switch entry)
+ *
+ * The endpoint is always the "removed" node; the other node survives
+ * (preserving switch properties, etc.).
  */
 function autoConnectEndpoints(
     getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[] }>,
@@ -107,16 +114,17 @@ function autoConnectEndpoints(
     while (merged) {
         merged = false;
         const nodes = getNodes();
-        const endpoints = Object.values(nodes).filter(n => n.connections.length === 1);
+        const allNodes = Object.values(nodes);
+        const endpoints = allNodes.filter(n => n.connections.length === 1);
 
-        for (let i = 0; i < endpoints.length; i++) {
-            for (let j = i + 1; j < endpoints.length; j++) {
-                const a = endpoints[i];
-                const b = endpoints[j];
-                const dx = a.position.x - b.position.x;
-                const dy = a.position.y - b.position.y;
+        for (const ep of endpoints) {
+            for (const other of allNodes) {
+                if (other.id === ep.id) continue;
+                const dx = ep.position.x - other.position.x;
+                const dy = ep.position.y - other.position.y;
                 if (dx * dx + dy * dy < threshold * threshold) {
-                    connectNodes(a.id, b.id, b.connections[0]);
+                    // Endpoint is removed; other node survives
+                    connectNodes(other.id, ep.id, ep.connections[0]);
                     merged = true;
                     break;
                 }

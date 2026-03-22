@@ -34,10 +34,10 @@
         {
             "id": "crossover-express",
             "name": "Crossover Express",
-            "description": "A double-track oval with a #4 crossover — switch tracks mid-run!",
+            "description": "A figure-8 loop with a #4 crossover — flip the switch to divert trains!",
             "difficulty": "intermediate",
             "system": "n-scale",
-            "estimatedCost": 8500,
+            "estimatedCost": 9500,
             "partCount": 10,
             "trainCount": 2
         }
