@@ -13,16 +13,29 @@ import { useTrackStore } from '../../../stores/useTrackStore';
 import { useModeStore } from '../../../stores/useModeStore';
 
 export function SimulateToolbar() {
-    const { isRunning, toggleRunning, spawnTrain } = useSimulationStore();
+    const { isRunning, trains, toggleRunning, spawnTrain, clearTrains, clearDebris, clearError, clearLog } = useSimulationStore();
     const { edges } = useTrackStore();
     const { enterEditMode, enterSimulateMode } = useModeStore();
 
     const handlePlayPause = useCallback(() => {
         if (!isRunning && Object.keys(edges).length > 0) {
+            // Clear crashed trains and wreckage before restarting
+            const hasCrashedTrains = Object.values(trains).some(t => t.crashed);
+            if (hasCrashedTrains) {
+                clearTrains();
+                clearDebris();
+                clearError();
+                clearLog();
+            }
+
             // Spawn a train on the first edge if none exist
-            const firstEdgeId = Object.keys(edges)[0];
-            if (firstEdgeId) {
-                spawnTrain(firstEdgeId);
+            const trainCount = Object.keys(trains).length;
+            const remainingTrains = hasCrashedTrains ? 0 : trainCount;
+            if (remainingTrains === 0) {
+                const firstEdgeId = Object.keys(edges)[0];
+                if (firstEdgeId) {
+                    spawnTrain(firstEdgeId);
+                }
             }
         }
         toggleRunning();
@@ -32,7 +45,7 @@ export function SimulateToolbar() {
         } else {
             enterSimulateMode();
         }
-    }, [isRunning, edges, spawnTrain, toggleRunning, enterEditMode, enterSimulateMode]);
+    }, [isRunning, trains, edges, spawnTrain, clearTrains, clearDebris, clearError, clearLog, toggleRunning, enterEditMode, enterSimulateMode]);
 
     const handleAddTrain = useCallback(() => {
         const edgeIds = Object.keys(edges);
