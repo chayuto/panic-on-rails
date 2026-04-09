@@ -30,11 +30,11 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.39.3",
-        "@playwright/test": "^1.58.2",
+        "@playwright/test": "^1.59.1",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/react": "^16.3.2",
         "@types/file-saver": "^2.0.7",
-        "@types/node": "^25.5.0",
+        "@types/node": "^25.5.2",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.0.0",
         "@types/uuid": "^11.0.0",
@@ -45,8 +45,8 @@
         "globals": "^17.4.0",
         "jsdom": "^28.1.0",
         "typescript": "~5.9.3",
-        "typescript-eslint": "^8.57.1",
+        "typescript-eslint": "^8.58.1",
         "vite": "^7.3.1",
-        "vitest": "^4.1.0"
+        "vitest": "^4.1.4"
     }
 }
