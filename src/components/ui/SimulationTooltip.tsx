@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { TrainFront, RailSymbol, Circle, GitBranch, Radio, TrafficCone } from 'lucide-react';
+import { TrainFront, TrainTrack, Circle, GitBranch, Radio, TrafficCone } from 'lucide-react';
 import { useIsSimulating } from '../../stores/useModeStore';
 import { useHoveredElement, type HoveredElement } from '../../hooks/useHoveredElement';
 import './SimulationTooltip.css';
@@ -56,7 +56,7 @@ function EdgeTooltipContent({ element }: { element: Extract<HoveredElement, { ty
     return (
         <>
             <div className="simulation-tooltip-header">
-                <span className="icon"><RailSymbol size={14} /></span>
+                <span className="icon"><TrainTrack size={14} /></span>
                 <span>Track Edge</span>
             </div>
             <div className="simulation-tooltip-section">
