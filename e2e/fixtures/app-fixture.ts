@@ -20,13 +20,15 @@ export const test = base.extend<{
     }>;
 }>({
     app: [async ({ page }, use) => {
-        // Navigate to the app
-        await page.goto('/');
+        // Navigate to the app. The `?e2e` param activates the debug bridge in
+        // production/preview builds (it is always on in dev mode) — required so
+        // CI tests against the built app can read/write Zustand stores.
+        await page.goto('/?e2e');
 
         // Clear localStorage to ensure clean state (no persisted layouts)
         await page.evaluate(() => localStorage.clear());
 
-        // Reload to pick up clean state
+        // Reload to pick up clean state (query string is preserved)
         await page.reload();
 
         // Wait for the app to be fully rendered
@@ -37,9 +39,9 @@ export const test = base.extend<{
 
     stores: async ({ page }, use) => {
         const bridge = new StoreBridge(page);
-        // Navigate if not already on the app
+        // Navigate if not already on the app (?e2e activates the debug bridge)
         if (page.url() === 'about:blank') {
-            await page.goto('/');
+            await page.goto('/?e2e');
         }
         await bridge.waitForBridge();
         await use(bridge);
