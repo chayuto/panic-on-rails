@@ -45,3 +45,6 @@ test-results/
 *.tsbuildinfo
 docs/personal/
 docs/internal/
+
+# Claude Code — local per-user settings (shared agents/skills are committed)
+.claude/settings.local.json
