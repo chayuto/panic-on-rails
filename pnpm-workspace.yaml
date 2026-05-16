@@ -1,0 +1,5 @@
+# pnpm 11 reads project settings from this file (not package.json#pnpm).
+# pnpm 11 blocks dependency install/build scripts by default and fails
+# `pnpm install` on unapproved builds — allow-list the ones we trust here.
+allowBuilds:
+  esbuild: true
