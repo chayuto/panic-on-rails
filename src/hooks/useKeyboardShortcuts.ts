@@ -5,6 +5,7 @@
  * - M: Toggle between Edit/Simulate modes
  * - Shift+M: Toggle measurement overlay
  * - 1-6: Switch edit sub-modes (Edit mode only)
+ * - Ctrl/Cmd+Z: Undo, Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y: Redo (Edit mode only)
  * - Space: Play/Pause (Simulate mode only)
  * - +/-: Speed control (Simulate mode only)
  * - R/Shift+R: Rotate (handled in StageWrapper during drag)
@@ -14,6 +15,7 @@ import { useEffect } from 'react';
 import { useModeStore } from '../stores/useModeStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useEditorStore } from '../stores/useEditorStore';
+import { useHistoryStore } from '../stores/useHistoryStore';
 import type { EditSubMode } from '../types/mode';
 
 // Map number keys to edit sub-modes
@@ -62,6 +64,24 @@ export function useKeyboardShortcuts() {
 
             // Edit mode shortcuts
             if (isEditing) {
+                // Undo / Redo (Ctrl on Win/Linux, Cmd on macOS)
+                if (e.ctrlKey || e.metaKey) {
+                    if (key === 'z') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            useHistoryStore.getState().redo();
+                        } else {
+                            useHistoryStore.getState().undo();
+                        }
+                        return;
+                    }
+                    if (key === 'y') {
+                        e.preventDefault();
+                        useHistoryStore.getState().redo();
+                        return;
+                    }
+                }
+
                 // Number keys for sub-mode selection
                 if (EDIT_MODE_SHORTCUTS[key]) {
                     e.preventDefault();

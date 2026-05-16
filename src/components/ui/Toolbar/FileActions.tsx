@@ -13,6 +13,7 @@ import { FilePlus, Save, FolderOpen } from 'lucide-react';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { useModeStore } from '../../../stores/useModeStore';
+import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { exportLayout, importLayout } from '../../../utils/fileManager';
 import { getTemplateList, loadTemplate, applyTemplate } from '../../../data/templates';
 import type { TemplateMetadata } from '../../../data/templates';
@@ -130,6 +131,8 @@ export function FileActions() {
         }
 
         setLoadingTemplate(true);
+        // A template wholesale-replaces the layout — undo history no longer applies.
+        useHistoryStore.getState().clear();
         try {
             // Clear persisted stores first
             localStorage.removeItem('panic-on-rails-v1');
@@ -172,6 +175,8 @@ export function FileActions() {
 
         try {
             const layout = await importLayout(file);
+            // A loaded file replaces the layout — drop the prior undo history.
+            useHistoryStore.getState().clear();
             loadLayout(layout);
         } catch (err) {
             console.error('Failed to load layout:', err);
@@ -193,6 +198,8 @@ export function FileActions() {
 
         clearLayout();
         clearTrains();
+        // "New Layout" is an explicit reset — discard the undo history too.
+        useHistoryStore.getState().clear();
 
         console.log('[FileActions] ✅ Layout cleared!');
     }, [clearLayout, clearTrains]);

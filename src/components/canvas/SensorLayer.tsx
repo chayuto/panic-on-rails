@@ -10,6 +10,7 @@ import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore } from '../../stores/useModeStore';
+import { useHistoryStore } from '../../stores/useHistoryStore';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import type { Sensor, TrackEdge, TrackNode, Vector2, NodeId, TrackGeometry } from '../../types';
 
@@ -85,6 +86,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     const handleClick = () => {
         if (editSubMode === 'sensor') {
             // In sensor mode, clicking removes the sensor
+            useHistoryStore.getState().record();
             removeSensor(sensor.id);
         } else if (editSubMode === 'wire') {
             // In wire mode, clicking selects this sensor as wire source

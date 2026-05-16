@@ -8,6 +8,7 @@ import { Group, Line } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useModeStore } from '../../stores/useModeStore';
+import { useHistoryStore } from '../../stores/useHistoryStore';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import type { Wire, Sensor, Signal, Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../../types';
 
@@ -145,6 +146,7 @@ function WireEntity({ wire }: { wire: Wire }) {
     const handleClick = () => {
         // Only allow wire removal in wire mode
         if (editSubMode === 'wire') {
+            useHistoryStore.getState().record();
             removeWire(wire.id);
         }
     };

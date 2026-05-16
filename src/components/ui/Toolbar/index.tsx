@@ -6,6 +6,7 @@
  * - FileActions: New, Templates, Save, Load
  * - ViewActions: Grid, Reset, Mute
  * - EditToolbar: Edit mode tools (Select, Delete, Sensor, Signal, Wire)
+ * - HistoryActions: Undo/Redo (Edit mode only)
  * - SimulateToolbar: Simulation controls (Play/Pause, Add Train)
  * 
  * The toolbar is the primary navigation and control panel for the application.
@@ -19,6 +20,7 @@ import { ModeToggle } from './ModeToggle';
 import { FileActions } from './FileActions';
 import { ViewActions } from './ViewActions';
 import { EditToolbar } from './EditToolbar';
+import { HistoryActions } from './HistoryActions';
 import { SimulateToolbar } from './SimulateToolbar';
 
 export function Toolbar() {
@@ -41,6 +43,14 @@ export function Toolbar() {
             <div className="toolbar-actions">
                 {/* Tools specific to the current mode */}
                 {isEditing ? <EditToolbar /> : <SimulateToolbar />}
+
+                {/* Undo / Redo - edit mode only */}
+                {isEditing && (
+                    <>
+                        <div className="toolbar-divider" />
+                        <HistoryActions />
+                    </>
+                )}
 
                 <div className="toolbar-divider" />
 
@@ -71,5 +81,6 @@ export { ModeToggle } from './ModeToggle';
 export { FileActions } from './FileActions';
 export { ViewActions } from './ViewActions';
 export { EditToolbar } from './EditToolbar';
+export { HistoryActions } from './HistoryActions';
 export { SimulateToolbar } from './SimulateToolbar';
 

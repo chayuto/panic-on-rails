@@ -3,6 +3,7 @@ import type Konva from 'konva';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useEditorStore } from '../../../stores/useEditorStore';
 import { useLogicStore } from '../../../stores/useLogicStore';
+import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { useModeStore, useIsEditing } from '../../../stores/useModeStore';
 import { playSound } from '../../../utils/audioManager';
 import type { TrackEdge, Vector2 } from '../../../types';
@@ -35,6 +36,7 @@ export function useTrackInteraction() {
         if (editSubMode === 'select') {
             setSelectedEdge(selectedEdgeId === edgeId ? null : edgeId);
         } else if (editSubMode === 'delete') {
+            useHistoryStore.getState().record();
             removeTrack(edgeId);
             playSound('switch');
         } else if (editSubMode === 'sensor') {
@@ -49,6 +51,7 @@ export function useTrackInteraction() {
             if (!edge) return;
 
             const position = getPositionAlongEdge(edge, worldPos);
+            useHistoryStore.getState().record();
             addSensor(edgeId, position);
             playSound('switch');
         }

@@ -10,6 +10,7 @@ import { useCallback } from 'react';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useModeStore } from '../stores/useModeStore';
+import { useHistoryStore } from '../stores/useHistoryStore';
 import { playSound } from '../utils/audioManager';
 import { calculateRotationForConnection, validateConnection, getNodeFacadeFromEdge } from '../utils/connectTransform';
 import type { NodeId } from '../types';
@@ -120,6 +121,7 @@ export function useConnectMode() {
 
         // V2: Use atomic connectNetworks instead of movePart + connectNodes
         // This ensures the entire operation is atomic - no partial state
+        useHistoryStore.getState().record();
         connectNetworks(
             connectSource.nodeId,  // Anchor node (Part A - stays fixed)
             nodeId,               // Moving node (Part B - will be moved and merged)
