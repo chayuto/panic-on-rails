@@ -49,13 +49,16 @@ Complete feature documentation for PanicOnRails - the free, browser-based train 
 
 | Shortcut | Action |
 |----------|--------|
-| `R` | Rotate track |
-| `F` | Flip track |
-| `Delete` | Remove selected track |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Space` | Pan mode |
-| `+/-` | Zoom in/out |
+| `M` | Toggle Edit / Simulate mode |
+| `Shift+M` | Toggle measurement overlay |
+| `1`–`6` | Select edit tool (Select, Place, Delete, Sensor, Signal, Wire) |
+| `R` / `Shift+R` | Rotate track while dragging |
+| `Ctrl+Z` / `Cmd+Z` | Undo last edit |
+| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
+| `Space` | Play / Pause simulation |
+| `+` / `-` | Adjust simulation speed |
+
+See [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) for the full reference.
 
 ## Roadmap
 

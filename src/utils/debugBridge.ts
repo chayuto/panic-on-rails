@@ -21,6 +21,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
 import { useBudgetStore } from '../stores/useBudgetStore';
+import { useHistoryStore } from '../stores/useHistoryStore';
 import type Konva from 'konva';
 
 // Extend Window interface for TypeScript
@@ -118,6 +119,18 @@ export interface PanicStoreBridge {
             totalSpent: number;
             startingBudget: number;
         };
+    };
+    history: {
+        getState: () => {
+            canUndo: boolean;
+            canRedo: boolean;
+            pastCount: number;
+            futureCount: number;
+        };
+        record: () => void;
+        undo: () => void;
+        redo: () => void;
+        clear: () => void;
     };
 }
 
@@ -264,6 +277,21 @@ export function initDebugBridge(): void {
                     startingBudget: s.startingBudget,
                 };
             },
+        },
+        history: {
+            getState: () => {
+                const s = useHistoryStore.getState();
+                return {
+                    canUndo: s.past.length > 0,
+                    canRedo: s.future.length > 0,
+                    pastCount: s.past.length,
+                    futureCount: s.future.length,
+                };
+            },
+            record: () => useHistoryStore.getState().record(),
+            undo: () => useHistoryStore.getState().undo(),
+            redo: () => useHistoryStore.getState().redo(),
+            clear: () => useHistoryStore.getState().clear(),
         },
     };
 

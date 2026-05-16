@@ -25,6 +25,9 @@ Active when building and modifying tracks.
 | `6` | Wire tool |
 | `R` | Rotate track clockwise (while dragging) |
 | `Shift+R` | Rotate track counter-clockwise (while dragging) |
+| `Ctrl+Z` / `Cmd+Z` | Undo last edit |
+| `Ctrl+Y` / `Cmd+Y` | Redo |
+| `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo (alternate) |
 
 ## Simulate Mode
 
@@ -41,5 +44,8 @@ Active when running trains.
 ## Tips
 
 - **Rotation**: Press `R` while dragging a track from the Parts Bin
+- **Undo/Redo**: `Ctrl+Z` / `Ctrl+Y` step through layout edits — placements,
+  deletions, connections, and sensor/signal/wire changes. Loading a new or
+  saved layout resets the undo history.
 - **Switches**: Hover over a switch and press `S` for quick toggling
 - **Speed**: Use `+`/`-` for quick speed adjustments without the slider

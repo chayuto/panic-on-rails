@@ -15,6 +15,7 @@ import { useCallback, useEffect } from 'react';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useBudgetStore } from '../stores/useBudgetStore';
+import { useHistoryStore } from '../stores/useHistoryStore';
 import { useIsEditing } from '../stores/useModeStore';
 import { findBestSnap } from '../utils/snapManager';
 import { angleDifference } from '../utils/angle';
@@ -191,6 +192,10 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
                 finalRotation,
             });
         }
+
+        // Snapshot state before the placement so this gesture (spend + add +
+        // auto-merge) can be undone as a single step.
+        useHistoryStore.getState().record();
 
         // Spend the budget
         budgetStore.spend(part.cost);

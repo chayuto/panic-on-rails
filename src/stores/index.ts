@@ -22,6 +22,9 @@ export { useEditorStore } from './useEditorStore';
 // Logic
 export { useLogicStore } from './useLogicStore';
 
+// History (undo/redo)
+export { useHistoryStore, selectCanUndo, selectCanRedo } from './useHistoryStore';
+
 // Slice types (for advanced usage)
 export type {
     TrackSliceState,

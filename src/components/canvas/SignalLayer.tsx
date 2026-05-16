@@ -9,6 +9,7 @@ import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore, useIsSimulating } from '../../stores/useModeStore';
+import { useHistoryStore } from '../../stores/useHistoryStore';
 import { playSound } from '../../utils/audioManager';
 import type { Signal } from '../../types';
 
@@ -49,6 +50,7 @@ function SignalEntity({ signal }: { signal: Signal }) {
     const handleClick = () => {
         if (editSubMode === 'signal') {
             // In signal mode, clicking removes the signal
+            useHistoryStore.getState().record();
             removeSignal(signal.id);
         } else if (editSubMode === 'select' || isSimulating) {
             // In select mode or simulate mode, clicking toggles the signal
@@ -57,6 +59,7 @@ function SignalEntity({ signal }: { signal: Signal }) {
         } else if (editSubMode === 'wire') {
             if (wireSource) {
                 // If we have a source, create wire to this signal
+                useHistoryStore.getState().record();
                 addWire(
                     wireSource.type,
                     wireSource.id,
