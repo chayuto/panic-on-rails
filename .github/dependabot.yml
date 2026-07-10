@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    ignore:
+      # TS 7.0 lacks the stable programmatic API typescript-eslint needs
+      # (lands in 7.1) — this ignore expires on its own when 7.1 ships
+      - dependency-name: "typescript"
+        versions: ["7.0.x"]
     groups:
       # Interdependent toolchains — majors only pass CI when bumped together
       eslint:
