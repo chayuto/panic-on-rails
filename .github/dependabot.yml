@@ -6,6 +6,17 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
+      # Interdependent toolchains — majors only pass CI when bumped together
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "eslint-plugin-*"
+          - "typescript-eslint"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
       dev-dependencies:
         dependency-type: "development"
         update-types:

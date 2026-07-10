@@ -132,14 +132,9 @@ function WireEntity({ wire }: { wire: Wire }) {
     const ctrl1 = { x: midX - dy * 0.3, y: midY + dx * 0.3 };
 
     // Check if source is active
-    let isActive = false;
-    if (wire.sourceType === 'sensor') {
-        const sensor = sensors[wire.sourceId];
-        isActive = sensor?.state === 'on';
-    } else {
-        const signal = signals[wire.sourceId];
-        isActive = signal?.state === 'green';
-    }
+    const isActive = wire.sourceType === 'sensor'
+        ? sensors[wire.sourceId]?.state === 'on'
+        : signals[wire.sourceId]?.state === 'green';
 
     const color = isActive ? WIRE_COLOR_ACTIVE : WIRE_COLOR_INACTIVE;
 
