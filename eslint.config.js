@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-    { ignores: ['dist', 'e2e'] },
+    { ignores: ['dist'] },
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommended],
         files: ['**/*.{ts,tsx}'],
@@ -23,6 +23,31 @@ export default tseslint.config(
                 'warn',
                 { allowConstantExport: true },
             ],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
+        },
+    },
+    {
+        // Node-side files: e2e tests/helpers and root config files.
+        // e2e also keeps browser globals for page.evaluate() callbacks.
+        files: ['e2e/**/*.ts', '*.config.ts'],
+        languageOptions: {
+            globals: { ...globals.node, ...globals.browser },
+        },
+        rules: {
+            // React rules don't apply outside the app (Playwright's fixture
+            // `use()` callback is not a React hook).
+            'react-refresh/only-export-components': 'off',
+            'react-hooks/rules-of-hooks': 'off',
+            // Specs read JSON-cloned store snapshots across the browser
+            // boundary; `any` is tolerated in tests, still banned in src/.
+            '@typescript-eslint/no-explicit-any': 'off',
         },
     },
 )

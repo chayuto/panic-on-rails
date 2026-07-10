@@ -16,7 +16,7 @@ import type { Page } from '@playwright/test';
 // Helper: auto-connect nearby endpoints
 // =============================================
 
-async function autoConnect(stores: StoreBridge, page: Page, tolerance = 5): Promise<number> {
+async function autoConnect(stores: StoreBridge, _page: Page, tolerance = 5): Promise<number> {
     // Find nodes that are very close to each other and connect them
     let connected = 0;
     for (let pass = 0; pass < 10; pass++) {
@@ -124,8 +124,8 @@ interface ConfigResult {
     edgesPlaced: number;
     connectionsFormed: number;
     openEndpoints: number;
-    trainMoved: boolean;
-    edgesTraversed: number;
+    moved: boolean;
+    edgesVisited: number;
     bounced: boolean;
     crashed: boolean;
     isCircuit: boolean;
@@ -424,7 +424,6 @@ test.describe('Track Configuration Matrix', () => {
         // ==============================================
         {
             await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
             // Use Simple Oval as base but it uses R249. Let's place R216 manually
             // For a proper circle test, let's place 8 tight curves
             // Actually use the template approach - modify: place R216 curves

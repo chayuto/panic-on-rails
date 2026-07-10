@@ -13,7 +13,7 @@
 
 import { test, expect } from '../fixtures/app-fixture';
 
-test('Compound crossover: place, connect, and simulate', async ({ page, stores, snap }) => {
+test('Compound crossover: place, connect, and simulate', async ({ page, snap }) => {
     // Clear any existing layout via the bridge action (not getState())
     await page.evaluate(() => {
         window.__PANIC_STORES__!.track.clearLayout();

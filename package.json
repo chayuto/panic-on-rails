@@ -11,8 +11,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "lint": "eslint .",
-        "typecheck": "tsc --noEmit",
+        "lint": "eslint . --max-warnings 0",
+        "typecheck": "tsc -b",
         "preview": "vite preview",
         "test": "vitest",
         "e2e": "playwright test --project=chromium",

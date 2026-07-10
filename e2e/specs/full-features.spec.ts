@@ -296,12 +296,12 @@ test.describe('Multi-Carriage Trains', () => {
 
         // Spawn a single-carriage train
         const edges = Object.keys((await stores.getTrackState()).edges);
-        const train1 = await stores.spawnTrain(edges[0], '#ff0000', 1);
+        await stores.spawnTrain(edges[0], '#ff0000', 1);
         await page.waitForTimeout(200);
         await snap('02-single-carriage');
 
         // Spawn a 5-carriage train
-        const train2 = await stores.spawnTrain(edges[2], '#0066ff', 5);
+        await stores.spawnTrain(edges[2], '#0066ff', 5);
         await page.waitForTimeout(200);
         await snap('03-five-carriages');
 

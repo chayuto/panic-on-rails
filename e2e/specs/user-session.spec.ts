@@ -14,7 +14,6 @@
 import { test, expect } from '../fixtures/app-fixture';
 import { AgentActions } from '../helpers/agent-actions';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
-import { StoreBridge } from '../helpers/store-bridge';
 
 test.describe('Full User Session', () => {
 
@@ -92,22 +91,22 @@ test.describe('Full User Session', () => {
         await screenshots.capture('08-first-curve');
 
         // Place more curves to form a U-turn
-        const curve2 = await agent.placeTrack('kato-20-100', { x: 1200, y: 400 }, 45);
-        const curve3 = await agent.placeTrack('kato-20-100', { x: 1200, y: 550 }, 90);
-        const curve4 = await agent.placeTrack('kato-20-100', { x: 1100, y: 650 }, 135);
+        await agent.placeTrack('kato-20-100', { x: 1200, y: 400 }, 45);
+        await agent.placeTrack('kato-20-100', { x: 1200, y: 550 }, 90);
+        await agent.placeTrack('kato-20-100', { x: 1100, y: 650 }, 135);
         await screenshots.capture('09-u-turn-curves');
 
         // Place straights going back left
-        const edge4 = await agent.placeTrack('kato-20-000', { x: 850, y: 700 }, 180);
-        const edge5 = await agent.placeTrack('kato-20-000', { x: 600, y: 700 }, 180);
-        const edge6 = await agent.placeTrack('kato-20-000', { x: 350, y: 700 }, 180);
+        await agent.placeTrack('kato-20-000', { x: 850, y: 700 }, 180);
+        await agent.placeTrack('kato-20-000', { x: 600, y: 700 }, 180);
+        await agent.placeTrack('kato-20-000', { x: 350, y: 700 }, 180);
         await screenshots.capture('10-bottom-straights');
 
         // Place curves to complete the oval
-        const curve5 = await agent.placeTrack('kato-20-100', { x: 200, y: 650 }, 180);
-        const curve6 = await agent.placeTrack('kato-20-100', { x: 100, y: 550 }, 225);
-        const curve7 = await agent.placeTrack('kato-20-100', { x: 100, y: 400 }, 270);
-        const curve8 = await agent.placeTrack('kato-20-100', { x: 200, y: 300 }, 315);
+        await agent.placeTrack('kato-20-100', { x: 200, y: 650 }, 180);
+        await agent.placeTrack('kato-20-100', { x: 100, y: 550 }, 225);
+        await agent.placeTrack('kato-20-100', { x: 100, y: 400 }, 270);
+        await agent.placeTrack('kato-20-100', { x: 200, y: 300 }, 315);
         await screenshots.capture('11-oval-complete-disconnected');
 
         // Check how many tracks we've placed
@@ -473,7 +472,7 @@ test.describe('Full User Session', () => {
 
         if (edge1) {
             // Place a curve
-            const edge2 = await agent.placeTrack('brio-curve-short', { x: 700, y: 350 }, 0);
+            await agent.placeTrack('brio-curve-short', { x: 700, y: 350 }, 0);
             await screenshots.capture('03-wooden-curve');
 
             // Check state
