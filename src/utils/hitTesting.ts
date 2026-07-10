@@ -96,7 +96,7 @@ export function pointToArcDistance(
     // Adjust diff to align with sweep direction
     if (diff < 0) diff += 360; // Now diff is [0, 360) (positive CCW offset)
 
-    let isWithinArc = false;
+    let isWithinArc: boolean;
 
     if (sweep > 0) {
         // CCW arc: point is inside if diff is in [0, sweep]

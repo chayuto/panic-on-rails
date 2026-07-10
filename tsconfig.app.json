@@ -24,11 +24,14 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true,
+        /* TS 6.0 no longer auto-includes node_modules/@types; tests use fs/path */
+        "types": [
+            "node"
+        ],
         /* Paths */
-        "baseUrl": ".",
         "paths": {
             "@/*": [
-                "src/*"
+                "./src/*"
             ]
         }
     },
