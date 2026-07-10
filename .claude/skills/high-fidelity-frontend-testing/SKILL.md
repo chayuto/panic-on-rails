@@ -29,7 +29,7 @@ Three pillars, all validated and working in this repo:
 ## Toolchain
 
 Node **24 LTS** + pnpm **11** (pinned via `packageManager` + `engines` in
-`package.json`, and `.nvmrc`). Run `nvm use` in the repo. Playwright is `1.58.x`.
+`package.json`, and `.nvmrc`). Run `nvm use` in the repo. Playwright version tracks `package.json` (Dependabot keeps it current).
 **All tests run headless** (`headless: true` in `playwright.config.ts`) — never
 pass `--headed` in CI or agentic loops.
 

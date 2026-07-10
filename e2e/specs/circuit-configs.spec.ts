@@ -220,6 +220,7 @@ interface CircuitResult {
     trainMoved: boolean;
     edgesTraversed: number;
     crashed: boolean;
+    openEndpoints?: number;
     verdict: 'PASS' | 'PARTIAL' | 'FAIL';
 }
 

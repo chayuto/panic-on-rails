@@ -13,5 +13,27 @@ export default defineConfig({
             '@': '/src',
         },
     },
+    build: {
+        rolldownOptions: {
+            output: {
+                // Split the two big stable libraries out of the app chunk so
+                // app-code changes don't invalidate the whole cached bundle.
+                codeSplitting: {
+                    groups: [
+                        {
+                            name: 'konva',
+                            test: /node_modules[\\/](konva|react-konva)[\\/]/,
+                            priority: 20,
+                        },
+                        {
+                            name: 'react',
+                            test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+                            priority: 10,
+                        },
+                    ],
+                },
+            },
+        },
+    },
 })
 

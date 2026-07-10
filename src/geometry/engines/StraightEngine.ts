@@ -34,7 +34,6 @@ export class StraightEngine implements GeometryEngine {
         };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getTangentAt(_t: number): number {
         // Tangent is constant for a straight line
         return this.angle;

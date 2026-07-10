@@ -3,7 +3,10 @@
  *
  * These mirror the app's store types but are kept minimal —
  * only the fields that tests actually need to read/assert on.
+ * Type-only imports from src keep shared shapes in sync with the app.
  */
+
+import type { TrackGeometry } from '../../src/types/geometry';
 
 export interface Vector2 {
     x: number;
@@ -24,10 +27,7 @@ export interface TrackEdgeSnapshot {
     startNodeId: string;
     endNodeId: string;
     length: number;
-    geometry: {
-        type: 'straight' | 'arc';
-        [key: string]: unknown;
-    };
+    geometry: TrackGeometry;
 }
 
 export interface TrackStateSnapshot {
@@ -58,6 +58,15 @@ export interface SimulationStateSnapshot {
     speedMultiplier: number;
     error: string | null;
     crashedParts: unknown[];
+    simLog: {
+        seq: number;
+        time: number;
+        type: string;
+        trainId: string;
+        edgeId: string;
+        detail: string;
+    }[];
+    simElapsed: number;
 }
 
 export interface EditorStateSnapshot {
