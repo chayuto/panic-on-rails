@@ -3,6 +3,7 @@
  * 
  * Composes all toolbar sections:
  * - ModeToggle: Prominent Edit/Simulate mode switch
+ * - SetShelfButton: Real boxed train sets (build their layouts)
  * - FileActions: New, Templates, Save, Load
  * - ViewActions: Grid, Reset, Mute
  * - EditToolbar: Edit mode tools (Select, Delete, Sensor, Signal, Wire)
@@ -22,6 +23,7 @@ import { ViewActions } from './ViewActions';
 import { EditToolbar } from './EditToolbar';
 import { HistoryActions } from './HistoryActions';
 import { SimulateToolbar } from './SimulateToolbar';
+import { SetShelfButton } from '../SetShelf/SetShelf';
 
 export function Toolbar() {
     const { selectedEdgeId } = useEditorStore();
@@ -59,7 +61,8 @@ export function Toolbar() {
 
                 <div className="toolbar-divider" />
 
-                {/* File operations - infrequently used */}
+                {/* Boxed sets, then file operations */}
+                <SetShelfButton />
                 <FileActions />
             </div>
 

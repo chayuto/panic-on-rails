@@ -437,9 +437,35 @@ button.active {
 }
 
 .part-preview {
-  width: 50px;
-  height: 50px;
-  color: var(--track-rail);
+  width: 56px;
+  height: 44px;
+}
+
+/* Real part shape: ballasted roadbed with the track centreline on top */
+.part-preview-bed {
+  fill: none;
+  stroke: #8d8d86;
+  stroke-width: 7px;
+  vector-effect: non-scaling-stroke;
+}
+
+.part-preview-rail {
+  fill: none;
+  stroke: #e8e8e8;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.part-preview-bumper {
+  stroke: #e74c3c;
+  stroke-width: 4px;
+  vector-effect: non-scaling-stroke;
+}
+
+.part-code {
+  font-size: 9px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .part-label {

@@ -45,6 +45,15 @@ async function trackSummary(page: Page) {
 }
 
 test.describe('Building by hand', () => {
+    test('crossings and crossovers can be dragged from the bin', async ({ page, app }) => {
+        void app;
+        await dropPart(page, '90° Crossing 124mm', { x: 300, y: 200 });
+        expect((await trackSummary(page)).edges).toBe(2);
+        // Two #4 turnouts joined branch to branch: four routes
+        await dropPart(page, '#4 Single Crossover Left', { x: 300, y: 450 });
+        expect((await trackSummary(page)).edges).toBe(6);
+    });
+
     test('eight curves dragged end to end close a loop', async ({ page, app }) => {
         void app;
         // A R216 loop is ~432px tall and grows downward from the first piece
