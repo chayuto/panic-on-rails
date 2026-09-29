@@ -57,6 +57,39 @@ export function createSwitchTrack(
 
     const radians = degreesToRadians(rotation);
 
+    // Wye: two symmetric curved diverges and no straight route. The right
+    // arc is the "main" route (switchState 0), the left arc the branch.
+    if (geometry.isWye && branchRadius !== undefined) {
+        const right = createDivergingArc(partId, entryNodeId, mainEdgeId, position, rotation, branchRadius, branchAngle, 'right');
+        const left = createDivergingArc(partId, entryNodeId, branchEdgeId, position, rotation, branchRadius, branchAngle, 'left');
+        const mainExitNode: TrackNode = { id: mainExitNodeId, position: right.exitPosition, rotation: right.exitRotation, connections: [mainEdgeId], type: 'endpoint' };
+        const branchExitNode: TrackNode = { id: branchExitNodeId, position: left.exitPosition, rotation: left.exitRotation, connections: [branchEdgeId], type: 'endpoint' };
+        right.edge.endNodeId = mainExitNodeId;
+        left.edge.endNodeId = branchExitNodeId;
+        return {
+            nodes: [
+                {
+                    id: entryNodeId,
+                    position,
+                    rotation: normalizeAngle(rotation + 180),
+                    connections: [mainEdgeId, branchEdgeId],
+                    type: 'switch',
+                    switchState: 0,
+                    switchBranches: [mainEdgeId, branchEdgeId],
+                },
+                mainExitNode,
+                branchExitNode,
+            ],
+            edges: [right.edge, left.edge],
+            primaryEdgeId: mainEdgeId,
+            connectorNodeMap: {
+                'entry': entryNodeId,
+                'right': mainExitNodeId, 'main': mainExitNodeId,
+                'left': branchExitNodeId, 'branch': branchExitNodeId,
+            },
+        };
+    }
+
     // Calculate main exit position (straight through)
     const mainExitPosition: Vector2 = {
         x: position.x + Math.cos(radians) * mainLength,
@@ -160,7 +193,9 @@ export function createSwitchTrack(
         const endAngleRad = Math.atan2(branchExitPosition.y - arcCenter.y, branchExitPosition.x - arcCenter.x);
         const endAngleDeg = normalizeAngle((endAngleRad * 180) / Math.PI);
 
-        const arcDirection: 'cw' | 'ccw' = branchDirection === 'right' ? 'cw' : 'ccw';
+        // 'ccw' here means increasing angles (see calculateArcCenter), which is
+        // clockwise on screen (+Y down): the right-hand branch.
+        const arcDirection: 'cw' | 'ccw' = branchDirection === 'right' ? 'ccw' : 'cw';
 
         branchEdge = {
             id: branchEdgeId,
@@ -199,5 +234,52 @@ export function createSwitchTrack(
         edges: [mainEdge, branchEdge],
         primaryEdgeId: mainEdgeId,
         connectorNodeMap: { 'entry': entryNodeId, 'main': mainExitNodeId, 'branch': branchExitNodeId },
+    };
+}
+
+/**
+ * Build one curved diverging route of a switch: an arc of `radius` sweeping
+ * `angle` degrees to the left or right of the entry direction.
+ * The returned edge's `endNodeId` is left empty for the caller to fill in.
+ */
+function createDivergingArc(
+    partId: PartId,
+    entryNodeId: NodeId,
+    edgeId: EdgeId,
+    position: Vector2,
+    rotation: number,
+    radius: number,
+    angle: number,
+    side: 'left' | 'right'
+): { edge: TrackEdge; exitPosition: Vector2; exitRotation: number } {
+    const radians = degreesToRadians(rotation);
+    const dir = side === 'left' ? -1 : 1;
+    const arcRad = degreesToRadians(angle);
+
+    const localX = radius * Math.sin(arcRad);
+    const localY = dir * radius * (1 - Math.cos(arcRad));
+    const exitPosition = {
+        x: position.x + Math.cos(radians) * localX - Math.sin(radians) * localY,
+        y: position.y + Math.sin(radians) * localX + Math.cos(radians) * localY,
+    };
+    const center = {
+        x: position.x - Math.sin(radians) * dir * radius,
+        y: position.y + Math.cos(radians) * dir * radius,
+    };
+    const startAngle = normalizeAngle(Math.atan2(position.y - center.y, position.x - center.x) * 180 / Math.PI);
+
+    return {
+        edge: {
+            id: edgeId,
+            partId,
+            startNodeId: entryNodeId,
+            endNodeId: '' as NodeId,
+            geometry: { type: 'arc', center, radius, startAngle, endAngle: startAngle + dir * angle },
+            length: radius * arcRad,
+            // 'ccw' = increasing angles = clockwise on screen = right-hand
+            intrinsicGeometry: { type: 'arc', radius, sweepAngle: angle, direction: side === 'right' ? 'ccw' : 'cw' },
+        },
+        exitPosition,
+        exitRotation: normalizeAngle(rotation + dir * angle),
     };
 }

@@ -347,20 +347,63 @@ describe('findBestSnap', () => {
         expect(result).toBeNull();
     });
 
-    it('returns null when facades incompatible', () => {
-        // If ghost facing same direction as target, facades won't be opposite
-        // Ghost at target with facades aligned (both facing same way)
+    it('auto-rotates to mate when the ghost faces the wrong way', () => {
+        // Ghost rotated 180° at the target: A would face the same way as the
+        // target. Snapping still succeeds by rotating the part to mate.
         const result = findBestSnap(
             straightPart,
             { x: 200, y: 0 },
-            180,  // Ghost rotated 180°, so A faces 0° (same as target faces)
+            180,
             [targetEast],
             'n-scale'
         );
 
-        // With rotation 180°, A's facade = 180 + 180 = 360 = 0°
-        // Target faces 0°, so diff = 0°, not ~180°
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
+        expect(result!.targetNodeId).toBe('target-east');
+        const placed = getWorldConnectors(straightPart, result!.ghostTransform.position, result!.ghostTransform.rotation);
+        const mated = placed.find(c => c.localId === result!.ghostConnectorId)!;
+        expect(mated.worldPosition.x).toBeCloseTo(200);
+        expect(angleDifference(mated.worldFacade, targetEast.rotation)).toBeCloseTo(180);
+        // The placed straight continues east, not back over the track
+        expect(Math.max(...placed.map(c => c.worldPosition.x))).toBeGreaterThan(200);
+    });
+});
+
+describe('findBestSnap — chaining curves', () => {
+    // End of a previous 45° curve: facing 45° (south-east on screen)
+    const curveEnd: TrackNode = {
+        id: 'curve-end',
+        position: { x: 0, y: 0 },
+        rotation: 45,
+        connections: ['edge-1'],
+        type: 'endpoint',
+    };
+    const forward = { x: Math.cos(Math.PI / 4), y: Math.sin(Math.PI / 4) };
+    const left = { x: forward.y, y: -forward.x };   // 90° anticlockwise on screen
+
+    const snapAt = (offset: { x: number; y: number }) => {
+        const result = findBestSnap(curvePart, offset, 0, [curveEnd], 'n-scale')!;
+        const placed = getWorldConnectors(curvePart, result.ghostTransform.position, result.ghostTransform.rotation);
+        const far = placed.find(c => Math.hypot(c.worldPosition.x, c.worldPosition.y) > 1)!;
+        return { result, far };
+    };
+
+    it('snaps a curve onto a curve end without manual rotation', () => {
+        const { result } = snapAt({ x: 2, y: 2 });
+        expect(result.targetNodeId).toBe('curve-end');
+    });
+
+    it('continues forward from the endpoint', () => {
+        const { far } = snapAt({ x: forward.x * 10, y: forward.y * 10 });
+        expect(far.worldPosition.x * forward.x + far.worldPosition.y * forward.y).toBeGreaterThan(0);
+    });
+
+    it('turns toward the side the cursor is on', () => {
+        const sideOf = (p: { x: number; y: number }) => p.x * left.x + p.y * left.y;
+        const towardLeft = snapAt({ x: forward.x * 8 + left.x * 12, y: forward.y * 8 + left.y * 12 });
+        const towardRight = snapAt({ x: forward.x * 8 - left.x * 12, y: forward.y * 8 - left.y * 12 });
+        expect(sideOf(towardLeft.far.worldPosition)).toBeGreaterThan(0);
+        expect(sideOf(towardRight.far.worldPosition)).toBeLessThan(0);
     });
 });
 
