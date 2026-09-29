@@ -92,4 +92,39 @@ describe('stepSimulation', () => {
             expect(w.trains.t.currentEdgeId).toBe('branch');
         });
     });
+
+    describe('train control', () => {
+        it('a train stopped by the player does not move', () => {
+            const w = world({ ...graph, trains: { t: { ...train('t', 'e0', 10), stopped: true } } });
+            expect(stepSimulation(w, 1, ctx()).world.trains.t.distanceAlongEdge).toBe(10);
+        });
+
+        it('a red signal holds a train, then releases it on green', () => {
+            const sig = { id: 's', nodeId: 'n1', state: 'red' as const, offset: { x: 0, y: 0 } };
+            let w = world({ ...graph, trains: { t: train('t', 'e0', 50) }, signals: { s: sig } });
+
+            let r = stepSimulation(w, 1, ctx());
+            expect(r.world.trains.t.heldAtSignal).toBe(true);
+            expect(r.events).toContainEqual({ type: 'signal-hold', trainId: 't', edgeId: 'e0' });
+
+            // Still red: stays put, no repeated hold event
+            r = stepSimulation(r.world, 1, ctx());
+            expect(r.events.some(e => e.type === 'signal-hold')).toBe(false);
+            const heldAt = r.world.trains.t.distanceAlongEdge;
+
+            w = { ...r.world, signals: { s: { ...sig, state: 'green' } } };
+            r = stepSimulation(w, 0.5, ctx());
+            expect(r.world.trains.t.heldAtSignal).toBe(false);
+            expect(r.events).toContainEqual({ type: 'signal-release', trainId: 't', edgeId: expect.any(String) });
+            expect(r.world.trains.t.currentEdgeId !== 'e0' || r.world.trains.t.distanceAlongEdge > heldAt).toBe(true);
+        });
+
+        it('a train held at a signal is hit by a train behind it', () => {
+            const sig = { id: 's', nodeId: 'n2', state: 'red' as const, offset: { x: 0, y: 0 } };
+            let w = world({ ...graph, trains: { a: train('a', 'e1', 70), b: train('b', 'e1', 0) }, signals: { s: sig } });
+            for (let i = 0; i < 120; i++) w = stepSimulation(w, 1 / 60, ctx()).world;
+            expect(w.trains.a.crashed && w.trains.b.crashed).toBe(true);
+        });
+    });
 });
+

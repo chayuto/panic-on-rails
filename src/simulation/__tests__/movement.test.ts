@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTrainMovement } from '../movement';
+import { calculateTrainMovement, SIGNAL_STOP_GAP } from '../movement';
 import { lineGraph, node, straightEdge, train } from './fixtures';
 
 describe('calculateTrainMovement', () => {
@@ -70,4 +70,39 @@ describe('calculateTrainMovement', () => {
             expect(u.edgeId).toBe('in');
         });
     });
+
+    describe('red signals', () => {
+        const red = (...ids: string[]) => new Set(ids);
+
+        it('stops a train at the stop line before a red node', () => {
+            const u = calculateTrainMovement(train('t', 'e0', 50), 1, edges, nodes, red('n1'))!;
+            expect(u).toMatchObject({ edgeId: 'e0', distance: 100 - SIGNAL_STOP_GAP, held: true });
+        });
+
+        it('holds a train that is already standing at the stop line', () => {
+            const u = calculateTrainMovement(train('t', 'e0', 100 - SIGNAL_STOP_GAP), 0.5, edges, nodes, red('n1'))!;
+            expect(u).toMatchObject({ distance: 100 - SIGNAL_STOP_GAP, held: true });
+        });
+
+        it('stops a reversing train before a red node behind it', () => {
+            const u = calculateTrainMovement(train('t', 'e1', 60, -1), 1, edges, nodes, red('n1'))!;
+            expect(u).toMatchObject({ edgeId: 'e1', distance: SIGNAL_STOP_GAP, held: true });
+        });
+
+        it('lets a train past the stop line run through (too late to stop)', () => {
+            const u = calculateTrainMovement(train('t', 'e0', 95), 0.1, edges, nodes, red('n1'))!;
+            expect(u).toMatchObject({ edgeId: 'e1', held: false });
+        });
+
+        it('stops on a later edge within the same large step', () => {
+            const u = calculateTrainMovement(train('t', 'e0', 50), 3, edges, nodes, red('n2'))!;
+            expect(u).toMatchObject({ edgeId: 'e1', distance: 100 - SIGNAL_STOP_GAP, held: true });
+        });
+
+        it('ignores red signals at nodes the train is not heading into', () => {
+            const u = calculateTrainMovement(train('t', 'e1', 50), 0.2, edges, nodes, red('n1'))!;
+            expect(u).toMatchObject({ edgeId: 'e1', distance: 70, held: false });
+        });
+    });
 });
+

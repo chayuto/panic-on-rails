@@ -81,6 +81,7 @@ describe('useGameLoop', () => {
                 edgeId: 'e1',
                 direction: 1,
                 bounced: false,
+                held: false,
             };
         });
 

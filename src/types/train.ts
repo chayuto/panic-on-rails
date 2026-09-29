@@ -14,6 +14,9 @@ export interface Train {
     color: string;
     // Bounce animation state
     bounceTime?: number;    // Timestamp when bounce started (performance.now())
+    // Control state
+    stopped?: boolean;      // Held by the player (stop/go control)
+    heldAtSignal?: boolean; // Standing at a red signal's stop line
     // Crash state
     crashed?: boolean;      // True if train has crashed
     crashTime?: number;     // Timestamp when crash occurred
