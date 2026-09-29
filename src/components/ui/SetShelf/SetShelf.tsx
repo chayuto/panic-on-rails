@@ -12,6 +12,7 @@ import { ROLLING_STOCK, type RollingStock } from '../../../data/rollingStock';
 import { getCarSprite } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
 import { SCALES } from '../../../config/scales';
+import type { PartBrand } from '../../../data/catalog/types';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
 import { getAllSets, resolvePlan, type LayoutPlan, type TrackSet } from '../../../data/sets';
@@ -25,6 +26,16 @@ import { formatMoney, shortfall, type PartCounts } from '../../../data/collectio
 import { PlanPreview, PartPreview } from '../TrackPreview';
 import { buildSetPlan } from './buildSetPlan';
 import './SetShelf.css';
+
+/** How each maker and its track system are named on the shelf. */
+const BRAND_NAMES: Partial<Record<PartBrand, { maker: string; track: string }>> = {
+    kato: { maker: 'Kato', track: 'Unitrack' },
+    marklin: { maker: 'Märklin', track: 'C-track' },
+    hornby: { maker: 'Hornby', track: 'Setrack' },
+    tomix: { maker: 'Tomix', track: 'Fine Track' },
+    brio: { maker: 'Brio', track: 'wooden railway' },
+    ikea: { maker: 'IKEA', track: 'Lillabo' },
+};
 
 function partLabel(partId: string): { name: string; code?: string } {
     const part = getPartById(partId);
@@ -61,9 +72,9 @@ function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }:
     return (
         <article className={`set-box set-box-${set.brand}`} data-testid={`set-box-${set.id}`}>
             <header className="set-box-lid">
-                <span className="set-box-brand">{set.brand}</span>
+                <span className="set-box-brand">{BRAND_NAMES[set.brand]?.maker ?? set.brand}</span>
                 {set.badge && <span className="set-box-badge">{set.badge}</span>}
-                <span className="set-box-code">{set.productCode}</span>
+                {set.productCode !== set.badge && <span className="set-box-code">{set.productCode}</span>}
             </header>
             <h3 className="set-box-name">{set.name}</h3>
             <p className="set-box-description">{set.description}</p>
@@ -90,7 +101,9 @@ function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }:
             <details className="set-box-contents">
                 <summary>
                     In the box: {pieceCount} pieces
-                    {set.footprint && <> · {set.footprint.width} × {set.footprint.depth} mm</>}
+                    {set.footprint && (set.footprint.space
+                        ? <> · needs {set.footprint.width / 10} × {set.footprint.depth / 10} cm</>
+                        : <> · {set.footprint.width} × {set.footprint.depth} mm</>)}
                 </summary>
                 <ul>
                     {set.contents.map(item => {
@@ -254,10 +267,15 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
         onClose();
     };
 
-    const sections = [
-        { title: 'Starter sets', sets: sets.filter(s => s.kind === 'starter') },
-        { title: 'Expansion sets', sets: sets.filter(s => s.kind === 'expansion') },
-    ].filter(section => section.sets.length > 0);
+    // One shelf per track system, starter sets first on each
+    const sections = [...new Set(sets.map(s => s.brand))].map(brand => {
+        const onShelf = sets.filter(s => s.brand === brand);
+        const name = BRAND_NAMES[brand];
+        return {
+            title: `${name ? `${name.maker} ${name.track}` : brand} · ${SCALES[onShelf[0].scale].label}`,
+            sets: onShelf,
+        };
+    });
 
     const showParts = inCollection && tab === 'parts';
     const showTrains = inCollection && tab === 'trains';

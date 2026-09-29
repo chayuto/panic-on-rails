@@ -29,6 +29,9 @@ export interface RollingStock {
     price: number;
 }
 
+/** H0 trains are 160/87 the size of N ones and run that much faster. */
+const H0 = sizeOf('ho-scale');
+
 export const ROLLING_STOCK: RollingStock[] = [
     {
         id: 'diesel-passenger',
@@ -73,6 +76,28 @@ export const ROLLING_STOCK: RollingStock[] = [
         cars: 6,
         topSpeed: DRIVING.MAX_THROTTLE,
         price: 18000,
+    },
+    {
+        id: 'h0-goods',
+        name: 'H0 goods train',
+        description: 'A diesel shunter and three wagons: the kind of train an H0 start set comes with.',
+        generic: true,
+        scale: 'ho-scale',
+        color: '#B03A2E',
+        cars: 4,
+        topSpeed: Math.round(160 * H0),
+        price: 22000,
+    },
+    {
+        id: 'h0-passenger',
+        name: 'H0 passenger train',
+        description: 'An electric locomotive and three coaches for a C-track layout.',
+        generic: true,
+        scale: 'ho-scale',
+        color: '#1B4F72',
+        cars: 4,
+        topSpeed: Math.round(260 * H0),
+        price: 32000,
     },
 ];
 

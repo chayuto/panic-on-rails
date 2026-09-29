@@ -145,6 +145,19 @@ describe('owned trains', () => {
         expect(useSimulationStore.getState().trains[id].throttle).toBe(getRollingStock('diesel-passenger')!.topSpeed);
     });
 
+    it('only puts a train on track of its own scale', () => {
+        // An H0 oval beside the N track: the N starter train won't run on it
+        resetWorld();
+        useTrackStore.getState().addTrack('marklin-24188', { x: 0, y: 0 }, 0);
+        expect(spawnTrainAtClearestSpot()).toBeNull();
+        useCollectionStore.getState().earn(50_000);
+        useCollectionStore.getState().buyTrain('h0-goods');
+        const id = spawnTrainAtClearestSpot()!;
+        expect(useSimulationStore.getState().trains[id]).toMatchObject({ stockId: 'h0-goods', scale: 'ho-scale' });
+        // Asked for by name, a train goes to track of its scale, or nowhere
+        expect(spawnTrainAtClearestSpot(undefined, undefined, 'diesel-passenger')).toBeNull();
+    });
+
     it('free build runs as many generic trains as you like', () => {
         useCollectionStore.getState().setMode('free');
         expect(spawnTrainAtClearestSpot(2)).not.toBeNull();

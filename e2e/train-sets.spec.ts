@@ -128,6 +128,28 @@ test.describe('Train sets shelf', () => {
             window.__PANIC_STORES__!.track.getState().nodes[id].switchState, points[0].id)).toBe(1);
     });
 
+    test('Märklin C5: the yard with a double slip builds from its box and runs an H0 train', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+        await page.getByTestId('open-set-shelf').click();
+        const box = page.getByTestId('set-box-marklin-24905');
+        await expect(box).toContainText('C-Track Extension Set C5');
+        await box.getByText(/In the box/).click();
+        await expect(box).toContainText('24624');
+        await expect(box).toContainText('needs 170 × 85 cm');
+        await box.getByTestId('set-build-marklin-24905').click();
+
+        // 40 pieces, 49 edges: each turnout has 2, the double slip 8 (two straights, two three-step slips)
+        await expect.poll(() => edgeCount(page)).toBe(49);
+        expect(await openEnds(page)).toBe(0);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_STORES__!.simulation.getState().isRunning)).toBe(true);
+        const train = await page.evaluate(() => Object.values(window.__PANIC_STORES__!.simulation.getState().trains)[0]);
+        expect(train.scale).toBe('ho-scale');
+        const start = await page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed)).toBeGreaterThan(start + 1);
+        expect(await page.evaluate(() => window.__PANIC_SIM__!.summarize().crashed)).toBe(0);
+    });
+
     test('Escape closes the shelf without building', async ({ page, app }) => {
         void app;
         await page.getByTestId('open-set-shelf').click();

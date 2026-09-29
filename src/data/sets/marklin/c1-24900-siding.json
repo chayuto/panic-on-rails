@@ -1,0 +1,84 @@
+{
+    "id": "marklin-24900",
+    "brand": "marklin",
+    "scale": "ho-scale",
+    "productCode": "24900",
+    "badge": "C1",
+    "name": "C-Track Extension Set C1",
+    "price": 8500,
+    "kind": "expansion",
+    "description": "A siding for the start oval: a turnout, a reverse curve, straights and a buffer stop.",
+    "contents": [
+        { "part": "marklin-24172", "qty": 2 },
+        { "part": "marklin-24224", "qty": 1 },
+        { "part": "marklin-24611", "qty": 1 },
+        { "part": "marklin-24977", "qty": 1 }
+    ],
+    "extends": ["marklin-S1"],
+    "footprint": { "width": 1350, "depth": 800, "space": true },
+    "plans": [
+        {
+            "id": "s1-c1-inside",
+            "name": "Siding inside (S1 + C1)",
+            "description": "The oval grows by two 171.7mm straights. The turnout on the front straight leads to a siding 77.5mm inside it.",
+            "steps": [
+                { "part": "marklin-24611" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24224", "at": { "piece": 0, "connector": "branch" } },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24977" }
+            ],
+            "trains": [
+                { "piece": 9, "color": "#B03A2E" }
+            ]
+        },
+        {
+            "id": "s1-c1-outside",
+            "name": "Siding outside (S1 + C1)",
+            "description": "The same pieces with the turnout at the end of the back straight, its siding running outside the oval.",
+            "steps": [
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24611", "via": "main" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24224", "at": { "piece": 11, "connector": "branch" } },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24977" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#B03A2E" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24900"
+}

@@ -1,0 +1,423 @@
+{
+    "version": 1,
+    "brand": "marklin",
+    "scale": "ho-scale",
+    "trackWidth": 40,
+    "parts": [
+        {
+            "id": "marklin-24064",
+            "cost": 800,
+            "name": "Straight 64.3mm",
+            "type": "straight",
+            "length": 64.3,
+            "productCode": "24064",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24064",
+            "description": "The short fitting piece."
+        },
+        {
+            "id": "marklin-24071",
+            "cost": 800,
+            "name": "Straight 70.8mm",
+            "type": "straight",
+            "length": 70.8,
+            "productCode": "24071",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24071"
+        },
+        {
+            "id": "marklin-24077",
+            "cost": 800,
+            "name": "Straight 77.5mm",
+            "type": "straight",
+            "length": 77.5,
+            "productCode": "24077",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24077",
+            "description": "77.5mm: exactly the C-track parallel spacing."
+        },
+        {
+            "id": "marklin-24094",
+            "cost": 800,
+            "name": "Straight 94.2mm",
+            "type": "straight",
+            "length": 94.2,
+            "productCode": "24094",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24094"
+        },
+        {
+            "id": "marklin-24172",
+            "cost": 900,
+            "name": "Straight 171.7mm",
+            "type": "straight",
+            "length": 171.7,
+            "productCode": "24172",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24172",
+            "description": "With a 24188, a 360mm side: the start oval's straights."
+        },
+        {
+            "id": "marklin-24188",
+            "cost": 1000,
+            "name": "Straight 188.3mm",
+            "type": "straight",
+            "length": 188.3,
+            "productCode": "24188",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24188",
+            "description": "The standard straight, as long as a turnout."
+        },
+        {
+            "id": "marklin-24229",
+            "cost": 1100,
+            "name": "Straight 229.3mm",
+            "type": "straight",
+            "length": 229.3,
+            "productCode": "24229",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24229"
+        },
+        {
+            "id": "marklin-24236",
+            "cost": 1100,
+            "name": "Straight 236.1mm",
+            "type": "straight",
+            "length": 236.1,
+            "productCode": "24236",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24236"
+        },
+        {
+            "id": "marklin-24360",
+            "cost": 1400,
+            "name": "Straight 360mm",
+            "type": "straight",
+            "length": 360.0,
+            "productCode": "24360",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24360"
+        },
+        {
+            "id": "marklin-24107",
+            "cost": 800,
+            "name": "Curve R1 7.5°",
+            "type": "curve",
+            "radius": 360,
+            "angle": 7.5,
+            "productCode": "24107",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24107"
+        },
+        {
+            "id": "marklin-24115",
+            "cost": 800,
+            "name": "Curve R1 15°",
+            "type": "curve",
+            "radius": 360,
+            "angle": 15,
+            "productCode": "24115",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24115"
+        },
+        {
+            "id": "marklin-24130",
+            "cost": 900,
+            "name": "Curve R1 30°",
+            "type": "curve",
+            "radius": 360,
+            "angle": 30,
+            "productCode": "24130",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24130",
+            "description": "The start-set curve: twelve make a circle 720mm across."
+        },
+        {
+            "id": "marklin-24206",
+            "cost": 800,
+            "name": "Curve R2 5.7°",
+            "type": "curve",
+            "radius": 437.5,
+            "angle": 5.7,
+            "productCode": "24206",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24206"
+        },
+        {
+            "id": "marklin-24207",
+            "cost": 800,
+            "name": "Curve R2 7.5°",
+            "type": "curve",
+            "radius": 437.5,
+            "angle": 7.5,
+            "productCode": "24207",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24207"
+        },
+        {
+            "id": "marklin-24215",
+            "cost": 900,
+            "name": "Curve R2 15°",
+            "type": "curve",
+            "radius": 437.5,
+            "angle": 15,
+            "productCode": "24215",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24215"
+        },
+        {
+            "id": "marklin-24224",
+            "cost": 1000,
+            "name": "Curve R2 24.3°",
+            "type": "curve",
+            "radius": 437.5,
+            "angle": 24.3,
+            "productCode": "24224",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24224",
+            "description": "The turnout's reverse curve: after a 24611/24612 it brings the branch parallel, 77.5mm across."
+        },
+        {
+            "id": "marklin-24230",
+            "cost": 1000,
+            "name": "Curve R2 30°",
+            "type": "curve",
+            "radius": 437.5,
+            "angle": 30,
+            "productCode": "24230",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24230"
+        },
+        {
+            "id": "marklin-24330",
+            "cost": 1100,
+            "name": "Curve R3 30°",
+            "type": "curve",
+            "radius": 515,
+            "angle": 30,
+            "productCode": "24330",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24330"
+        },
+        {
+            "id": "marklin-24430",
+            "cost": 1200,
+            "name": "Curve R4 30°",
+            "type": "curve",
+            "radius": 579.3,
+            "angle": 30,
+            "productCode": "24430",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24430"
+        },
+        {
+            "id": "marklin-24530",
+            "cost": 1200,
+            "name": "Curve R5 30°",
+            "type": "curve",
+            "radius": 643.6,
+            "angle": 30,
+            "productCode": "24530",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24530"
+        },
+        {
+            "id": "marklin-24912",
+            "cost": 1300,
+            "name": "Curve R9 12.1°",
+            "type": "curve",
+            "radius": 1114.6,
+            "angle": 12.1,
+            "productCode": "24912",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24912"
+        },
+        {
+            "id": "marklin-24611",
+            "cost": 4800,
+            "name": "Turnout Left",
+            "type": "switch",
+            "mainLength": 188.3,
+            "branchRadius": 437.5,
+            "branchAngle": 24.3,
+            "branchDirection": "left",
+            "productCode": "24611",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24611",
+            "description": "188.3mm straight route; R2 437.5mm 24.3° diverging route. With a 24224 curve after it, the branch runs parallel at 77.5mm."
+        },
+        {
+            "id": "marklin-24612",
+            "cost": 4800,
+            "name": "Turnout Right",
+            "type": "switch",
+            "mainLength": 188.3,
+            "branchRadius": 437.5,
+            "branchAngle": 24.3,
+            "branchDirection": "right",
+            "productCode": "24612",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24612",
+            "description": "188.3mm straight route; R2 437.5mm 24.3° diverging route. With a 24224 curve after it, the branch runs parallel at 77.5mm."
+        },
+        {
+            "id": "marklin-24671",
+            "cost": 6200,
+            "name": "Curved Turnout Left",
+            "type": "topology",
+            "productCode": "24671",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24671",
+            "description": "Inner route R1 360mm 30°; outer route a 77.5mm straight, then R1 30°. Two more R1 curves on each bring the tracks round a quarter circle, 77.5mm apart. Geometry as in Märklin's C-track plans and XTrackCAD.",
+            "connectors": {
+                "entry": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "entry",
+                    "to": "inner",
+                    "path": [
+                        {
+                            "arc": 360,
+                            "angle": 30,
+                            "turn": "left"
+                        }
+                    ]
+                },
+                {
+                    "from": "entry",
+                    "to": "outer",
+                    "path": [
+                        {
+                            "straight": 77.5
+                        },
+                        {
+                            "arc": 360,
+                            "angle": 30,
+                            "turn": "left"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "marklin-24672",
+            "cost": 6200,
+            "name": "Curved Turnout Right",
+            "type": "topology",
+            "productCode": "24672",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24672",
+            "description": "Inner route R1 360mm 30°; outer route a 77.5mm straight, then R1 30°. Two more R1 curves on each bring the tracks round a quarter circle, 77.5mm apart. Geometry as in Märklin's C-track plans and XTrackCAD.",
+            "connectors": {
+                "entry": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "entry",
+                    "to": "inner",
+                    "path": [
+                        {
+                            "arc": 360,
+                            "angle": 30,
+                            "turn": "right"
+                        }
+                    ]
+                },
+                {
+                    "from": "entry",
+                    "to": "outer",
+                    "path": [
+                        {
+                            "straight": 77.5
+                        },
+                        {
+                            "arc": 360,
+                            "angle": 30,
+                            "turn": "right"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "marklin-24624",
+            "cost": 16500,
+            "name": "Double Slip Switch",
+            "type": "topology",
+            "productCode": "24624",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24624",
+            "description": "Two 188.3mm tracks crossing at 24.3°, with slip routes joining them both ways (DKW). One drive at each end sets both routes from that end: straight across or through the slips. Replaces the manual 24620, same geometry. Slip routes as modelled by XTrackCAD.",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 8.3414,
+                    "y": -38.7441,
+                    "heading": 24.3
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 188.3
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 188.3
+                        }
+                    ]
+                },
+                {
+                    "from": "A1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 32.95
+                        },
+                        {
+                            "arc": 284.27,
+                            "angle": 24.3,
+                            "turn": "right"
+                        },
+                        {
+                            "straight": 32.95
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 32.95
+                        },
+                        {
+                            "arc": 284.27,
+                            "angle": 24.3,
+                            "turn": "left"
+                        },
+                        {
+                            "straight": 32.95
+                        }
+                    ]
+                }
+            ],
+            "points": [
+                [
+                    "A1",
+                    "B1"
+                ],
+                [
+                    "A2",
+                    "B2"
+                ]
+            ]
+        },
+        {
+            "id": "marklin-24977",
+            "cost": 1600,
+            "name": "Buffer Stop 77.5mm",
+            "type": "straight",
+            "length": 77.5,
+            "bumper": true,
+            "productCode": "24977",
+            "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24977",
+            "description": "77.5mm of track ending in a buffer stop, which overhangs it by 5mm."
+        }
+    ]
+}

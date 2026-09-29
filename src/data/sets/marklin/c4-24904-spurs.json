@@ -1,0 +1,72 @@
+{
+    "id": "marklin-24904",
+    "brand": "marklin",
+    "scale": "ho-scale",
+    "productCode": "24904",
+    "badge": "C4",
+    "name": "C-Track Extension Set C4",
+    "price": 31000,
+    "kind": "expansion",
+    "description": "Curved turnouts, six R2 curves and straights: the oval widens at one end, and two spurs branch off it.",
+    "contents": [
+        { "part": "marklin-24188", "qty": 4 },
+        { "part": "marklin-24172", "qty": 4 },
+        { "part": "marklin-24077", "qty": 2 },
+        { "part": "marklin-24130", "qty": 2 },
+        { "part": "marklin-24230", "qty": 6 },
+        { "part": "marklin-24671", "qty": 1 },
+        { "part": "marklin-24672", "qty": 1 }
+    ],
+    "extends": ["marklin-S1"],
+    "footprint": { "width": 1800, "depth": 1000, "space": true },
+    "plans": [
+        {
+            "id": "s1-c4-spurs",
+            "name": "Two spurs (S1 + C4)",
+            "description": "The loop takes the left curved turnout's outer route and the right one's inner route, with R2 curves at one end and a dip in the back straight. One spur runs into the middle of the oval; the other runs back along the front, 77.5mm outside it. Both end open, ready for more track.",
+            "steps": [
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24077" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24672", "via": "inner" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24230", "via": "B" },
+                { "part": "marklin-24230", "via": "B" },
+                { "part": "marklin-24230", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24130" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24671" },
+                { "part": "marklin-24130", "via": "B", "at": { "piece": 20, "connector": "outer" } },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B", "at": { "piece": 20, "connector": "inner" } },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24230", "via": "B" },
+                { "part": "marklin-24077" },
+                { "part": "marklin-24230" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24230", "at": { "piece": 7, "connector": "outer" } },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24172" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#B03A2E" }
+            ],
+            "openEnds": 2
+        }
+    ],
+    "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24904"
+}

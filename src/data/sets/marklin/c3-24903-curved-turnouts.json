@@ -1,0 +1,67 @@
+{
+    "id": "marklin-24903",
+    "brand": "marklin",
+    "scale": "ho-scale",
+    "productCode": "24903",
+    "badge": "C3",
+    "name": "C-Track Extension Set C3",
+    "price": 27500,
+    "kind": "expansion",
+    "description": "A pair of curved turnouts that split the oval's curves, and the track for a second line outside the front straight.",
+    "contents": [
+        { "part": "marklin-24188", "qty": 7 },
+        { "part": "marklin-24172", "qty": 7 },
+        { "part": "marklin-24130", "qty": 2 },
+        { "part": "marklin-24671", "qty": 1 },
+        { "part": "marklin-24672", "qty": 1 }
+    ],
+    "extends": ["marklin-S1"],
+    "footprint": { "width": 1900, "depth": 950, "space": true },
+    "plans": [
+        {
+            "id": "s3-outer-track",
+            "name": "Outer track (S3)",
+            "description": "Curved turnouts at nine and three o'clock. Their inner routes carry the oval round; the outer routes lead to a track 77.5mm outside the front straight.",
+            "steps": [
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24672", "via": "inner" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24671" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B", "at": { "piece": 21, "connector": "outer" } },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 12, "color": "#B03A2E" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://www.maerklin.de/de/produkte/details/article/24903"
+}

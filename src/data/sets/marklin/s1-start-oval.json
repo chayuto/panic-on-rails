@@ -1,0 +1,46 @@
+{
+    "id": "marklin-S1",
+    "brand": "marklin",
+    "scale": "ho-scale",
+    "productCode": "S1",
+    "badge": "S1",
+    "name": "C-Track Start Oval",
+    "price": 13000,
+    "kind": "starter",
+    "description": "The oval in Märklin's C-track start sets, called S1 in its track plans: twelve R1 curves and a 360mm straight on each side. Start sets pack it with a train and a controller; the game sells the track on its own.",
+    "contents": [
+        { "part": "marklin-24130", "qty": 12 },
+        { "part": "marklin-24172", "qty": 2 },
+        { "part": "marklin-24188", "qty": 2 }
+    ],
+    "footprint": { "width": 1150, "depth": 800, "space": true },
+    "plans": [
+        {
+            "id": "s1-oval",
+            "name": "Start oval",
+            "description": "R1 curves at both ends, 360mm of straight on each side: 1080 x 720mm on the track centre line.",
+            "steps": [
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24188" },
+                { "part": "marklin-24172" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" },
+                { "part": "marklin-24130", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#B03A2E" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://static.maerklin.de/damcontent/96/42/9642db5ccc95c07e2eb774535209693d1704981376.pdf"
+}

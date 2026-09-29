@@ -54,7 +54,12 @@ export const TrackSetSchema = z.object({
         qty: z.number().int().positive(),
     })).optional(),
     extends: z.array(z.string()).optional(),
-    footprint: z.object({ width: z.number().positive(), depth: z.number().positive() }).optional(),
+    footprint: z.object({
+        width: z.number().positive(),
+        depth: z.number().positive(),
+        /** The table space the maker says the layout needs, rounded up, rather than the box's exact size */
+        space: z.boolean().optional(),
+    }).optional(),
     plans: z.array(LayoutPlanSchema).min(1),
     referenceUrl: z.string().url().optional(),
     price: z.number().int().positive().optional(),

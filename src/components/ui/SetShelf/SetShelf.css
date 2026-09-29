@@ -137,6 +137,14 @@
   background: linear-gradient(90deg, #0b4ea2, #1565c0);
 }
 
+.set-box-marklin .set-box-lid {
+  background: linear-gradient(90deg, #243447, #35506b);
+}
+
+.set-box-hornby .set-box-lid {
+  background: linear-gradient(90deg, #6b1d28, #8c2a36);
+}
+
 .set-box-brand {
   font-weight: 800;
   letter-spacing: 0.12em;

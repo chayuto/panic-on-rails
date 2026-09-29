@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { CrashedPart } from '../../utils/crashPhysics';
 import { useSimulationStore } from '../useSimulationStore';
+import { useTrackStore } from '../useTrackStore';
+import { resetWorld } from '../../simulation/harness';
+import { DRIVING } from '../../simulation/driving';
+import { CAR_PITCH } from '../../config/rollingStock';
+import { sizeOf } from '../../config/scales';
 
 describe('useSimulationStore', () => {
     beforeEach(() => {
@@ -25,6 +30,18 @@ describe('useSimulationStore', () => {
 
             removeTrain(trainId);
             expect(useSimulationStore.getState().trains[trainId]).toBeUndefined();
+        });
+
+        it('builds a train to the scale of the track it is put on', () => {
+            resetWorld();
+            const edgeId = useTrackStore.getState().addTrack('marklin-24188', { x: 0, y: 0 }, 0)!;
+            const id = useSimulationStore.getState().spawnTrain(edgeId);
+            const k = sizeOf('ho-scale');
+            expect(useSimulationStore.getState().trains[id]).toMatchObject({
+                scale: 'ho-scale',
+                throttle: DRIVING.DEFAULT_THROTTLE * k,
+                carriageSpacing: CAR_PITCH * k,
+            });
         });
 
         it('should cycle colors if not provided', () => {
