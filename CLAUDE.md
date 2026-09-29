@@ -61,7 +61,9 @@ Rendering rules. They come from a measured budget (ROADMAP Phase 5); break them 
 - **Trains are drawn imperatively.** One `Shape` in `TrainLayer` reads the stores at draw time and stamps pre-drawn car sprites (`trains/carSprites.ts`), placed by `utils/trainCars.ts`. A store subscription redraws it after each simulation step. Never subscribe a canvas component to `trains` with a hook.
 - **No Konva shadows** (`shadowBlur`), and set `perfectDrawEnabled={false}` on filled+stroked shapes. Konva renders those through a full-screen scratch canvas per shape per frame. Bake shadows into sprites instead.
 - **Use atomic store selectors.** A whole-store `useX()` in `StageWrapper` or its hooks re-renders the canvas on every tick.
-- Rolling stock sizes live in `src/config/rollingStock.ts`. A train's position is its locomotive's front bogie, and `train.trail` records the route it came through so cars follow it through turnouts.
+- Rolling stock sizes live in `src/config/rollingStock.ts`.
+  - A train's position is its leading car's front bogie, and `train.trail` records the route it came through, so the cars follow it through turnouts.
+  - Turning back never moves a car. `reverseConsist` makes the far end lead and flips `train.locoLeading` (the locomotive pushes from the back); the step, the direction lever and buffer stops all go through it.
 
 ### State Management (Zustand Slice Pattern)
 
