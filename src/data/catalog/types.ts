@@ -186,6 +186,12 @@ export interface PartDefinition {
      * the part overrides it.
      */
     width?: number;
+
+    /** Width of the system's roadbed (mm): the catalog file's `trackWidth`. */
+    roadbedWidth?: number;
+
+    /** The piece carries road-crossing plates as wide as `width` */
+    roadCrossing?: boolean;
 }
 
 // ===========================

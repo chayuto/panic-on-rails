@@ -95,6 +95,8 @@ function transformToPart(
         discontinued: jsonPart.discontinued,
         referenceUrl: jsonPart.referenceUrl,
         width: jsonPart.width ?? trackWidth,
+        roadbedWidth: trackWidth,
+        ...(jsonPart.roadCrossing && { roadCrossing: true }),
     };
 }
 
