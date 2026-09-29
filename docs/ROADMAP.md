@@ -225,7 +225,17 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
       from Märklin's 2023 track-plan booklet. They include curved turnouts (24671/24672) and the
       24624 double slip with one drive per end. Every plan closes exactly, except S2's passing
       loop, which is 0.15 mm long on paper.
-- [ ] Hornby Track Packs A–F (Phase 6).
+- [x] **Hornby Setrack (OO):** the 3rd radius train-set oval and Track Extension Packs A–F,
+      ending in the whole TrakMat plan: two loops, a crossover, a double level crossing and
+      five sidings.
+  - Every dead end is within a millimetre of where it sits in Hornby's pack diagrams, as read
+    off them.
+  - The level crossing's 67mm against the loops' 66.68mm leaves 0.4mm.
+  - Known approximations:
+    - The R083 buffer stop clips onto a track in reality, but has 44mm of track of its own
+      here.
+    - Pack E's eighth piece, an R606, comes from its diagram, since Hornby's list names seven.
+    - The curved points' route shapes are XTrackCAD's.
 
 ### Phase 3: The Hobby, collection, virtual money and the shop
 
@@ -344,9 +354,10 @@ Order, biggest win per millisecond first:
     per-type creators; move them over only if one needs a change.
 - [x] **Scales:** H0 and OO beside N (`config/scales.ts`). Trains, speeds and braking grow with
       the model scale, so an H0 train drives like an N one, and track shows its brand's look.
-- [x] Brand: Märklin C-track (start oval plus C1–C5).
-- [ ] Brands: Hornby Setrack (Track Packs A–F), Tomix Fine Track, Bachmann E-Z Track.
-- [ ] Rolling stock per scale beyond the two generic H0 trains.
+- [x] Brands: Märklin C-track (start oval plus C1–C5), Hornby Setrack (oval plus Track Packs
+      A–F).
+- [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
+- [ ] Rolling stock per scale beyond the generic H0 and OO trains.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
 - [ ] Share a layout by URL.
 

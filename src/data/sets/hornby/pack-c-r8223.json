@@ -1,0 +1,64 @@
+{
+    "id": "hornby-R8223",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R8223",
+    "badge": "C",
+    "name": "Track Extension Pack C",
+    "price": 3700,
+    "kind": "expansion",
+    "description": "Closes the inner track into a second loop, with a crossover between the two.",
+    "contents": [
+        { "part": "hornby-R600", "qty": 2 },
+        { "part": "hornby-R606", "qty": 1 },
+        { "part": "hornby-R607", "qty": 4 },
+        { "part": "hornby-R8073", "qty": 1 }
+    ],
+    "extends": ["hornby-Oval", "hornby-R8221", "hornby-R8222"],
+    "plans": [
+        {
+            "id": "pack-c",
+            "name": "Two loops and a crossover (oval + A-C)",
+            "description": "The inner track becomes a full 2nd radius loop 67mm inside the oval, joined to it by a pair of points. B's reverse curve moves to the end of A's siding, which now curves round the corner.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R8073", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R8072", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R606", "at": { "piece": 8, "connector": "branch" } },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R606" },
+                { "part": "hornby-R606" },
+                { "part": "hornby-R083" },
+                { "part": "hornby-R8073", "at": { "piece": 2, "connector": "branch" }, "via": "branch" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R600" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#8E1B1B" },
+                { "piece": 24, "color": "#1F4E79" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/extension-pack-c-r8223"
+}

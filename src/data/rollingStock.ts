@@ -29,8 +29,9 @@ export interface RollingStock {
     price: number;
 }
 
-/** H0 trains are 160/87 the size of N ones and run that much faster. */
+/** H0 trains are 160/87 the size of N ones and run that much faster; OO 160/76.2. */
 const H0 = sizeOf('ho-scale');
+const OO = sizeOf('oo-scale');
 
 export const ROLLING_STOCK: RollingStock[] = [
     {
@@ -98,6 +99,28 @@ export const ROLLING_STOCK: RollingStock[] = [
         cars: 4,
         topSpeed: Math.round(260 * H0),
         price: 32000,
+    },
+    {
+        id: 'oo-tank-passenger',
+        name: 'OO tank engine and coaches',
+        description: 'A small tank engine and two coaches: the kind of train a Setrack train set comes with.',
+        generic: true,
+        scale: 'oo-scale',
+        color: '#2E5E3E',
+        cars: 3,
+        topSpeed: Math.round(150 * OO),
+        price: 18000,
+    },
+    {
+        id: 'oo-express',
+        name: 'OO express',
+        description: 'A tender locomotive and three coaches. Quick on the straights; the 1st radius curves will test it.',
+        generic: true,
+        scale: 'oo-scale',
+        color: '#6B1D28',
+        cars: 4,
+        topSpeed: Math.round(260 * OO),
+        price: 26000,
     },
 ];
 

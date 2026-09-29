@@ -1,0 +1,48 @@
+{
+    "id": "hornby-R8221",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R8221",
+    "badge": "A",
+    "name": "Track Extension Pack A",
+    "price": 2600,
+    "kind": "expansion",
+    "description": "A point on the back straight and a siding outside it. The oval grows to three straights a side.",
+    "contents": [
+        { "part": "hornby-R600", "qty": 1 },
+        { "part": "hornby-R601", "qty": 2 },
+        { "part": "hornby-R606", "qty": 1 },
+        { "part": "hornby-R8072", "qty": 1 },
+        { "part": "hornby-R083", "qty": 1 }
+    ],
+    "extends": ["hornby-Oval"],
+    "plans": [
+        {
+            "id": "pack-a",
+            "name": "Siding (oval + A)",
+            "description": "The oval grows to 502.5mm a side. The point on the back straight leads to a siding 67mm outside it.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R8072", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R606", "at": { "piece": 8, "connector": "branch" } },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R083" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#8E1B1B" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/extension-pack-a-r8221"
+}

@@ -1,0 +1,57 @@
+{
+    "id": "hornby-R8222",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R8222",
+    "badge": "B",
+    "name": "Track Extension Pack B",
+    "price": 3700,
+    "kind": "expansion",
+    "description": "A point off the front straight and the 2nd radius curves for an inner track, 67mm inside the oval.",
+    "contents": [
+        { "part": "hornby-R600", "qty": 2 },
+        { "part": "hornby-R606", "qty": 1 },
+        { "part": "hornby-R607", "qty": 4 },
+        { "part": "hornby-R8073", "qty": 1 },
+        { "part": "hornby-R083", "qty": 1 }
+    ],
+    "extends": ["hornby-Oval", "hornby-R8221"],
+    "plans": [
+        {
+            "id": "pack-b",
+            "name": "Inner track (oval + A + B)",
+            "description": "A point at the east end of the front straight leads inside, round the left-hand curves and along the back to a buffer stop.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R8073", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R8072", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R606", "at": { "piece": 8, "connector": "branch" } },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R083" },
+                { "part": "hornby-R606", "via": "B", "at": { "piece": 2, "connector": "branch" } },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R607" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R083" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#8E1B1B" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/extension-pack-b-r8222"
+}

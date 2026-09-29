@@ -150,6 +150,24 @@ test.describe('Train sets shelf', () => {
         expect(await page.evaluate(() => window.__PANIC_SIM__!.summarize().crashed)).toBe(0);
     });
 
+    test('Hornby Pack F: the whole TrakMat plan builds from its box and runs two OO trains', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+        await page.getByTestId('open-set-shelf').click();
+        const box = page.getByTestId('set-box-hornby-R8226');
+        await expect(box).toContainText('Track Extension Pack F');
+        await box.getByTestId('set-build-hornby-R8226').click();
+
+        // 55 pieces, 63 edges: seven points of 2 and the double level crossing's 2
+        await expect.poll(() => edgeCount(page)).toBe(63);
+        expect(await openEnds(page)).toBe(0);
+        const trains = await page.evaluate(() => Object.values(window.__PANIC_STORES__!.simulation.getState().trains));
+        expect(trains.map(t => t.scale)).toEqual(['oo-scale', 'oo-scale']);
+        const start = await page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed)).toBeGreaterThan(start + 1);
+        expect(await page.evaluate(() => window.__PANIC_SIM__!.summarize().crashed)).toBe(0);
+    });
+
     test('Escape closes the shelf without building', async ({ page, app }) => {
         void app;
         await page.getByTestId('open-set-shelf').click();

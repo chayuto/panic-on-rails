@@ -81,12 +81,12 @@ export const C_TRACK_LOOK: ModelLook = {
     studs: '#c3c7cc',
 };
 
-/** Hornby Setrack (OO): black plastic sleepers straight on the baseboard. */
+/** Hornby Setrack (OO): black plastic sleepers straight on the baseboard (lifted a little to read on screen). */
 export const SETRACK_LOOK: ModelLook = {
     gauge: 16.5,
     ballast: null,
     ballastEdge: '#1f1c1a',
-    sleeper: '#2b2724',
+    sleeper: '#4a423b',
     sleeperLength: 32,
     sleeperWidth: 4.4,
     sleeperSpacing: 12.5,

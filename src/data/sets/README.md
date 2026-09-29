@@ -79,9 +79,11 @@ Each field of a step:
   | Turnout | `entry`, `main`, `branch` |
   | Wye | `entry`, `left`, `right` |
   | Crossing, crossover | `A1`, `A2`, `B1`, `B2` |
-  | Topology part | The names in its catalog entry: Kato's WX310 double crossover and Märklin's double slip have `A1`, `A2`, `B1`, `B2`; Märklin's curved turnouts `entry`, `inner`, `outer` |
+  | Topology part | The names in its catalog entry: Kato's WX310 double crossover and Märklin's double slip have `A1`, `A2`, `B1`, `B2`; Märklin's and Hornby's curved points `entry`, `inner`, `outer`; Hornby's double level crossing `A1`, `A2`, `B1`, `B2` |
 
-The first step sits at the origin, heading east (right). The builder places everything else
+The first step sits at the origin, heading east (right), placed from the part's own origin
+whatever its `via`. To put a two-track piece (such as a double level crossing) with its second
+track above the first, attach it later in the chain `via` that track's connector. The builder places everything else
 from catalog geometry, then pairs connectors that meet face to face within 0.5 mm and 0.5°. The
 last piece of a loop is proved to meet the first this way.
 

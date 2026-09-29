@@ -14,6 +14,7 @@ Parts are now defined in `src/data/catalog/parts/*.json`.
 src/data/catalog/parts/
 ├── kato.json        # Kato Unitrack N-Scale
 ├── marklin.json     # Märklin C-track H0
+├── hornby.json      # Hornby Setrack OO
 ├── brio.json        # Brio / IKEA Wooden Railway
 └── tomix.json       # Tomix Fine Track (coming soon)
 ```

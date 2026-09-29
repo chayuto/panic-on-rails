@@ -1,0 +1,317 @@
+{
+    "version": 1,
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "trackWidth": 32,
+    "parts": [
+        {
+            "id": "hornby-R600",
+            "cost": 600,
+            "name": "Straight 167.5mm",
+            "type": "straight",
+            "length": 167.5,
+            "productCode": "R600",
+            "description": "The standard straight. Hornby rounds it to 168mm; two make the 335mm double straight."
+        },
+        {
+            "id": "hornby-R8206",
+            "cost": 1200,
+            "name": "Power Track 167.5mm",
+            "type": "straight",
+            "length": 167.5,
+            "productCode": "R8206",
+            "description": "A standard straight with the clip for the controller's wires."
+        },
+        {
+            "id": "hornby-R601",
+            "cost": 900,
+            "name": "Double Straight 335mm",
+            "type": "straight",
+            "length": 335,
+            "productCode": "R601"
+        },
+        {
+            "id": "hornby-R603",
+            "cost": 1400,
+            "name": "Long Straight 670mm",
+            "type": "straight",
+            "length": 670,
+            "productCode": "R603"
+        },
+        {
+            "id": "hornby-R610",
+            "cost": 400,
+            "name": "Short Straight 38mm",
+            "type": "straight",
+            "length": 38,
+            "productCode": "R610"
+        },
+        {
+            "id": "hornby-R604",
+            "cost": 500,
+            "name": "Curve 1st radius 22.5°",
+            "type": "curve",
+            "radius": 371,
+            "angle": 22.5,
+            "productCode": "R604",
+            "description": "Half of a 1st radius curve."
+        },
+        {
+            "id": "hornby-R605",
+            "cost": 600,
+            "name": "Curve 1st radius 45°",
+            "type": "curve",
+            "radius": 371,
+            "angle": 45,
+            "productCode": "R605",
+            "description": "The tightest Setrack curve."
+        },
+        {
+            "id": "hornby-R643",
+            "cost": 500,
+            "name": "Curve 2nd radius 11.25°",
+            "type": "curve",
+            "radius": 438,
+            "angle": 11.25,
+            "productCode": "R643",
+            "description": "A quarter of a 2nd radius curve."
+        },
+        {
+            "id": "hornby-R606",
+            "cost": 600,
+            "name": "Curve 2nd radius 22.5°",
+            "type": "curve",
+            "radius": 438,
+            "angle": 22.5,
+            "productCode": "R606",
+            "description": "Half of a 2nd radius curve: the points' reverse curve, bringing a branch parallel at 67mm."
+        },
+        {
+            "id": "hornby-R607",
+            "cost": 700,
+            "name": "Curve 2nd radius 45°",
+            "type": "curve",
+            "radius": 438,
+            "angle": 45,
+            "productCode": "R607"
+        },
+        {
+            "id": "hornby-R608",
+            "cost": 600,
+            "name": "Curve 3rd radius 22.5°",
+            "type": "curve",
+            "radius": 505,
+            "angle": 22.5,
+            "productCode": "R608"
+        },
+        {
+            "id": "hornby-R609",
+            "cost": 700,
+            "name": "Curve 3rd radius 45°",
+            "type": "curve",
+            "radius": 505,
+            "angle": 45,
+            "productCode": "R609",
+            "description": "The train-set curve: eight make the 3rd radius circle."
+        },
+        {
+            "id": "hornby-R8261",
+            "cost": 700,
+            "name": "Curve 4th radius 22.5°",
+            "type": "curve",
+            "radius": 572,
+            "angle": 22.5,
+            "productCode": "R8261"
+        },
+        {
+            "id": "hornby-R8262",
+            "cost": 800,
+            "name": "Curve 4th radius 45°",
+            "type": "curve",
+            "radius": 572,
+            "angle": 45,
+            "productCode": "R8262"
+        },
+        {
+            "id": "hornby-R8072",
+            "cost": 2200,
+            "name": "Point Left",
+            "type": "switch",
+            "mainLength": 167.5,
+            "branchRadius": 438,
+            "branchAngle": 22.5,
+            "branchDirection": "left",
+            "productCode": "R8072",
+            "referenceUrl": "https://uk.hornby.com/products/left-hand-point-r8072",
+            "description": "167.5mm straight route; 2nd radius 438mm 22.5° diverging route. With an R606 after it, the branch runs parallel at 67mm."
+        },
+        {
+            "id": "hornby-R8073",
+            "cost": 2200,
+            "name": "Point Right",
+            "type": "switch",
+            "mainLength": 167.5,
+            "branchRadius": 438,
+            "branchAngle": 22.5,
+            "branchDirection": "right",
+            "productCode": "R8073",
+            "referenceUrl": "https://uk.hornby.com/products/right-hand-point-r8073",
+            "description": "167.5mm straight route; 2nd radius 438mm 22.5° diverging route. With an R606 after it, the branch runs parallel at 67mm."
+        },
+        {
+            "id": "hornby-R8074",
+            "cost": 3200,
+            "name": "Curved Point Left",
+            "type": "topology",
+            "productCode": "R8074",
+            "description": "Two curving routes of 22.5° and 33.75°. Hornby gives only the angles and a 438mm radius; the route shapes are XTrackCAD's.",
+            "connectors": {
+                "entry": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "entry",
+                    "to": "outer",
+                    "path": [
+                        {
+                            "straight": 83.06
+                        },
+                        {
+                            "arc": 357.27,
+                            "angle": 22.5,
+                            "turn": "left"
+                        },
+                        {
+                            "straight": 16.47
+                        }
+                    ]
+                },
+                {
+                    "from": "entry",
+                    "to": "inner",
+                    "path": [
+                        {
+                            "straight": 40.61
+                        },
+                        {
+                            "arc": 343.24,
+                            "angle": 33.75,
+                            "turn": "left"
+                        },
+                        {
+                            "straight": 16.47
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "hornby-R8075",
+            "cost": 3200,
+            "name": "Curved Point Right",
+            "type": "topology",
+            "productCode": "R8075",
+            "description": "Two curving routes of 22.5° and 33.75°. Hornby gives only the angles and a 438mm radius; the route shapes are XTrackCAD's.",
+            "connectors": {
+                "entry": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "entry",
+                    "to": "outer",
+                    "path": [
+                        {
+                            "straight": 83.06
+                        },
+                        {
+                            "arc": 357.27,
+                            "angle": 22.5,
+                            "turn": "right"
+                        },
+                        {
+                            "straight": 16.47
+                        }
+                    ]
+                },
+                {
+                    "from": "entry",
+                    "to": "inner",
+                    "path": [
+                        {
+                            "straight": 40.61
+                        },
+                        {
+                            "arc": 343.24,
+                            "angle": 33.75,
+                            "turn": "right"
+                        },
+                        {
+                            "straight": 16.47
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "hornby-R636",
+            "cost": 3000,
+            "name": "Double Level Crossing",
+            "type": "topology",
+            "productCode": "R636",
+            "category": "straight",
+            "roadCrossing": true,
+            "width": 100,
+            "description": "Two straights at 67mm centres under one road crossing with gates.",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 67,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 167.5
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 167.5
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "hornby-R083",
+            "cost": 600,
+            "name": "Buffer Stop",
+            "type": "straight",
+            "length": 44,
+            "productCode": "R083",
+            "bumper": true,
+            "description": "Clips onto the end of a track. The game gives it 44mm of track of its own, so a siding ends 44mm further on than the real one."
+        }
+    ]
+}

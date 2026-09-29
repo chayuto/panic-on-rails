@@ -1,0 +1,72 @@
+{
+    "id": "hornby-R8224",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R8224",
+    "badge": "D",
+    "name": "Track Extension Pack D",
+    "price": 5200,
+    "kind": "expansion",
+    "description": "A double level crossing across both front straights, and a point leading to 1st radius curves and a stub inside the loops. The pack's crossing (X2120) is Hornby's R636.",
+    "contents": [
+        { "part": "hornby-R605", "qty": 3 },
+        { "part": "hornby-R608", "qty": 1 },
+        { "part": "hornby-R8072", "qty": 1 },
+        { "part": "hornby-R083", "qty": 1 },
+        { "part": "hornby-R636", "qty": 1 }
+    ],
+    "extends": ["hornby-Oval", "hornby-R8221", "hornby-R8222", "hornby-R8223"],
+    "plans": [
+        {
+            "id": "pack-d",
+            "name": "Level crossing and stub (oval + A-D)",
+            "description": "The crossing takes the west end of both front straights. A point on the inner front curves round through 180° to a stub along the back, built from the straights the crossing and point replaced.",
+            "steps": [
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R8073", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R8072", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R636", "via": "B1" },
+                { "part": "hornby-R606", "at": { "piece": 7, "connector": "branch" } },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R606" },
+                { "part": "hornby-R606" },
+                { "part": "hornby-R083" },
+                { "part": "hornby-R8073", "at": { "piece": 1, "connector": "branch" }, "via": "branch" },
+                { "part": "hornby-R8072", "at": { "piece": 18, "connector": "main" } },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R607", "via": "B" },
+                { "part": "hornby-R608", "via": "B", "at": { "piece": 19, "connector": "branch" } },
+                { "part": "hornby-R605", "via": "B" },
+                { "part": "hornby-R605", "via": "B" },
+                { "part": "hornby-R605", "via": "B" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R083" }
+            ],
+            "trains": [
+                { "piece": 6, "color": "#8E1B1B" },
+                { "piece": 24, "color": "#1F4E79" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/extension-pack-d-r8224"
+}
