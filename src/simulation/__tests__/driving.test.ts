@@ -8,6 +8,7 @@ import { stepSimulation, type SimWorld, type SimEvent } from '../step';
 import { approachSpeed, curveLimit, derailSpeed, DRIVING, scaleKmh, stoppingLimit } from '../driving';
 import { SIGNAL_STOP_GAP } from '../movement';
 import { lineGraph, train, world, node } from './fixtures';
+import { SCALES, sizeOf } from '../../config/scales';
 import type { EdgeId, TrackEdge } from '../../types';
 
 const ctx = () => ({ now: 0, random: () => 0.5 });
@@ -24,6 +25,20 @@ function run(w: SimWorld, seconds: number): { world: SimWorld; events: SimEvent[
     }
     return { world: w, events, speeds };
 }
+
+describe('bigger scales', () => {
+    const k = sizeOf('ho-scale');
+
+    it('drive exactly like N, grown by the scale: every speed k times, at every distance k times', () => {
+        expect(curveLimit(360 * k, k)).toBeCloseTo(curveLimit(360) * k, 9);
+        expect(stoppingLimit(50 * k, 1 / 60, k)).toBeCloseTo(stoppingLimit(50, 1 / 60) * k, 9);
+        expect(approachSpeed(100 * k, 200 * k, 0.5, k)).toBeCloseTo(approachSpeed(100, 200, 0.5) * k, 9);
+    });
+
+    it('read the same scale speed', () => {
+        expect(scaleKmh(100 * k, SCALES['ho-scale'].ratio)).toBeCloseTo(scaleKmh(100), 9);
+    });
+});
 
 describe('speed rules', () => {
     it('accelerates and brakes at the power pack rates', () => {

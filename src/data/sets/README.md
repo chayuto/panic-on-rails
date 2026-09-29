@@ -22,6 +22,9 @@ One JSON file per real product, in `src/data/sets/<brand>/`. Files are loaded au
 - **A starter set's first plan must measure what's printed on the box**, within 1.5%. Each
   piece is swept by its catalog `width`: 25 mm of Kato roadbed, or 69 mm for the road-crossing
   rerailer.
+- Some makers state the table a layout needs, rounded up, rather than a box size. Märklin
+  does. Mark those `"footprint": { ..., "space": true }`. The first plan must then fit that
+  table and fill at least 85% of each side.
 - Never loosen a test to make a plan pass. A plan that doesn't close means the plan or the
   catalog geometry is wrong.
 
@@ -76,7 +79,7 @@ Each field of a step:
   | Turnout | `entry`, `main`, `branch` |
   | Wye | `entry`, `left`, `right` |
   | Crossing, crossover | `A1`, `A2`, `B1`, `B2` |
-  | Topology part | The names in its catalog entry: Kato's WX310 double crossover has `A1`, `A2`, `B1`, `B2` |
+  | Topology part | The names in its catalog entry: Kato's WX310 double crossover and Märklin's double slip have `A1`, `A2`, `B1`, `B2`; Märklin's curved turnouts `entry`, `inner`, `outer` |
 
 The first step sits at the origin, heading east (right). The builder places everything else
 from catalog geometry, then pairs connectors that meet face to face within 0.5 mm and 0.5°. The

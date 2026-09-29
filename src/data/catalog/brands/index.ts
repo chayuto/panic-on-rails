@@ -15,15 +15,18 @@ import { parsePartsCatalog } from '../loader';
 import katoJson from '../parts/kato.json';
 import brioJson from '../parts/brio.json';
 import ikeaJson from '../parts/ikea.json';
+import marklinJson from '../parts/marklin.json';
 
 // Parse and register all brands
 const KATO_PARTS = parsePartsCatalog(katoJson);
 const BRIO_PARTS = parsePartsCatalog(brioJson);
 const IKEA_PARTS = parsePartsCatalog(ikeaJson);
+const MARKLIN_PARTS = parsePartsCatalog(marklinJson);
 
 registerParts(KATO_PARTS);
 registerParts(BRIO_PARTS);
 registerParts(IKEA_PARTS);
+registerParts(MARKLIN_PARTS);
 
 // Re-export for backward compatibility
 // @deprecated Use getPartsByBrand('kato') instead

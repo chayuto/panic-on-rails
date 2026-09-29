@@ -50,7 +50,7 @@ needs no invented levels.
 |--------|---------|------------------|-------|
 | **Kato Unitrack** (N) | Master sets **M1** 20-852 (basic oval, 1337 × 677 mm) and **M2** 20-853 (oval and siding, 2019 × 751 mm) | Variation sets **V1–V7** (single track: passing siding, viaduct, yard, siding, inner and outer loops, double crossover) and **V11–V17** (double track) | Our first system: exact geometry is already in the catalog. |
 | **Hornby** (OO) | Train sets with a TrakMat | **Track Extension Packs A–F** build the TrakMat plan step by step | Needs Setrack geometry (R1–R4 radii). |
-| **Märklin C-track** (H0) | Start up sets | Extension sets **C1–C5**: siding, passing siding, curved turnouts, double slip and yard | Needs curved turnouts and a double slip. |
+| **Märklin C-track** (H0) | Start up sets, whose oval Märklin's plans call **S1** | Extension sets **C1–C5**: siding, passing loop, curved turnouts, spurs and a yard with a double slip | ✅ In the game, every plan in the 2023 booklet. |
 | **Brio / IKEA** (wooden) | Starter sets | Expansion packs | The generic wooden parts need product mapping. |
 
 ### What's in a real box (Kato)
@@ -87,6 +87,31 @@ What the measurements taught us:
 Exact contents and sources for every shipped set live in its JSON file
 (`src/data/sets/kato/*.json`, `referenceUrl`).
 
+### What's in a real box (Märklin)
+
+Sources: Märklin's product pages, its C-track plan booklet (C-Gleispläne 2023) and the 2005
+geometry brochure, with XTrackCAD's parameter files for the slip and curved-turnout detail.
+
+| Box | Contents | Märklin's table (cm) | Game |
+|-----|----------|----------------------|------|
+| **S1** start oval | 24130×12, 24188×2, 24172×2 | 115 × 80 | ✅ 112 × 76 on the track |
+| **C1** 24900 | 24172×2, 24224, 24611, 24977 | 135 × 80 | ✅ Siding inside or outside the oval |
+| **C2** 24902 | 24188×3, 24172×5, 24224×2, 24611, 24612 | 190 × 80 | ✅ Passing loop (S2), and with C1 a siding too |
+| **C3** 24903 | 24188×7, 24172×7, 24130×2, 24671, 24672 | 190 × 95 | ✅ Outer track off the curved turnouts; closes exactly |
+| **C4** 24904 | 24188×4, 24172×4, 24077×2, 24130×2, 24230×6, 24671, 24672 | 180 × 100 | ✅ Two spurs; closes exactly |
+| **C5** 24905 | 24188×7, 24172×7, 24094×2, 24224, 24611, 24612, 24624, 24977×4 | 170 × 85 | ✅ Yard with a double slip |
+
+- **Märklin gives table sizes, not box sizes.** They are rounded up, so these plans must fit
+  the table rather than match it (`footprint.space`).
+- **S1 is the oval inside the start sets.** It isn't sold as a track pack; the game sells the
+  track on its own.
+- **The start oval comes from Märklin's plans.** Start sets such as 29173 swap one straight for
+  a base-station track.
+- **Curved turnouts:** the inner route is R1 30°. The outer route is a 77.5 mm straight, then
+  R1 30°.
+- **Double slip:** two 188.3 mm tracks crossing at 24.3°, and one drive at each end that sets
+  both routes from that end.
+
 ## 4. Can we build that? (feasibility, 2026-09-30)
 
 | In the real box | In the game | Gap / phase |
@@ -99,7 +124,7 @@ Exact contents and sources for every shipped set live in its JSON file
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
 | Double-track pieces (V11–V15) | ❌ | Phase 6 |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
-| Curved turnouts, double slip (Märklin C3–C5, Hornby) | Engine ready: the topology parts that built the WX310 | The parts and their brands (Phase 6) |
+| Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ Märklin's as topology parts; Hornby's next | Hornby (Phase 6) |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
 | The train in a train set | Partial: generic coloured trains | Rolling stock as data (Phase 4) |
 | Buying the next box | ❌ | Collection, wallet and shop (Phase 3) |

@@ -103,9 +103,13 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 ### Track Parts Catalog
 
-`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato N-Scale, Brio, IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Track creators live in `src/stores/slices/trackCreators/` (standard, switch, crossing, compound, topology); `createPartTrack(part, position, rotation)` is the single pure entry point that dispatches to them. Parts carry a footprint `width` (the catalog file's `trackWidth` unless overridden, e.g. Kato's 69 mm road-crossing rerailer); straights may end in a buffer stop (`bumper: true`).
+`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato Unitrack (N), Märklin C-track (H0), Brio and IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Track creators live in `src/stores/slices/trackCreators/` (standard, switch, crossing, compound, topology); `createPartTrack(part, position, rotation)` is the single pure entry point that dispatches to them. Parts carry a footprint `width` (the catalog file's `trackWidth` unless overridden, e.g. Kato's 69 mm road-crossing rerailer); straights may end in a buffer stop (`bumper: true`).
 
 Complex pieces (curved turnouts, double slips, scissors crossovers) are **topology parts**: named connectors plus routes, each a path of `{straight}` and `{arc, angle, turn}` steps. Two routes at one connector make points; the first route listed is state 0. `data/catalog/topology.ts` resolves them once for both connectors and track creation, and throws when routes that should meet miss by more than 0.5 mm / 0.5°. Prefer a topology part over a new part type. See `src/data/catalog/README.md`.
+
+### Scales
+
+`src/config/scales.ts` holds each scale's model ratio, gauge and `size` relative to N (H0 = 160/87). The game was tuned in N; a bigger scale is N grown by `size`: cars (`trainCars.ts`, `TrainLayer`), speeds, acceleration, braking, curve limits and look-ahead (`driving.ts` functions take `size`), and collision thresholds. A train's `scale` comes from its rolling stock or the track it's put on; collection mode only runs a train on track of its own scale. The track painter draws each brand in its own `ModelLook` (Kato's ballast, Märklin's grey bed and centre studs).
 
 ### Boxed Sets & Layout Plans
 

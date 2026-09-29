@@ -9,7 +9,9 @@
  * - Every curve has a comfortable top speed (from its radius). Take one
  *   much faster than that and the train derails.
  *
- * Speeds are model mm/s. At N scale (1:160), 100 mm/s is 58 km/h.
+ * Speeds are model mm/s. At N scale (1:160), 100 mm/s is 58 km/h. The
+ * constants are N's; a bigger scale multiplies them by its `size` (see
+ * config/scales), so an H0 train drives like an N one at 1.84× the mm/s.
  */
 
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Train } from '../types';
@@ -30,23 +32,21 @@ export const DRIVING = {
     CURVE_ACCEL: 103,
     /** This far over a curve's comfortable speed, the train leaves the rails */
     DERAIL_FACTOR: 1.25,
-    /** Model scale, for scale speeds */
-    SCALE: 160,
 } as const;
 
-/** Comfortable top speed on a curve of `radius` mm. */
-export function curveLimit(radius: number): number {
-    return Math.sqrt(DRIVING.CURVE_ACCEL * radius);
+/** Comfortable top speed on a curve of `radius` mm, for a train `size` times N. */
+export function curveLimit(radius: number, size = 1): number {
+    return Math.sqrt(DRIVING.CURVE_ACCEL * size * radius);
 }
 
 /** Speed at which a curve of `radius` mm derails a train. */
-export function derailSpeed(radius: number): number {
-    return curveLimit(radius) * DRIVING.DERAIL_FACTOR;
+export function derailSpeed(radius: number, size = 1): number {
+    return curveLimit(radius, size) * DRIVING.DERAIL_FACTOR;
 }
 
-/** Model mm/s as scale km/h. */
-export function scaleKmh(mmPerSecond: number): number {
-    return (mmPerSecond * DRIVING.SCALE * 3.6) / 1000;
+/** Model mm/s as scale km/h, at 1:`ratio`. */
+export function scaleKmh(mmPerSecond: number, ratio = 160): number {
+    return (mmPerSecond * ratio * 3.6) / 1000;
 }
 
 /**
@@ -55,16 +55,16 @@ export function scaleKmh(mmPerSecond: number): number {
  * (v·dt + v²/2a ≤ distance), so braking starts on time and the train
  * arrives at a crawl rather than one tick too fast.
  */
-export function stoppingLimit(distance: number, dt = 0): number {
-    const a = DRIVING.BRAKING;
+export function stoppingLimit(distance: number, dt = 0, size = 1): number {
+    const a = DRIVING.BRAKING * size;
     const d = Math.max(0, distance);
-    return Math.max(DRIVING.CREEP, -a * dt + Math.sqrt((a * dt) ** 2 + 2 * a * d));
+    return Math.max(DRIVING.CREEP * size, -a * dt + Math.sqrt((a * dt) ** 2 + 2 * a * d));
 }
 
 /** Move `speed` toward `target` at most one tick's acceleration or braking. */
-export function approachSpeed(speed: number, target: number, dt: number): number {
-    if (target > speed) return Math.min(target, speed + DRIVING.ACCELERATION * dt);
-    return Math.max(target, speed - DRIVING.BRAKING * dt);
+export function approachSpeed(speed: number, target: number, dt: number, size = 1): number {
+    if (target > speed) return Math.min(target, speed + DRIVING.ACCELERATION * size * dt);
+    return Math.max(target, speed - DRIVING.BRAKING * size * dt);
 }
 
 /** The speed a train is trying to reach: its throttle, or zero if stopping or reversing. */
@@ -126,6 +126,6 @@ export function stopAhead(
 }
 
 /** How far ahead to look for stops: the braking distance from `speed`, plus a margin. */
-export function lookaheadFor(speed: number): number {
-    return (speed * speed) / (2 * DRIVING.BRAKING) + 40;
+export function lookaheadFor(speed: number, size = 1): number {
+    return (speed * speed) / (2 * DRIVING.BRAKING * size) + 40 * size;
 }

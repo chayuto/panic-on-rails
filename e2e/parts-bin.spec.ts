@@ -67,4 +67,13 @@ test.describe('Parts Bin', () => {
         const count = await partCards.count();
         expect(count).toBeGreaterThan(0);
     });
+
+    test('the H0 tab holds Märklin C-track, curved turnouts and the double slip included', async ({ page }) => {
+        const partsBin = page.getByTestId('parts-bin');
+        await page.getByTestId('mode-free').click();
+        await partsBin.getByRole('button', { name: 'H0', exact: true }).click();
+        await expect(partsBin.getByText('Straight 188.3mm')).toBeVisible();
+        await expect(partsBin.getByText('Curved Turnout Left')).toBeAttached();
+        await expect(partsBin.getByText('Double Slip Switch')).toBeAttached();
+    });
 });

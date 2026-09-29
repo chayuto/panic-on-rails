@@ -3,6 +3,7 @@
  */
 
 import type { TrainId, EdgeId } from './common';
+import type { PartScale } from '../data/catalog/types';
 
 /** A train moving along the track graph */
 export interface Train {
@@ -20,6 +21,8 @@ export interface Train {
     color: string;
     /** Which rolling stock this is (see data/rollingStock); none for free-build trains */
     stockId?: string;
+    /** The scale it's built to: its size and speeds (config/scales). Missing: N. */
+    scale?: PartScale;
     // Bounce animation state
     bounceTime?: number;    // Timestamp when bounce started (performance.now())
     // Control state

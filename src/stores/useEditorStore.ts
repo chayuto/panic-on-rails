@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { EdgeId, PartId, Vector2, NodeId, SensorId, SignalId } from '../types';
+import type { EdgeId, PartId, PartScale, Vector2, NodeId, SensorId, SignalId } from '../types';
 
 // Snap result when near an open endpoint
 export interface SnapResult {
@@ -23,7 +23,7 @@ interface EditorState {
     // Selection state
     selectedEdgeId: EdgeId | null;
     selectedPartId: PartId;
-    selectedSystem: 'n-scale' | 'wooden';
+    selectedSystem: PartScale;
 
     // Viewport
     showGrid: boolean;
@@ -74,9 +74,9 @@ interface EditorActions {
     /**
      * Switch the active track system catalog.
      * 
-     * @param system - Track system ('n-scale' | 'wooden')
+     * @param system - Track system: a scale ('n-scale', 'ho-scale', 'wooden'...)
      */
-    setSelectedSystem: (system: 'n-scale' | 'wooden') => void;
+    setSelectedSystem: (system: PartScale) => void;
 
     // Viewport actions
 

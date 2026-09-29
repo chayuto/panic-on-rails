@@ -15,10 +15,11 @@ import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Rep
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
-import { DRIVING, scaleKmh, throttleOf } from '../../simulation/driving';
+import { scaleKmh, throttleOf } from '../../simulation/driving';
+import { SCALES } from '../../config/scales';
 import { useCollectionStore } from '../../stores/useCollectionStore';
 import { useShopStore } from '../../stores/useShopStore';
-import { getRollingStock, ROLLING_STOCK } from '../../data/rollingStock';
+import { getRollingStock, ROLLING_STOCK, topSpeedOf } from '../../data/rollingStock';
 import { trainsLeft } from '../../data/collection';
 import type { Train } from '../../types';
 import './TrainPanel.css';
@@ -217,7 +218,7 @@ export function TrainPanel() {
                                     <input
                                         type="range"
                                         min={0}
-                                        max={getRollingStock(train.stockId)?.topSpeed ?? DRIVING.MAX_THROTTLE}
+                                        max={topSpeedOf(train)}
                                         step={5}
                                         value={throttleOf(train)}
                                         onChange={e => setTrainThrottle(train.id, Number(e.target.value))}
@@ -225,7 +226,7 @@ export function TrainPanel() {
                                         data-testid={`train-throttle-${train.id}`}
                                     />
                                     <span className="train-speed" data-testid={`train-speed-${train.id}`}>
-                                        {Math.round(scaleKmh(train.speed))} km/h
+                                        {Math.round(scaleKmh(train.speed, SCALES[train.scale ?? 'n-scale'].ratio))} km/h
                                     </span>
                                 </label>
                             )}

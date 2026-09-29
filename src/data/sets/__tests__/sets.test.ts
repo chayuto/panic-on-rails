@@ -113,13 +113,26 @@ describe('boxed sets', () => {
     });
 
     // A starter's first plan is the box itself, so it must measure what the box says
-    it.each(sets.filter(s => s.kind === 'starter' && s.footprint).map(s => [s.id, s] as const))(
+    it.each(sets.filter(s => s.kind === 'starter' && s.footprint && !s.footprint.space).map(s => [s.id, s] as const))(
         '%s: the first plan measures what is printed on the box',
         (_id, set) => {
             const { long, short } = footprint(set.plans[0]);
             const [boxLong, boxShort] = [set.footprint!.width, set.footprint!.depth].sort((a, b) => b - a);
             expect(Math.abs(long - boxLong) / boxLong, `long side ${long.toFixed(1)} vs ${boxLong}`).toBeLessThan(0.015);
             expect(Math.abs(short - boxShort) / boxShort, `short side ${short.toFixed(1)} vs ${boxShort}`).toBeLessThan(0.015);
+        }
+    );
+
+    // Märklin gives the table a layout needs, rounded up: the plan must fit it, with little to spare
+    it.each(sets.filter(s => s.footprint?.space).map(s => [s.id, s] as const))(
+        '%s: the first plan fits the table space the maker gives',
+        (_id, set) => {
+            const { long, short } = footprint(set.plans[0]);
+            const [spaceLong, spaceShort] = [set.footprint!.width, set.footprint!.depth].sort((a, b) => b - a);
+            expect(long, `long side ${long.toFixed(1)} vs ${spaceLong}`).toBeLessThanOrEqual(spaceLong);
+            expect(short, `short side ${short.toFixed(1)} vs ${spaceShort}`).toBeLessThanOrEqual(spaceShort);
+            expect(long / spaceLong, `long side ${long.toFixed(1)} leaves most of ${spaceLong} empty`).toBeGreaterThan(0.85);
+            expect(short / spaceShort, `short side ${short.toFixed(1)} leaves most of ${spaceShort} empty`).toBeGreaterThan(0.85);
         }
     );
 });

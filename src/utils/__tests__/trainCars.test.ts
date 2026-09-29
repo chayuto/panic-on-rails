@@ -10,6 +10,7 @@ import { BOGIE_SPACING, CAR_PITCH } from '../../config/rollingStock';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { resetWorld } from '../../simulation/harness';
 import type { Train } from '../../types';
+import { sizeOf } from '../../config/scales';
 
 const train = (over: Partial<Train>): Train => ({
     id: 't1',
@@ -36,6 +37,15 @@ describe('getCarPoses', () => {
             expect(pose.y).toBeCloseTo(0, 6);
             expect(pose.rotation).toBeCloseTo(0, 6);
         }
+    });
+
+    it('spaces an H0 train\'s cars in proportion to its scale', () => {
+        const k = sizeOf('ho-scale');
+        const edgeId = useTrackStore.getState().addTrack('marklin-24360', { x: 0, y: 0 }, 0)!;
+        const { edges, nodes } = useTrackStore.getState();
+        const poses = getCarPoses(train({ currentEdgeId: edgeId, distanceAlongEdge: 350, scale: 'ho-scale' }), edges, nodes);
+        expect(poses[0].x - poses[1].x).toBeCloseTo(CAR_PITCH * k, 6);
+        expect(poses[0].x).toBeCloseTo(350 - (BOGIE_SPACING * k) / 2, 6);
     });
 
     it('faces the other way when the train runs backward along the edge', () => {

@@ -19,6 +19,7 @@ import type {
     WorldConnector,
     SnapMatchResult,
     SnapConfig,
+    PartScale,
 } from '../types';
 import { DEFAULT_SNAP_CONFIG } from '../types';
 import { getPartConnectors } from '../data/catalog/helpers';
@@ -194,7 +195,7 @@ export function findBestSnap(
     ghostPosition: Vector2,
     ghostRotation: number,
     openEndpoints: TrackNode[],
-    system: 'n-scale' | 'wooden' = 'n-scale'
+    system: PartScale = 'n-scale'
 ): SnapMatchResult | null {
     const config = DEFAULT_SNAP_CONFIG[system];
     const connectors = getPartConnectors(part);

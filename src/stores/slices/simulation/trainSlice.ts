@@ -6,7 +6,9 @@ import type { Train } from '../../../types';
 import type { SimulationSliceCreator, TrainSlice } from './types';
 import { CAR_PITCH } from '../../../config/rollingStock';
 import { DRIVING } from '../../../simulation/driving';
-import { getRollingStock } from '../../../data/rollingStock';
+import { getRollingStock, topSpeedOf } from '../../../data/rollingStock';
+import { getPartById } from '../../../data/catalog';
+import { sizeOf } from '../../../config/scales';
 import { reverseConsist } from '../../../utils/trainCars';
 import { useTrackStore } from '../../useTrackStore';
 
@@ -27,6 +29,10 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         const trainId = `train-${++trainCounter}`;
         const stock = getRollingStock(stockId);
         const trainColor = color || stock?.color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
+        // Built to its model's scale, or the scale of the track it's put on
+        const edge = useTrackStore.getState().edges[edgeId];
+        const scale = stock?.scale ?? (edge && getPartById(edge.partId)?.scale) ?? 'n-scale';
+        const size = sizeOf(scale);
 
         const train: Train = {
             id: trainId,
@@ -34,11 +40,12 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             distanceAlongEdge: distance ?? 0,
             direction: 1,
             // Sets off at cruising speed, so a layout runs the moment it loads
-            speed: DRIVING.DEFAULT_THROTTLE,
-            throttle: DRIVING.DEFAULT_THROTTLE,
+            speed: DRIVING.DEFAULT_THROTTLE * size,
+            throttle: DRIVING.DEFAULT_THROTTLE * size,
             color: trainColor,
             carriageCount: carriageCount ?? stock?.cars ?? 1,
-            carriageSpacing: CAR_PITCH,
+            carriageSpacing: CAR_PITCH * size,
+            scale,
             ...(stock && { stockId: stock.id }),
         };
 
@@ -100,8 +107,7 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         set((state) => {
             const train = state.trains[trainId];
             if (train && !train.crashed) {
-                const top = getRollingStock(train.stockId)?.topSpeed ?? DRIVING.MAX_THROTTLE;
-                train.throttle = Math.max(0, Math.min(top, throttle));
+                train.throttle = Math.max(0, Math.min(topSpeedOf(train), throttle));
             }
         });
     },

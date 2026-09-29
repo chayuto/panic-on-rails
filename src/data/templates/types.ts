@@ -1,5 +1,7 @@
+import type { PartScale } from '../catalog/types';
+
 export type TemplateDifficulty = 'beginner' | 'intermediate' | 'advanced';
-export type TemplateSystem = 'n-scale' | 'wooden';
+export type TemplateSystem = PartScale;
 
 /**
  * Metadata about a template for display in UI

@@ -8,20 +8,29 @@ import { useTrackStore } from '../stores/useTrackStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { trainsLeft } from '../data/collection';
 import { pickSpawnLocation } from './spawn';
-import type { EdgeId, TrainId } from '../types';
+import type { EdgeId, PartScale, TrainId } from '../types';
+import { getRollingStock } from '../data/rollingStock';
+import { getPartById } from '../data/catalog';
 
 /**
  * In collection mode, the rolling stock to put on the track: `preferred` if
- * the player has one spare, else any train they own that isn't running.
- * Null when every owned train is already on the track. In free build
+ * the player has one spare, else any train they own that isn't running and
+ * fits the track's `scale`. Null when there's none to spare. In free build
  * there's no limit: returns `preferred` (or undefined for a generic train).
  */
-export function nextAvailableStock(preferred?: string): string | undefined | null {
+export function nextAvailableStock(preferred?: string, scale?: PartScale): string | undefined | null {
     const collection = useCollectionStore.getState();
     if (collection.mode === 'free') return preferred;
     const left = trainsLeft(collection.ownedTrains, useSimulationStore.getState().trains);
     if (preferred && (left[preferred] ?? 0) > 0) return preferred;
-    return Object.keys(left).find(id => left[id] > 0) ?? null;
+    const fits = (id: string) => !scale || (getRollingStock(id)?.scale ?? 'n-scale') === scale;
+    return Object.keys(left).find(id => left[id] > 0 && fits(id)) ?? null;
+}
+
+/** The scale of the track an edge belongs to. */
+function scaleAt(edgeId: EdgeId): PartScale | undefined {
+    const edge = useTrackStore.getState().edges[edgeId];
+    return edge ? getPartById(edge.partId)?.scale : undefined;
 }
 
 /**
@@ -32,9 +41,14 @@ export function nextAvailableStock(preferred?: string): string | undefined | nul
 export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string, stockId?: string): TrainId | null {
     const { edges } = useTrackStore.getState();
     const { trains, spawnTrain } = useSimulationStore.getState();
-    const spot = pickSpawnLocation(edges, trains);
+    // A particular train goes on track of its own scale
+    const scale = getRollingStock(stockId)?.scale;
+    const fitting = scale
+        ? Object.fromEntries(Object.entries(edges).filter(([, e]) => getPartById(e.partId)?.scale === scale))
+        : edges;
+    const spot = pickSpawnLocation(fitting, trains);
     if (!spot) return null;
-    const stock = nextAvailableStock(stockId);
+    const stock = nextAvailableStock(stockId, scaleAt(spot.edgeId));
     if (stock === null) return null;
     return stock
         ? spawnTrain(spot.edgeId, undefined, undefined, spot.distance, stock)
@@ -47,7 +61,7 @@ export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string,
  * have none to spare. Returns the train ID, or '' if none was placed.
  */
 export function spawnLayoutTrain(edgeId: EdgeId, color?: string): TrainId {
-    const stock = nextAvailableStock();
+    const stock = nextAvailableStock(undefined, scaleAt(edgeId));
     if (stock === null) return '';
     const { spawnTrain } = useSimulationStore.getState();
     return stock ? spawnTrain(edgeId, undefined, undefined, undefined, stock) : spawnTrain(edgeId, color);

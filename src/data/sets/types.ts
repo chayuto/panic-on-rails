@@ -117,7 +117,12 @@ export interface TrackSet {
     /** Sets this one is designed to extend. Its plans may use their parts too. */
     extends?: string[];
     /** Size of the main plan as stated by the manufacturer (mm) */
-    footprint?: { width: number; depth: number };
+    footprint?: {
+        width: number;
+        depth: number;
+        /** The table space the maker says the layout needs, rounded up, not the box's exact size */
+        space?: boolean;
+    };
     plans: LayoutPlan[];
     /** Where the contents list comes from */
     referenceUrl?: string;

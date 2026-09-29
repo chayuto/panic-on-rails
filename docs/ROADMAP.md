@@ -221,8 +221,11 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
       general part topology (Phase 6). Its plans lay it into M1 with V5's inner oval, or V6's
       outer one.
 - [ ] Double-track sets (V11–V15) need double-track pieces.
-- [ ] More brands' ladders: Hornby Track Packs A–F and Märklin C1–C5 need curved turnouts and a
-      double slip (Phase 6).
+- [x] **Märklin C-track (H0):** the start oval (S1) and extension sets C1–C5, with every plan
+      from Märklin's 2023 track-plan booklet. They include curved turnouts (24671/24672) and the
+      24624 double slip with one drive per end. Every plan closes exactly, except S2's passing
+      loop, which is 0.15 mm long on paper.
+- [ ] Hornby Track Packs A–F (Phase 6).
 
 ### Phase 3: The Hobby, collection, virtual money and the shop
 
@@ -339,8 +342,11 @@ Order, biggest win per millisecond first:
     all four (`switchGroup` on the nodes).
   - Still open: 3-way turnouts need three-position points. The older parts keep their
     per-type creators; move them over only if one needs a change.
-- [ ] Brands: Märklin C-track (start sets plus C1–C5), Hornby Setrack (Track Packs A–F), Tomix
-      Fine Track, Bachmann E-Z Track.
+- [x] **Scales:** H0 and OO beside N (`config/scales.ts`). Trains, speeds and braking grow with
+      the model scale, so an H0 train drives like an N one, and track shows its brand's look.
+- [x] Brand: Märklin C-track (start oval plus C1–C5).
+- [ ] Brands: Hornby Setrack (Track Packs A–F), Tomix Fine Track, Bachmann E-Z Track.
+- [ ] Rolling stock per scale beyond the two generic H0 trains.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
 - [ ] Share a layout by URL.
 

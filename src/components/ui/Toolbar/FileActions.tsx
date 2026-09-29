@@ -8,7 +8,7 @@
  * - Load from file (JSON import)
  */
 
-import { fitViewToLayout } from '../../../utils/viewFit';
+import { fitViewToLayout, fitViewWhenSettled } from '../../../utils/viewFit';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FilePlus, Save, FolderOpen } from 'lucide-react';
 import { useTrackStore } from '../../../stores/useTrackStore';
@@ -160,7 +160,7 @@ export function FileActions() {
                 () => useTrackStore.getState().nodes,
                 connectNodes,
                 spawnLayoutTrain,
-                () => { useModeStore.getState().enterSimulateMode(); setRunning(true); },
+                () => { useModeStore.getState().enterSimulateMode(); setRunning(true); fitViewWhenSettled(); },
                 true // autoStart
             );
             // Templates are laid out in world coordinates that may not fit the window
