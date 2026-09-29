@@ -7,6 +7,8 @@ import type { SimulationSliceCreator, TrainSlice } from './types';
 import { CAR_PITCH } from '../../../config/rollingStock';
 import { DRIVING } from '../../../simulation/driving';
 import { getRollingStock } from '../../../data/rollingStock';
+import { reverseConsist } from '../../../utils/trainCars';
+import { useTrackStore } from '../../useTrackStore';
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 let trainCounter = 0;
@@ -116,11 +118,9 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
                 train.reverseRequested = !train.reverseRequested;
                 return;
             }
-            train.direction = train.direction === 1 ? -1 : 1;
-            train.heldAtSignal = false;
-            train.reverseRequested = false;
-            // The route behind the train is now ahead of it
-            train.trail = [];
+            // Standing: turn back at once, the cars staying where they are
+            const { edges, nodes } = useTrackStore.getState();
+            state.trains[trainId] = reverseConsist({ ...train }, edges, nodes);
         });
     },
 

@@ -26,6 +26,10 @@ export interface CarPose {
 interface TrackPoint {
     edgeId: EdgeId;
     distance: number;
+    /** The train's direction of travel on that edge */
+    direction: 1 | -1;
+    /** Edges walked through to get there, starting with the train's own */
+    path: EdgeId[];
 }
 
 /** World geometry per edge, derived once per frame. */
@@ -87,11 +91,12 @@ function walkBack(
     let direction = train.direction;
     let remaining = behind;
     let step = 0;
+    const path: EdgeId[] = [edge.id];
 
     for (let guard = 0; guard < 64; guard++) {
         const available = direction === 1 ? distance : edge.length - distance;
         if (available >= remaining) {
-            return { edgeId: edge.id, distance: direction === 1 ? distance - remaining : distance + remaining };
+            return { edgeId: edge.id, distance: direction === 1 ? distance - remaining : distance + remaining, direction, path };
         }
         remaining -= available;
         const nodeId = direction === 1 ? edge.startNodeId : edge.endNodeId;
@@ -101,14 +106,45 @@ function walkBack(
         step++;
         if (!prev) {
             // Dead end behind the train: bunch up at the buffer
-            return { edgeId: edge.id, distance: direction === 1 ? 0 : edge.length };
+            return { edgeId: edge.id, distance: direction === 1 ? 0 : edge.length, direction, path };
         }
         // We arrived at `node` from `prev`: moving toward its end means direction +1
         direction = prev.endNodeId === nodeId ? 1 : -1;
         distance = direction === 1 ? prev.length : 0;
         edge = prev;
+        path.push(edge.id);
     }
-    return { edgeId: edge.id, distance };
+    return { edgeId: edge.id, distance, direction, path };
+}
+
+/** From the leading car's front bogie to the last car's rear bogie (mm). */
+export function consistLength(train: Train): number {
+    const count = Math.max(1, train.carriageCount ?? 1);
+    return (count - 1) * (train.carriageSpacing ?? CAR_PITCH) + BOGIE_SPACING;
+}
+
+/**
+ * Turn a train back without moving a single car: its leading end becomes
+ * the far end of the consist, facing the other way, and the locomotive —
+ * which stays where it is — changes from leading to pushing (or back).
+ */
+export function reverseConsist(
+    train: Train,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): Train {
+    const tail = walkBack(train, consistLength(train), edges, nodes);
+    const flipped = { locoLeading: train.locoLeading === false, heldAtSignal: false, reverseRequested: false };
+    if (!tail) return { ...train, ...flipped, direction: -train.direction as 1 | -1, trail: [] };
+    return {
+        ...train,
+        ...flipped,
+        currentEdgeId: tail.edgeId,
+        distanceAlongEdge: tail.distance,
+        direction: -tail.direction as 1 | -1,
+        // Behind the new front is the stretch the train stands on, walked the other way
+        trail: tail.path.slice(0, -1).reverse(),
+    };
 }
 
 /**

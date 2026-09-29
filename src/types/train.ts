@@ -15,6 +15,8 @@ export interface Train {
     throttle?: number;
     /** Stop, then set off the other way (the power pack's direction lever) */
     reverseRequested?: boolean;
+    /** False when the locomotive is at the back, pushing (after turning back). Default true. */
+    locoLeading?: boolean;
     color: string;
     /** Which rolling stock this is (see data/rollingStock); none for free-build trains */
     stockId?: string;

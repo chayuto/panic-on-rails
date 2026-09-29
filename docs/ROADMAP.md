@@ -306,8 +306,11 @@ Order, biggest win per millisecond first:
 
   With software rendering (no GPU): 105 fps and 55 fps.
 - [ ] Turnout points and frog detail; a tile cache only if layouts outgrow direct painting.
-- [ ] A consist model: the locomotive stays at its end when a train reverses (cars currently
-      trail whichever way it moves), and collision uses each car's real extent.
+- [x] **Consist model:** turning back (the direction lever, or a buffer stop) moves no car.
+  - The far end of the train becomes its front, and the locomotive pushes from the back until
+    the next reversal (`reverseConsist`, `train.locoLeading`).
+  - Cars used to jump to the other side of the locomotive.
+- [ ] Collision using each car's real extent, not points along the train.
 - [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
       92 ms with software rendering. Reconsider only for lighting or particles.
 - [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.

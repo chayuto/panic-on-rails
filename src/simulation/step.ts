@@ -25,6 +25,7 @@ import { TRAIL_LENGTH } from '../config/rollingStock';
 import { AT_STOP_LINE, approachSpeed, derailSpeed, lookaheadFor, stopAhead, stoppingLimit, targetSpeed, throttleOf } from './driving';
 import { explodeTrain } from '../utils/crashPhysics';
 import { getPositionOnEdge } from '../utils/trainGeometry';
+import { reverseConsist } from '../utils/trainCars';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -99,15 +100,10 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed));
         if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt));
         let speed = approachSpeed(train.speed, limit, dt);
-        let direction = train.direction;
-        let reverseRequested = train.reverseRequested;
-        if (reverseRequested && speed === 0) {
-            // Stopped: the direction lever takes effect
-            direction = -direction as 1 | -1;
-            reverseRequested = false;
-        }
+        // Stopped: the direction lever takes effect, the consist staying put
+        const start = train.reverseRequested && speed === 0 ? reverseConsist(train, edges, nodes) : train;
 
-        const moving: Train = { ...train, speed, direction, throttle: throttleOf(train) };
+        const moving: Train = { ...start, speed, throttle: throttleOf(train) };
         const update = calculateTrainMovement(moving, dt, edges, nodes, redNodes);
         if (!update) {
             trains[train.id] = train;
@@ -117,22 +113,23 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         const atRedLine = stop?.kind === 'signal' && stop.distance <= AT_STOP_LINE && speed === 0;
         if (atRedLine) update.held = true;
         if (update.held) speed = 0;
-        const next: Train = {
+        let next: Train = {
             ...moving,
             distanceAlongEdge: update.distance,
             currentEdgeId: update.edgeId,
             direction: update.direction,
-            reverseRequested,
         };
-        if (update.direction !== train.direction) {
-            // Turned back: the route behind is now ahead
-            next.trail = [];
-        } else if (update.edgeId !== train.currentEdgeId) {
+        if (update.edgeId !== moving.currentEdgeId && !update.bounced) {
             // Remember the route so the cars behind can follow it through turnouts
-            next.trail = [train.currentEdgeId, ...(train.trail ?? [])].slice(0, TRAIL_LENGTH);
+            next.trail = [moving.currentEdgeId, ...(moving.trail ?? [])].slice(0, TRAIL_LENGTH);
         }
-        if (update.edgeId !== train.currentEdgeId) {
-            events.push({ type: 'traverse', trainId: train.id, fromEdgeId: train.currentEdgeId, toEdgeId: update.edgeId });
+        if (update.bounced) {
+            // Turned back at the end of the line: the consist stays put and
+            // its far end leads (the locomotive now pushes, or leads again)
+            next = reverseConsist({ ...next, direction: -update.direction as 1 | -1, trail: moving.trail }, edges, nodes);
+        }
+        if (update.edgeId !== moving.currentEdgeId) {
+            events.push({ type: 'traverse', trainId: train.id, fromEdgeId: moving.currentEdgeId, toEdgeId: update.edgeId });
         }
         if (update.bounced) {
             next.bounceTime = ctx.now;

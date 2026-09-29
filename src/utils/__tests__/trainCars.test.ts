@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getCarPoses } from '../trainCars';
+import { getCarPoses, reverseConsist } from '../trainCars';
+import { stepSimulation, type SimWorld } from '../../simulation/step';
 import { BOGIE_SPACING, CAR_PITCH } from '../../config/rollingStock';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { resetWorld } from '../../simulation/harness';
@@ -82,6 +83,69 @@ describe('getCarPoses', () => {
             // The second car is still on the turnout: on the branch it's north of the main line
             expect(withTrail[1].y).toBeLessThan(-1);
             expect(guessed[1].y).toBeCloseTo(0, 6);
+        });
+    });
+
+    describe('turning back', () => {
+        const centres = (poses: { x: number; y: number }[]) => poses.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).sort();
+
+        it('reverses without moving a car: the far end leads and the locomotive pushes', () => {
+            useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 0 }, 0);
+            const second = useTrackStore.getState().addTrack('kato-20-000', { x: 248, y: 0 }, 0)!;
+            const { nodes } = useTrackStore.getState();
+            const [a, b] = Object.values(nodes).filter(n => n.position.x === 248);
+            useTrackStore.getState().connectNodes(a.id, b.id, second);
+            const { edges } = useTrackStore.getState();
+            const firstEdge = Object.values(edges).find(e => e.id !== second)!.id;
+
+            const t = train({ currentEdgeId: second, distanceAlongEdge: 60, carriageCount: 4, trail: [firstEdge] });
+            const before = getCarPoses(t, edges, useTrackStore.getState().nodes);
+            const reversed = reverseConsist(t, edges, useTrackStore.getState().nodes);
+            const after = getCarPoses(reversed, edges, useTrackStore.getState().nodes);
+
+            expect(reversed.direction).toBe(-1);
+            expect(reversed.locoLeading).toBe(false);
+            expect(centres(after)).toEqual(centres(before));
+            // The new leading car is the old last car
+            expect(after[0].x).toBeCloseTo(before[3].x, 6);
+
+            // And back again: the locomotive leads from where it started
+            const again = reverseConsist(reversed, edges, useTrackStore.getState().nodes);
+            expect(again.locoLeading).toBe(true);
+            expect(again.currentEdgeId).toBe(second);
+            expect(again.distanceAlongEdge).toBeCloseTo(60, 6);
+        });
+
+        it('turning back at a buffer stop leaves the train where it is', () => {
+            const store = useTrackStore.getState();
+            store.addTrack('kato-20-000', { x: 0, y: 0 }, 0);
+            store.addTrack('kato-20-000', { x: 248, y: 0 }, 0);
+            const { nodes: n0, edges: e0 } = useTrackStore.getState();
+            const [a, b] = Object.values(n0).filter(n => n.position.x === 248);
+            const secondId = Object.values(e0).find(e => e.geometry.type === 'straight' && e.geometry.start.x === 248)!.id;
+            store.connectNodes(a.id, b.id, secondId);
+            const { edges, nodes } = useTrackStore.getState();
+            let w: SimWorld = {
+                trains: { t1: train({ currentEdgeId: secondId, distanceAlongEdge: 150, carriageCount: 3 }) },
+                edges, nodes, sensors: {}, signals: {}, wires: {}, crashedParts: [],
+            };
+            let previous = getCarPoses(w.trains.t1, edges, nodes);
+            let bounced = false;
+            for (let i = 0; i < 6 * 60 && !bounced; i++) {
+                const r = stepSimulation(w, 1 / 60, { now: 0, random: () => 0.5 });
+                w = r.world;
+                const poses = getCarPoses(w.trains.t1, edges, nodes);
+                bounced = r.events.some(e => e.type === 'bounce');
+                // No car ever jumps: from one frame to the next each stays within a crawl
+                expect(Math.max(...centres(poses).map((c, k) => {
+                    const [x, y] = c.split(',').map(Number);
+                    const [px, py] = centres(previous)[k].split(',').map(Number);
+                    return Math.hypot(x - px, y - py);
+                }))).toBeLessThan(3);
+                previous = poses;
+            }
+            expect(bounced).toBe(true);
+            expect(w.trains.t1.locoLeading).toBe(false);
         });
     });
 });
