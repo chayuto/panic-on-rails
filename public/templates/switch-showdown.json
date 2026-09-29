@@ -3,21 +3,28 @@
     "template": {
         "id": "switch-showdown",
         "name": "Switch Showdown",
-        "description": "Two trains on a collision course! Can you stop them in time?",
+        "description": "Two trains, one line, one passing loop. Flip a switch before they meet!",
         "difficulty": "beginner",
         "system": "n-scale",
-        "estimatedCost": 3720,
-        "partCount": 4,
+        "estimatedCost": 7456,
+        "partCount": 11,
         "trainCount": 2
     },
     "parts": [
-        { "partId": "kato-20-000", "position": { "x": 200, "y": 400 }, "rotation": 0 },
-        { "partId": "kato-20-000", "position": { "x": 448, "y": 400 }, "rotation": 0 },
-        { "partId": "kato-20-000", "position": { "x": 696, "y": 400 }, "rotation": 0 },
-        { "partId": "kato-20-000", "position": { "x": 944, "y": 400 }, "rotation": 0 }
+        { "partId": "kato-20-000", "position": { "x": 100, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-000", "position": { "x": 348, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-220", "position": { "x": 596, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-000", "position": { "x": 722, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-000", "position": { "x": 970, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-221", "position": { "x": 1344, "y": 400 }, "rotation": 180 },
+        { "partId": "kato-20-160", "position": { "x": 720.5, "y": 383.6 }, "rotation": 345 },
+        { "partId": "kato-20-000", "position": { "x": 845, "y": 367.2 }, "rotation": 0 },
+        { "partId": "kato-20-160", "position": { "x": 1093, "y": 367.2 }, "rotation": 0 },
+        { "partId": "kato-20-000", "position": { "x": 1344, "y": 400 }, "rotation": 0 },
+        { "partId": "kato-20-000", "position": { "x": 1840, "y": 400 }, "rotation": 180 }
     ],
     "trains": [
         { "partIndex": 0, "color": "#E53935" },
-        { "partIndex": 3, "color": "#1E88E5" }
+        { "partIndex": 10, "color": "#1E88E5" }
     ]
 }

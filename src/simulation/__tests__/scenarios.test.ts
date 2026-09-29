@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { resetWorld, loadRecipe, summarize, simHarness } from '../harness';
 import { useSimulationStore } from '../../stores/useSimulationStore';
+import { useTrackStore } from '../../stores/useTrackStore';
 import { loadTemplateJson } from './fixtures';
 
 const count = (events: { type: string }[], type: string) => events.filter(e => e.type === type).length;
@@ -34,11 +35,34 @@ describe('template scenarios (headless)', () => {
         expect(count(events, 'traverse')).toBeGreaterThan(40);
     });
 
-    it('switch-showdown: the two trains collide', () => {
-        loadRecipe(loadTemplateJson('switch-showdown'));
-        const events = simHarness.runSeconds(20);
-        expect(summarize().crashed).toBe(2);
-        expect(count(events, 'collision')).toBe(2);
+    describe('switch-showdown (passing-loop puzzle)', () => {
+        const westSwitch = () => Object.values(useTrackStore.getState().nodes)
+            .filter(n => n.type === 'switch')
+            .sort((a, b) => a.position.x - b.position.x)[0];
+
+        it('is one connected line with a passing loop', () => {
+            loadRecipe(loadTemplateJson('switch-showdown'));
+            const nodes = Object.values(useTrackStore.getState().nodes);
+            // Only the two ends of the line are open; both turnouts are fully joined
+            expect(nodes.filter(n => n.connections.length === 1)).toHaveLength(2);
+            expect(nodes.filter(n => n.type === 'switch').map(n => n.connections.length)).toEqual([3, 3]);
+        });
+
+        it('without intervention the trains collide head-on', () => {
+            loadRecipe(loadTemplateJson('switch-showdown'));
+            const events = simHarness.runSeconds(20);
+            expect(summarize().crashed).toBe(2);
+            expect(count(events, 'collision')).toBe(2);
+        });
+
+        it('flipping the west switch sends one train through the loop and they pass safely', () => {
+            loadRecipe(loadTemplateJson('switch-showdown'));
+            useTrackStore.getState().toggleSwitch(westSwitch().id);
+            const events = simHarness.runSeconds(90);
+            expect(summarize().crashed).toBe(0);
+            // They keep shuttling end to end, passing in the loop each time
+            expect(count(events, 'bounce')).toBeGreaterThanOrEqual(6);
+        });
     });
 
     it('keeps simulating after a crash (debris physics must not mutate frozen store state)', () => {
