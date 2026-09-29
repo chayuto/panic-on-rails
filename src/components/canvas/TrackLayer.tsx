@@ -153,7 +153,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                 }
 
                 // Regular nodes
-                const isOpenEndpoint = node.connections.length === 1;
+                const isOpenEndpoint = node.connections.length === 1 && !node.bumper;
                 const isSource = connectSource?.nodeId === node.id;
                 const isValidTarget = isConnectMode && isOpenEndpoint && isValidConnectTarget(node.id);
 

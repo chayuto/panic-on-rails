@@ -3,10 +3,20 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 It is the canonical guide for all coding agents (`AGENTS.md` points here).
 
+## What This Is
+
+**A virtual model railway**: for people who love model trains but can't buy the real parts. Open a real starter set, build real layouts with accurately modelled track, run the trains, and keep expanding. Design: `docs/design/virtual-model-railway.md`.
+
+Authenticity is a requirement, not polish:
+- A catalog part is a real product: manufacturer's number, name and exact geometry. Cite the source (`referenceUrl` or the design doc) when adding or changing one.
+- A boxed set (`src/data/sets/`) contains exactly what the real box contains, and its plans must close. `sets.test.ts` enforces this; never loosen it to make a plan pass.
+- Don't invent products. A generic helper piece must be named and flagged as such.
+
 ## Read Order
 
 1. This file — commands, architecture, conventions.
 2. `docs/ROADMAP.md` — current state of the game, known gaps, and the phased plan. Check it before starting feature work.
+   `docs/design/virtual-model-railway.md` — product design and the research on real sets.
 3. `docs/architecture/constitution.md` — authoritative geometry/angle/connector rules. Required before touching `src/utils/`, `src/geometry/`, catalog, or track creators.
 4. `.claude/skills/high-fidelity-frontend-testing/SKILL.md` — before writing E2E tests.
 
@@ -77,7 +87,11 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 ### Track Parts Catalog
 
-`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato N-Scale, Brio, IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Four specialized track creators in `src/stores/slices/trackCreators/`: standard, switch, crossing, curve.
+`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato N-Scale, Brio, IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Track creators live in `src/stores/slices/trackCreators/` (standard, switch, crossing, compound); `createPartTrack(part, position, rotation)` is the single pure entry point that dispatches to them.
+
+### Boxed Sets & Layout Plans
+
+`src/data/sets/<brand>/*.json` — one file per real boxed set (contents, accessories, `extends`, footprint, plans), validated by `schema.ts` and loaded automatically by `index.ts`. A **layout plan** is a chain of parts: each step attaches a catalog part to a connector of an earlier step (`at`, default: previous piece's through exit) by one of its own connectors (`via`, default: primary; a curve attached `via: "B"` turns left). `resolvePlan()` places the pieces from catalog geometry and reports joints, open ends and the bill of materials; `planToTemplate()` turns a plan into a template recipe for `applyTemplate()` or the headless harness. See `src/data/sets/README.md` to add a set.
 
 ### Simulation System
 

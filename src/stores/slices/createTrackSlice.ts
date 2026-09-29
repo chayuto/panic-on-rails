@@ -4,10 +4,8 @@
  * Handles creation, deletion, and persistence of track pieces.
  * This is the foundational slice that manages the core graph data.
  *
- * Track creation logic is delegated to specialized creator modules:
- * - switchTrack.ts - Switch/turnout creation
- * - crossingTrack.ts - Crossing/diamond creation
- * - standardTrack.ts - Straight and curve creation
+ * Track creation is delegated to `createPartTrack()`, which dispatches to the
+ * specialized creators in ./trackCreators/.
  */
 
 import type {
@@ -17,7 +15,6 @@ import type {
     TrackEdge,
 } from '../../types';
 import { getPartById } from '../../data/catalog';
-import type { SwitchGeometry, CrossingGeometry, StraightGeometry, CurveGeometry, CompoundGeometry } from '../../data/catalog/types';
 import { useBudgetStore } from '../useBudgetStore';
 import { useLogicStore } from '../useLogicStore';
 import {
@@ -29,14 +26,7 @@ import {
 } from './spatialHelpers';
 import type { SliceCreator, TrackSlice } from './types';
 
-// Import track creators
-import {
-    createSwitchTrack,
-    createCrossingTrack,
-    createStraightTrack,
-    createCurveTrack,
-    createCompoundTrack,
-} from './trackCreators';
+import { createPartTrack } from './trackCreators';
 
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
 import { LayoutDataSchema } from '../../schemas/layout';
@@ -69,76 +59,7 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         const part = getPartById(partId);
         if (!part) return null;
 
-        // Delegate track creation to specialized creators
-        let nodes: TrackNode[];
-        let edges: TrackEdge[];
-        let primaryEdgeId: EdgeId;
-
-        switch (part.geometry.type) {
-            case 'switch': {
-                const result = createSwitchTrack(
-                    partId,
-                    position,
-                    rotation,
-                    part.geometry as SwitchGeometry
-                );
-                nodes = result.nodes;
-                edges = result.edges;
-                primaryEdgeId = result.primaryEdgeId;
-                break;
-            }
-            case 'crossing': {
-                const result = createCrossingTrack(
-                    partId,
-                    position,
-                    rotation,
-                    part.geometry as CrossingGeometry
-                );
-                nodes = result.nodes;
-                edges = result.edges;
-                primaryEdgeId = result.primaryEdgeId;
-                break;
-            }
-            case 'curve': {
-                const result = createCurveTrack(
-                    partId,
-                    position,
-                    rotation,
-                    part.geometry as CurveGeometry
-                );
-                nodes = result.nodes;
-                edges = result.edges;
-                primaryEdgeId = result.primaryEdgeId;
-                break;
-            }
-            case 'straight': {
-                const result = createStraightTrack(
-                    partId,
-                    position,
-                    rotation,
-                    part.geometry as StraightGeometry
-                );
-                nodes = result.nodes;
-                edges = result.edges;
-                primaryEdgeId = result.primaryEdgeId;
-                break;
-            }
-            case 'compound': {
-                const result = createCompoundTrack(
-                    partId,
-                    position,
-                    rotation,
-                    part.geometry as CompoundGeometry
-                );
-                nodes = result.nodes;
-                edges = result.edges;
-                primaryEdgeId = result.primaryEdgeId;
-                break;
-            }
-            default:
-                console.warn('Unsupported geometry type:', (part.geometry as { type: string }).type);
-                return null;
-        }
+        const { nodes, edges, primaryEdgeId } = createPartTrack(part, position, rotation);
 
         // Update spatial indices for all created entities
         for (const edge of edges) {
@@ -350,9 +271,10 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      */
     getOpenEndpoints: () => {
         const state = get();
-        // Open endpoints are nodes with only 1 connection (one open side)
+        // Open endpoints are nodes with only 1 connection (one open side);
+        // a buffer stop is a dead end, not an open end
         return Object.values(state.nodes).filter(
-            node => node.connections.length === 1
+            node => node.connections.length === 1 && !node.bumper
         );
     },
 });

@@ -55,7 +55,7 @@ export function applyTemplate(
     template: TrackTemplate,
     clearLayout: () => void,
     addTrack: (partId: string, position: { x: number; y: number }, rotation: number) => string | null,
-    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[] }>,
+    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[]; bumper?: boolean }>,
     connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
     spawnTrain: (edgeId: string, color?: string) => string,
     startSimulation: () => void,
@@ -105,7 +105,7 @@ export function applyTemplate(
  * (preserving switch properties, etc.).
  */
 function autoConnectEndpoints(
-    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[] }>,
+    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[]; bumper?: boolean }>,
     connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
     threshold: number
 ): void {
@@ -115,7 +115,7 @@ function autoConnectEndpoints(
         merged = false;
         const nodes = getNodes();
         const allNodes = Object.values(nodes);
-        const endpoints = allNodes.filter(n => n.connections.length === 1);
+        const endpoints = allNodes.filter(n => n.connections.length === 1 && !n.bumper);
 
         for (const ep of endpoints) {
             for (const other of allNodes) {

@@ -13,6 +13,8 @@
 export interface StraightGeometry {
     type: 'straight';
     length: number; // millimeters
+    /** The far end (B) is a buffer stop: not a connector, trains can't pass */
+    bumper?: boolean;
 }
 
 /** Curved track piece (arc) */

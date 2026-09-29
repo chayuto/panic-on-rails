@@ -22,5 +22,6 @@ export function computeStraightConnectors(geometry: StraightGeometry): PartConne
             maxConnections: 1,
         },
     ];
-    return { nodes, primaryNodeId: 'A' };
+    // A bumper's far end is a buffer stop, not something to connect to
+    return { nodes: geometry.bumper ? nodes.slice(0, 1) : nodes, primaryNodeId: 'A' };
 }

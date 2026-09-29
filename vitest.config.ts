@@ -12,6 +12,7 @@ export default defineConfig({
     test: {
         setupFiles: ['./src/setupTests.ts'],
         globals: true,
-        exclude: ['node_modules', 'dist', 'e2e'],
+        // Agent worktrees live under .claude/worktrees; never run their copies
+        exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**', '.claude/**'],
     },
 })

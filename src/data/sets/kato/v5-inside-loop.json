@@ -1,0 +1,67 @@
+{
+    "id": "kato-20-864",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-864",
+    "badge": "V5",
+    "name": "Inside Loop Track Set",
+    "kind": "expansion",
+    "description": "A second oval with R282 curves that sits 33 mm inside the M1 oval: double track, two trains at once.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-020", "qty": 1 },
+        { "part": "kato-20-026", "qty": 1 },
+        { "part": "kato-20-040", "qty": 1 },
+        { "part": "kato-20-041", "qty": 1 },
+        { "part": "kato-20-110", "qty": 8 }
+    ],
+    "accessories": ["Rerailer tool with Uni-Joiner remover"],
+    "extends": ["kato-20-852"],
+    "plans": [
+        {
+            "id": "double-oval",
+            "name": "Double oval (M1 + V5)",
+            "description": "Two independent loops 33 mm apart, each with its own feeder: run a train on each.",
+            "steps": [
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+
+                { "part": "kato-20-000", "at": { "alongside": 0, "offset": 33 } },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" },
+                { "part": "kato-20-110" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" },
+                { "piece": 24, "color": "#3498DB" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://lombardhobby.com/kato-n-20-864-unitrack-v5-inside-loop-track-set/"
+}

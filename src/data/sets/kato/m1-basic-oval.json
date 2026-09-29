@@ -1,0 +1,53 @@
+{
+    "id": "kato-20-852",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-852",
+    "badge": "M1",
+    "name": "Basic Oval Master Set",
+    "kind": "starter",
+    "description": "Where most Unitrack railways begin: a complete R315 oval with a feeder track, a rerailer and a power pack.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-020", "qty": 1 },
+        { "part": "kato-20-026", "qty": 1 },
+        { "part": "kato-20-040", "qty": 1 },
+        { "part": "kato-20-041", "qty": 1 },
+        { "part": "kato-20-120", "qty": 8 }
+    ],
+    "accessories": [
+        "Power Pack Standard SX",
+        "Rerailer tool",
+        "Uni-Joiner remover",
+        "Track cleaning swab",
+        "Plan variation guide"
+    ],
+    "footprint": { "width": 1337, "depth": 677 },
+    "plans": [
+        {
+            "id": "basic-oval",
+            "name": "Basic oval",
+            "description": "682 mm of straight on each side and R315 curves at both ends. The feeder and rerailer go on the front straight.",
+            "steps": [
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" }
+            ],
+            "trains": [{ "piece": 0, "color": "#E74C3C" }]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/product/product-182/"
+}

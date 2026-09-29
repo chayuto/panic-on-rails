@@ -9,6 +9,7 @@
  * @example
  * resetWorld();
  * loadRecipe(simpleOval);             // any TrackTemplate JSON
+ * loadSetPlan('kato-20-852');         // …or a boxed set's layout plan
  * seedSimulation(42);
  * const events = runSimulation(600);  // 10 s at 60 fps
  * expect(summarize().crashed).toBe(0);
@@ -19,6 +20,7 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { applyTemplate } from '../data/templates';
 import type { TrackTemplate } from '../data/templates/types';
+import { getAllSets, getSetById, planToTemplate } from '../data/sets';
 import type { EdgeId, TrainId } from '../types';
 import { readWorld, runSimulation, seedSimulation, tickSimulation } from './tick';
 
@@ -66,6 +68,18 @@ export function loadRecipe(template: TrackTemplate): (EdgeId | null)[] {
     return edgeIds;
 }
 
+/**
+ * Build one of a boxed set's layout plans (default: its first) and spawn
+ * the plan's trains, like `loadRecipe`. Throws for an unknown set or plan.
+ */
+export function loadSetPlan(setId: string, planId?: string): (EdgeId | null)[] {
+    const set = getSetById(setId);
+    if (!set) throw new Error(`Unknown set "${setId}"`);
+    const plan = planId ? set.plans.find(p => p.id === planId) : set.plans[0];
+    if (!plan) throw new Error(`Set "${setId}" has no plan "${planId}"`);
+    return loadRecipe(planToTemplate(plan));
+}
+
 export interface TrainSummary {
     id: TrainId;
     edgeId: EdgeId;
@@ -110,6 +124,9 @@ export const simHarness = {
     resetWorld,
     resetTrains,
     loadRecipe,
+    loadSetPlan,
+    /** Boxed sets and their plan ids, for `loadSetPlan`. */
+    listSets: () => getAllSets().map(s => ({ id: s.id, name: s.name, plans: s.plans.map(p => p.id) })),
     seed: seedSimulation,
     /** Advance one tick of `dt` seconds (default one 60 fps frame). */
     tick: (dt = 1 / 60) => tickSimulation(dt),

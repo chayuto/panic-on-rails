@@ -11,6 +11,7 @@ const TrackNodeSchema = z.object({
     rotation: z.number(), // Allow any rotation, but typically 0-360
     connections: z.array(z.string()),
     type: z.enum(['endpoint', 'junction', 'switch']),
+    bumper: z.boolean().optional(),
     switchState: z.union([z.literal(0), z.literal(1)]).optional(),
     switchBranches: z.tuple([z.string(), z.string()]).optional(),
 });

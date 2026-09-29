@@ -1,38 +1,58 @@
 # Panic on Rails: State of the Game & Roadmap
 
 > **Living document.** Update the checkboxes and the "Last assessed" line when a phase lands.
-> Last assessed: 2026-09-29 (after `c6fa535`). Method: two code audits, hands-on play in headless
-> Chromium (real drag-and-drop, templates, crashes), and headless simulation of every shipped template.
+> Last assessed: 2026-09-29. Method: two code audits, hands-on play in headless Chromium (real
+> drag-and-drop, templates, crashes), headless simulation of every shipped template, and research
+> into real starter sets (Kato, Hornby, Märklin).
 
 ## TL;DR
 
-The **engineering base is solid**: strict TypeScript, 740+ tests, CI-gated deploy, an accurate
-Kato/Brio catalog, real snapping, undo/redo, and a graph-based simulation. It is **not yet a game**,
-for three reasons:
+**Panic on Rails is a virtual model railway** for people who love model trains but can't buy
+the real parts. You open a real starter set, build real layouts with accurately modelled track,
+run your trains, and keep expanding the railway with no end point.
 
-- There is no objective.
-- The player can't influence a running simulation: signals are decorative, switches can't be
-  clicked mid-run, and trains have no controls.
-- Until Phase 0, the loop silently froze on the first crash, which is the one "fun" moment it
-  has.
+- **Engine: done.** Phases 0 and 1 give a headless, deterministic simulation, snapping that
+  closes loops, signals that stop trains, switches you can throw mid-run, and train controls.
+- **Next:**
+  - **The Box (Phase 2):** real boxed sets with their exact contents and the layouts from their
+    manuals.
+  - **The Hobby (Phase 3):** a collection you grow with virtual money earned by running trains.
+  - **The Power Pack (Phase 4):** driving trains realistically.
+  - **Looks (Phase 5):** track and trains that look like the models.
 
-The plan has three steps:
-
-1. Make the simulation headless and trustworthy (**Phase 0, done**).
-2. Make the controls real (**Phase 1**).
-3. Add a mission layer with objectives, stakes and progression (**Phase 2**). Every mission is
-   proved solvable by a headless test.
+The old "missions" plan is replaced by this hobby loop. Operations puzzles (Inglenook,
+Timesaver) come back later as optional challenges.
 
 ## Vision
 
-A browser-based **digital toy** for building model railways and watching them run, with
-emphasis on:
+A browser **virtual model railway**. The primary audience is modelers without the budget,
+space or time for the real thing; a secondary one is modelers planning a real layout before
+they buy.
 
-- **Build**: accurate track pieces that snap together satisfyingly.
-- **Simulate**: trains follow the real track graph through switches.
-- **Panic**: things go wrong spectacularly, and the player is the dispatcher who prevents it.
+1. **Authentic.**
+   - Every track piece is a real product with the manufacturer's number and exact geometry.
+   - Every boxed set contains exactly what the real box contains.
+   - Layout plans come from the real manuals.
+   - If a layout fits in Panic on Rails, it fits on your table. Tests prove every set's plans
+     close with the real dimensions.
+2. **Running is the reward.**
+   - Trains behave like models: a power-pack throttle with momentum, scale speeds and real car
+     lengths.
+   - They look like models: ballasted roadbed and proper rolling stock.
+3. **The hobby is endless.**
+   - Start with a starter set.
+   - Earn virtual hobby money by operating your railway.
+   - Spend it in the virtual hobby shop on expansion sets, turnouts and trains.
+   - Real money is never involved, and there is no last level, just a bigger railway.
+4. **Panic.**
+   - Two trains, one track: a switch left the wrong way ends in a spectacular crash.
+   - Crashes cost repairs, and they are always the dispatcher's fault.
 
-Fun comes first and realism second. It should feel instantly playable and be good to watch.
+A **free-build / planner mode** keeps unlimited parts for designing a real layout. It will
+produce a shopping list of the real products used.
+
+See [`docs/design/virtual-model-railway.md`](design/virtual-model-railway.md) for the design,
+including the research on real starter sets.
 
 ---
 
@@ -57,7 +77,7 @@ Fun comes first and realism second. It should feel instantly playable and be goo
 |---|-----|----------|-------|
 | 1 | **The simulation froze on the first crash.** Immer deep-freezes store state; `updateCrashedParts` mutated it, the loop threw, and `setError` paused. Because `ErrorBanner` is never rendered, it happened silently. | `utils/crashPhysics.ts` (fixed); `e2e/simulation-harness.spec.ts` fails without the fix | 0 ✅ |
 | 1b | **You couldn't build a loop by hand.** Every curve (Kato and wooden) was defined so its body extended *behind* its start connector: snapped onto a track end, it folded back over the track. Snapping also required the ghost to already face within 15° of the target, so curve-to-curve joints never snapped (rotate-during-drag with `R` can't work because native drag-and-drop swallows key events). | `connectors/curve.ts`, `createCurveTrack`, `findBestSnap` (fixed); `e2e/building.spec.ts` | 1 ✅ |
-| 2 | **No goal.** No win/lose, score, levels or progression. Budget can't be earned, and "Reset Budget" is free. | No mission code; `BudgetTicker.tsx`, `createTrackSlice.clearLayout` refunds | 2 |
+| 2 | **No goal.** No win/lose, score, levels or progression. Budget can't be earned, and "Reset Budget" is free. Reframed: the goal is the hobby itself (collect sets, build, run), not missions. | No progression code; `BudgetTicker.tsx`, `createTrackSlice.clearLayout` refunds | 2–3 |
 | 3 | **Signals don't stop trains.** Red and green are cosmetic, so the whole logic toolset has no teeth. | `simulation/movement.ts` never reads signals | 1 |
 | 4 | **Switches can't be clicked while trains run.** The ripple plays but the switch doesn't toggle. Only hidden keys (S on hover, 1–9) work. | `useNodeInteraction.ts` returns early unless editing | 1 |
 | 5 | **No per-train control.** Every train runs at a fixed 100 px/s with no stop or reverse. FEATURES.md claims "Reverse trains on demand". | `trainSlice.spawnTrain`, `TrainPanel.tsx` | 1 |
@@ -76,12 +96,12 @@ Fun comes first and realism second. It should feel instantly playable and be goo
 | 1 | Simulation logic lived inside a React rAF closure. It couldn't run headlessly, was nondeterministic (`Math.random`, `performance.now` in subsystems), and had 0 direct tests. | 0 ✅ |
 | 2 | Instruction sprawl: `AGENT.md` (stale versions, Antigravity-era rules), `.agent/workflows` ("STOP for approval"), `.context/`, CLAUDE.md drift. There was no stated read order. | 0 ✅ |
 | 3 | Dead code: `utils/facadeConnection.ts` (0 importers, duplicate `validateConnection`) ✅; `useSimulateModeHandler`, `ErrorBanner` (unrendered), `isHeadOnCollision`, `cleanupOldParts`, `playNearMissSound`. | 0 / 1 |
-| 4 | Three graph walkers. Movement respects switches, but the carriage placement (`trainGeometry.ts`) and the trail (`TrainLayer.tsx`) take `connections[0]`, so carriages can render down the wrong branch. | 4 |
-| 5 | `GhostLayer.tsx` re-derives part geometry with about 19 inline trig calls instead of using the catalog connectors, so the preview can drift from what gets placed. | 4 |
-| 6 | Cross-store coupling. Track reaches into logic and budget (`removeTrack` cascade, `clearLayout` budget reset). About 40 `getState()` calls in components and hooks, and about 40 stray `console.log` calls despite `utils/logger.ts`. | 4 |
-| 7 | `e2e/specs/` (11 specs, about 3.8k lines) never runs in CI. They contain about 150 `waitForTimeout` calls, and their only visual baseline is darwin-only. | 4 |
-| 8 | No coverage tool or threshold, no dead-code detector (knip), no bundle budget. | 4 |
-| 9 | Three scenario formats (TrackTemplate, e2e `TestTemplate`, LayoutData), and none of them encodes expected outcomes. | 2 (missions unify this) |
+| 4 | Three graph walkers. Movement respects switches, but the carriage placement (`trainGeometry.ts`) and the trail (`TrainLayer.tsx`) take `connections[0]`, so carriages can render down the wrong branch. | 7 |
+| 5 | `GhostLayer.tsx` re-derives part geometry with about 19 inline trig calls instead of using the catalog connectors, so the preview can drift from what gets placed. | 7 |
+| 6 | Cross-store coupling. Track reaches into logic and budget (`removeTrack` cascade, `clearLayout` budget reset). About 40 `getState()` calls in components and hooks, and about 40 stray `console.log` calls despite `utils/logger.ts`. | 7 |
+| 7 | `e2e/specs/` (11 specs, about 3.8k lines) never runs in CI. They contain about 150 `waitForTimeout` calls, and their only visual baseline is darwin-only. | 7 |
+| 8 | No coverage tool or threshold, no dead-code detector (knip), no bundle budget. | 7 |
+| 9 | Three scenario formats (TrackTemplate, e2e `TestTemplate`, LayoutData), and none of them encodes expected outcomes. | 2–3 (layout plans become the one recipe format) |
 
 ---
 
@@ -150,45 +170,113 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
 - [ ] Crash counter, and wreckage that blocks the track until cleared (moved to Phase 3).
 - [ ] Clicking a train on the canvas to stop it (the panel buttons cover this for now).
 
-### Phase 2: The game layer (missions)
+### Phase 2: The Box, real starter sets
 
-A **Mission** is a data file with these parts:
+Goal: open a real box, see exactly what's inside, and build the layouts from its manual.
 
-- `recipe`: a starting layout. It may be partial or locked.
-- `budget` and `allowedParts`.
-- `trains`: spawns and schedules.
-- `objectives`: e.g. *deliver N trains to station X*, *survive T seconds*, *no crashes*, *under
-  $Y*.
-- `failConditions`.
-- `stars`: thresholds.
+- [x] **Layout plans as part chains** (`src/data/sets/plan.ts`). Each piece attaches to a
+      connector of an earlier piece, the way a manual reads. Positions come from catalog
+      geometry, never from stored coordinates.
+- [x] **Sets as data** (`src/data/sets/<brand>/*.json`, Zod-validated). A set records its
+      contents, accessories, the sets it extends, its footprint and its plans.
+- [x] **Proof of authenticity** (`src/data/sets/__tests__/sets.test.ts`). For every plan:
+  - it closes with no gaps;
+  - it uses only parts in the box, plus the sets it extends;
+  - a train runs it headlessly without incident.
+- [x] **Train sets shelf** (toolbar 📦): box cards with contents, footprint, a plan preview and
+      "Build this layout". Building is undoable.
+- [x] **First boxes:** Kato M1 Basic Oval (20-852) and V5 Inside Loop (20-864). V5 is a second
+      oval 33 mm inside M1, so two trains can run.
+- [x] **Buffer stops** (`bumper` straights), plus the Kato feeder (20-041) and rerailer (20-026)
+      tracks from the M1 box.
+- [x] Crossings and crossovers are now in the parts bin. Bin cards and the drag preview draw
+      each part's true shape.
+- [x] **Fixed:** turnout branches drew as near-full circles at some rotations, because the arc
+      end angle was re-normalized across 0°.
+- [ ] The rest of the Kato ladder, once contents and plans are verified against Kato's own
+      documents:
+  - M2 (oval and siding);
+  - V1 (passing siding), V3 (yard), V4 (siding), V6 (outside loop);
+  - V7 (double crossover), which also needs a double crossover part.
+- [ ] More brands' ladders: Hornby Track Packs A–F and Märklin C1–C5 need curved turnouts and a
+      double slip (Phase 6).
 
-Missions run on the Phase 0 step core, so objectives are pure functions of `(world, events)`.
+### Phase 3: The Hobby, collection, virtual money and the shop
 
-- [ ] A mission schema (Zod) that replaces the three scenario formats. Templates become
-      missions with no objectives.
-- [ ] Stations/destinations as a track feature, plus train routing goals.
-- [ ] An objective evaluator (pure, over the step events), a mission HUD, win/lose screens and
-      star rating.
-- [ ] A mission select screen and progression that unlocks parts and missions. Budget becomes
-      earned, and the free "Reset Budget" is removed from mission play (sandbox keeps it).
-- [ ] **Every mission ships with a `solution` recipe** and a headless test proving it is
-      solvable and that the unsolved state fails. This makes level design agent-safe.
-- [ ] 8–12 hand-made missions: a learning curve over switches, then signals, then sensors, then
-      combos.
+Goal: the endless loop. Run trains → earn → buy boxes → build bigger → run more.
 
-### Phase 3: Feel
+- [ ] **Collection.** Owned sets and loose parts become an inventory. The parts bin shows counts,
+      placing uses a piece and removing returns it. Free-build mode ignores the inventory.
+- [ ] **Hobby wallet** replaces the fixed budget:
+  - earned by operating, e.g. scale-kilometres run, station stops and on-time runs;
+  - reduced by crash repairs.
+- [ ] **Hobby shop:** buy starter and expansion sets, single parts and rolling stock. Prices
+      follow real street prices, scaled.
+- [ ] New players start with an M1-style starter set and one train.
+- [ ] **Shopping list:** a bill of materials for the current layout, with real product numbers,
+      for planners.
+- [ ] Headless tests for the economy: earning is a pure function of simulation events.
 
-- [ ] Recorded or sampled audio (engine loop, horn, switch clack, crash) with a volume mixer.
-- [ ] Crash slow-mo and camera punch-in. Near-miss detection and audio. Wreckage blocks the
-      track until cleared.
-- [ ] Train speed ramps (acceleration and braking) instead of instant speed.
-- [ ] Share: a URL-encoded layout or mission, plus a replay GIF/clip of the crash.
+### Phase 4: The Power Pack, driving
 
-### Phase 4: Long-term maintainability (continuous; pick items alongside feature work)
+- [ ] Throttle with momentum (acceleration and braking) in `stepSimulation`, plus a
+      power-pack-style control: a speed knob and a direction switch that only reverses when
+      stopped.
+- [ ] Rolling stock as data: real-ish locomotives and cars with lengths in mm, a top speed and
+      colours. Each car renders at its real length.
+- [ ] Speed realism: tight curves and #4 diverging routes cap speed. Too fast derails the train,
+      which is the panic.
+- [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
+
+### Phase 5: Looks
+
+Performance assessment (2026-09-30, production build on an M5 MacBook Pro with GPU Chrome, plus a
+software-rendering run):
+
+- **Detailed graphics are affordable,** at an estimated 2–6 ms per frame for a 1000-piece
+  layout with 320 cars, once they are drawn the right way.
+- **Today's plain graphics are slow for fixable reasons:**
+  - Blurred drop shadows on every car and turnout marker: 2.5 fps with 40 trains on a
+    300-piece layout, versus 120 fps without them.
+  - The canvas re-renders every tick, and the train layer only redraws every other frame.
+  - The whole-layout track bitmap goes over Chrome's size limit on big layouts, where the
+    track then disappears.
+
+Order, biggest win per millisecond first:
+
+- [ ] Remove the blurred shadows (`perfectDrawEnabled={false}`, no `shadowBlur`) in
+      `TrainLayer.tsx` and `SwitchRenderer.tsx`.
+- [ ] Stop the every-tick re-render: whole-store subscriptions in `useSwitchInteraction.ts`.
+      Draw trains in the same frame as the simulation step.
+- [ ] Realistic cars as pre-drawn images (sprites):
+  - placed by two bogie points so they cut across curves;
+  - following the route the train actually took, not `connections[0]`;
+  - about 60–90 mm long at game scale.
+- [ ] Detailed track drawn by one drawing function per piece: roadbed, sleepers, rails, and
+      turnout points and frog. Simplified when zoomed out. Fix the sleeper angle on curves
+      (`trackRenderingUtils.ts`). Hide joint dots outside Edit mode.
+- [ ] A tile cache instead of the fixed-resolution whole-layout bitmap.
+- [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
+      92 ms with software rendering. Reconsider only for lighting or particles.
+- [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.
+- [ ] Crash slow-motion, near-miss detection, and wreckage that blocks the track until cleared.
+
+### Phase 6: More systems and complex parts
+
+- [ ] A general part topology (connectors, segments and routes) that replaces the per-type track
+      creators. It enables double slips, curved turnouts, 3-way turnouts and scissors
+      crossovers.
+- [ ] Brands: Märklin C-track (start sets plus C1–C5), Hornby Setrack (Track Packs A–F), Tomix
+      Fine Track, Bachmann E-Z Track.
+- [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
+- [ ] Share a layout by URL.
+
+### Phase 7: Long-term maintainability (continuous; pick items alongside feature work)
 
 - [ ] One switch-aware graph walker used by movement, carriages and the trail. This fixes the
       wrong-branch carriage rendering.
-- [ ] GhostLayer computes previews through the catalog connector code and track creators.
+- [x] GhostLayer computes previews through the catalog connector code and track creators
+      (`createPartTrack`); crossovers and bumpers now preview their true shape.
 - [ ] Move cross-store cascades into an orchestration layer. Replace `console.log` with
       `logger` and add a `no-console` lint rule.
 - [ ] `@vitest/coverage-v8` with thresholds on `src/simulation/**` and `src/stores/**`.

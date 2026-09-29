@@ -35,6 +35,7 @@ export const StraightPartSchema = z.object({
     name: z.string().min(1, 'Part name is required'),
     type: z.literal('straight'),
     length: z.number().positive('Length must be positive'),
+    bumper: z.boolean().optional(),
     ...OptionalPartFields,
 });
 
