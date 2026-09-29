@@ -8,6 +8,7 @@
  * @module trackCreators/createPartTrack
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Vector2, PartId } from '../../../types';
 import type { PartDefinition } from '../../../data/catalog/types';
 import { createStraightTrack, createCurveTrack } from './standardTrack';
@@ -22,7 +23,18 @@ export interface PartTrackResult {
     connectorNodeMap: Record<string, NodeId>;
 }
 
+/**
+ * Build a part's nodes and edges. Every edge of the piece shares one
+ * `placementId`, so the piece is selected, removed and counted as a whole
+ * (a turnout is one piece, not two edges).
+ */
 export function createPartTrack(part: PartDefinition, position: Vector2, rotation: number): PartTrackResult {
+    const result = buildPart(part, position, rotation);
+    const placementId = result.edges[0]?.placementId ?? uuidv4();
+    return { ...result, edges: result.edges.map(e => (e.placementId ? e : { ...e, placementId })) };
+}
+
+function buildPart(part: PartDefinition, position: Vector2, rotation: number): PartTrackResult {
     const partId = part.id as PartId;
     const geometry = part.geometry;
     switch (geometry.type) {

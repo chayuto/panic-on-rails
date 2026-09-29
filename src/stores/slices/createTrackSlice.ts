@@ -98,7 +98,7 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         const edge = state.edges[edgeId];
         if (!edge) return;
 
-        // Collect all edges to remove (cascade by placementId for compound parts)
+        // Remove the whole piece: every edge placed with it (a turnout's two routes, a compound)
         const edgeIdsToRemove: EdgeId[] = [];
         if (edge.placementId) {
             // Find all sibling edges in this compound placement
