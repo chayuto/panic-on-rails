@@ -119,8 +119,9 @@ export function GhostLayer() {
         const radians = (ghostRotation * Math.PI) / 180;
         const angleRad = (angle * Math.PI) / 180;
 
-        // Arc center is perpendicular to start direction
-        const centerAngle = radians - Math.PI / 2;
+        // Arc center is perpendicular (clockwise) to the start direction —
+        // must match createCurveTrack() / computeCurveConnectors()
+        const centerAngle = radians + Math.PI / 2;
         const centerX = ghostPosition.x + Math.cos(centerAngle) * radius;
         const centerY = ghostPosition.y + Math.sin(centerAngle) * radius;
 

@@ -108,8 +108,10 @@ export function createCurveTrack(
     const angleRad = degreesToRadians(angle);
     const startRad = degreesToRadians(rotation);
 
-    // Arc center is perpendicular to start direction
-    const centerAngle = startRad - Math.PI / 2; // Left curve by default
+    // Arc center is perpendicular (clockwise) to the start direction, so the
+    // arc runs forward from the start node and turns clockwise. Must match
+    // computeCurveConnectors() (see catalogGeometry.test.ts).
+    const centerAngle = startRad + Math.PI / 2;
     const arcCenter: Vector2 = {
         x: position.x + Math.cos(centerAngle) * radius,
         y: position.y + Math.sin(centerAngle) * radius,
@@ -140,7 +142,7 @@ export function createCurveTrack(
     };
 
     // Build arc geometry
-    const centerAngleDeg = rotation - 90;
+    const centerAngleDeg = rotation + 90;
     const arcStartAngleDeg = normalizeAngle(centerAngleDeg + 180);
     const arcSweepDeg = angle;
 
