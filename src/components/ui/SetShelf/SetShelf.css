@@ -374,3 +374,66 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* Trains for sale */
+.shop-trains {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.shop-train {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-areas:
+    "preview preview preview"
+    "text price buy";
+  align-items: center;
+  gap: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.train-preview {
+  grid-area: preview;
+  width: 100%;
+  height: auto;
+  background: #8a867c;
+  border-radius: 6px;
+}
+
+.shop-train-text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shop-train .shop-part-price {
+  grid-area: price;
+}
+
+.shop-train button {
+  grid-area: buy;
+  background: var(--mode-edit-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shop-train button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shop-train-description {
+  font-size: 12px;
+  color: var(--fg-secondary);
+  margin-top: 2px;
+}

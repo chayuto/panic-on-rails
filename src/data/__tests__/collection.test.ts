@@ -4,7 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { countPlacedPieces, inventoryOf, piecesLeft, shortfall, formatMoney } from '../collection';
+import { countPlacedPieces, inventoryOf, piecesLeft, shortfall, formatMoney, trainsLeft } from '../collection';
+import { spawnTrainAtClearestSpot, nextAvailableStock } from '../../simulation/controls';
+import { useSimulationStore } from '../../stores/useSimulationStore';
+import { getRollingStock } from '../rollingStock';
 import { useCollectionStore, STARTER_COLLECTION } from '../../stores/useCollectionStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { earningsFor, ECONOMY } from '../../simulation/economy';
@@ -95,6 +98,14 @@ describe('useCollectionStore', () => {
         expect(s.lifetimeEarned).toBe(10_000);
     });
 
+    it('starts a new player with one train, and buys more', () => {
+        expect(useCollectionStore.getState().ownedTrains).toEqual({ 'diesel-passenger': 1 });
+        expect(useCollectionStore.getState().buyTrain('commuter')).toBe(false);
+        useCollectionStore.getState().earn(20_000);
+        expect(useCollectionStore.getState().buyTrain('commuter')).toBe(true);
+        expect(useCollectionStore.getState().ownedTrains.commuter).toBe(1);
+    });
+
     it('buys loose parts with a product number, but not box-only pieces', () => {
         const store = useCollectionStore.getState();
         expect(store.buyPart('kato-20-000', 2)).toBe(true);
@@ -105,18 +116,57 @@ describe('useCollectionStore', () => {
     });
 });
 
+describe('owned trains', () => {
+    beforeEach(() => {
+        resetWorld();
+        useCollectionStore.getState().resetCollection();
+        useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 0 }, 0);
+        useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 200 }, 0);
+    });
+
+    it('counts owned trains that are not running', () => {
+        const trains = { a: { stockId: 'commuter' }, b: { stockId: 'commuter' }, c: {} } as never;
+        expect(trainsLeft({ commuter: 3, freight: 1 }, trains)).toEqual({ commuter: 1, freight: 1 });
+    });
+
+    it('puts your own trains on the track, and no more than you own', () => {
+        const first = spawnTrainAtClearestSpot();
+        expect(first).not.toBeNull();
+        const train = useSimulationStore.getState().trains[first!];
+        expect(train.stockId).toBe('diesel-passenger');
+        expect(train.carriageCount).toBe(getRollingStock('diesel-passenger')!.cars);
+        expect(nextAvailableStock()).toBeNull();
+        expect(spawnTrainAtClearestSpot()).toBeNull();
+    });
+
+    it("caps the throttle at the train's top speed", () => {
+        const id = spawnTrainAtClearestSpot()!;
+        useSimulationStore.getState().setTrainThrottle(id, 999);
+        expect(useSimulationStore.getState().trains[id].throttle).toBe(getRollingStock('diesel-passenger')!.topSpeed);
+    });
+
+    it('free build runs as many generic trains as you like', () => {
+        useCollectionStore.getState().setMode('free');
+        expect(spawnTrainAtClearestSpot(2)).not.toBeNull();
+        const id = spawnTrainAtClearestSpot(2)!;
+        expect(useSimulationStore.getState().trains[id].stockId).toBeUndefined();
+        expect(Object.keys(useSimulationStore.getState().trains)).toHaveLength(2);
+    });
+});
+
 describe('earnings', () => {
-    it('pays per metre of track a train finishes, and bills repairs per crashed train', () => {
+    it('pays per metre of track a train finishes, and bills repairs per crashed or derailed train', () => {
         const edges = { e1: { length: 248 }, e2: { length: 124 } } as never;
         const events: SimEvent[] = [
             { type: 'traverse', trainId: 't1', fromEdgeId: 'e1', toEdgeId: 'e2' },
             { type: 'traverse', trainId: 't1', fromEdgeId: 'e2', toEdgeId: 'e1' },
             { type: 'collision', trainId: 't1', otherTrainIds: ['t2'], edgeId: 'e1', location: { x: 0, y: 0 }, severity: 1 },
             { type: 'collision', trainId: 't2', otherTrainIds: ['t1'], edgeId: 'e1', location: { x: 0, y: 0 }, severity: 1 },
+            { type: 'derail', trainId: 't3', edgeId: 'e1', location: { x: 0, y: 0 }, speed: 300 },
         ];
         const { income, repairs } = earningsFor(events, edges);
         expect(income).toBeCloseTo(0.372 * ECONOMY.CENTS_PER_METRE, 6);
-        expect(repairs).toBe(2 * ECONOMY.REPAIR_CENTS);
+        expect(repairs).toBe(3 * ECONOMY.REPAIR_CENTS);
     });
 
     describe('while running (headless)', () => {

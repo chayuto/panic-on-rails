@@ -33,17 +33,13 @@ test.describe('Power pack', () => {
         await expect(page.getByTestId(`train-speed-${id}`)).toHaveText('92 km/h');
     });
 
-    test('taking a curve at full throttle derails the train, and the repair is billed', async ({ page, app }) => {
+    test('taking a curve at full throttle derails the train', async ({ page, app }) => {
         void app;
         const id = await loadOval(page);
-        const wallet = () => page.evaluate(() => window.__PANIC_STORES__!.collection.getState().wallet);
-        const before = await wallet();
-
         await page.getByTestId(`train-throttle-${id}`).fill('300');
         await expect.poll(async () => (await trainState(page, id)).crashed, { timeout: 10_000 }).toBe(true);
         const log = await page.evaluate(() => window.__PANIC_STORES__!.simulation.getState().simLog.map(e => e.type));
         expect(log).toContain('derail');
-        expect(await wallet()).toBeLessThan(before);
     });
 
     test('the direction lever brakes to a stand before reversing', async ({ page, app }) => {

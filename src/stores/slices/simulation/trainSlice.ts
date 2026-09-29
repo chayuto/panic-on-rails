@@ -6,6 +6,7 @@ import type { Train } from '../../../types';
 import type { SimulationSliceCreator, TrainSlice } from './types';
 import { CAR_PITCH } from '../../../config/rollingStock';
 import { DRIVING } from '../../../simulation/driving';
+import { getRollingStock } from '../../../data/rollingStock';
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 let trainCounter = 0;
@@ -20,9 +21,10 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
      * @param distance - Starting distance along the edge (default: 0)
      * @returns ID of the newly created train
      */
-    spawnTrain: (edgeId, color, carriageCount, distance) => {
+    spawnTrain: (edgeId, color, carriageCount, distance, stockId) => {
         const trainId = `train-${++trainCounter}`;
-        const trainColor = color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
+        const stock = getRollingStock(stockId);
+        const trainColor = color || stock?.color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
 
         const train: Train = {
             id: trainId,
@@ -33,8 +35,9 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             speed: DRIVING.DEFAULT_THROTTLE,
             throttle: DRIVING.DEFAULT_THROTTLE,
             color: trainColor,
-            carriageCount: carriageCount ?? 1,
+            carriageCount: carriageCount ?? stock?.cars ?? 1,
             carriageSpacing: CAR_PITCH,
+            ...(stock && { stockId: stock.id }),
         };
 
         set((state) => {
@@ -95,7 +98,8 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
         set((state) => {
             const train = state.trains[trainId];
             if (train && !train.crashed) {
-                train.throttle = Math.max(0, Math.min(DRIVING.MAX_THROTTLE, throttle));
+                const top = getRollingStock(train.stockId)?.topSpeed ?? DRIVING.MAX_THROTTLE;
+                train.throttle = Math.max(0, Math.min(top, throttle));
             }
         });
     },

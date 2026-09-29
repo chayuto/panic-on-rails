@@ -202,6 +202,55 @@
     color: #ffc850;
 }
 
+/* Your trains (collection mode) */
+.owned-trains {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.owned-train {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.owned-train-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.owned-train-left {
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-secondary);
+    font-size: 12px;
+}
+
+.owned-train button,
+.owned-trains-shop {
+    background: var(--button-bg);
+    color: var(--fg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.owned-train button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.owned-trains-shop {
+    align-self: flex-start;
+    background: transparent;
+}
+
 /* Throttle and scale speed (a second row in the train card) */
 .train-throttle {
     flex-basis: 100%;

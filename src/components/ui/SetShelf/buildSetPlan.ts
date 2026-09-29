@@ -11,6 +11,7 @@ import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { fitViewToLayout } from '../../../utils/viewFit';
+import { spawnLayoutTrain } from '../../../simulation/controls';
 
 export function buildSetPlan(set: TrackSet, plan: LayoutPlan): void {
     const template = planToTemplate(plan, { name: `${set.badge ?? set.productCode} · ${plan.name}` });
@@ -33,7 +34,7 @@ export function buildSetPlan(set: TrackSet, plan: LayoutPlan): void {
         track.addTrack,
         () => useTrackStore.getState().nodes,
         track.connectNodes,
-        sim.spawnTrain,
+        spawnLayoutTrain,
         () => {
             useModeStore.getState().enterSimulateMode();
             useSimulationStore.getState().setRunning(true);

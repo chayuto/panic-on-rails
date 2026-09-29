@@ -16,6 +16,8 @@ export interface Train {
     /** Stop, then set off the other way (the power pack's direction lever) */
     reverseRequested?: boolean;
     color: string;
+    /** Which rolling stock this is (see data/rollingStock); none for free-build trains */
+    stockId?: string;
     // Bounce animation state
     bounceTime?: number;    // Timestamp when bounce started (performance.now())
     // Control state

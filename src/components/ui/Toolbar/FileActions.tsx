@@ -17,6 +17,8 @@ import { useModeStore } from '../../../stores/useModeStore';
 import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { exportLayout, importLayout } from '../../../utils/fileManager';
 import { getTemplateList, loadTemplate, applyTemplate } from '../../../data/templates';
+import { spawnLayoutTrain } from '../../../simulation/controls';
+import { useCollectionStore } from '../../../stores/useCollectionStore';
 import type { TemplateMetadata } from '../../../data/templates';
 
 // Custom confirmation modal component
@@ -112,7 +114,6 @@ export function FileActions() {
     const addTrack = useTrackStore(s => s.addTrack);
     const edges = useTrackStore(s => s.edges);
     const connectNodes = useTrackStore(s => s.connectNodes);
-    const spawnTrain = useSimulationStore(s => s.spawnTrain);
     const clearTrains = useSimulationStore(s => s.clearTrains);
     const setRunning = useSimulationStore(s => s.setRunning);
 
@@ -141,6 +142,9 @@ export function FileActions() {
         setLoadingTemplate(true);
         // A template wholesale-replaces the layout — undo history no longer applies.
         useHistoryStore.getState().clear();
+        // Templates are demo layouts, not the player's collection: they run in
+        // free build (no inventory limits, and no hobby money to earn from them)
+        useCollectionStore.getState().setMode('free');
         try {
             // Clear persisted stores first
             localStorage.removeItem('panic-on-rails-v1');
@@ -155,7 +159,7 @@ export function FileActions() {
                 addTrack,
                 () => useTrackStore.getState().nodes,
                 connectNodes,
-                spawnTrain,
+                spawnLayoutTrain,
                 () => { useModeStore.getState().enterSimulateMode(); setRunning(true); },
                 true // autoStart
             );
@@ -167,7 +171,7 @@ export function FileActions() {
         } finally {
             setLoadingTemplate(false);
         }
-    }, [edges, clearLayout, clearTrains, addTrack, connectNodes, spawnTrain, setRunning]);
+    }, [edges, clearLayout, clearTrains, addTrack, connectNodes, setRunning]);
 
     // File operations
     const handleSave = useCallback(() => {

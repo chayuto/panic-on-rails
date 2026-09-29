@@ -11,11 +11,15 @@ import { Play, Pause, TrainFront } from 'lucide-react';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { spawnTrainAtClearestSpot, togglePlayPause } from '../../../simulation/controls';
+import { useShopStore } from '../../../stores/useShopStore';
 
 export function SimulateToolbar() {
     const isRunning = useSimulationStore(s => s.isRunning);
     const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
-    const handleAddTrain = useCallback(() => { spawnTrainAtClearestSpot(); }, []);
+    // Every train you own is already running: time to buy another
+    const handleAddTrain = useCallback(() => {
+        if (!spawnTrainAtClearestSpot()) useShopStore.getState().openShop('trains');
+    }, []);
 
     return (
         <>

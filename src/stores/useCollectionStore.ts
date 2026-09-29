@@ -11,12 +11,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getSetById } from '../data/sets';
 import { getPartById } from '../data/catalog';
+import { getRollingStock } from '../data/rollingStock';
 
 export type CollectionMode = 'collection' | 'free';
 
-/** What a new player starts with: an M1 box and a little pocket money. */
+/** What a new player starts with: an M1 box, a train, and a little pocket money. */
 export const STARTER_COLLECTION = {
     ownedSets: { 'kato-20-852': 1 } as Record<string, number>,
+    ownedTrains: { 'diesel-passenger': 1 } as Record<string, number>,
     wallet: 2000,
 };
 
@@ -31,6 +33,8 @@ interface CollectionState {
     ownedSets: Record<string, number>;
     /** Parts bought on their own: part id → count */
     looseParts: Record<string, number>;
+    /** Trains owned: rolling stock id → count */
+    ownedTrains: Record<string, number>;
 }
 
 interface CollectionActions {
@@ -41,6 +45,8 @@ interface CollectionActions {
     buySet: (setId: string) => boolean;
     /** Buy loose pieces of a part. False if it's unknown, not sold alone or too expensive. */
     buyPart: (partId: string, qty?: number) => boolean;
+    /** Buy a train. False if it's unknown or too expensive. */
+    buyTrain: (stockId: string) => boolean;
     /** Start over with the starter collection. */
     resetCollection: () => void;
 }
@@ -53,6 +59,7 @@ const initialState: CollectionState = {
     lifetimeEarned: 0,
     ownedSets: { ...STARTER_COLLECTION.ownedSets },
     looseParts: {},
+    ownedTrains: { ...STARTER_COLLECTION.ownedTrains },
 };
 
 export const useCollectionStore = create<CollectionStore>()(
@@ -94,10 +101,21 @@ export const useCollectionStore = create<CollectionStore>()(
                 return true;
             },
 
+            buyTrain: (stockId) => {
+                const stock = getRollingStock(stockId);
+                if (!stock || get().wallet < stock.price) return false;
+                set(s => ({
+                    wallet: s.wallet - stock.price,
+                    ownedTrains: { ...s.ownedTrains, [stockId]: (s.ownedTrains[stockId] ?? 0) + 1 },
+                }));
+                return true;
+            },
+
             resetCollection: () => set({
                 ...initialState,
                 ownedSets: { ...STARTER_COLLECTION.ownedSets },
                 looseParts: {},
+                ownedTrains: { ...STARTER_COLLECTION.ownedTrains },
             }),
         }),
         { name: 'panic-on-rails-collection-v1' }
@@ -108,3 +126,4 @@ export const selectMode = (s: CollectionStore) => s.mode;
 export const selectWallet = (s: CollectionStore) => s.wallet;
 export const selectOwnedSets = (s: CollectionStore) => s.ownedSets;
 export const selectLooseParts = (s: CollectionStore) => s.looseParts;
+export const selectOwnedTrains = (s: CollectionStore) => s.ownedTrains;
