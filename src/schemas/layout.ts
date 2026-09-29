@@ -14,6 +14,7 @@ const TrackNodeSchema = z.object({
     bumper: z.boolean().optional(),
     switchState: z.union([z.literal(0), z.literal(1)]).optional(),
     switchBranches: z.tuple([z.string(), z.string()]).optional(),
+    switchGroup: z.string().optional(), // Points thrown together
 });
 
 const TrackEdgeSchema = z.object({

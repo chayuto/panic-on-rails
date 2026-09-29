@@ -6,6 +6,7 @@
  */
 
 import type { SliceCreator, ConnectionSlice } from './types';
+import { linkedPoints } from '../../utils/switchRouting';
 
 // Import extracted operations
 import { connectNodesOp } from './connectionOps/connect';
@@ -90,21 +91,17 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
             }
 
             const newState: 0 | 1 = node.switchState === 0 ? 1 : 0;
+            const moved = linkedPoints(node, state.nodes);
             console.log('[toggleSwitch] Toggling switch:', {
                 nodeId: nodeId.slice(0, 8),
                 from: node.switchState,
                 to: newState,
+                linked: moved.length - 1,
             });
 
-            return {
-                nodes: {
-                    ...state.nodes,
-                    [nodeId]: {
-                        ...node,
-                        switchState: newState,
-                    },
-                },
-            };
+            const nodes = { ...state.nodes };
+            for (const points of moved) nodes[points.id] = { ...points, switchState: newState };
+            return { nodes };
         });
     },
 });

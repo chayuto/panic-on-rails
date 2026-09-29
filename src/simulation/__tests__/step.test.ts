@@ -91,6 +91,18 @@ describe('stepSimulation', () => {
             for (let i = 0; i < 100; i++) w = stepSimulation(w, 1 / 60, ctx()).world;
             expect(w.trains.t.currentEdgeId).toBe('branch');
         });
+
+        it('throws linked points with the ones it is wired to', () => {
+            const w = base('toggle');
+            const linked = {
+                ...w.nodes,
+                S: { ...w.nodes.S, switchGroup: 'g' },
+                far: node('far', 400, ['x', 'y'], { type: 'switch', switchState: 0, switchBranches: ['x', 'y'], switchGroup: 'g' }),
+            };
+            const { world: next, events } = stepSimulation({ ...w, nodes: linked }, 0.01, ctx());
+            expect(next.nodes.far.switchState).toBe(1);
+            expect(events).toContainEqual({ type: 'switch', nodeId: 'far', switchState: 1 });
+        });
     });
 
     describe('train control', () => {

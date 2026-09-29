@@ -51,6 +51,7 @@ export function mergeNodeInto(
         // The new piece brought the points
         merged.switchState = removed.switchState;
         merged.switchBranches = removed.switchBranches;
+        if (removed.switchGroup) merged.switchGroup = removed.switchGroup;
     }
     nodes[survivorNodeId] = merged;
 

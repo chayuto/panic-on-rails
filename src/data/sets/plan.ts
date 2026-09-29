@@ -81,6 +81,11 @@ export function throughExit(part: PartDefinition, via: string): string | undefin
     if (geometry.type === 'crossing' || geometry.type === 'compound') {
         return THROUGH_PAIRS[via];
     }
+    if (geometry.type === 'topology') {
+        // The first route listed through `via` is its through route
+        const route = geometry.routes.find(r => r.from === via || r.to === via);
+        return route ? (route.from === via ? route.to : route.from) : undefined;
+    }
     return getPartConnectors(part).nodes.map(n => n.localId).find(id => id !== via);
 }
 

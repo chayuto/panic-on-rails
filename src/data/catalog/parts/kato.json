@@ -391,6 +391,46 @@
             "description": "X15R: both routes span the same 186mm, so the diagonal ends about 25mm either side of the straight. Mirror image of X15L."
         },
         {
+            "id": "kato-20-210",
+            "cost": 6800,
+            "name": "Double Crossover 310mm",
+            "type": "topology",
+            "productCode": "20-210",
+            "description": "WX310: two parallel tracks 310mm long at 33mm centres, with crossovers both ways that cross in the middle (a scissors crossover). One turnout control switch throws all four points: straight through, or both diagonals. Diagonal curves R583 12.9°, as modelled by XTrackCAD.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "straight": 310 }] },
+                { "from": "B1", "to": "B2", "path": [{ "straight": 310 }] },
+                {
+                    "from": "A1",
+                    "to": "B2",
+                    "path": [
+                        { "straight": 17.05 },
+                        { "arc": 583, "angle": 12.9, "turn": "right" },
+                        { "straight": 16 },
+                        { "arc": 583, "angle": 12.9, "turn": "left" },
+                        { "straight": 17.05 }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "A2",
+                    "path": [
+                        { "straight": 17.05 },
+                        { "arc": 583, "angle": 12.9, "turn": "left" },
+                        { "straight": 16 },
+                        { "arc": 583, "angle": 12.9, "turn": "right" },
+                        { "straight": 17.05 }
+                    ]
+                }
+            ],
+            "points": [["A1", "A2", "B1", "B2"]]
+        },
+        {
             "id": "kato-20-230",
             "name": "#4 Single Crossover Left",
             "type": "compound",

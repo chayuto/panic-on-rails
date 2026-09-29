@@ -12,6 +12,12 @@ import { isInsidePiece } from './graphAnalysis';
 type NodeId = string;
 type EdgeId = string;
 
+/** The points that move with `node`: every set linked to it, or just itself. */
+export function linkedPoints(node: TrackNode, nodes: Record<NodeId, TrackNode>): TrackNode[] {
+    if (!node.switchGroup) return [node];
+    return Object.values(nodes).filter(n => n.type === 'switch' && n.switchGroup === node.switchGroup);
+}
+
 /**
  * One route through a piece, from the points at `from` along `firstEdgeId`:
  * on through the joints inside the piece (a curved turnout's straight and

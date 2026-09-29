@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { resetWorld, loadRecipe, summarize, simHarness } from '../harness';
+import { resetWorld, loadRecipe, loadSetPlan, summarize, simHarness } from '../harness';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { loadTemplateJson } from './fixtures';
@@ -49,6 +49,51 @@ describe('template scenarios (headless)', () => {
             useTrackStore.getState().toggleSwitch(mainTurnout().id);
             const events = simHarness.runSeconds(20);
             expect(count(events, 'bounce')).toBeGreaterThan(0);
+        });
+    });
+
+    describe('Kato V7: M1 and V5 joined by the WX310 scissors crossover', () => {
+        const scissorsPoints = () => {
+            const { nodes, edges } = useTrackStore.getState();
+            return Object.values(nodes).filter(n => n.type === 'switch'
+                && n.connections.some(id => edges[id]?.partId === 'kato-20-210'));
+        };
+
+        it('has points at all four ends, each joined to the layout', () => {
+            loadSetPlan('kato-20-866', 'm1-v5-scissors');
+            const points = scissorsPoints();
+            expect(points).toHaveLength(4);
+            for (const n of points) expect(n.connections).toHaveLength(3);
+        });
+
+        it('one control throws all four points', () => {
+            loadSetPlan('kato-20-866', 'm1-v5-scissors');
+            useTrackStore.getState().toggleSwitch(scissorsPoints()[0].id);
+            expect(scissorsPoints().map(n => n.switchState)).toEqual([1, 1, 1, 1]);
+            useTrackStore.getState().toggleSwitch(scissorsPoints()[2].id);
+            expect(scissorsPoints().map(n => n.switchState)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('thrown, it swaps each train between the ovals', () => {
+            loadSetPlan('kato-20-866', 'm1-v5-scissors');
+            useTrackStore.getState().toggleSwitch(scissorsPoints()[0].id);
+            const events = simHarness.runSeconds(60);
+            const { edges } = useTrackStore.getState();
+            const visited = new Map<string, Set<string>>();
+            for (const e of events) {
+                if (e.type !== 'traverse') continue;
+                const parts = visited.get(e.trainId) ?? new Set();
+                parts.add(edges[e.toEdgeId]?.partId ?? '?');
+                visited.set(e.trainId, parts);
+            }
+            expect(visited.size).toBe(2);
+            for (const parts of visited.values()) {
+                // R315 curves are M1's outer oval, R282 curves V5's inner one
+                expect(parts).toContain('kato-20-120');
+                expect(parts).toContain('kato-20-110');
+            }
+            expect(summarize().crashed).toBe(0);
+            expect(count(events, 'bounce')).toBe(0);
         });
     });
 

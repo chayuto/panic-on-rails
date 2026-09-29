@@ -6,6 +6,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
+import { clickWorld } from './helpers/canvas.js';
 
 const CURVE = 'Curve R216-45°';
 
@@ -124,6 +125,20 @@ test.describe('Building by hand', () => {
         // Main, branch and the straight it was dropped on
         expect(points).toEqual([3]);
         expect(await integrityProblems(page)).toEqual([]);
+    });
+
+    test('a double crossover dropped onto a track end joins, and one click throws all four points', async ({ page, app }) => {
+        void app;
+        await dropPart(page, 'Straight 248mm', { x: 300, y: 300 });
+        await dropPart(page, 'Double Crossover 310mm', await nearNewestEndpoint(page, 0));
+        expect(await integrityProblems(page)).toEqual([]);
+        const points = await page.evaluate(() => Object.values(window.__PANIC_STORES__!.track.getState().nodes)
+            .filter(n => n.type === 'switch'));
+        expect(points.map(n => n.connections.length).sort()).toEqual([2, 2, 2, 3]);
+
+        await clickWorld(page, points[0].position);
+        await expect.poll(() => page.evaluate(() => Object.values(window.__PANIC_STORES__!.track.getState().nodes)
+            .filter(n => n.type === 'switch').map(n => n.switchState))).toEqual([1, 1, 1, 1]);
     });
 
     test('a curve dropped on a straight continues forward instead of folding back', async ({ page, app }) => {

@@ -3,7 +3,8 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useCollectionStore } from '../../stores/useCollectionStore';
 import { useShopStore } from '../../stores/useShopStore';
 import { useInventory, usePiecesLeft } from '../../hooks/useCollection';
-import { getPartsByScale } from '../../data/catalog';
+import { getPartsByScale, partCategory } from '../../data/catalog';
+import type { PartCategory } from '../../data/catalog/types';
 import type { PartDefinition } from '../../types';
 import { PartPreview } from './TrackPreview';
 
@@ -118,12 +119,12 @@ function ModeSwitch() {
 }
 
 /** Bin sections, in the order a modeler reaches for them. */
-const PART_SECTIONS: { title: string; matches: (part: PartDefinition) => boolean }[] = [
-    { title: 'Straights', matches: p => p.geometry.type === 'straight' && !p.geometry.bumper },
-    { title: 'Curves', matches: p => p.geometry.type === 'curve' },
-    { title: 'Turnouts', matches: p => p.geometry.type === 'switch' },
-    { title: 'Crossings & crossovers', matches: p => p.geometry.type === 'crossing' || p.geometry.type === 'compound' },
-    { title: 'Buffer stops', matches: p => p.geometry.type === 'straight' && !!p.geometry.bumper },
+const PART_SECTIONS: { title: string; category: PartCategory }[] = [
+    { title: 'Straights', category: 'straight' },
+    { title: 'Curves', category: 'curve' },
+    { title: 'Turnouts', category: 'turnout' },
+    { title: 'Crossings & crossovers', category: 'crossing' },
+    { title: 'Buffer stops', category: 'bumper' },
 ];
 
 /**
@@ -141,7 +142,7 @@ export function PartsBin() {
     const parts = getPartsByScale(selectedSystem).filter(p => !inCollection || (inventory[p.id] ?? 0) > 0);
 
     const sections = PART_SECTIONS
-        .map(section => ({ ...section, parts: parts.filter(section.matches) }))
+        .map(section => ({ ...section, parts: parts.filter(p => partCategory(p) === section.category) }))
         .filter(section => section.parts.length > 0);
 
     return (

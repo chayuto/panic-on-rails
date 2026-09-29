@@ -58,6 +58,7 @@ export interface ConnectionSliceActions {
         targetPosition: Vector2,
         rotationDelta: number
     ) => void;
+    /** Throw a set of points, and any points linked to it */
     toggleSwitch: (nodeId: NodeId) => void;
 }
 

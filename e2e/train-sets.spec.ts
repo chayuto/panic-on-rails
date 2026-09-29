@@ -5,6 +5,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
+import { clickWorld } from './helpers/canvas.js';
 
 const M1 = 'kato-20-852';
 
@@ -95,6 +96,36 @@ test.describe('Train sets shelf', () => {
         const start = await page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed);
         await expect.poll(() => page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed)).toBeGreaterThan(start + 1);
         expect(await page.evaluate(() => window.__PANIC_SIM__!.summarize().crashed)).toBe(0);
+    });
+
+    test('Kato V7: the scissors crossover joins M1 to V5, and a click throws its points', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+        await page.getByTestId('open-set-shelf').click();
+        const box = page.getByTestId('set-box-kato-20-866');
+        await box.getByText(/In the box/).click();
+        await expect(box).toContainText('20-210');
+        await box.getByTestId('set-build-kato-20-866').click();
+
+        // 36 plain pieces, and the WX310's two straights and two five-step diagonals
+        await expect.poll(() => edgeCount(page)).toBe(48);
+        expect(await openEnds(page)).toBe(0);
+
+        // Stop the trains, then throw the points at one end of the crossover
+        await page.evaluate(() => {
+            const s = window.__PANIC_STORES__!;
+            s.simulation.setRunning(false);
+            s.mode.enterEditMode();
+        });
+        const points = await page.evaluate(() => {
+            const { nodes, edges } = window.__PANIC_STORES__!.track.getState();
+            return Object.values(nodes).filter(n => n.type === 'switch'
+                && n.connections.some(id => edges[id]?.partId === 'kato-20-210'));
+        });
+        expect(points.map(n => n.connections.length)).toEqual([3, 3, 3, 3]);
+        await clickWorld(page, points[0].position);
+        await expect.poll(() => page.evaluate((id) =>
+            window.__PANIC_STORES__!.track.getState().nodes[id].switchState, points[0].id)).toBe(1);
     });
 
     test('Escape closes the shelf without building', async ({ page, app }) => {

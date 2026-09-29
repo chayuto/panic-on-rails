@@ -1,6 +1,7 @@
 /**
  * Joining track at a set of points: the points survive the merge whichever
- * node carried them, and every edge at the merged-away node follows it.
+ * node carried them, every edge at the merged-away node follows it, and
+ * linked points keep working.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -56,6 +57,19 @@ describe('joining track at points', () => {
         expect(state().nodes[entry.id].connections).toHaveLength(3);
         expect(integrityProblems()).toEqual([]);
     });
+
+    it('linked points stay linked through a join: one click throws all four of a double crossover', () => {
+        state().addTrack('kato-20-210', { x: 0, y: 0 }, 0);    // A1 at (0,0)
+        state().addTrack('kato-20-000', { x: -248, y: 0 }, 0);
+        const a1 = at(0, 0);
+        const lead = at(0, 0, a1.id);
+        state().connectNodes(lead.id, a1.id);
+
+        expect(points()).toHaveLength(4);
+        state().toggleSwitch(lead.id);
+        expect(points().map(n => n.switchState)).toEqual([1, 1, 1, 1]);
+        expect(integrityProblems()).toEqual([]);
+    });
 });
 
 describe('routes through a piece', () => {
@@ -79,5 +93,24 @@ describe('routes through a piece', () => {
         };
         expect(sideOf('kato-20-202')).toBe(-1); // #6 left: branch to the north, screen-left
         expect(sideOf('kato-20-203')).toBe(1);
+    });
+
+    it('follows a double crossover\'s diagonal through all five steps to the far track', () => {
+        state().addTrack('kato-20-210', { x: 0, y: 0 }, 0);
+        const a1 = at(0, 0);
+        const { edges, nodes } = state();
+        const diagonal = routeThroughPiece(a1.id, a1.switchBranches![1], edges, nodes);
+        expect(diagonal.edges).toHaveLength(5);
+        expect(nodes[diagonal.end].position.x).toBeCloseTo(310, 1);
+        expect(nodes[diagonal.end].position.y).toBeCloseTo(33, 1);
+        // The straight route is one edge, to the other end of the same track
+        expect(routeThroughPiece(a1.id, a1.switchBranches![0], edges, nodes).edges).toHaveLength(1);
+    });
+
+    it('judges the side from where each route leaves, though both start out straight ahead', () => {
+        state().addTrack('kato-20-210', { x: 0, y: 0 }, 0);
+        const { edges, nodes } = state();
+        expect(branchSide(at(0, 0), edges, nodes)).toBe(1);   // A1's diagonal drops to track B
+        expect(branchSide(at(0, 33), edges, nodes)).toBe(-1); // B1's rises to track A
     });
 });

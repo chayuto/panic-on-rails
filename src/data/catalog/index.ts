@@ -50,6 +50,7 @@ export {
     crossing,
     compoundPart,
     calculateArcLength,
+    partCategory,
 } from './helpers';
 
 // Export brand arrays for direct access
