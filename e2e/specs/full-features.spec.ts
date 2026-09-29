@@ -381,10 +381,10 @@ test.describe('Bounce at Dead-Ends', () => {
     });
 });
 
-test.describe('Budget System', () => {
-    test('budget decreases when placing tracks', async ({ page, app, stores, snap }) => {
+test.describe('Collection', () => {
+    test('placing track uses pieces from the collection; removing returns them', async ({ page, app, stores, snap }) => {
         void app;
-        const screenshots = new ScreenshotManager(page, stores, 'budget-system');
+        const screenshots = new ScreenshotManager(page, stores, 'collection');
         const agent = new AgentActions(page, stores, screenshots);
 
         // Dismiss tutorial
@@ -394,41 +394,19 @@ test.describe('Budget System', () => {
             await page.waitForTimeout(300);
         }
 
-        // Check starting budget
-        const budget1 = await page.evaluate(() =>
-            window.__PANIC_STORES__!.budget.getState()
-        );
-        console.log('Starting budget:', budget1);
-        await snap('01-starting-budget');
+        // A new player owns an M1 box: four S248 straights
+        const left = () => page.getByTestId('part-left-kato-20-000').textContent();
+        expect(await left()).toBe('×4');
+        await snap('01-starting-collection');
 
-        // Place a track
         await agent.placeTrack('kato-20-000', { x: 400, y: 400 }, 0);
-        await page.waitForTimeout(200);
-
-        // Check budget after
-        const budget2 = await page.evaluate(() =>
-            window.__PANIC_STORES__!.budget.getState()
-        );
-        console.log('After first track:', budget2);
+        await expect.poll(left).toBe('×3');
         await snap('02-after-first-track');
 
-        // Place more tracks
-        await agent.placeTrack('kato-20-000', { x: 648, y: 400 }, 0);
-        await agent.placeTrack('kato-20-100', { x: 896, y: 400 }, 0);
-        await page.waitForTimeout(200);
-
-        const budget3 = await page.evaluate(() =>
-            window.__PANIC_STORES__!.budget.getState()
-        );
-        console.log('After three tracks:', budget3);
-        await snap('03-after-three-tracks');
-
-        // Check the budget display in toolbar
-        const budgetDisplay = page.locator('.budget-display, [data-testid*="budget"]');
-        if (await budgetDisplay.isVisible().catch(() => false)) {
-            const text = await budgetDisplay.textContent();
-            console.log('Budget UI display:', text);
-        }
+        // Pieces aren't spent: clearing the table puts them back in the box
+        await page.evaluate(() => window.__PANIC_STORES__!.track.clearLayout());
+        await expect.poll(left).toBe('×4');
+        await snap('03-back-in-the-box');
     });
 });
 

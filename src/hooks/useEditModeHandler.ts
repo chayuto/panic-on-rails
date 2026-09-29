@@ -6,7 +6,7 @@
  * - Drag-and-drop from Parts Bin
  * - Ghost preview positioning
  * - Snap detection
- * - Track placement with budget check
+ * - Track placement, limited to the pieces left in the player's collection
  * - Node connection logic
  * - Keyboard rotation (R key)
  */
@@ -14,7 +14,8 @@
 import { useCallback, useEffect } from 'react';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
-import { useBudgetStore } from '../stores/useBudgetStore';
+import { useCollectionStore } from '../stores/useCollectionStore';
+import { countPlacedPieces, inventoryOf } from '../data/collection';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { useIsEditing } from '../stores/useModeStore';
 import { findBestSnap } from '../utils/snapManager';
@@ -153,17 +154,16 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             return;
         }
 
-        // Check budget
-        const budgetStore = useBudgetStore.getState();
-        if (!budgetStore.canAfford(part.cost)) {
-            console.warn('[useEditModeHandler] Insufficient budget:', {
-                part: part.name,
-                cost: part.cost,
-                balance: budgetStore.balance,
-            });
-            playSound('bounce'); // Rejection sound
-            endDrag();
-            return;
+        // In collection mode, only pieces still in the box can be placed
+        const collection = useCollectionStore.getState();
+        if (collection.mode === 'collection') {
+            const owned = inventoryOf(collection.ownedSets, collection.looseParts)[partId] ?? 0;
+            const onTable = countPlacedPieces(useTrackStore.getState().edges)[partId] ?? 0;
+            if (onTable >= owned) {
+                playSound('bounce'); // Rejection sound
+                endDrag();
+                return;
+            }
         }
 
         const worldPos = screenToWorld(e.clientX, e.clientY);
@@ -193,12 +193,9 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             });
         }
 
-        // Snapshot state before the placement so this gesture (spend + add +
+        // Snapshot state before the placement so this gesture (add +
         // auto-merge) can be undone as a single step.
         useHistoryStore.getState().record();
-
-        // Spend the budget
-        budgetStore.spend(part.cost);
 
         // Add the track
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);

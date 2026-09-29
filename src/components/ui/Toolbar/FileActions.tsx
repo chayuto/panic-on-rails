@@ -204,7 +204,6 @@ export function FileActions() {
         localStorage.removeItem('panic-on-rails-v1');
         localStorage.removeItem('panic-on-rails-simulation-v1');
         localStorage.removeItem('panic-on-rails-logic-v1');
-        localStorage.removeItem('panic-on-rails-budget-v1');
 
         clearLayout();
         clearTrains();

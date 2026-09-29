@@ -5,19 +5,27 @@ test.describe('Parts Bin', () => {
         void app;
     });
 
-    test('should display part sections with track parts', async ({ page }) => {
+    test('shows the pieces in the collection, with how many are left', async ({ page }) => {
         const partsBin = page.getByTestId('parts-bin');
         await expect(partsBin).toBeVisible();
-
-        // Should have a "Parts" header
         await expect(partsBin.getByRole('heading', { name: 'Parts' })).toBeVisible();
 
-        // Should have section headers for part categories
+        // A new player owns the M1 box: straights and curves, no turnouts yet
         await expect(partsBin.getByRole('heading', { name: 'Straights' })).toBeVisible();
         await expect(partsBin.getByRole('heading', { name: 'Curves' })).toBeVisible();
+        await expect(partsBin.getByRole('heading', { name: 'Turnouts' })).toHaveCount(0);
+        await expect(page.getByTestId('part-left-kato-20-120')).toHaveText('×8');
+    });
+
+    test('free build shows every section of the catalog', async ({ page }) => {
+        const partsBin = page.getByTestId('parts-bin');
+        await page.getByTestId('mode-free').click();
+        await expect(partsBin.getByRole('heading', { name: 'Straights' })).toBeVisible();
         await expect(partsBin.getByRole('heading', { name: 'Turnouts' })).toBeAttached();
         await expect(partsBin.getByRole('heading', { name: 'Crossings & crossovers' })).toBeAttached();
         await expect(partsBin.getByRole('heading', { name: 'Buffer stops' })).toBeAttached();
+        await expect(page.locator('.part-left')).toHaveCount(0);
+        await expect(page.getByTestId('wallet')).toHaveText(/Free build/);
     });
 
     test('should display draggable part cards', async ({ page }) => {
@@ -35,6 +43,13 @@ test.describe('Parts Bin', () => {
 
     test('should switch between N-Scale and Wooden systems', async ({ page }) => {
         const partsBin = page.getByTestId('parts-bin');
+
+        // No wooden track in the starter collection: the bin points to the shop
+        await partsBin.getByRole('button', { name: 'Wooden' }).click();
+        await expect(page.getByTestId('parts-bin-empty')).toBeVisible();
+        await partsBin.getByRole('button', { name: 'N-Scale' }).click();
+
+        await page.getByTestId('mode-free').click();
 
         // N-Scale tab should be active by default
         const nScaleTab = partsBin.getByRole('button', { name: 'N-Scale' });

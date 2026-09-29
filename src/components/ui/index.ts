@@ -4,7 +4,7 @@
  * User interface components for the application.
  */
 
-export { BudgetTicker } from './BudgetTicker';
+export { WalletTicker } from './WalletTicker';
 export { DebugOverlay } from './DebugOverlay';
 export { MeasurementOverlay } from './MeasurementOverlay';
 export { PartsBin } from './PartsBin';

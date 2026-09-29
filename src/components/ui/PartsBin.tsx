@@ -1,14 +1,19 @@
 import { useCallback } from 'react';
 import { useEditorStore } from '../../stores/useEditorStore';
+import { useCollectionStore } from '../../stores/useCollectionStore';
+import { useShopStore } from '../../stores/useShopStore';
+import { useInventory, usePiecesLeft } from '../../hooks/useCollection';
 import { getPartsByScale } from '../../data/catalog';
 import type { PartDefinition } from '../../types';
 import { PartPreview } from './TrackPreview';
 
 /**
- * Renders a single draggable part card
+ * Renders a single draggable part card. `left` (collection mode) is how
+ * many pieces are still in the box; at zero the card can't be dragged.
  */
-function PartCard({ part }: { part: PartDefinition }) {
+function PartCard({ part, left }: { part: PartDefinition; left?: number }) {
     const startDrag = useEditorStore(s => s.startDrag);
+    const empty = left !== undefined && left <= 0;
 
     const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.dataTransfer.setData('application/x-part-id', part.id);
@@ -38,12 +43,18 @@ function PartCard({ part }: { part: PartDefinition }) {
 
     return (
         <div
-            className="part-card"
-            draggable
-            onDragStart={handleDragStart}
+            className={`part-card${empty ? ' empty' : ''}`}
+            draggable={!empty}
+            onDragStart={empty ? undefined : handleDragStart}
             title={part.description ? `${part.name} — ${part.description}` : part.name}
             data-testid={`part-card-${part.id}`}
+            aria-disabled={empty}
         >
+            {left !== undefined && (
+                <span className="part-left" data-testid={`part-left-${part.id}`} title="Pieces left in your collection">
+                    ×{left}
+                </span>
+            )}
             <PartPreview part={part} />
             <span className="part-label">{part.name}</span>
             {part.productCode && <span className="part-code">{part.productCode}</span>}
@@ -76,6 +87,36 @@ function SystemTabs() {
     );
 }
 
+/** Build with your collection, or with unlimited parts. */
+function ModeSwitch() {
+    const mode = useCollectionStore(s => s.mode);
+    const setMode = useCollectionStore(s => s.setMode);
+    return (
+        <div className="mode-switch" role="radiogroup" aria-label="Parts">
+            <button
+                role="radio"
+                aria-checked={mode === 'collection'}
+                className={mode === 'collection' ? 'active' : ''}
+                onClick={() => setMode('collection')}
+                data-testid="mode-collection"
+                title="Build with the pieces you own; running trains earns hobby money"
+            >
+                My collection
+            </button>
+            <button
+                role="radio"
+                aria-checked={mode === 'free'}
+                className={mode === 'free' ? 'active' : ''}
+                onClick={() => setMode('free')}
+                data-testid="mode-free"
+                title="Every part, unlimited: plan a real layout"
+            >
+                Free build
+            </button>
+        </div>
+    );
+}
+
 /** Bin sections, in the order a modeler reaches for them. */
 const PART_SECTIONS: { title: string; matches: (part: PartDefinition) => boolean }[] = [
     { title: 'Straights', matches: p => p.geometry.type === 'straight' && !p.geometry.bumper },
@@ -90,8 +131,14 @@ const PART_SECTIONS: { title: string; matches: (part: PartDefinition) => boolean
  */
 export function PartsBin() {
     const selectedSystem = useEditorStore(s => s.selectedSystem);
+    const mode = useCollectionStore(s => s.mode);
+    const openShop = useShopStore(s => s.openShop);
+    const inventory = useInventory();
+    const left = usePiecesLeft();
+    const inCollection = mode === 'collection';
 
-    const parts = getPartsByScale(selectedSystem);
+    // In collection mode the bin shows what you own
+    const parts = getPartsByScale(selectedSystem).filter(p => !inCollection || (inventory[p.id] ?? 0) > 0);
 
     const sections = PART_SECTIONS
         .map(section => ({ ...section, parts: parts.filter(section.matches) }))
@@ -103,15 +150,22 @@ export function PartsBin() {
                 <h2>Parts</h2>
             </div>
 
+            <ModeSwitch />
             <SystemTabs />
 
             <div className="parts-bin-content">
+                {inCollection && sections.length === 0 && (
+                    <div className="parts-bin-empty" data-testid="parts-bin-empty">
+                        <p>No {selectedSystem === 'wooden' ? 'wooden' : 'N-scale'} track in your collection yet.</p>
+                        <button onClick={() => openShop('sets')}>Visit the hobby shop</button>
+                    </div>
+                )}
                 {sections.map(section => (
                     <section className="part-section" key={section.title}>
                         <h3>{section.title}</h3>
                         <div className="part-grid">
                             {section.parts.map(part => (
-                                <PartCard key={part.id} part={part} />
+                                <PartCard key={part.id} part={part} left={inCollection ? left[part.id] ?? 0 : undefined} />
                             ))}
                         </div>
                     </section>

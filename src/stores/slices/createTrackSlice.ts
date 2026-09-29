@@ -15,7 +15,6 @@ import type {
     TrackEdge,
 } from '../../types';
 import { getPartById } from '../../data/catalog';
-import { useBudgetStore } from '../useBudgetStore';
 import { useLogicStore } from '../useLogicStore';
 import {
     spatialIndex,
@@ -192,15 +191,12 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         });
     },
     /**
-     * Clear the entire layout (tracks, nodes, and budget).
+     * Clear the entire layout (tracks and nodes).
      * Resets store to initial state.
      */
     clearLayout: () => {
         console.log('[useTrackStore] clearLayout() called');
 
-        // Reset budget (refund all spending)
-        console.log('[useTrackStore] Resetting budget...');
-        useBudgetStore.getState().reset();
 
         // Clear spatial indices
         console.log('[useTrackStore] Clearing spatial indices...');

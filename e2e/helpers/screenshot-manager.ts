@@ -85,7 +85,7 @@ export class ScreenshotManager {
                     zoom: state.editor.zoom,
                     pan: state.editor.pan,
                 },
-                budget: state.budget,
+                collection: state.collection,
             },
         };
 

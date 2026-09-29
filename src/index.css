@@ -410,6 +410,7 @@ button.active {
 
 /* Part Card - Draggable */
 .part-card {
+  position: relative;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -460,6 +461,74 @@ button.active {
   stroke: #e74c3c;
   stroke-width: 4px;
   vector-effect: non-scaling-stroke;
+}
+
+.part-card.empty {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.part-card.empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Pieces left in the box */
+.part-left {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--track-selected);
+  font-variant-numeric: tabular-nums;
+}
+
+.part-card.empty .part-left {
+  color: var(--fg-muted);
+}
+
+/* My collection / Free build */
+.mode-switch {
+  display: flex;
+  margin: 0 12px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mode-switch button {
+  flex: 1;
+  background: transparent;
+  color: var(--fg-secondary);
+  border: none;
+  padding: 6px 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mode-switch button.active {
+  background: var(--mode-edit-bg);
+  color: var(--fg-primary);
+  font-weight: 600;
+}
+
+.parts-bin-empty {
+  text-align: center;
+  color: var(--fg-secondary);
+  font-size: 13px;
+  padding: 16px 8px;
+}
+
+.parts-bin-empty button {
+  margin-top: 8px;
+  background: var(--mode-simulate-accent);
+  color: #0f1f0f;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .part-code {

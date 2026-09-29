@@ -210,7 +210,7 @@ export class StoreBridge {
                 simulation: s.simulation.getState(),
                 editor: s.editor.getState(),
                 logic: s.logic.getState(),
-                budget: s.budget.getState(),
+                collection: s.collection.getState(),
             };
         }) as Promise<AllStoresSnapshot>;
     }

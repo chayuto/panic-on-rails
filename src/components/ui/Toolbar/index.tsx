@@ -16,7 +16,7 @@
 import { TrainFront } from 'lucide-react';
 import { useEditorStore } from '../../../stores/useEditorStore';
 import { useModeStore } from '../../../stores/useModeStore';
-import { BudgetTicker } from '../BudgetTicker';
+import { WalletTicker } from '../WalletTicker';
 import { ModeToggle } from './ModeToggle';
 import { FileActions } from './FileActions';
 import { ViewActions } from './ViewActions';
@@ -66,8 +66,8 @@ export function Toolbar() {
                 <FileActions />
             </div>
 
-            {/* Budget display - moved to end */}
-            <BudgetTicker />
+            {/* Hobby money (or the free-build badge) */}
+            <WalletTicker />
 
             {/* Selection info - only when something selected */}
             {selectedEdgeId && (

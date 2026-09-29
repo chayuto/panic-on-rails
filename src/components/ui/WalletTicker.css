@@ -1,0 +1,48 @@
+/* WalletTicker: hobby money in the toolbar */
+
+.wallet-ticker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.wallet-balance {
+    font-weight: 600;
+    color: #00FF88;
+}
+
+.wallet-ticker.in-debt .wallet-balance {
+    color: #FF6B6B;
+}
+
+/* Income drifts up out of the balance */
+.wallet-income {
+    position: absolute;
+    right: 8px;
+    top: -2px;
+    font-size: 0.75rem;
+    color: #00FF88;
+    pointer-events: none;
+    animation: wallet-income-rise 1.2s ease-out forwards;
+}
+
+.wallet-income.bill {
+    color: #FF6B6B;
+}
+
+@keyframes wallet-income-rise {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-14px); }
+}
+
+.wallet-ticker.free {
+    color: var(--fg-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+}

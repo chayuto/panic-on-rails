@@ -83,9 +83,12 @@ export interface AllStoresSnapshot {
         signals: Record<string, unknown>;
         wires: Record<string, unknown>;
     };
-    budget: {
-        balance: number;
-        totalSpent: number;
+    collection: {
+        mode: 'collection' | 'free';
+        wallet: number;
+        lifetimeEarned: number;
+        ownedSets: Record<string, number>;
+        looseParts: Record<string, number>;
     };
 }
 

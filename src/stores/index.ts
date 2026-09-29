@@ -13,8 +13,8 @@ export { useModeStore, useIsEditing, useIsSimulating, useEditSubMode } from './u
 // Simulation
 export { useSimulationStore, DEFAULT_CARRIAGE_SPACING } from './useSimulationStore';
 
-// Budget
-export { useBudgetStore } from './useBudgetStore';
+// Collection (owned sets and parts, hobby money)
+export { useCollectionStore } from './useCollectionStore';
 
 // Editor
 export { useEditorStore } from './useEditorStore';

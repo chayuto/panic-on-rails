@@ -6,6 +6,7 @@
     "parts": [
         {
             "id": "kato-20-000",
+            "cost": 210,
             "name": "Straight 248mm",
             "type": "straight",
             "length": 248,
@@ -13,6 +14,7 @@
         },
         {
             "id": "kato-20-010",
+            "cost": 200,
             "name": "Straight 186mm",
             "type": "straight",
             "length": 186,
@@ -20,6 +22,7 @@
         },
         {
             "id": "kato-20-020",
+            "cost": 190,
             "name": "Straight 124mm",
             "type": "straight",
             "length": 124,
@@ -27,6 +30,7 @@
         },
         {
             "id": "kato-20-026",
+            "cost": 550,
             "name": "Rerailer 124mm",
             "type": "straight",
             "length": 124,
@@ -38,6 +42,7 @@
         },
         {
             "id": "kato-20-030",
+            "cost": 175,
             "name": "Straight 64mm",
             "type": "straight",
             "length": 64,
@@ -45,6 +50,7 @@
         },
         {
             "id": "kato-20-040",
+            "cost": 175,
             "name": "Straight 62mm",
             "type": "straight",
             "length": 62,
@@ -52,6 +58,7 @@
         },
         {
             "id": "kato-20-041",
+            "cost": 550,
             "name": "Feeder 62mm",
             "type": "straight",
             "length": 62,
@@ -61,6 +68,7 @@
         },
         {
             "id": "kato-s60l",
+            "cost": 175,
             "name": "Straight 60mm Left Cut",
             "type": "straight",
             "length": 60,
@@ -68,6 +76,7 @@
         },
         {
             "id": "kato-s60r",
+            "cost": 175,
             "name": "Straight 60mm Right Cut",
             "type": "straight",
             "length": 60,
@@ -75,6 +84,7 @@
         },
         {
             "id": "kato-20-091",
+            "cost": 110,
             "name": "Short Straight 29mm",
             "type": "straight",
             "length": 29,
@@ -83,6 +93,7 @@
         },
         {
             "id": "kato-20-092",
+            "cost": 110,
             "name": "Short Straight 45.5mm",
             "type": "straight",
             "length": 45.5,
@@ -91,6 +102,7 @@
         },
         {
             "id": "kato-20-046",
+            "cost": 500,
             "name": "Bumper A 62mm",
             "type": "straight",
             "length": 62,
@@ -100,6 +112,7 @@
         },
         {
             "id": "kato-20-047",
+            "cost": 500,
             "name": "Bumper B 62mm",
             "type": "straight",
             "length": 62,
@@ -109,6 +122,7 @@
         },
         {
             "id": "kato-20-176",
+            "cost": 300,
             "name": "Curve R117-45°",
             "type": "curve",
             "radius": 117,
@@ -118,6 +132,7 @@
         },
         {
             "id": "kato-20-174",
+            "cost": 300,
             "name": "Curve R150-45°",
             "type": "curve",
             "radius": 150,
@@ -127,6 +142,7 @@
         },
         {
             "id": "kato-20-172",
+            "cost": 300,
             "name": "Curve R183-45°",
             "type": "curve",
             "radius": 183,
@@ -136,6 +152,7 @@
         },
         {
             "id": "kato-20-170",
+            "cost": 250,
             "name": "Curve R216-45°",
             "type": "curve",
             "radius": 216,
@@ -145,6 +162,7 @@
         },
         {
             "id": "kato-20-171",
+            "cost": 225,
             "name": "Curve R216-15°",
             "type": "curve",
             "radius": 216,
@@ -153,6 +171,7 @@
         },
         {
             "id": "kato-20-100",
+            "cost": 250,
             "name": "Curve R249-45°",
             "type": "curve",
             "radius": 249,
@@ -161,6 +180,7 @@
         },
         {
             "id": "kato-20-101",
+            "cost": 225,
             "name": "Curve R249-15°",
             "type": "curve",
             "radius": 249,
@@ -169,6 +189,7 @@
         },
         {
             "id": "kato-20-110",
+            "cost": 250,
             "name": "Curve R282-45°",
             "type": "curve",
             "radius": 282,
@@ -178,6 +199,7 @@
         },
         {
             "id": "kato-20-111",
+            "cost": 225,
             "name": "Curve R282-15°",
             "type": "curve",
             "radius": 282,
@@ -186,6 +208,7 @@
         },
         {
             "id": "kato-20-120",
+            "cost": 250,
             "name": "Curve R315-45°",
             "type": "curve",
             "radius": 315,
@@ -195,6 +218,7 @@
         },
         {
             "id": "kato-20-121",
+            "cost": 225,
             "name": "Curve R315-15°",
             "type": "curve",
             "radius": 315,
@@ -203,6 +227,7 @@
         },
         {
             "id": "kato-20-130",
+            "cost": 250,
             "name": "Curve R348-30°",
             "type": "curve",
             "radius": 348,
@@ -211,6 +236,7 @@
         },
         {
             "id": "kato-20-132",
+            "cost": 250,
             "name": "Curve R348-45°",
             "type": "curve",
             "radius": 348,
@@ -220,6 +246,7 @@
         },
         {
             "id": "kato-20-140",
+            "cost": 250,
             "name": "Curve R381-30°",
             "type": "curve",
             "radius": 381,
@@ -228,6 +255,7 @@
         },
         {
             "id": "kato-20-160",
+            "cost": 250,
             "name": "Curve R481-15°",
             "type": "curve",
             "radius": 481,
@@ -237,6 +265,7 @@
         },
         {
             "id": "kato-20-150",
+            "cost": 250,
             "name": "Curve R718-15°",
             "type": "curve",
             "radius": 718,
@@ -246,6 +275,7 @@
         },
         {
             "id": "kato-20-220",
+            "cost": 3000,
             "name": "#4 Turnout Left",
             "type": "switch",
             "mainLength": 126,
@@ -257,6 +287,7 @@
         },
         {
             "id": "kato-20-221",
+            "cost": 3000,
             "name": "#4 Turnout Right",
             "type": "switch",
             "mainLength": 126,
@@ -268,6 +299,7 @@
         },
         {
             "id": "kato-20-202",
+            "cost": 3300,
             "name": "#6 Turnout Left",
             "type": "switch",
             "mainLength": 186,
@@ -279,6 +311,7 @@
         },
         {
             "id": "kato-20-203",
+            "cost": 3300,
             "name": "#6 Turnout Right",
             "type": "switch",
             "mainLength": 186,
@@ -290,6 +323,7 @@
         },
         {
             "id": "kato-20-222",
+            "cost": 3200,
             "name": "#2 Wye Turnout",
             "type": "switch",
             "mainLength": 124,
@@ -302,6 +336,7 @@
         },
         {
             "id": "kato-20-240",
+            "cost": 2800,
             "name": "Compact Turnout Left",
             "type": "switch",
             "mainLength": 124,
@@ -313,6 +348,7 @@
         },
         {
             "id": "kato-20-241",
+            "cost": 2800,
             "name": "Compact Turnout Right",
             "type": "switch",
             "mainLength": 124,
@@ -324,6 +360,7 @@
         },
         {
             "id": "kato-20-320",
+            "cost": 2000,
             "name": "90° Crossing 124mm",
             "type": "crossing",
             "length": 124,
@@ -333,6 +370,7 @@
         },
         {
             "id": "kato-20-300",
+            "cost": 2500,
             "name": "15° Crossing Left 186mm",
             "type": "crossing",
             "length": 186,
@@ -343,6 +381,7 @@
         },
         {
             "id": "kato-20-301",
+            "cost": 2500,
             "name": "15° Crossing Right 186mm",
             "type": "crossing",
             "length": 186,
@@ -357,7 +396,7 @@
             "type": "compound",
             "productCode": "20-230",
             "description": "SX248L: two parallel tracks 248mm long at 33mm centres, joined by #4 turnouts; the crossover route diverges left. Built here as each track's #4 turnout + S60 + S62, as in Kato's #4 geometry chart.",
-            "cost": 3500,
+            "cost": 5500,
             "subParts": [
                 { "partRef": "kato-20-220", "offset": { "x": 0, "y": 0 }, "rotation": 0, "label": "a-turnout" },
                 { "partRef": "kato-s60l", "offset": { "x": 126, "y": 0 }, "rotation": 0, "label": "a-s60" },
@@ -387,7 +426,7 @@
             "type": "compound",
             "productCode": "20-231",
             "description": "SX248R: two parallel tracks 248mm long at 33mm centres, joined by #4 turnouts; the crossover route diverges right. Built here as each track's #4 turnout + S60 + S62, as in Kato's #4 geometry chart.",
-            "cost": 3500,
+            "cost": 5500,
             "subParts": [
                 { "partRef": "kato-20-221", "offset": { "x": 0, "y": 0 }, "rotation": 0, "label": "a-turnout" },
                 { "partRef": "kato-s60r", "offset": { "x": 126, "y": 0 }, "rotation": 0, "label": "a-s60" },

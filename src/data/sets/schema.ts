@@ -57,4 +57,5 @@ export const TrackSetSchema = z.object({
     footprint: z.object({ width: z.number().positive(), depth: z.number().positive() }).optional(),
     plans: z.array(LayoutPlanSchema).min(1),
     referenceUrl: z.string().url().optional(),
+    price: z.number().int().positive().optional(),
 });

@@ -45,6 +45,12 @@ async function trackSummary(page: Page) {
 }
 
 test.describe('Building by hand', () => {
+    // Building mechanics with any part: free build, not the starter collection
+    test.beforeEach(async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+    });
+
     test('crossings and crossovers can be dragged from the bin', async ({ page, app }) => {
         void app;
         await dropPart(page, '90° Crossing 124mm', { x: 300, y: 200 });

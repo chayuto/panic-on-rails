@@ -9,7 +9,6 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useTrackStore } from '../useTrackStore';
-import { useBudgetStore } from '../useBudgetStore';
 import type { Vector2 } from '../../types';
 
 // ===========================
@@ -53,8 +52,6 @@ describe('useTrackStore', () => {
     beforeEach(() => {
         // Clear the track store
         getState().clearLayout();
-        // Also reset budget to avoid interference
-        useBudgetStore.getState().reset();
     });
 
     afterEach(() => {
