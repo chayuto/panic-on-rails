@@ -1,15 +1,15 @@
 /**
  * Tests for useHistoryStore — undo/redo over the layout stores.
  *
- * These exercise the real track/logic/budget stores so the snapshot
+ * These exercise the real track and logic stores so the snapshot
  * capture/restore round-trip is verified end-to-end, not against mocks.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useHistoryStore } from '../useHistoryStore';
+import { useCollectionStore } from '../useCollectionStore';
 import { useTrackStore } from '../useTrackStore';
 import { useLogicStore } from '../useLogicStore';
-import { useBudgetStore } from '../useBudgetStore';
 
 const STRAIGHT = 'kato-20-000'; // 248mm n-scale straight
 
@@ -21,7 +21,6 @@ describe('useHistoryStore', () => {
     beforeEach(() => {
         useTrackStore.getState().clearLayout();
         useLogicStore.getState().clearLogic();
-        useBudgetStore.getState().reset();
         useHistoryStore.getState().clear();
     });
 
@@ -85,20 +84,14 @@ describe('useHistoryStore', () => {
         expect(useHistoryStore.getState().future).toHaveLength(0);
     });
 
-    it('restores budget balance on undo', () => {
-        const startBalance = useBudgetStore.getState().balance;
-
+    it('leaves purchases alone: hobby money is not part of undo history', () => {
+        const wallet = useCollectionStore.getState().wallet;
         useHistoryStore.getState().record();
-        useBudgetStore.getState().spend(500);
-        useTrackStore.getState().addTrack(STRAIGHT, { x: 0, y: 0 }, 0);
-        expect(useBudgetStore.getState().balance).toBe(startBalance - 500);
-
+        useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 0 }, 0);
+        useCollectionStore.getState().earn(500);
         useHistoryStore.getState().undo();
-        expect(useBudgetStore.getState().balance).toBe(startBalance);
-        expect(edgeCount()).toBe(0);
-
-        useHistoryStore.getState().redo();
-        expect(useBudgetStore.getState().balance).toBe(startBalance - 500);
+        expect(Object.keys(useTrackStore.getState().edges)).toHaveLength(0);
+        expect(useCollectionStore.getState().wallet).toBe(wallet + 500);
     });
 
     it('restores logic elements (sensors) on undo', () => {

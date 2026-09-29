@@ -68,11 +68,21 @@ test.describe('Train sets shelf', () => {
         await expect.poll(() => edgeCount(page)).toBe(1);
     });
 
-    test('an expansion box builds onto the M1 oval: V4 adds a #4 siding', async ({ page, app }) => {
+    test('buying an expansion box with hobby money: V4 adds a #4 siding to M1', async ({ page, app }) => {
         void app;
         await page.getByTestId('open-set-shelf').click();
         const box = page.getByTestId('set-box-kato-20-863');
         await expect(box).toContainText('Switching Siding Set');
+
+        // Not owned yet: can't build, can't afford it
+        await expect(box.getByTestId('set-build-kato-20-863')).toBeDisabled();
+        await expect(box.getByTestId('set-missing-kato-20-863')).toContainText('You still need');
+        await expect(box.getByTestId('set-buy-kato-20-863')).toBeDisabled();
+
+        // Hobby money from running trains (granted here), then buy the box
+        await page.evaluate(() => window.__PANIC_STORES__!.collection.earn(10_000));
+        await box.getByTestId('set-buy-kato-20-863').click();
+        await expect(box.getByTestId('set-owned-kato-20-863')).toHaveText('Owned ×1');
         await box.getByTestId('set-build-kato-20-863').click();
 
         // M1's 16 pieces become 24 with V4 (two turnouts are two edges each)

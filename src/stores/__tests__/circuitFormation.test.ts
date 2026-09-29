@@ -13,7 +13,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useTrackStore } from '../useTrackStore';
-import { useBudgetStore } from '../useBudgetStore';
 import {
     validateConnection,
     getNodeFacadeFromEdge,
@@ -197,7 +196,6 @@ function validateGeometryIntegrity(): { valid: boolean; errors: string[] } {
 describe('Circuit Formation: Oval Layout (8 Curves + 2 Straights)', () => {
     beforeEach(() => {
         useTrackStore.getState().clearLayout();
-        useBudgetStore.getState().reset();
     });
 
     // ===========================

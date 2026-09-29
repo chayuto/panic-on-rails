@@ -25,7 +25,6 @@
 import { create } from 'zustand';
 import { useTrackStore } from './useTrackStore';
 import { useLogicStore } from './useLogicStore';
-import { useBudgetStore } from './useBudgetStore';
 import { rebuildSpatialIndices } from './slices';
 import type {
     NodeId, EdgeId, TrackNode, TrackEdge,
@@ -42,25 +41,18 @@ export interface LayoutSnapshot {
     sensors: Record<SensorId, Sensor>;
     signals: Record<SignalId, Signal>;
     wires: Record<WireId, Wire>;
-    budgetBalance: number;
-    budgetTotalSpent: number;
-    budgetStartingBudget: number;
 }
 
 /** Read the current state of all layout stores into one deep-cloned snapshot. */
 function captureSnapshot(): LayoutSnapshot {
     const track = useTrackStore.getState();
     const logic = useLogicStore.getState();
-    const budget = useBudgetStore.getState();
     return structuredClone({
         nodes: track.nodes,
         edges: track.edges,
         sensors: logic.sensors,
         signals: logic.signals,
         wires: logic.wires,
-        budgetBalance: budget.balance,
-        budgetTotalSpent: budget.totalSpent,
-        budgetStartingBudget: budget.startingBudget,
     });
 }
 
@@ -72,11 +64,6 @@ function applySnapshot(snap: LayoutSnapshot): void {
     rebuildSpatialIndices(s.nodes, s.edges);
     useTrackStore.setState({ nodes: s.nodes, edges: s.edges });
     useLogicStore.setState({ sensors: s.sensors, signals: s.signals, wires: s.wires });
-    useBudgetStore.setState({
-        balance: s.budgetBalance,
-        totalSpent: s.budgetTotalSpent,
-        startingBudget: s.budgetStartingBudget,
-    });
 }
 
 interface HistoryState {

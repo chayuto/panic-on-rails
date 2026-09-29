@@ -163,7 +163,10 @@ export interface PartDefinition {
     /** Geometry specification */
     geometry: PartGeometry;
 
-    /** Cost in game currency (cents for precision) */
+    /**
+     * Price of one piece in the hobby shop, in US cents: roughly the 2025
+     * street price (a 4-pack's price / 4 for track sold in packs).
+     */
     cost: number;
 
     // === Optional Metadata ===

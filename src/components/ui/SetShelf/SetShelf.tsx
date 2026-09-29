@@ -1,17 +1,24 @@
 /**
- * SetShelf - the hobby-shop shelf of real boxed sets.
+ * The hobby shop: a shelf of real boxed sets, and loose parts.
  *
  * Each box shows what's really inside (part numbers and quantities), the
- * layouts from its manual, and builds any of them on the table.
+ * layouts from its manual, and builds any of them on the table. In
+ * collection mode boxes and parts cost hobby money, and a layout can only
+ * be built from pieces the player owns.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
-import { getAllSets, type LayoutPlan, type TrackSet } from '../../../data/sets';
-import { getPartById } from '../../../data/catalog';
+import { getAllSets, resolvePlan, type LayoutPlan, type TrackSet } from '../../../data/sets';
+import { getPartById, getPartsByScale } from '../../../data/catalog';
+import type { PartDefinition } from '../../../types';
 import { useTrackStore } from '../../../stores/useTrackStore';
-import { PlanPreview } from '../TrackPreview';
+import { useCollectionStore } from '../../../stores/useCollectionStore';
+import { useShopStore } from '../../../stores/useShopStore';
+import { useInventory } from '../../../hooks/useCollection';
+import { formatMoney, shortfall, type PartCounts } from '../../../data/collection';
+import { PlanPreview, PartPreview } from '../TrackPreview';
 import { buildSetPlan } from './buildSetPlan';
 import './SetShelf.css';
 
@@ -20,10 +27,32 @@ function partLabel(partId: string): { name: string; code?: string } {
     return { name: part?.name ?? partId, code: part?.productCode };
 }
 
-function SetBox({ set, onBuild }: { set: TrackSet; onBuild: (plan: LayoutPlan) => void }) {
+/** "6× Straight 248mm, 2× Curve R718-15°" (at most three kinds). */
+function describeMissing(missing: PartCounts): string {
+    const lines = Object.entries(missing).map(([id, n]) => `${n}× ${partLabel(id).name}`);
+    return lines.length > 3 ? `${lines.slice(0, 3).join(', ')} and more` : lines.join(', ');
+}
+
+interface SetBoxProps {
+    set: TrackSet;
+    inCollection: boolean;
+    owned: number;
+    wallet: number;
+    inventory: PartCounts;
+    onBuild: (plan: LayoutPlan) => void;
+    onBuy: () => void;
+}
+
+function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }: SetBoxProps) {
     const [planIndex, setPlanIndex] = useState(0);
     const plan = set.plans[planIndex] ?? set.plans[0];
     const pieceCount = set.contents.reduce((n, item) => n + item.qty, 0);
+    const missing = useMemo(
+        () => (inCollection ? shortfall(resolvePlan(plan).billOfMaterials, inventory) : {}),
+        [inCollection, plan, inventory]
+    );
+    const canBuild = Object.keys(missing).length === 0;
+    const price = set.price;
 
     return (
         <article className={`set-box set-box-${set.brand}`} data-testid={`set-box-${set.id}`}>
@@ -76,16 +105,88 @@ function SetBox({ set, onBuild }: { set: TrackSet; onBuild: (plan: LayoutPlan) =
                 )}
             </details>
 
-            <button className="set-box-build" onClick={() => onBuild(plan)} data-testid={`set-build-${set.id}`}>
+            {inCollection && (
+                <div className="set-box-shop">
+                    <span className="set-box-price">{price !== undefined ? formatMoney(price) : 'Not sold'}</span>
+                    {owned > 0 && <span className="set-box-owned" data-testid={`set-owned-${set.id}`}>Owned ×{owned}</span>}
+                    {price !== undefined && (
+                        <button
+                            className="set-box-buy"
+                            onClick={onBuy}
+                            disabled={wallet < price}
+                            title={wallet < price ? `You have ${formatMoney(wallet)}: run your trains to earn more` : undefined}
+                            data-testid={`set-buy-${set.id}`}
+                        >
+                            Buy
+                        </button>
+                    )}
+                </div>
+            )}
+
+            <button
+                className="set-box-build"
+                onClick={() => onBuild(plan)}
+                disabled={!canBuild}
+                data-testid={`set-build-${set.id}`}
+            >
                 Build this layout
             </button>
+            {!canBuild && (
+                <p className="set-box-missing" data-testid={`set-missing-${set.id}`}>
+                    You still need {describeMissing(missing)}.
+                </p>
+            )}
         </article>
+    );
+}
+
+/** One loose part for sale. */
+function PartForSale({ part, owned, wallet, onBuy }: { part: PartDefinition; owned: number; wallet: number; onBuy: () => void }) {
+    return (
+        <div className="shop-part" data-testid={`shop-part-${part.id}`}>
+            <PartPreview part={part} />
+            <div className="shop-part-text">
+                <span className="shop-part-name">{part.name}</span>
+                <span className="shop-part-code">{part.productCode} · you have {owned}</span>
+            </div>
+            <span className="shop-part-price">{formatMoney(part.cost)}</span>
+            <button onClick={onBuy} disabled={wallet < part.cost} data-testid={`shop-buy-${part.id}`}>
+                Buy
+            </button>
+        </div>
+    );
+}
+
+function PartsForSale({ wallet, inventory }: { wallet: number; inventory: PartCounts }) {
+    const buyPart = useCollectionStore(s => s.buyPart);
+    // Pieces without a product number of their own only come in boxes
+    const parts = getPartsByScale('n-scale').filter(p => p.productCode);
+    return (
+        <div className="shop-parts">
+            {parts.map(part => (
+                <PartForSale
+                    key={part.id}
+                    part={part}
+                    owned={inventory[part.id] ?? 0}
+                    wallet={wallet}
+                    onBuy={() => buyPart(part.id)}
+                />
+            ))}
+        </div>
     );
 }
 
 export function SetShelf({ onClose }: { onClose: () => void }) {
     const sets = getAllSets();
     const hasLayout = useTrackStore(s => Object.keys(s.edges).length > 0);
+    const mode = useCollectionStore(s => s.mode);
+    const wallet = useCollectionStore(s => s.wallet);
+    const ownedSets = useCollectionStore(s => s.ownedSets);
+    const buySet = useCollectionStore(s => s.buySet);
+    const tab = useShopStore(s => s.tab);
+    const setTab = useShopStore(s => s.setTab);
+    const inventory = useInventory();
+    const inCollection = mode === 'collection';
     const [pending, setPending] = useState<{ set: TrackSet; plan: LayoutPlan } | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -108,13 +209,15 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
         { title: 'Expansion sets', sets: sets.filter(s => s.kind === 'expansion') },
     ].filter(section => section.sets.length > 0);
 
+    const showParts = inCollection && tab === 'parts';
+
     return (
         <div className="set-shelf-overlay" onClick={onClose}>
             <div
                 className="set-shelf"
                 role="dialog"
                 aria-modal="true"
-                aria-label="Train sets"
+                aria-label={inCollection ? 'Hobby shop' : 'Train sets'}
                 tabIndex={-1}
                 ref={dialogRef}
                 onClick={e => e.stopPropagation()}
@@ -122,13 +225,28 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
             >
                 <header className="set-shelf-header">
                     <div>
-                        <h2>Train sets</h2>
-                        <p>Real boxes with the exact track inside. Pick one and build the layout from its manual.</p>
+                        <h2>{inCollection ? 'Hobby shop' : 'Train sets'}</h2>
+                        <p>
+                            {inCollection
+                                ? <>Real boxes with the exact track inside. You have <strong data-testid="shop-wallet">{formatMoney(wallet)}</strong>; running trains earns more.</>
+                                : 'Real boxes with the exact track inside. Pick one and build the layout from its manual.'}
+                        </p>
                     </div>
                     <button className="set-shelf-close" onClick={onClose} aria-label="Close" data-testid="set-shelf-close">
                         <X size={18} />
                     </button>
                 </header>
+
+                {inCollection && (
+                    <div className="shop-tabs" role="tablist">
+                        <button role="tab" aria-selected={!showParts} className={!showParts ? 'active' : ''} onClick={() => setTab('sets')} data-testid="shop-tab-sets">
+                            Boxed sets
+                        </button>
+                        <button role="tab" aria-selected={showParts} className={showParts ? 'active' : ''} onClick={() => setTab('parts')} data-testid="shop-tab-parts">
+                            Loose parts
+                        </button>
+                    </div>
+                )}
 
                 {pending && (
                     <div className="set-shelf-confirm" role="alertdialog" aria-label="Replace layout">
@@ -141,7 +259,9 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
                 )}
 
                 <div className="set-shelf-body">
-                    {sections.map(section => (
+                    {showParts ? (
+                        <PartsForSale wallet={wallet} inventory={inventory} />
+                    ) : sections.map(section => (
                         <section key={section.title}>
                             <h3 className="set-shelf-section">{section.title}</h3>
                             <div className="set-shelf-grid">
@@ -149,6 +269,11 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
                                     <SetBox
                                         key={set.id}
                                         set={set}
+                                        inCollection={inCollection}
+                                        owned={ownedSets[set.id] ?? 0}
+                                        wallet={wallet}
+                                        inventory={inventory}
+                                        onBuy={() => buySet(set.id)}
                                         onBuild={plan => (hasLayout ? setPending({ set, plan }) : build(set, plan))}
                                     />
                                 ))}
@@ -161,20 +286,25 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
     );
 }
 
-/** Toolbar button that opens the shelf. */
+/** Toolbar button that opens the shop. */
 export function SetShelfButton() {
-    const [open, setOpen] = useState(false);
+    const openShop = useShopStore(s => s.openShop);
+    const mode = useCollectionStore(s => s.mode);
     return (
-        <>
-            <button
-                onClick={() => setOpen(true)}
-                title="Train sets"
-                className="toolbar-btn-icon"
-                data-testid="open-set-shelf"
-            >
-                <Package size={16} />
-            </button>
-            {open && createPortal(<SetShelf onClose={() => setOpen(false)} />, document.body)}
-        </>
+        <button
+            onClick={() => openShop('sets')}
+            title={mode === 'collection' ? 'Hobby shop' : 'Train sets'}
+            className="toolbar-btn-icon"
+            data-testid="open-set-shelf"
+        >
+            <Package size={16} />
+        </button>
     );
+}
+
+/** Renders the shop when it's open (mounted once, in App). */
+export function ShopHost() {
+    const open = useShopStore(s => s.open);
+    const closeShop = useShopStore(s => s.closeShop);
+    return open ? createPortal(<SetShelf onClose={closeShop} />, document.body) : null;
 }

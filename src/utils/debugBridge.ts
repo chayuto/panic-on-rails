@@ -24,7 +24,7 @@ import { useSimulationStore } from '../stores/useSimulationStore';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
-import { useBudgetStore } from '../stores/useBudgetStore';
+import { useCollectionStore, type CollectionMode } from '../stores/useCollectionStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import type { CrashedPart } from './crashPhysics';
@@ -131,12 +131,19 @@ export interface PanicStoreBridge {
         };
         clearAllEffects: () => void;
     };
-    budget: {
+    collection: {
         getState: () => {
-            balance: number;
-            totalSpent: number;
-            startingBudget: number;
+            mode: CollectionMode;
+            wallet: number;
+            lifetimeEarned: number;
+            ownedSets: Record<string, number>;
+            looseParts: Record<string, number>;
         };
+        setMode: (mode: CollectionMode) => void;
+        earn: (cents: number) => void;
+        buySet: (setId: string) => boolean;
+        buyPart: (partId: string, qty?: number) => boolean;
+        resetCollection: () => void;
     };
     history: {
         getState: () => {
@@ -296,15 +303,22 @@ export function initDebugBridge(): void {
             clearAllEffects: () =>
                 useEffectsStore.getState().clearAllEffects(),
         },
-        budget: {
+        collection: {
             getState: () => {
-                const s = useBudgetStore.getState();
+                const s = useCollectionStore.getState();
                 return {
-                    balance: s.balance,
-                    totalSpent: s.totalSpent,
-                    startingBudget: s.startingBudget,
+                    mode: s.mode,
+                    wallet: s.wallet,
+                    lifetimeEarned: s.lifetimeEarned,
+                    ownedSets: s.ownedSets,
+                    looseParts: s.looseParts,
                 };
             },
+            setMode: (mode: CollectionMode) => useCollectionStore.getState().setMode(mode),
+            earn: (cents: number) => useCollectionStore.getState().earn(cents),
+            buySet: (setId: string) => useCollectionStore.getState().buySet(setId),
+            buyPart: (partId: string, qty?: number) => useCollectionStore.getState().buyPart(partId, qty),
+            resetCollection: () => useCollectionStore.getState().resetCollection(),
         },
         history: {
             getState: () => {

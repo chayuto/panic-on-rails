@@ -3,7 +3,7 @@
  *
  * Runs in the `chromium` (CI) project, so a green run means undo/redo works in
  * the shipped app: the toolbar buttons, the Ctrl+Z / Ctrl+Y shortcuts, and the
- * track/budget restore round-trip.
+ * track restore round-trip.
  *
  * Placement note: lives at e2e/ root (NOT e2e/specs/) so the chromium project
  * picks it up.

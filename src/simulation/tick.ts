@@ -11,7 +11,9 @@
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useLogicStore } from '../stores/useLogicStore';
+import { useCollectionStore } from '../stores/useCollectionStore';
 import { stepSimulation, createRng, type SimEvent, type SimWorld, type StepContext } from './step';
+import { earningsFor } from './economy';
 import type { TrainId } from '../types';
 
 export type SimEventSink = (event: SimEvent, world: SimWorld) => void;
@@ -31,6 +33,28 @@ let sharedRandom: () => number = Math.random;
  */
 export function seedSimulation(seed: number | null): void {
     sharedRandom = seed === null ? Math.random : createRng(seed);
+}
+
+/** Earnings not yet paid into the wallet (cents), to avoid a store write per edge. */
+let pendingEarnings = 0;
+/** Pay out once this much has built up (cents). */
+const EARNINGS_FLUSH_CENTS = 50;
+
+/** Pay any earnings still held back into the wallet. */
+export function flushEarnings(): void {
+    const cents = Math.round(pendingEarnings);
+    if (cents === 0) return;
+    pendingEarnings -= cents;
+    useCollectionStore.getState().earn(cents);
+}
+
+/** Running trains earn hobby money in collection mode; crashes cost repairs. */
+function settleEarnings(events: SimEvent[], before: SimWorld): void {
+    if (useCollectionStore.getState().mode !== 'collection') return;
+    const { income, repairs } = earningsFor(events, before.edges);
+    pendingEarnings += income - repairs;
+    // Bills show up at once; income is paid out in small lumps
+    if (repairs > 0 || pendingEarnings >= EARNINGS_FLUSH_CENTS) flushEarnings();
 }
 
 /** Snapshot the stores into a `SimWorld`. */
@@ -72,6 +96,7 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
         logEvent(event, before);
         options.sink?.(event, world);
     }
+    if (events.length > 0) settleEarnings(events, before);
     return events;
 }
 
@@ -89,6 +114,7 @@ export function runSimulation(
         const now = options.ctx?.now !== undefined ? options.ctx.now + i * frameDt * 1000 : undefined;
         all.push(...tickSimulation(frameDt, { ...options, ctx: { ...options.ctx, now } }));
     }
+    flushEarnings();
     return all;
 }
 

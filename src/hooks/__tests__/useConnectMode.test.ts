@@ -16,7 +16,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore } from '../../stores/useModeStore';
-import { useBudgetStore } from '../../stores/useBudgetStore';
 import { validateConnection, getNodeFacadeFromEdge, calculateRotationForConnection } from '../../utils/connectTransform';
 import type { NodeId } from '../../types';
 
@@ -182,7 +181,6 @@ describe('useConnectMode Logic', () => {
     beforeEach(() => {
         // Reset all stores
         useTrackStore.getState().clearLayout();
-        useBudgetStore.getState().reset();
         useModeStore.setState({
             primaryMode: 'edit',
             editSubMode: 'connect',

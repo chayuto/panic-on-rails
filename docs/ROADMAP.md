@@ -62,7 +62,7 @@ including the research on real starter sets.
 
 - **Building.** Dragging parts from the bin snaps them to open endpoints (verified with real
   HTML5 drag-and-drop). The bin covers the Kato N-scale and Brio/IKEA wooden catalogs,
-  including switches and crossings. Parts cost budget. Undo/redo, save/load (Zod-validated)
+  including switches and crossings. Undo/redo, save/load (Zod-validated)
   and localStorage persistence all work.
 - **Simulation.** Trains traverse loops, figure-8s and switches, and bounce at dead ends. The
   sensor→switch wire automation works. Collisions produce debris.
@@ -216,17 +216,25 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
 
 Goal: the endless loop. Run trains → earn → buy boxes → build bigger → run more.
 
-- [ ] **Collection.** Owned sets and loose parts become an inventory. The parts bin shows counts,
-      placing uses a piece and removing returns it. Free-build mode ignores the inventory.
-- [ ] **Hobby wallet** replaces the fixed budget:
-  - earned by operating, e.g. scale-kilometres run, station stops and on-time runs;
-  - reduced by crash repairs.
-- [ ] **Hobby shop:** buy starter and expansion sets, single parts and rolling stock. Prices
-      follow real street prices, scaled.
-- [ ] New players start with an M1-style starter set and one train.
+- [x] **Collection.** Owned sets and loose parts become an inventory.
+  - The parts bin shows what you own, with how many pieces are left.
+  - Placing a piece uses one and removing it returns it. This is derived as owned − on the
+    table, so undo and delete can never lose a piece.
+  - Free-build mode ignores the inventory.
+- [x] **Hobby wallet** replaces the fixed budget: $1.50 per metre of model track run, per train,
+      and a $20 repair bill per crashed train. The toolbar shows each payment as it lands.
+- [x] **Hobby shop:** buy boxed sets and loose parts. Prices are roughly 2025 US street prices.
+  - A set's layout can only be built once you own every piece it needs; the shop says what's
+    missing.
+  - Box-only pieces, such as S60 cut straights, aren't sold loose.
+- [x] New players start with a Kato M1 box and $20.
+- [x] Headless tests for the economy: earning is a pure function of simulation events.
+- [x] **Fixed:** deleting one route of a turnout left half a turnout behind. Every placed piece
+      now shares one `placementId`, so it deletes and counts as a whole.
+- [ ] Rolling stock in the shop: trains are still free to add.
+- [ ] More ways to earn: station stops, on-time runs, operating sessions.
 - [ ] **Shopping list:** a bill of materials for the current layout, with real product numbers,
       for planners.
-- [ ] Headless tests for the economy: earning is a pure function of simulation events.
 
 ### Phase 4: The Power Pack, driving
 

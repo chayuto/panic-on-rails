@@ -121,4 +121,6 @@ export interface TrackSet {
     plans: LayoutPlan[];
     /** Where the contents list comes from */
     referenceUrl?: string;
+    /** Hobby-shop price in US cents: roughly the 2025 street price */
+    price?: number;
 }

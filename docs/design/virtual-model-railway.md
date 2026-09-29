@@ -116,12 +116,16 @@ run trains ──▶ earn hobby money ──▶ buy a box / parts / a train in t
   - Owned sets and loose parts form an inventory.
   - The parts bin shows counts; placing a piece uses one and removing it gives it back.
   - You can only build with what you own. The real constraint becomes the puzzle.
-- **Earning** is a pure function of simulation events, so it can be tested headlessly:
-  - scale distance operated;
-  - later, station stops and on-time runs;
-  - an operating-session bonus.
-  - Crashes cost repairs.
-- **Prices** follow real street prices, so the virtual shelf feels like the real one.
+- **Earning** is a pure function of simulation events, so it can be tested headlessly
+  (`src/simulation/economy.ts`):
+  - $1.50 per metre of model track run, per train. One train on the M1 oval earns about $9 a
+    minute, so a V-set takes roughly ten minutes.
+  - Each train in a crash costs a $20 repair.
+  - Later: station stops, on-time runs and an operating-session bonus.
+- **Prices** follow real 2025 US street prices, so the virtual shelf feels like the real one:
+  - M1 $95, V1 $75, V5 $45;
+  - a #6 turnout $33, a 248 mm straight about $2.
+- **New players** start with a Kato M1 box and $20.
 - **Free-build / planner mode** ignores the inventory. It is for designing a real layout and
   produces a shopping list.
 

@@ -267,3 +267,110 @@
 .set-box-build:hover {
   filter: brightness(1.1);
 }
+
+/* Shop: tabs, prices, buying */
+.shop-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 20px 0;
+}
+
+.shop-tabs button {
+  background: transparent;
+  color: var(--fg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.shop-tabs button.active {
+  background: var(--mode-edit-bg);
+  border-color: var(--mode-edit-accent);
+  color: var(--fg-primary);
+}
+
+.set-box-shop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.set-box-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.set-box-owned {
+  font-size: 12px;
+  color: var(--track-selected);
+}
+
+.set-box-buy,
+.shop-part button {
+  margin-left: auto;
+  background: var(--mode-edit-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.set-box-buy:disabled,
+.set-box-build:disabled,
+.shop-part button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.set-box-missing {
+  margin: -2px 0 0;
+  font-size: 12px;
+  color: var(--track-warning);
+}
+
+.shop-parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.shop-part {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 0;
+}
+
+.shop-part-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.shop-part-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-part-code {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.shop-part-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

@@ -68,7 +68,9 @@ Rendering rules. They come from a measured budget (ROADMAP Phase 5); break them 
 Persisted stores (localStorage):
 - **useTrackStore** (`panic-on-rails-v1`) — Primary store. Composed from slices: `createTrackSlice`, `createConnectionSlice`, `createViewSlice`. Contains all track nodes/edges. Has migration logic in `onRehydrateStorage` (radian→degree conversion, rebuilds spatial indices).
 - **useLogicStore** — Sensors, signals, wires.
-- **useBudgetStore** — Player budget for track purchases.
+- **useCollectionStore** (`panic-on-rails-collection-v1`) — The hobby: owned boxes (`ownedSets`) and loose parts, hobby money (`wallet`, US cents) and `mode` (`collection` = build with what you own and earn; `free` = unlimited parts). Purchases are not undoable.
+  - What's left to build with is **derived**, never stored: `src/data/collection.ts` computes inventory − `countPlacedPieces(edges)`. Every placed piece shares one `placementId` across its edges, so a turnout counts, selects and deletes as one piece.
+  - Money: `src/simulation/economy.ts` is a pure function of step events (traverse → pay per metre; collision → repair bill). `tickSimulation` settles it into the wallet in collection mode.
 - **useOnboardingStore** — Tutorial progress.
 
 Non-persisted stores (reset on refresh):
@@ -76,7 +78,8 @@ Non-persisted stores (reset on refresh):
 - **useSimulationStore** — Train positions, speeds, collision state. Includes `setError()`/`clearError()` for simulation errors.
 - **useEditorStore** — Transient UI state (dragging, selection, ghost previews).
 - **useEffectsStore** — Visual/audio effects (screen shake, flash).
-- **useHistoryStore** — Undo/redo stacks. Undoable gestures call `record()` *before* mutating; snapshots cover track + logic + budget.
+- **useShopStore** — Whether the hobby shop dialog is open, and on which tab.
+- **useHistoryStore** — Undo/redo stacks. Undoable gestures call `record()` *before* mutating; snapshots cover track + logic (not the collection: purchases aren't undoable).
 
 Always use atomic selectors: `useTrackStore(s => s.nodes)` not `useTrackStore()`. Use named selectors for derived reads (e.g., `selectTrains`, `selectError`).
 

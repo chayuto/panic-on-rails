@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StageWrapper } from './components/canvas';
 import { Toolbar, PartsBin, TrainPanel, DebugOverlay, MeasurementOverlay } from './components/ui';
 import { ErrorBanner } from './components/ui/ErrorBanner';
+import { ShopHost } from './components/ui/SetShelf/SetShelf';
 import { OnboardingProvider, OnboardingHints } from './components/ui/Onboarding';
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
@@ -47,6 +48,8 @@ function App() {
                 <MeasurementOverlay />
                 {/* Tutorial hints overlay */}
                 <OnboardingHints />
+                {/* The hobby shop dialog, opened from the toolbar or parts bin */}
+                <ShopHost />
             </div>
         </OnboardingProvider>
     );
