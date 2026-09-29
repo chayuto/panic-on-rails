@@ -11,6 +11,7 @@ import { useModeStore } from '../../../stores/useModeStore';
 import { Hint } from './Hint';
 import { Toast } from './Toast';
 import { SkipTutorialButton } from './SkipTutorialButton';
+import { COMPLETION_TOAST_MS } from './OnboardingProvider';
 import './Onboarding.css';
 
 export function OnboardingHints() {
@@ -24,8 +25,8 @@ export function OnboardingHints() {
 
     return (
         <>
-            {/* Skip button always available during onboarding */}
-            <SkipTutorialButton />
+            {/* Skip button available until the final celebration */}
+            {stage !== 'simulation_run' && <SkipTutorialButton />}
 
             {/* Stage-specific hints */}
             {stage === 'new_user' && <FirstTrackHint />}
@@ -146,9 +147,10 @@ function CompletionToast() {
             variant="success"
             icon={<PartyPopper size={20} />}
             title="You did it!"
-            duration={5000}
+            duration={COMPLETION_TOAST_MS}
         >
-            You're ready to build amazing tracks. Advanced tools are now unlocked!
+            Trains are running. Signals, sensors and wires are now unlocked: click a
+            signal to turn it red and hold trains, or click a switch to reroute them.
         </Toast>
     );
 }
