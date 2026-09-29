@@ -17,6 +17,7 @@ import { useIsSimulating } from '../../stores/useModeStore';
 import type { BoundingBox } from '../../types';
 import { frameGeometry, getCarPoses } from '../../utils/trainCars';
 import { ROLLING_STOCK } from '../../config/rollingStock';
+import { sizeOf } from '../../config/scales';
 import { getCarSprite, SPRITE_MARGIN } from './trains/carSprites';
 
 /** Trains this far outside the viewport (mm) still draw, to avoid pop-in. */
@@ -69,13 +70,14 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
         const { edges, nodes } = useTrackStore.getState();
         const geometryOf = frameGeometry(edges, nodes);
         const view = viewportRef.current;
-        const L = ROLLING_STOCK.CAR_LENGTH;
-        const W = ROLLING_STOCK.CAR_WIDTH;
-        const m = SPRITE_MARGIN;
-
         for (const train of Object.values(trains)) {
             const poses = getCarPoses(train, edges, nodes, geometryOf);
             if (poses.length === 0) continue;
+            // Sprites are drawn at N size; bigger scales stamp them bigger
+            const size = sizeOf(train.scale);
+            const L = ROLLING_STOCK.CAR_LENGTH * size;
+            const W = ROLLING_STOCK.CAR_WIDTH * size;
+            const m = SPRITE_MARGIN * size;
             const lead = poses[0];
             if (view && (
                 lead.x < view.x - CULL_MARGIN || lead.x > view.x + view.width + CULL_MARGIN ||

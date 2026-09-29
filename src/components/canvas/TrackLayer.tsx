@@ -9,7 +9,7 @@ import { useConnectMode } from '../../hooks/useConnectMode';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
-import type { EdgeId, NodeId, Vector2 } from '../../types';
+import type { EdgeId, NodeId, PartBrand, Vector2 } from '../../types';
 import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
 import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
@@ -17,13 +17,19 @@ import { normalizeAngle } from '../../utils/geometry';
 
 import { NodeRenderer } from './tracks';
 import { EdgeHitTarget } from './tracks/EdgeHitTarget';
-import { paintTrack, type PaintedEdge } from './tracks/trackPainter';
+import { paintTrack, C_TRACK_LOOK, KATO_LOOK, SETRACK_LOOK, type ModelLook, type PaintedEdge } from './tracks/trackPainter';
 import { SwitchRenderer } from './SwitchRenderer';
 import { useTrackInteraction } from './hooks/useTrackInteraction';
 import { useNodeInteraction } from './hooks/useNodeInteraction';
 
 /** Roadbed width (mm) for parts that don't say. */
 const DEFAULT_ROADBED = 25;
+
+/** Each brand's track as it looks out of the box; Kato's for the rest. */
+const BRAND_LOOKS: Partial<Record<PartBrand, ModelLook>> = {
+    marklin: C_TRACK_LOOK,
+    hornby: SETRACK_LOOK,
+};
 
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
@@ -98,6 +104,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         return [{
             geometry,
             style: part?.scale === 'wooden' ? 'wooden' : 'model',
+            look: (part && BRAND_LOOKS[part.brand]) ?? KATO_LOOK,
             width: part?.roadbedWidth ?? DEFAULT_ROADBED,
             roadWidth: part?.roadCrossing ? part.width : undefined,
             selected: edge.id === selectedEdgeId,

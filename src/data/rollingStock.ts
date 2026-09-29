@@ -7,6 +7,9 @@
  */
 
 import { DRIVING } from '../simulation/driving';
+import { sizeOf } from '../config/scales';
+import type { PartScale } from './catalog/types';
+import type { Train } from '../types';
 
 export interface RollingStock {
     id: string;
@@ -14,13 +17,15 @@ export interface RollingStock {
     description: string;
     /** Not a specific real product */
     generic: true;
+    /** The track it runs on */
+    scale: PartScale;
     /** Livery colour */
     color: string;
     /** Cars including the locomotive */
     cars: number;
     /** Fastest the model runs, mm/s: the throttle's top */
     topSpeed: number;
-    /** Hobby-shop price, US cents, in line with typical N-scale train sets */
+    /** Hobby-shop price, US cents, in line with typical train sets of its scale */
     price: number;
 }
 
@@ -30,6 +35,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         name: 'Diesel passenger train',
         description: 'A diesel locomotive and two coaches: the train in a starter set.',
         generic: true,
+        scale: 'n-scale',
         color: '#C0392B',
         cars: 3,
         topSpeed: 200,
@@ -40,6 +46,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         name: 'Commuter train',
         description: 'Four cars, quick off the mark: good for a busy double oval.',
         generic: true,
+        scale: 'n-scale',
         color: '#2471A3',
         cars: 4,
         topSpeed: 220,
@@ -50,6 +57,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         name: 'Freight train',
         description: 'A heavy diesel and four freight cars. Slow, long, and hard to hide in a short siding.',
         generic: true,
+        scale: 'n-scale',
         color: '#7D5A3C',
         cars: 5,
         topSpeed: 160,
@@ -60,6 +68,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         name: 'Express train',
         description: 'Six cars and a top speed that will take a tight curve badly. Mind the derailments.',
         generic: true,
+        scale: 'n-scale',
         color: '#1F7A4D',
         cars: 6,
         topSpeed: DRIVING.MAX_THROTTLE,
@@ -71,4 +80,9 @@ const BY_ID = new Map(ROLLING_STOCK.map(s => [s.id, s]));
 
 export function getRollingStock(id: string | undefined): RollingStock | undefined {
     return id ? BY_ID.get(id) : undefined;
+}
+
+/** Fastest a train will go: its model's top speed, or a full throttle for its scale. */
+export function topSpeedOf(train: Pick<Train, 'stockId' | 'scale'>): number {
+    return getRollingStock(train.stockId)?.topSpeed ?? DRIVING.MAX_THROTTLE * sizeOf(train.scale);
 }

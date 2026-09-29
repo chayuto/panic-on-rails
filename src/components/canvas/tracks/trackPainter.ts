@@ -16,6 +16,8 @@ export interface PaintedEdge {
     geometry: TrackGeometry;
     /** Model track (ballast, sleepers, rails) or a wooden toy track (grooves) */
     style: 'model' | 'wooden';
+    /** How this model track system looks (default: Kato Unitrack) */
+    look?: ModelLook;
     /** Roadbed width (mm) */
     width: number;
     /** Road-crossing plates this wide (mm) across the middle, if any */
@@ -26,20 +28,77 @@ export interface PaintedEdge {
     inactive?: boolean;
 }
 
-/** Real N scale: 9mm gauge. The rest is tuned to read well on screen. */
+/** How one system of model track looks, in mm. */
+export interface ModelLook {
+    /** Between the rails */
+    gauge: number;
+    /** Roadbed colour; null for sleepers laid straight on the baseboard */
+    ballast: string | null;
+    ballastEdge: string;
+    sleeper: string;
+    sleeperLength: number;
+    sleeperWidth: number;
+    sleeperSpacing: number;
+    railBase: string;
+    railBaseWidth: number;
+    railHead: string;
+    railHeadWidth: number;
+    railInactive: string;
+    /** Märklin's centre studs, the third rail of its AC system: one per sleeper */
+    studs?: string;
+}
+
+/** Kato Unitrack (N): real 9mm gauge; the rest is tuned to read well on screen. */
+export const KATO_LOOK: ModelLook = {
+    gauge: 9,
+    ballast: '#8a867c',
+    ballastEdge: '#6f6b62',
+    sleeper: '#3e3229',
+    sleeperLength: 16,
+    sleeperWidth: 2.4,
+    sleeperSpacing: 7,
+    railBase: '#5d6167',
+    railBaseWidth: 1.7,
+    railHead: '#d7dbe0',
+    railHeadWidth: 0.8,
+    railInactive: '#9a9ea4',
+};
+
+/** Märklin C-track (H0): grey moulded roadbed, and studs down the middle. */
+export const C_TRACK_LOOK: ModelLook = {
+    gauge: 16.5,
+    ballast: '#7c7b76',
+    ballastEdge: '#5f5e5a',
+    sleeper: '#3a332d',
+    sleeperLength: 30,
+    sleeperWidth: 4.2,
+    sleeperSpacing: 12,
+    railBase: '#5d6167',
+    railBaseWidth: 3,
+    railHead: '#d7dbe0',
+    railHeadWidth: 1.4,
+    railInactive: '#9a9ea4',
+    studs: '#c3c7cc',
+};
+
+/** Hornby Setrack (OO): black plastic sleepers straight on the baseboard. */
+export const SETRACK_LOOK: ModelLook = {
+    gauge: 16.5,
+    ballast: null,
+    ballastEdge: '#1f1c1a',
+    sleeper: '#2b2724',
+    sleeperLength: 32,
+    sleeperWidth: 4.4,
+    sleeperSpacing: 12.5,
+    railBase: '#6a6e72',
+    railBaseWidth: 3,
+    railHead: '#d9dcdf',
+    railHeadWidth: 1.4,
+    railInactive: '#9a9ea4',
+};
+
+/** Shared colours and the zoom levels detail appears at. */
 export const TRACK_LOOK = {
-    GAUGE: 9,
-    BALLAST: '#8a867c',
-    BALLAST_EDGE: '#6f6b62',
-    SLEEPER: '#3e3229',
-    SLEEPER_LENGTH: 16,
-    SLEEPER_WIDTH: 2.4,
-    SLEEPER_SPACING: 7,
-    RAIL_BASE: '#5d6167',
-    RAIL_BASE_WIDTH: 1.7,
-    RAIL_HEAD: '#d7dbe0',
-    RAIL_HEAD_WIDTH: 0.8,
-    RAIL_INACTIVE: '#9a9ea4',
     ROAD: '#4a4a4a',
     ROAD_LENGTH: 34,
     ROAD_MARKING: '#d8d8d8',
@@ -49,10 +108,10 @@ export const TRACK_LOOK = {
     WOOD_GROOVE: '#7a5a33',
     WOOD_GROOVE_SPACING: 20,
     WOOD_GROOVE_WIDTH: 3,
-    /** Below this zoom (screen px per mm), no sleepers */
-    SLEEPER_MIN_ZOOM: 0.7,
-    /** Below this zoom, one line per track instead of two rails */
-    RAILS_MIN_ZOOM: 0.35,
+    /** Sleepers show once they're this many screen pixels apart */
+    SLEEPER_MIN_PX: 4.9,
+    /** Two rails once they're this many screen pixels apart; one line below */
+    RAILS_MIN_PX: 3.15,
 } as const;
 
 type Ctx = CanvasRenderingContext2D;
@@ -137,26 +196,39 @@ function strokeAll(ctx: Ctx, edges: PaintedEdge[], width: number, color: string,
  */
 export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
     const px = 1 / Math.max(zoom, 0.01);
-    const L = TRACK_LOOK;
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'round';
 
     const wooden = all.filter(e => e.style === 'wooden');
     if (wooden.length > 0) paintWooden(ctx, wooden, px);
-    const edges = wooden.length > 0 ? all.filter(e => e.style === 'model') : all;
 
-    // 1. Roadbed, with a slightly darker shoulder
-    const byWidth = new Map<number, PaintedEdge[]>();
-    for (const e of edges) {
-        const list = byWidth.get(e.width);
+    // Each system of model track in its own look, a few batched passes each
+    const byLook = new Map<ModelLook, PaintedEdge[]>();
+    for (const e of all) {
+        if (e.style !== 'model') continue;
+        const look = e.look ?? KATO_LOOK;
+        const list = byLook.get(look);
         if (list) list.push(e);
-        else byWidth.set(e.width, [e]);
+        else byLook.set(look, [e]);
     }
-    for (const [width, group] of byWidth) {
-        strokeAll(ctx, group, width + Math.max(1.5, px), L.BALLAST_EDGE);
-    }
-    for (const [width, group] of byWidth) {
-        strokeAll(ctx, group, width, L.BALLAST);
+    for (const [look, edges] of byLook) paintModel(ctx, edges, look, zoom, px);
+}
+
+function paintModel(ctx: Ctx, edges: PaintedEdge[], L: ModelLook, zoom: number, px: number): void {
+    // 1. Roadbed, with a slightly darker shoulder
+    if (L.ballast) {
+        const byWidth = new Map<number, PaintedEdge[]>();
+        for (const e of edges) {
+            const list = byWidth.get(e.width);
+            if (list) list.push(e);
+            else byWidth.set(e.width, [e]);
+        }
+        for (const [width, group] of byWidth) {
+            strokeAll(ctx, group, width + Math.max(1.5, px), L.ballastEdge);
+        }
+        for (const [width, group] of byWidth) {
+            strokeAll(ctx, group, width, L.ballast);
+        }
     }
 
     // 2. Road crossings: an asphalt band across the track
@@ -166,9 +238,9 @@ export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
         ctx.save();
         ctx.translate(m.x, m.y);
         ctx.rotate(m.heading);
-        ctx.fillStyle = L.ROAD;
-        ctx.fillRect(-L.ROAD_LENGTH / 2, -e.roadWidth / 2, L.ROAD_LENGTH, e.roadWidth);
-        ctx.strokeStyle = L.ROAD_MARKING;
+        ctx.fillStyle = TRACK_LOOK.ROAD;
+        ctx.fillRect(-TRACK_LOOK.ROAD_LENGTH / 2, -e.roadWidth / 2, TRACK_LOOK.ROAD_LENGTH, e.roadWidth);
+        ctx.strokeStyle = TRACK_LOOK.ROAD_MARKING;
         ctx.lineWidth = Math.max(0.8, px);
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -181,15 +253,15 @@ export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
 
     // 3. Selection highlight over the roadbed
     for (const e of edges) {
-        if (e.selected) strokeAll(ctx, [e], e.width + 4, L.SELECTED);
+        if (e.selected) strokeAll(ctx, [e], e.width + 4, TRACK_LOOK.SELECTED);
     }
 
-    // 4. Sleepers, one batched path
-    if (zoom >= L.SLEEPER_MIN_ZOOM) {
-        const half = L.SLEEPER_LENGTH / 2;
+    // 4. Sleepers, one batched path, once they're far enough apart to see
+    if (zoom * L.sleeperSpacing >= TRACK_LOOK.SLEEPER_MIN_PX) {
+        const half = L.sleeperLength / 2;
         ctx.beginPath();
         for (const e of edges) {
-            forEachStation(e.geometry, L.SLEEPER_SPACING, (x, y, heading) => {
+            forEachStation(e.geometry, L.sleeperSpacing, (x, y, heading) => {
                 // Across the track: perpendicular to the heading
                 const cx = -Math.sin(heading) * half;
                 const cy = Math.cos(heading) * half;
@@ -197,25 +269,38 @@ export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
                 ctx.lineTo(x + cx, y + cy);
             });
         }
-        ctx.lineWidth = L.SLEEPER_WIDTH;
-        ctx.strokeStyle = L.SLEEPER;
+        ctx.lineWidth = L.sleeperWidth;
+        ctx.strokeStyle = L.sleeper;
         ctx.stroke();
+
+        // Märklin's centre studs sit on the sleepers, between the rails
+        if (L.studs) {
+            ctx.beginPath();
+            for (const e of edges) {
+                forEachStation(e.geometry, L.sleeperSpacing, (x, y) => {
+                    ctx.moveTo(x + 1.1, y);
+                    ctx.arc(x, y, 1.1, 0, Math.PI * 2);
+                });
+            }
+            ctx.fillStyle = L.studs;
+            ctx.fill();
+        }
     }
 
     // 5. Rails: routes set against trains first, so the live route draws on top
     const live = edges.filter(e => !e.inactive);
     const dead = edges.filter(e => e.inactive);
-    if (zoom < L.RAILS_MIN_ZOOM) {
-        strokeAll(ctx, dead, Math.max(3, 2 * px), L.RAIL_INACTIVE);
-        strokeAll(ctx, live, Math.max(3, 2 * px), L.RAIL_HEAD);
+    if (zoom * L.gauge < TRACK_LOOK.RAILS_MIN_PX) {
+        strokeAll(ctx, dead, Math.max(3, 2 * px), L.railInactive);
+        strokeAll(ctx, live, Math.max(3, 2 * px), L.railHead);
         return;
     }
-    const g = L.GAUGE / 2;
-    for (const [group, head] of [[dead, L.RAIL_INACTIVE], [live, L.RAIL_HEAD]] as const) {
-        const base = Math.max(L.RAIL_BASE_WIDTH, 1.6 * px);
-        strokeAll(ctx, group, base, L.RAIL_BASE, -g);
-        strokeAll(ctx, group, base, L.RAIL_BASE, g);
-        const headWidth = Math.max(L.RAIL_HEAD_WIDTH, 0.8 * px);
+    const g = L.gauge / 2;
+    for (const [group, head] of [[dead, L.railInactive], [live, L.railHead]] as const) {
+        const base = Math.max(L.railBaseWidth, 1.6 * px);
+        strokeAll(ctx, group, base, L.railBase, -g);
+        strokeAll(ctx, group, base, L.railBase, g);
+        const headWidth = Math.max(L.railHeadWidth, 0.8 * px);
         strokeAll(ctx, group, headWidth, head, -g);
         strokeAll(ctx, group, headWidth, head, g);
     }

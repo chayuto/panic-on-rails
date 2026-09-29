@@ -27,6 +27,7 @@ import { explodeTrain } from '../utils/crashPhysics';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 import { reverseConsist } from '../utils/trainCars';
 import { linkedPoints } from '../utils/switchRouting';
+import { sizeOf } from '../config/scales';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -97,10 +98,11 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
 
         // Power pack: speed follows the throttle with momentum, braking in
         // time for red signals and buffer stops ahead
+        const size = sizeOf(train.scale);
         let limit = targetSpeed(train);
-        const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed));
-        if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt));
-        let speed = approachSpeed(train.speed, limit, dt);
+        const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed, size));
+        if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt, size));
+        let speed = approachSpeed(train.speed, limit, dt, size);
         // Stopped: the direction lever takes effect, the consist staying put
         const start = train.reverseRequested && speed === 0 ? reverseConsist(train, edges, nodes) : train;
 
@@ -144,7 +146,7 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
 
         // Too fast for the curve: off the rails
         const curve = edges[update.edgeId]?.intrinsicGeometry;
-        if (curve?.type === 'arc' && speed > derailSpeed(curve.radius)) {
+        if (curve?.type === 'arc' && speed > derailSpeed(curve.radius, size)) {
             const edge = edges[update.edgeId];
             const location = getPositionOnEdge(edge, update.distance, nodes);
             crashedParts = [...crashedParts, ...explodeTrain({

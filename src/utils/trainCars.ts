@@ -11,6 +11,7 @@
 import type { EdgeId, NodeId, TrackEdge, TrackGeometry, TrackNode, Train, Vector2 } from '../types';
 import { deriveWorldGeometry } from './geometry';
 import { BOGIE_SPACING, CAR_PITCH, ROLLING_STOCK } from '../config/rollingStock';
+import { sizeOf } from '../config/scales';
 
 export interface CarPose {
     /** Car index: 0 is the locomotive */
@@ -121,7 +122,8 @@ function walkBack(
 /** From the leading car's front bogie to the last car's rear bogie (mm). */
 export function consistLength(train: Train): number {
     const count = Math.max(1, train.carriageCount ?? 1);
-    return (count - 1) * (train.carriageSpacing ?? CAR_PITCH) + BOGIE_SPACING;
+    const size = sizeOf(train.scale);
+    return (count - 1) * (train.carriageSpacing ?? CAR_PITCH * size) + BOGIE_SPACING * size;
 }
 
 /**
@@ -159,7 +161,9 @@ export function getCarPoses(
     geometryOf: GeometryLookup = frameGeometry(edges, nodes)
 ): CarPose[] {
     const count = Math.max(1, train.carriageCount ?? 1);
-    const pitch = train.carriageSpacing ?? CAR_PITCH;
+    const size = sizeOf(train.scale);
+    const pitch = train.carriageSpacing ?? CAR_PITCH * size;
+    const bogies = BOGIE_SPACING * size;
     const place = (behind: number): Vector2 | null => {
         const p = walkBack(train, behind, edges, nodes);
         if (!p) return null;
@@ -170,7 +174,7 @@ export function getCarPoses(
     const poses: CarPose[] = [];
     for (let i = 0; i < count; i++) {
         const front = place(i * pitch);
-        const rear = place(i * pitch + BOGIE_SPACING);
+        const rear = place(i * pitch + bogies);
         if (!front || !rear) break;
         poses.push({
             index: i,

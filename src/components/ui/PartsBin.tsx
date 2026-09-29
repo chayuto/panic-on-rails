@@ -7,6 +7,7 @@ import { getPartsByScale, partCategory } from '../../data/catalog';
 import type { PartCategory } from '../../data/catalog/types';
 import type { PartDefinition } from '../../types';
 import { PartPreview } from './TrackPreview';
+import { SCALES, SCALE_ORDER } from '../../config/scales';
 
 /**
  * Renders a single draggable part card. `left` (collection mode) is how
@@ -63,8 +64,11 @@ function PartCard({ part, left }: { part: PartDefinition; left?: number }) {
     );
 }
 
+/** Every scale the catalog has track for. */
+const SYSTEMS = SCALE_ORDER.filter(scale => getPartsByScale(scale).length > 0);
+
 /**
- * System tab selector (N-Scale / Wooden)
+ * System tab selector (N-Scale / H0 / Wooden...)
  */
 function SystemTabs() {
     const selectedSystem = useEditorStore(s => s.selectedSystem);
@@ -72,18 +76,15 @@ function SystemTabs() {
 
     return (
         <div className="system-tabs">
-            <button
-                className={`system-tab ${selectedSystem === 'n-scale' ? 'active' : ''}`}
-                onClick={() => setSelectedSystem('n-scale')}
-            >
-                N-Scale
-            </button>
-            <button
-                className={`system-tab ${selectedSystem === 'wooden' ? 'active' : ''}`}
-                onClick={() => setSelectedSystem('wooden')}
-            >
-                Wooden
-            </button>
+            {SYSTEMS.map(scale => (
+                <button
+                    key={scale}
+                    className={`system-tab ${selectedSystem === scale ? 'active' : ''}`}
+                    onClick={() => setSelectedSystem(scale)}
+                >
+                    {SCALES[scale].label}
+                </button>
+            ))}
         </div>
     );
 }
@@ -157,7 +158,7 @@ export function PartsBin() {
             <div className="parts-bin-content">
                 {inCollection && sections.length === 0 && (
                     <div className="parts-bin-empty" data-testid="parts-bin-empty">
-                        <p>No {selectedSystem === 'wooden' ? 'wooden' : 'N-scale'} track in your collection yet.</p>
+                        <p>No {SCALES[selectedSystem].label} track in your collection yet.</p>
                         <button onClick={() => openShop('sets')}>Visit the hobby shop</button>
                     </div>
                 )}

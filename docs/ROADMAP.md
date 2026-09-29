@@ -339,6 +339,8 @@ Order, biggest win per millisecond first:
     all four (`switchGroup` on the nodes).
   - Still open: 3-way turnouts need three-position points. The older parts keep their
     per-type creators; move them over only if one needs a change.
+- [x] **Scales:** H0 and OO beside N (`config/scales.ts`). Trains, speeds and braking grow with
+      the model scale, so an H0 train drives like an N one, and track shows its brand's look.
 - [ ] Brands: Märklin C-track (start sets plus C1–C5), Hornby Setrack (Track Packs A–F), Tomix
       Fine Track, Bachmann E-Z Track.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.

@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ROLLING_STOCK, type RollingStock } from '../../../data/rollingStock';
 import { getCarSprite } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
+import { SCALES } from '../../../config/scales';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
 import { getAllSets, resolvePlan, type LayoutPlan, type TrackSet } from '../../../data/sets';
@@ -192,7 +193,7 @@ function TrainsForSale({ wallet }: { wallet: number }) {
                     <div className="shop-train-text">
                         <span className="shop-part-name">{stock.name}</span>
                         <span className="shop-part-code">
-                            {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed))} km/h · you have {ownedTrains[stock.id] ?? 0}
+                            {SCALES[stock.scale].label} · {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed, SCALES[stock.scale].ratio))} km/h · you have {ownedTrains[stock.id] ?? 0}
                         </span>
                         <span className="shop-train-description">{stock.description}</span>
                     </div>

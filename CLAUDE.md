@@ -107,6 +107,10 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 Complex pieces (curved turnouts, double slips, scissors crossovers) are **topology parts**: named connectors plus routes, each a path of `{straight}` and `{arc, angle, turn}` steps. Two routes at one connector make points; the first route listed is state 0. `data/catalog/topology.ts` resolves them once for both connectors and track creation, and throws when routes that should meet miss by more than 0.5 mm / 0.5°. Prefer a topology part over a new part type. See `src/data/catalog/README.md`.
 
+### Scales
+
+`src/config/scales.ts` holds each scale's model ratio, gauge and `size` relative to N (H0 = 160/87). The game was tuned in N; a bigger scale is N grown by `size`: cars (`trainCars.ts`, `TrainLayer`), speeds, acceleration, braking, curve limits and look-ahead (`driving.ts` functions take `size`), and collision thresholds. A train's `scale` comes from its rolling stock or the track it's put on; collection mode only runs a train on track of its own scale. The track painter draws each brand in its own `ModelLook` (Kato's ballast, Märklin's grey bed and centre studs).
+
 ### Boxed Sets & Layout Plans
 
 `src/data/sets/<brand>/*.json` — one file per real boxed set (contents, accessories, `extends`, footprint, plans), validated by `schema.ts` and loaded automatically by `index.ts`. A **layout plan** is a chain of parts: each step attaches a catalog part to a connector of an earlier step (`at`, default: previous piece's through exit) by one of its own connectors (`via`, default: primary; a curve attached `via: "B"` turns left). `resolvePlan()` places the pieces from catalog geometry and reports joints, open ends and the bill of materials; `planToTemplate()` turns a plan into a template recipe for `applyTemplate()` or the headless harness. See `src/data/sets/README.md` to add a set.

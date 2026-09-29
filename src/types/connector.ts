@@ -6,7 +6,7 @@
  * connectors with 180° opposite facades.
  */
 
-import type { Vector2 } from './index';
+import type { Vector2, PartScale } from './index';
 
 // ===========================
 // Connector Node Definition
@@ -145,12 +145,16 @@ export interface SnapConfig {
 /**
  * Default snap configurations by track system.
  */
-export const DEFAULT_SNAP_CONFIG: Record<'n-scale' | 'ho-scale' | 'wooden', SnapConfig> = {
+export const DEFAULT_SNAP_CONFIG: Record<PartScale, SnapConfig> = {
     'n-scale': {
         snapRadius: 30,
         angleTolerance: 15,  // ±15° from perfect 180°
     },
     'ho-scale': {
+        snapRadius: 35,
+        angleTolerance: 15,
+    },
+    'oo-scale': {
         snapRadius: 35,
         angleTolerance: 15,
     },

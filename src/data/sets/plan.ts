@@ -239,7 +239,7 @@ export function planToTemplate(plan: LayoutPlan, meta: Partial<TemplateMetadata>
             name: plan.name,
             description: plan.description ?? '',
             difficulty: 'beginner',
-            system: resolved.pieces[0]?.part.scale === 'wooden' ? 'wooden' : 'n-scale',
+            system: resolved.pieces[0]?.part.scale ?? 'n-scale',
             estimatedCost: resolved.pieces.reduce((sum, p) => sum + p.part.cost, 0),
             partCount: resolved.pieces.length,
             trainCount: plan.trains?.length ?? 0,

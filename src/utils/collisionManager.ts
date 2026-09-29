@@ -8,6 +8,7 @@
 
 import type { Train, TrackEdge, EdgeId, NodeId } from '../types';
 import { DEFAULT_CARRIAGE_SPACING } from '../stores/useSimulationStore';
+import { sizeOf } from '../config/scales';
 
 /** Base distance threshold for collision detection (in edge units) */
 const BASE_COLLISION_THRESHOLD = 15;
@@ -21,12 +22,17 @@ export interface CollisionResult {
     edgeId: string;
 }
 
+/** The thresholds are N's: bigger scales' trains touch from further apart. */
+function pairSize(a: Train, b: Train): number {
+    return (sizeOf(a.scale) + sizeOf(b.scale)) / 2;
+}
+
 /**
  * Calculate the effective length of a train (from locomotive to last carriage)
  */
 export function getTrainLength(train: Train): number {
     const carriageCount = train.carriageCount ?? 1;
-    const spacing = train.carriageSpacing ?? DEFAULT_CARRIAGE_SPACING;
+    const spacing = train.carriageSpacing ?? DEFAULT_CARRIAGE_SPACING * sizeOf(train.scale);
     // Length is (n-1) * spacing for n carriages
     return (carriageCount - 1) * spacing;
 }
@@ -99,7 +105,7 @@ export function detectCollisions(
                 // Calculate effective collision threshold considering train lengths
                 const trainALength = getTrainLength(trainA);
                 const trainBLength = getTrainLength(trainB);
-                const effectiveThreshold = BASE_COLLISION_THRESHOLD + (trainALength / 2) + (trainBLength / 2);
+                const effectiveThreshold = BASE_COLLISION_THRESHOLD * pairSize(trainA, trainB) + (trainALength / 2) + (trainBLength / 2);
 
                 if (distance < effectiveThreshold) {
                     collisions.push({
@@ -127,7 +133,7 @@ export function detectCollisions(
 
                 const trainALength = getTrainLength(trainA);
                 const trainBLength = getTrainLength(trainB);
-                const effectiveThreshold = NEAR_NODE_THRESHOLD + (trainALength / 2) + (trainBLength / 2);
+                const effectiveThreshold = NEAR_NODE_THRESHOLD * pairSize(trainA, trainB) + (trainALength / 2) + (trainBLength / 2);
 
                 if (distA + distB < effectiveThreshold) {
                     collisions.push({
