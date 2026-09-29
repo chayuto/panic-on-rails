@@ -1,0 +1,40 @@
+{
+    "id": "hornby-Oval",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "Oval",
+    "badge": "Oval",
+    "name": "Setrack Train Set Oval",
+    "price": 7500,
+    "kind": "starter",
+    "description": "The 3rd radius oval in Hornby's train sets, such as R1296M: eight R609 curves, an R600 straight and the R8206 power track. The sets pack it with a locomotive and a controller; the game sells the track on its own. The Track Extension Packs build on it.",
+    "contents": [
+        { "part": "hornby-R609", "qty": 8 },
+        { "part": "hornby-R600", "qty": 1 },
+        { "part": "hornby-R8206", "qty": 1 }
+    ],
+    "footprint": { "width": 1210, "depth": 1040 },
+    "plans": [
+        {
+            "id": "oval",
+            "name": "Train set oval",
+            "description": "3rd radius curves and one straight on each side: 1210 x 1040mm, as printed on the train set box.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#8E1B1B" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/smokey-joe-train-set-r1296m"
+}

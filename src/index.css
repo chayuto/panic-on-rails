@@ -359,7 +359,9 @@ button.active {
 
 .system-tab {
   flex: 1;
-  padding: 10px 12px;
+  min-width: 0;
+  padding: 10px 4px;
+  white-space: nowrap;
   background: transparent;
   border: none;
   border-radius: 0;

@@ -49,7 +49,7 @@ needs no invented levels.
 | System | Starter | Expansion ladder | Notes |
 |--------|---------|------------------|-------|
 | **Kato Unitrack** (N) | Master sets **M1** 20-852 (basic oval, 1337 × 677 mm) and **M2** 20-853 (oval and siding, 2019 × 751 mm) | Variation sets **V1–V7** (single track: passing siding, viaduct, yard, siding, inner and outer loops, double crossover) and **V11–V17** (double track) | Our first system: exact geometry is already in the catalog. |
-| **Hornby** (OO) | Train sets with a TrakMat | **Track Extension Packs A–F** build the TrakMat plan step by step | Needs Setrack geometry (R1–R4 radii). |
+| **Hornby** (OO) | Train sets with a 3rd radius oval, and a TrakMat | **Track Extension Packs A–F** build the TrakMat plan step by step | ✅ In the game, every pack. |
 | **Märklin C-track** (H0) | Start up sets, whose oval Märklin's plans call **S1** | Extension sets **C1–C5**: siding, passing loop, curved turnouts, spurs and a yard with a double slip | ✅ In the game, every plan in the 2023 booklet. |
 | **Brio / IKEA** (wooden) | Starter sets | Expansion packs | The generic wooden parts need product mapping. |
 
@@ -112,6 +112,30 @@ geometry brochure, with XTrackCAD's parameter files for the slip and curved-turn
 - **Double slip:** two 188.3 mm tracks crossing at 24.3°, and one drive at each end that sets
   both routes from that end.
 
+### What's in a real box (Hornby)
+
+Sources: Hornby's pack and part pages, whose diagrams show each pack's pieces in red on the
+TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
+
+| Box | Contents | Game |
+|-----|----------|------|
+| **Oval**, as in train sets such as R1296M | R609×8, R600, R8206 | ✅ 1210 × 1040 mm, as printed |
+| **A** R8221 | R600, R601×2, R606, R8072, R083 | ✅ Siding outside the back |
+| **B** R8222 | R600×2, R606, R607×4, R8073, R083 | ✅ Inner track from a point on the front |
+| **C** R8223 | R600×2, R606, R607×4, R8073 | ✅ Inner loop and crossover |
+| **D** R8224 | R605×3, R608, R8072, R083, double level crossing | ✅ Level crossing, and a stub round 1st radius curves |
+| **E** R8225 | R600×2, R601, R606, R607×2, R8073, R083 | ✅ Spur up the outside |
+| **F** R8226 | R600×2, R606×2, R8072, R8073, R083 | ✅ The whole TrakMat plan |
+
+- **Hornby's 168mm straight is 167.5mm:** two make the 335mm R601.
+- **The train-set oval is 3rd radius.** The packs build a 2nd radius loop 67mm inside it.
+- **Where the game differs from the packs:**
+  - The R083 buffer stop clips onto a track end in reality. Here it is a 44mm piece of its own.
+  - Hornby's list for pack E names seven of its eight pieces. Its diagram shows the eighth, an
+    R606, which the whole layout needs.
+  - Pack D's crossing is listed as X2120; the game uses the R636 double level crossing's
+    geometry.
+
 ## 4. Can we build that? (feasibility, 2026-09-30)
 
 | In the real box | In the game | Gap / phase |
@@ -124,7 +148,7 @@ geometry brochure, with XTrackCAD's parameter files for the slip and curved-turn
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
 | Double-track pieces (V11–V15) | ❌ | Phase 6 |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
-| Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ Märklin's as topology parts; Hornby's next | Hornby (Phase 6) |
+| Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
 | The train in a train set | Partial: generic coloured trains | Rolling stock as data (Phase 4) |
 | Buying the next box | ❌ | Collection, wallet and shop (Phase 3) |
