@@ -132,6 +132,9 @@ function logEvent(event: SimEvent, before: SimWorld): void {
         case 'collision':
             log('collision', event.trainId, event.edgeId, `crashed with ${event.otherTrainIds.join(', ')}`);
             break;
+        case 'derail':
+            log('derail', event.trainId, event.edgeId, `derailed at ${Math.round(event.speed)} mm/s on ${partOf(event.edgeId)}`);
+            break;
         case 'sensor':
             if (event.state === 'on') {
                 log('sensor', '' as TrainId, event.edgeId, `sensor ${event.sensorId.slice(0, 8)} triggered`);

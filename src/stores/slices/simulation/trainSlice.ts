@@ -5,6 +5,7 @@
 import type { Train } from '../../../types';
 import type { SimulationSliceCreator, TrainSlice } from './types';
 import { CAR_PITCH } from '../../../config/rollingStock';
+import { DRIVING } from '../../../simulation/driving';
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 let trainCounter = 0;
@@ -28,7 +29,9 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             currentEdgeId: edgeId,
             distanceAlongEdge: distance ?? 0,
             direction: 1,
-            speed: 100, // pixels per second
+            // Sets off at cruising speed, so a layout runs the moment it loads
+            speed: DRIVING.DEFAULT_THROTTLE,
+            throttle: DRIVING.DEFAULT_THROTTLE,
             color: trainColor,
             carriageCount: carriageCount ?? 1,
             carriageSpacing: CAR_PITCH,
@@ -75,26 +78,45 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     },
 
     /**
-     * Player stop/go control. A stopped train stays where it is (and can
-     * still be hit by other trains).
+     * Player stop/go control: an emergency stop. A stopped train stands where
+     * it is (and can still be hit); on Go it pulls away from a standstill.
      */
     setTrainStopped: (trainId, stopped) => {
         set((state) => {
             const train = state.trains[trainId];
-            if (train && !train.crashed) train.stopped = stopped;
+            if (!train || train.crashed) return;
+            train.stopped = stopped;
+            if (stopped) train.speed = 0;
         });
     },
 
-    /** Reverse a train's direction of travel. */
-    reverseTrain: (trainId) => {
+    /** Set a train's throttle: the speed it accelerates or brakes toward (mm/s). */
+    setTrainThrottle: (trainId, throttle) => {
         set((state) => {
             const train = state.trains[trainId];
             if (train && !train.crashed) {
-                train.direction = train.direction === 1 ? -1 : 1;
-                train.heldAtSignal = false;
-                // The route behind the train is now ahead of it
-                train.trail = [];
+                train.throttle = Math.max(0, Math.min(DRIVING.MAX_THROTTLE, throttle));
             }
+        });
+    },
+
+    /**
+     * The direction lever. A standing train reverses at once; a moving one
+     * brakes to a stop first, then sets off the other way.
+     */
+    reverseTrain: (trainId) => {
+        set((state) => {
+            const train = state.trains[trainId];
+            if (!train || train.crashed) return;
+            if (train.speed > 0 && !train.stopped) {
+                train.reverseRequested = !train.reverseRequested;
+                return;
+            }
+            train.direction = train.direction === 1 ? -1 : 1;
+            train.heldAtSignal = false;
+            train.reverseRequested = false;
+            // The route behind the train is now ahead of it
+            train.trail = [];
         });
     },
 

@@ -112,7 +112,13 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 The simulation is a pure function plus thin adapters — keep it that way:
 
 - **`src/simulation/step.ts`** — `stepSimulation(world, dt, ctx) → { world, events }`. Pure: no stores, audio, DOM, `performance.now()` or `Math.random()`. Order per tick: movement → collisions → debris → sensors/wires. Clock and RNG come in via `ctx` (`createRng(seed)` for determinism); side effects go out as typed `SimEvent`s (`traverse`, `bounce`, `collision`, `sensor`, `switch`, `signal`).
-- Subsystems it calls: `movement.ts` (edge traversal, switch routing, dead-end bounce), `collision.ts` (+ `utils/collisionManager.ts`), `signals.ts` (sensor zones → wire actions), `utils/crashPhysics.ts` (debris; RNG-injected, never mutates input).
+- Subsystems it calls:
+  - `driving.ts`: the power pack. Speed follows `train.throttle` with momentum, brakes in time for a red signal's stop line or the end of the line (`stopAhead`, `stoppingLimit`), and derails above a curve's limit (`derailSpeed(radius)`). The direction lever (`reverseRequested`) stops the train, then reverses it.
+  - `movement.ts`: edge traversal, switch routing and dead-end bounce, with a hard stop at red stop lines as a safety net.
+  - `collision.ts`, plus `utils/collisionManager.ts`.
+  - `signals.ts`: sensor zones → wire actions.
+  - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
+  - `economy.ts`: money from events.
 - **`src/simulation/tick.ts`** — `tickSimulation(realDt, { sink })` reads the stores, steps, writes back only what changed, logs to `simLog`, and hands events to a sink. `seedSimulation(n)` makes runs reproducible.
 - **`src/hooks/useGameLoop.ts`** — rAF driver only: delta capping, error recovery, and `browserEffectsSink` (events → audio/flash/shake).
 - **`src/simulation/harness.ts`** — headless API: `resetWorld()`, `loadRecipe(template)`, `seed()`, `run(frames)`, `runSeconds(s)`, `summarize()`.

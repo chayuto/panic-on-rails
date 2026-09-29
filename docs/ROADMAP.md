@@ -238,13 +238,20 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
 
 ### Phase 4: The Power Pack, driving
 
-- [ ] Throttle with momentum (acceleration and braking) in `stepSimulation`, plus a
-      power-pack-style control: a speed knob and a direction switch that only reverses when
-      stopped.
+- [x] **Throttle with momentum** (`simulation/driving.ts`):
+  - each train has a throttle it accelerates (80 mm/s²) or brakes (160 mm/s²) toward;
+  - it brakes in time to stand at a red signal's stop line, and eases into buffer stops before
+    heading back;
+  - a per-train throttle slider shows scale speed (100 mm/s = 58 km/h at N scale);
+  - Stop is an emergency stop, and Go pulls away from a standstill;
+  - the direction lever brakes to a stand before reversing.
+- [x] **Curves have speed limits, and derailments are the panic.**
+  - Comfortable speed is √(103 mm/s² × radius): about 180 mm/s on R315, 150 on R216 and 272
+    on a #6 turnout's R718 route.
+  - At 1.25× that, the train derails. That throws debris, logs a `derail` event and bills a
+    $20 repair.
 - [ ] Rolling stock as data: real-ish locomotives and cars with lengths in mm, a top speed and
-      colours. Each car renders at its real length.
-- [ ] Speed realism: tight curves and #4 diverging routes cap speed. Too fast derails the train,
-      which is the panic.
+      colours. Buy trains in the shop.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
 
 ### Phase 5: Looks

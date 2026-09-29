@@ -23,8 +23,8 @@ export interface Earnings {
 
 /**
  * Money from one batch of events: a train earns for each edge it finishes
- * running (a `traverse` away from it), and each train in a collision
- * costs a repair.
+ * running (a `traverse` away from it), and each train that crashes or
+ * derails costs a repair.
  */
 export function earningsFor(events: SimEvent[], edges: Record<EdgeId, TrackEdge>): Earnings {
     let income = 0;
@@ -33,7 +33,7 @@ export function earningsFor(events: SimEvent[], edges: Record<EdgeId, TrackEdge>
         if (event.type === 'traverse') {
             const length = edges[event.fromEdgeId]?.length ?? 0;
             income += (length / 1000) * ECONOMY.CENTS_PER_METRE;
-        } else if (event.type === 'collision') {
+        } else if (event.type === 'collision' || event.type === 'derail') {
             repairs += ECONOMY.REPAIR_CENTS;
         }
     }

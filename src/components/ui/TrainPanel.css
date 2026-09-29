@@ -124,6 +124,7 @@
 
 .train-item {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
@@ -199,6 +200,28 @@
 .train-action-btn.active {
     border-color: rgba(255, 200, 80, 0.6);
     color: #ffc850;
+}
+
+/* Throttle and scale speed (a second row in the train card) */
+.train-throttle {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.train-throttle input {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--mode-simulate-accent);
+}
+
+.train-speed {
+    width: 64px;
+    text-align: right;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-secondary);
 }
 
 /* Crash Warning */

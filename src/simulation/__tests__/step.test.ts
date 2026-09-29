@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepSimulation, createRng, type SimWorld } from '../step';
+import { stepSimulation, createRng, type SimWorld, type SimEvent } from '../step';
 import { lineGraph, node, straightEdge, train, world } from './fixtures';
 
 const ctx = (seed = 1) => ({ now: 1000, random: createRng(seed) });
@@ -101,19 +101,27 @@ describe('stepSimulation', () => {
 
         it('a red signal holds a train, then releases it on green', () => {
             const sig = { id: 's', nodeId: 'n1', state: 'red' as const, offset: { x: 0, y: 0 } };
-            let w = world({ ...graph, trains: { t: train('t', 'e0', 50) }, signals: { s: sig } });
+            const frames = (w: SimWorld, seconds: number) => {
+                const events: SimEvent[] = [];
+                for (let i = 0; i < seconds * 60; i++) {
+                    const r = stepSimulation(w, 1 / 60, ctx());
+                    w = r.world;
+                    events.push(...r.events);
+                }
+                return { world: w, events };
+            };
 
-            let r = stepSimulation(w, 1, ctx());
+            // Brakes to a stand at the stop line
+            let r = frames(world({ ...graph, trains: { t: train('t', 'e0', 50) }, signals: { s: sig } }), 2);
             expect(r.world.trains.t.heldAtSignal).toBe(true);
-            expect(r.events).toContainEqual({ type: 'signal-hold', trainId: 't', edgeId: 'e0' });
+            expect(r.events.filter(e => e.type === 'signal-hold')).toEqual([{ type: 'signal-hold', trainId: 't', edgeId: 'e0' }]);
 
             // Still red: stays put, no repeated hold event
-            r = stepSimulation(r.world, 1, ctx());
+            r = frames(r.world, 1);
             expect(r.events.some(e => e.type === 'signal-hold')).toBe(false);
             const heldAt = r.world.trains.t.distanceAlongEdge;
 
-            w = { ...r.world, signals: { s: { ...sig, state: 'green' } } };
-            r = stepSimulation(w, 0.5, ctx());
+            r = frames({ ...r.world, signals: { s: { ...sig, state: 'green' } } }, 0.5);
             expect(r.world.trains.t.heldAtSignal).toBe(false);
             expect(r.events).toContainEqual({ type: 'signal-release', trainId: 't', edgeId: expect.any(String) });
             expect(r.world.trains.t.currentEdgeId !== 'e0' || r.world.trains.t.distanceAlongEdge > heldAt).toBe(true);

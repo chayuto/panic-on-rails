@@ -86,6 +86,7 @@ export interface PanicStoreBridge {
         removeTrain: (trainId: string) => void;
         setTrainStopped: (trainId: string, stopped: boolean) => void;
         reverseTrain: (trainId: string) => void;
+        setTrainThrottle: (trainId: string, throttle: number) => void;
         setRunning: (running: boolean) => void;
         toggleRunning: () => void;
         clearTrains: () => void;
@@ -237,6 +238,8 @@ export function initDebugBridge(): void {
                 useSimulationStore.getState().setTrainStopped(trainId, stopped),
             reverseTrain: (trainId) =>
                 useSimulationStore.getState().reverseTrain(trainId),
+            setTrainThrottle: (trainId, throttle) =>
+                useSimulationStore.getState().setTrainThrottle(trainId, throttle),
             setRunning: (running) =>
                 useSimulationStore.getState().setRunning(running),
             toggleRunning: () =>

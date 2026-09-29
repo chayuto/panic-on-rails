@@ -166,7 +166,7 @@ const NO_RED_NODES: ReadonlySet<NodeId> = new Set();
 /**
  * Find the edge a train continues onto when leaving `currentEdgeId` via `node`.
  */
-function resolveNextEdge(
+export function resolveNextEdge(
     currentEdgeId: EdgeId,
     node: TrackNode | undefined
 ): EdgeId | null {

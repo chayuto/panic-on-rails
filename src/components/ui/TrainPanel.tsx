@@ -4,7 +4,7 @@
  * Features:
  * - List of active trains with status and carriage count
  * - Add/Remove train controls with carriage selector
- * - Per-train Stop/Go and Reverse
+ * - Per-train throttle (with momentum), scale speed, Stop/Go and the direction lever
  * - Play/Pause simulation
  * - Speed multiplier slider
  * - Crash warnings
@@ -15,6 +15,7 @@ import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Rep
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
+import { DRIVING, scaleKmh, throttleOf } from '../../simulation/driving';
 import type { Train } from '../../types';
 import './TrainPanel.css';
 
@@ -26,6 +27,7 @@ export function TrainPanel() {
     const setSpeedMultiplier = useSimulationStore(s => s.setSpeedMultiplier);
     const setTrainStopped = useSimulationStore(s => s.setTrainStopped);
     const reverseTrain = useSimulationStore(s => s.reverseTrain);
+    const setTrainThrottle = useSimulationStore(s => s.setTrainThrottle);
     const clearTrains = useSimulationStore(s => s.clearTrains);
     const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
 
@@ -156,9 +158,10 @@ export function TrainPanel() {
                                         {train.stopped ? <Play size={12} /> : <Hand size={12} />}
                                     </button>
                                     <button
-                                        className="train-action-btn"
+                                        className={`train-action-btn ${train.reverseRequested ? 'active' : ''}`}
                                         onClick={() => reverseTrain(train.id)}
-                                        title="Reverse"
+                                        title={train.reverseRequested ? 'Reversing: stopping first' : 'Reverse'}
+                                        aria-pressed={!!train.reverseRequested}
                                         data-testid={`train-reverse-${train.id}`}
                                     >
                                         <Repeat size={12} />
@@ -172,6 +175,23 @@ export function TrainPanel() {
                             >
                                 <X size={14} />
                             </button>
+                            {!train.crashed && (
+                                <label className="train-throttle" title="Throttle: the train speeds up or slows down to this with momentum">
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={DRIVING.MAX_THROTTLE}
+                                        step={5}
+                                        value={throttleOf(train)}
+                                        onChange={e => setTrainThrottle(train.id, Number(e.target.value))}
+                                        aria-label={`${train.id.replace('train-', 'Train ')} throttle`}
+                                        data-testid={`train-throttle-${train.id}`}
+                                    />
+                                    <span className="train-speed" data-testid={`train-speed-${train.id}`}>
+                                        {Math.round(scaleKmh(train.speed))} km/h
+                                    </span>
+                                </label>
+                            )}
                         </div>
                     ))
                 )}
