@@ -31,6 +31,7 @@ const LayoutPlanSchema = z.object({
         color: z.string().optional(),
     })).optional(),
     openEnds: z.number().int().nonnegative().optional(),
+    tolerance: z.number().positive().max(3).optional(),
 });
 
 export const TrackSetSchema = z.object({
@@ -48,6 +49,10 @@ export const TrackSetSchema = z.object({
         qty: z.number().int().positive(),
     })).min(1),
     accessories: z.array(z.string()).optional(),
+    spares: z.array(z.object({
+        part: z.string().min(1),
+        qty: z.number().int().positive(),
+    })).optional(),
     extends: z.array(z.string()).optional(),
     footprint: z.object({ width: z.number().positive(), depth: z.number().positive() }).optional(),
     plans: z.array(LayoutPlanSchema).min(1),

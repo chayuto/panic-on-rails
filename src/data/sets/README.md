@@ -11,8 +11,17 @@ One JSON file per real product, in `src/data/sets/<brand>/`. Files are loaded au
   in the box is missing, add it there first, with real geometry.
 - **Plans must close.** A plan may only leave the number of connectors open that it declares
   in `openEnds`. The default is 0.
+  - Connectors meet when they are within 0.5 mm and face each other.
+  - Some real plans are 1–2 mm off on paper and close only thanks to UniJoiner play; Kato's #4
+    and #6 sidings are the known cases. Such a plan sets `tolerance` (at most 3 mm) and says why
+    in its `description`.
 - **Plans may only use what's in the box**, plus the sets listed in `extends`. For example,
   a V1 plan may use the M1 oval it extends.
+- **The first plan uses every piece in the box**, except the pieces listed in `spares`. For
+  example, V4 ships two of each S60 cut straight, and its plan needs one of each.
+- **A starter set's first plan must measure what's printed on the box**, within 1.5%. Each
+  piece is swept by its catalog `width`: 25 mm of Kato roadbed, or 69 mm for the road-crossing
+  rerailer.
 - Never loosen a test to make a plan pass. A plan that doesn't close means the plan or the
   catalog geometry is wrong.
 

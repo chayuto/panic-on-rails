@@ -1,0 +1,66 @@
+{
+    "id": "kato-20-853",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-853",
+    "badge": "M2",
+    "name": "Basic Oval and Siding Master Set",
+    "kind": "starter",
+    "description": "The M1 oval stretched to 1364mm straights, with a passing siding on #6 turnouts: two trains can take turns.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 10 },
+        { "part": "kato-20-020", "qty": 1 },
+        { "part": "kato-20-026", "qty": 1 },
+        { "part": "kato-20-030", "qty": 2 },
+        { "part": "kato-20-040", "qty": 1 },
+        { "part": "kato-20-041", "qty": 1 },
+        { "part": "kato-20-120", "qty": 8 },
+        { "part": "kato-20-150", "qty": 2 },
+        { "part": "kato-20-202", "qty": 1 },
+        { "part": "kato-20-203", "qty": 1 }
+    ],
+    "accessories": ["Power Pack Standard SX", "AC adapter", "2 turnout control switches", "Feeder cable", "Rerailer tool"],
+    "footprint": { "width": 2019, "depth": 751 },
+    "plans": [
+        {
+            "id": "oval-and-siding",
+            "name": "Oval with passing siding",
+            "description": "#6 turnouts at both ends of one side, with the siding outside the oval at 66mm centres: room for an island platform. On paper the siding is 1mm shorter than the main line; UniJoiner play takes it up.",
+            "steps": [
+                { "part": "kato-20-202" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-203", "via": "main" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-030", "at": { "piece": 0, "connector": "branch" } },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-030" }
+            ],
+            "trains": [
+                { "piece": 1, "color": "#E74C3C" }
+            ],
+            "tolerance": 1.5
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}
