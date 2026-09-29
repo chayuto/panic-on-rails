@@ -50,7 +50,18 @@ PLAYWRIGHT_DEV=1 pnpm exec playwright test --project=dev  # Agent tests (needs p
 
 ### Canvas Rendering (React-Konva)
 
-`StageWrapper` contains ordered layers: Background → Track → Ghost (placement previews) → Train → Sensor → Signal → Wire → Effects → Crash. Each is a Konva `<Layer>`. Non-interactive layers use `listening={false}`. Viewport culling (`viewportCulling.ts`) skips off-screen elements.
+`StageWrapper` has four Konva layers:
+1. Background.
+2. Track, plus wires, sensors and signals.
+3. Ghost (placement preview, while dragging).
+4. Trains, crash debris and effects (`listening={false}`).
+
+Rendering rules. They come from a measured budget (ROADMAP Phase 5); break them and a big layout drops from 120 fps to single digits.
+- **Track is painted, not composed.** One `Shape` in `TrackLayer` calls `tracks/trackPainter.ts`, which draws roadbed, sleepers and rails for every visible edge in batched paths. Detail depends on zoom: no sleepers below 0.7 px/mm, a single line per track below 0.35. Editing adds invisible `EdgeHitTarget` click bands, and joint dots only appear in Edit mode.
+- **Trains are drawn imperatively.** One `Shape` in `TrainLayer` reads the stores at draw time and stamps pre-drawn car sprites (`trains/carSprites.ts`), placed by `utils/trainCars.ts`. A store subscription redraws it after each simulation step. Never subscribe a canvas component to `trains` with a hook.
+- **No Konva shadows** (`shadowBlur`), and set `perfectDrawEnabled={false}` on filled+stroked shapes. Konva renders those through a full-screen scratch canvas per shape per frame. Bake shadows into sprites instead.
+- **Use atomic store selectors.** A whole-store `useX()` in `StageWrapper` or its hooks re-renders the canvas on every tick.
+- Rolling stock sizes live in `src/config/rollingStock.ts`. A train's position is its locomotive's front bogie, and `train.trail` records the route it came through so cars follow it through turnouts.
 
 ### State Management (Zustand Slice Pattern)
 

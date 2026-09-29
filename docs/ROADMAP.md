@@ -255,18 +255,36 @@ software-rendering run):
 
 Order, biggest win per millisecond first:
 
-- [ ] Remove the blurred shadows (`perfectDrawEnabled={false}`, no `shadowBlur`) in
-      `TrainLayer.tsx` and `SwitchRenderer.tsx`.
-- [ ] Stop the every-tick re-render: whole-store subscriptions in `useSwitchInteraction.ts`.
-      Draw trains in the same frame as the simulation step.
-- [ ] Realistic cars as pre-drawn images (sprites):
-  - placed by two bogie points so they cut across curves;
-  - following the route the train actually took, not `connections[0]`;
-  - about 60–90 mm long at game scale.
-- [ ] Detailed track drawn by one drawing function per piece: roadbed, sleepers, rails, and
-      turnout points and frog. Simplified when zoomed out. Fix the sleeper angle on curves
-      (`trackRenderingUtils.ts`). Hide joint dots outside Edit mode.
-- [ ] A tile cache instead of the fixed-resolution whole-layout bitmap.
+- [x] **Blurred shadows removed** from trains, turnout controls, signals and sensors.
+- [x] **No per-tick re-renders:**
+  - no whole-store subscriptions on the canvas path;
+  - trains redraw straight from the store in the same frame as the simulation step.
+- [x] **Model trains:**
+  - a diesel locomotive and coaches as pre-drawn sprites with baked shadows;
+  - each car placed by two bogies, so it cuts across curves;
+  - cars follow the route the train came through (`train.trail`), not `connections[0]`;
+  - 44 mm cars at game scale (`config/rollingStock.ts`).
+- [x] **Model track:**
+  - ballasted roadbed, sleepers and two-tone rails, painted by one shape with zoom-based
+    detail;
+  - road-crossing plates and wooden-track grooves;
+  - the route a turnout is set against drawn dimmer;
+  - sleepers on curves are now square to the track;
+  - joint dots only in Edit mode.
+- [x] **The whole-layout bitmap cache is gone.** Painting is cheap enough uncached, so big
+      layouts no longer vanish and pans no longer stutter.
+
+  Measured on the production build with GPU Chrome on an M5, before → after:
+
+  | Scenario | Before | After |
+  |---|---|---|
+  | 300 pieces, 40 trains × 8 cars, zoomed out | 2.5 fps | 120 fps (1.8 ms main thread) |
+  | 1000 pieces, panning while editing | 6.4 fps | 120 fps |
+
+  With software rendering (no GPU): 105 fps and 55 fps.
+- [ ] Turnout points and frog detail; a tile cache only if layouts outgrow direct painting.
+- [ ] A consist model: the locomotive stays at its end when a train reverses (cars currently
+      trail whichever way it moves), and collision uses each car's real extent.
 - [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
       92 ms with software rendering. Reconsider only for lighting or particles.
 - [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.
@@ -284,8 +302,9 @@ Order, biggest win per millisecond first:
 
 ### Phase 7: Long-term maintainability (continuous; pick items alongside feature work)
 
-- [ ] One switch-aware graph walker used by movement, carriages and the trail. This fixes the
-      wrong-branch carriage rendering.
+- [x] Cars follow the route their train took (`utils/trainCars.ts` plus `train.trail`, with a
+      switch-aware fallback), so they never render down the wrong branch. The motion-trail
+      effect is gone. Movement keeps its own walker; merge the two if a third use appears.
 - [x] GhostLayer computes previews through the catalog connector code and track creators
       (`createPartTrack`); crossovers and bumpers now preview their true shape.
 - [ ] Move cross-store cascades into an orchestration layer. Replace `console.log` with
