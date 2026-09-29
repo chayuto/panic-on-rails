@@ -1,0 +1,68 @@
+{
+    "id": "kato-20-863",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-863",
+    "badge": "V4",
+    "name": "Switching Siding Set",
+    "kind": "expansion",
+    "description": "A compact siding on #4 turnouts, 33mm from the main line, with the angle-cut S60 straights #4s need.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-040", "qty": 2 },
+        { "part": "kato-20-160", "qty": 2 },
+        { "part": "kato-20-220", "qty": 1 },
+        { "part": "kato-20-221", "qty": 1 },
+        { "part": "kato-s60l", "qty": 2 },
+        { "part": "kato-s60r", "qty": 2 }
+    ],
+    "accessories": ["2 turnout control switches"],
+    "spares": [
+        { "part": "kato-s60l", "qty": 1 },
+        { "part": "kato-s60r", "qty": 1 }
+    ],
+    "extends": ["kato-20-852"],
+    "footprint": { "width": 992, "depth": 58 },
+    "plans": [
+        {
+            "id": "m1-siding",
+            "name": "Inside siding (M1 + V4)",
+            "description": "Both straights grow to 1178mm and the siding sits 33mm inside the oval. Each S60 has its cut facing the siding. On paper the siding is 2mm longer than the main line; UniJoiner play takes it up.",
+            "steps": [
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-221" },
+                { "part": "kato-s60r" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-040" },
+                { "part": "kato-s60l", "via": "B" },
+                { "part": "kato-20-220", "via": "main" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-160", "at": { "piece": 12, "connector": "branch" }, "via": "B" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-160", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" }
+            ],
+            "tolerance": 2.5
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

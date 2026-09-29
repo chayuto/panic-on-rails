@@ -77,11 +77,12 @@ function SystemTabs() {
 }
 
 /** Bin sections, in the order a modeler reaches for them. */
-const PART_SECTIONS: { title: string; types: PartDefinition['geometry']['type'][] }[] = [
-    { title: 'Straights', types: ['straight'] },
-    { title: 'Curves', types: ['curve'] },
-    { title: 'Turnouts', types: ['switch'] },
-    { title: 'Crossings & crossovers', types: ['crossing', 'compound'] },
+const PART_SECTIONS: { title: string; matches: (part: PartDefinition) => boolean }[] = [
+    { title: 'Straights', matches: p => p.geometry.type === 'straight' && !p.geometry.bumper },
+    { title: 'Curves', matches: p => p.geometry.type === 'curve' },
+    { title: 'Turnouts', matches: p => p.geometry.type === 'switch' },
+    { title: 'Crossings & crossovers', matches: p => p.geometry.type === 'crossing' || p.geometry.type === 'compound' },
+    { title: 'Buffer stops', matches: p => p.geometry.type === 'straight' && !!p.geometry.bumper },
 ];
 
 /**
@@ -93,7 +94,7 @@ export function PartsBin() {
     const parts = getPartsByScale(selectedSystem);
 
     const sections = PART_SECTIONS
-        .map(section => ({ ...section, parts: parts.filter(p => section.types.includes(p.geometry.type)) }))
+        .map(section => ({ ...section, parts: parts.filter(section.matches) }))
         .filter(section => section.parts.length > 0);
 
     return (

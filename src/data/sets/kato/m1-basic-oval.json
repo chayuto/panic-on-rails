@@ -15,13 +15,7 @@
         { "part": "kato-20-041", "qty": 1 },
         { "part": "kato-20-120", "qty": 8 }
     ],
-    "accessories": [
-        "Power Pack Standard SX",
-        "Rerailer tool",
-        "Uni-Joiner remover",
-        "Track cleaning swab",
-        "Plan variation guide"
-    ],
+    "accessories": ["Power Pack Standard SX", "AC adapter", "Feeder cable", "Rerailer tool", "Road crossing accessories"],
     "footprint": { "width": 1337, "depth": 677 },
     "plans": [
         {
@@ -46,7 +40,9 @@
                 { "part": "kato-20-120" },
                 { "part": "kato-20-120" }
             ],
-            "trains": [{ "piece": 0, "color": "#E74C3C" }]
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" }
+            ]
         }
     ],
     "referenceUrl": "https://katousa.com/product/product-182/"

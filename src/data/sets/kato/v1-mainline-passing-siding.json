@@ -1,0 +1,62 @@
+{
+    "id": "kato-20-860",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-860",
+    "badge": "V1",
+    "name": "Mainline Passing Siding Set",
+    "kind": "expansion",
+    "description": "Two #6 turnouts and the track for a passing siding. Added to M1 it makes exactly the M2 layout.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 6 },
+        { "part": "kato-20-030", "qty": 2 },
+        { "part": "kato-20-150", "qty": 2 },
+        { "part": "kato-20-202", "qty": 1 },
+        { "part": "kato-20-203", "qty": 1 }
+    ],
+    "accessories": ["2 turnout control switches"],
+    "extends": ["kato-20-852"],
+    "footprint": { "width": 1364, "depth": 91 },
+    "plans": [
+        {
+            "id": "m1-passing-siding",
+            "name": "Passing siding (M1 + V1)",
+            "description": "#6 turnouts at both ends of one side, with the siding outside the oval at 66mm centres: room for an island platform. On paper the siding is 1mm shorter than the main line; UniJoiner play takes it up.",
+            "steps": [
+                { "part": "kato-20-202" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-203", "via": "main" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-030", "at": { "piece": 0, "connector": "branch" } },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-030" }
+            ],
+            "trains": [
+                { "piece": 1, "color": "#E74C3C" }
+            ],
+            "tolerance": 1.5
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

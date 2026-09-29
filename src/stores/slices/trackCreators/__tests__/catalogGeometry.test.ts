@@ -42,7 +42,16 @@ function sameGeometry(a: TrackGeometry, b: TrackGeometry): boolean {
     return false;
 }
 
+// Compound parts are built from these same parts; their own checks are below
 const parts = getAllParts().filter(p => p.geometry.type !== 'compound');
+const compounds = getAllParts().filter(p => p.geometry.type === 'compound');
+
+/** World position of an edge's start (t = 0) or end (t = 1). */
+function edgeEnd(g: TrackGeometry, t: 0 | 1) {
+    if (g.type === 'straight') return t === 0 ? g.start : g.end;
+    const a = ((t === 0 ? g.startAngle : g.endAngle) * Math.PI) / 180;
+    return { x: g.center.x + g.radius * Math.cos(a), y: g.center.y + g.radius * Math.sin(a) };
+}
 
 describe('catalog geometry invariants', () => {
     beforeEach(() => useTrackStore.getState().clearLayout());
@@ -101,6 +110,40 @@ describe('arc edges sweep exactly the part angle', () => {
                 expect(sweep, `rotation ${rotation}°: ${edge.geometry.startAngle}→${edge.geometry.endAngle}`)
                     .toBeCloseTo(edge.intrinsicGeometry.sweepAngle, 6);
             }
+        }
+    });
+});
+
+describe('every edge reaches its nodes', () => {
+    // Where the track is drawn must be where the graph says it ends, or trains
+    // jump. Compound parts fuse sub-part connectors: #4 crossover branches meet
+    // 1mm apart on paper (Kato's own geometry; UniJoiner play), hence the
+    // looser bound for them.
+    it.each(getAllParts().map(p => [p.id, p] as const))('%s', (_id, part) => {
+        const tolerance = part.geometry.type === 'compound' ? 1.5 : 0.01;
+        for (const rotation of ROTATIONS) {
+            const { nodes, edges } = createPartTrack(part, ORIGIN, rotation);
+            const byId = new Map(nodes.map(n => [n.id, n]));
+            for (const edge of edges) {
+                for (const [t, nodeId] of [[0, edge.startNodeId], [1, edge.endNodeId]] as const) {
+                    const end = edgeEnd(edge.geometry, t);
+                    const node = byId.get(nodeId)!;
+                    const gap = Math.hypot(end.x - node.position.x, end.y - node.position.y);
+                    expect(gap, `rotation ${rotation}°, edge ${t === 0 ? 'start' : 'end'}`).toBeLessThan(tolerance);
+                }
+            }
+        }
+    });
+});
+
+describe.each(compounds.map(p => [p.id, p] as const))('compound %s', (_id, part) => {
+    it.each(ROTATIONS)('external connectors match created nodes at rotation %i°', (rotation) => {
+        const { nodes } = createPartTrack(part, ORIGIN, rotation);
+        for (const c of getWorldConnectors(part, ORIGIN, rotation)) {
+            const match = nodes.find(n =>
+                closeTo(n.position.x, c.worldPosition.x) && closeTo(n.position.y, c.worldPosition.y));
+            expect(match, `no node at connector ${c.localId}`).toBeDefined();
+            expect(angleClose(match!.rotation, c.worldFacade), `connector ${c.localId} facade`).toBe(true);
         }
     });
 });

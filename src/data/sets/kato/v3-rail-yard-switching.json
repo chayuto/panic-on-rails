@@ -1,0 +1,68 @@
+{
+    "id": "kato-20-862",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-862",
+    "badge": "V3",
+    "name": "Rail Yard Switching Set",
+    "kind": "expansion",
+    "description": "Three #6 turnouts fan out into three yard tracks with buffer stops: somewhere to park trains.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 6 },
+        { "part": "kato-20-010", "qty": 2 },
+        { "part": "kato-20-030", "qty": 2 },
+        { "part": "kato-20-046", "qty": 3 },
+        { "part": "kato-20-150", "qty": 3 },
+        { "part": "kato-20-202", "qty": 2 },
+        { "part": "kato-20-203", "qty": 1 }
+    ],
+    "accessories": ["3 turnout control switches"],
+    "extends": ["kato-20-852"],
+    "footprint": { "width": 1571, "depth": 250 },
+    "plans": [
+        {
+            "id": "m1-yard",
+            "name": "Yard (M1 + V3)",
+            "description": "The first #6 turnout takes the place of M1's S124 and S62. The yard fans out from it outside the oval, and each track ends at a buffer stop.",
+            "steps": [
+                { "part": "kato-20-202" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-202", "at": { "piece": 0, "connector": "branch" } },
+                { "part": "kato-20-203" },
+                { "part": "kato-20-000", "at": { "piece": 16, "connector": "branch" } },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-010" },
+                { "part": "kato-20-010" },
+                { "part": "kato-20-046" },
+                { "part": "kato-20-150", "at": 16 },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-046" },
+                { "part": "kato-20-030", "at": { "piece": 15, "connector": "branch" } },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-150" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-030" },
+                { "part": "kato-20-046" }
+            ],
+            "trains": [
+                { "piece": 1, "color": "#E74C3C" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

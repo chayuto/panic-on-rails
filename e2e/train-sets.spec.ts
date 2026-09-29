@@ -68,6 +68,25 @@ test.describe('Train sets shelf', () => {
         await expect.poll(() => edgeCount(page)).toBe(1);
     });
 
+    test('an expansion box builds onto the M1 oval: V4 adds a #4 siding', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('open-set-shelf').click();
+        const box = page.getByTestId('set-box-kato-20-863');
+        await expect(box).toContainText('Switching Siding Set');
+        await box.getByTestId('set-build-kato-20-863').click();
+
+        // M1's 16 pieces become 24 with V4 (two turnouts are two edges each)
+        await expect.poll(() => edgeCount(page)).toBeGreaterThan(24);
+        const switches = await page.evaluate(() => Object.values(window.__PANIC_STORES__!.track.getState().nodes)
+            .filter(n => n.type === 'switch').map(n => n.connections.length));
+        // Both turnouts fully joined: main, branch and the line they sit on
+        expect(switches).toEqual([3, 3]);
+        expect(await openEnds(page)).toBe(0);
+        const start = await page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed)).toBeGreaterThan(start + 1);
+        expect(await page.evaluate(() => window.__PANIC_SIM__!.summarize().crashed)).toBe(0);
+    });
+
     test('Escape closes the shelf without building', async ({ page, app }) => {
         void app;
         await page.getByTestId('open-set-shelf').click();

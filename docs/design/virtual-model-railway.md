@@ -55,40 +55,49 @@ needs no invented levels.
 
 ### What's in a real box (Kato)
 
-- **M1 Basic Oval (20-852):**
-  - 4× 248 mm straight (20-000)
-  - 1× 124 mm straight (20-020)
-  - 1× 124 mm rerailer/road-crossing track
-  - 1× 62 mm straight (20-040)
-  - 1× 62 mm feeder track
-  - 8× R315-45° curve (20-120)
-  - Accessories: Power Pack Standard SX, rerailer, UniJoiner remover and a plan variation guide.
-- **V1 Mainline Passing Siding (20-860):**
-  - 6× 248 mm straight
-  - 2× 64 mm straight
-  - 2× R718-15° curve
-  - #6 turnout left and right
-  - 2 turnout control switches
-- **V5 Inside Loop (20-864):**
-  - The same straights, feeder and road-crossing track as M1
-  - 8× R282-45° curve
-  - It forms an oval 33 mm inside the M1 oval: 315 − 282 = 33 mm, the Unitrack double-track
-    spacing.
-- **V6 Outside Loop (20-865):** V5 with R348 curves, making an oval 33 mm outside the M1 oval.
+Source: Kato's 2025 US Unitrack catalog (pages 5–7 for the sets, page 8 for "Standards &
+Measurements"), cross-checked against Kato's set guides and Kato Japan's set pages.
+
+| Box | Contents | Kato size (mm) | Game |
+|-----|----------|----------------|------|
+| **M1** 20-852 | S248×4, S124, S124C, S62, S62F, R315-45×8, Power Pack SX | 1337 × 677 | ✅ Measures 1337 × 677 exactly |
+| **M2** 20-853 | M1 + V1 | 2019 × 751 | ✅ 2019 × 743 (the 8 mm is unexplained) |
+| **V1** 20-860 | S248×6, S64×2, R718-15×2, #6 L + R | 1364 × 91 | ✅ Passing siding outside M1, at 66 mm centres |
+| **V2** 20-861 | Viaduct loop on piers | 1655 × 911 | ❌ Needs elevation |
+| **V3** 20-862 | S248×6, S186×2, S64×2, bumper×3, R718-15×3, #6 L×2 + R | 1571 × 250 | ✅ Three-track yard |
+| **V4** 20-863 | S248×4, S62×2, R481-15×2, #4 L + R, S60L×2, S60R×2 | 992 × 58 | ✅ #4 siding inside M1, at 33 mm |
+| **V5** 20-864 | M1's straights, R282-45×8 | 1271 × 611 | ✅ Inner oval, 33 mm inside M1 |
+| **V6** 20-865 | M1's straights, R348-45×8 | 1403 × 743 | ✅ Outer oval, 33 mm outside M1 |
+| **V7** 20-866 | WX310 double crossover, S248×2, S62×2 | 310 × 58 | ❌ Needs a double crossover part |
+| **V11–V15** 20-870… | Double-track pieces, some superelevated or elevated | — | ❌ Needs double-track pieces |
+
+What the measurements taught us:
+
+- **Box dimensions are outer sizes.** They include the 25 mm roadbed and the S124C road
+  crossing's 69 mm road plates. With part widths in the catalog, M1 measures exactly what the
+  box says.
+- **Some Kato plans are 1–2 mm off on paper.** The #6 passing siding is 1 mm short and the #4
+  siding 2 mm long. The real UniJoiners absorb it, so those plans declare a small `tolerance`.
+- **The real products corrected our catalog:**
+  - 20-046/047 are bumpers, not S60 cut straights.
+  - R414 exists only as the outer track of a double-track curve.
+  - The #4 single crossovers were built with their turnouts diverging *away* from each other.
+    They are now #4 + S60 + S62 on each track, which is Kato's own #4 geometry.
 
 Exact contents and sources for every shipped set live in its JSON file
 (`src/data/sets/kato/*.json`, `referenceUrl`).
 
-## 4. Can we build that? (feasibility, 2026-09-29)
+## 4. Can we build that? (feasibility, 2026-09-30)
 
 | In the real box | In the game | Gap / phase |
 |-----------------|-------------|-------------|
-| Straights, curves (R216–R718) | ✅ Exact Kato geometry; the M1 oval closes to 0.01 mm in tests | — |
-| #4 / #6 turnouts, #2 wye, 90° and 15° crossings, #4 single crossovers | ✅ | — |
-| Feeder, rerailer and road-crossing straights | ✅ as their own parts (same geometry, own product number) | Their visuals: Phase 5 |
-| Bumpers | ✅ Buffer-stop ends: not connectable, trains can't pass | — |
+| Straights, curves (R117–R718, 15°–45°) | ✅ Exact Kato geometry; M1 closes to 0.01 mm and measures 1337 × 677 | — |
+| #4 / #6 / compact turnouts, #2 wye, 90° and 15° crossings, #4 single crossovers | ✅ | — |
+| Feeder, rerailer/road-crossing straights, S60 cut straights | ✅ as their own parts, with product numbers | Their visuals: Phase 5 |
+| Bumpers | ✅ Buffer-stop ends: not connectable, trains turn back | — |
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
 | Double crossover (V7) | ❌ | Needs the general part topology (Phase 6) |
+| Double-track pieces (V11–V15) | ❌ | Phase 6 |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ❌ | General part topology (Phase 6) |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
@@ -130,10 +139,13 @@ The plan format and its rules are in [`src/data/sets/README.md`](../../src/data/
 
 ## 7. Sources
 
+- Kato USA, 2025 US Unitrack catalog (sets on pp. 5–7, "Standards & Measurements" on p. 8):
+  https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf
+- Kato USA, Starter Guide with every set's plan: https://katousa.com/wp-content/uploads/2025/12/M1-Guide.pdf
+- Kato Japan, V-set pages with the official plans: https://unitrack.katomodels.com/products/line_set/v_line_set_series
 - Kato USA, M1 set: https://katousa.com/product/product-182/
 - Kato Unitrack set line-up: https://www.unitrack-kato.com/line-up-electric-turntable-1
-- Kato USA, Master and Variation sets: https://katousa.com/n-unitrack-mastervar-2/
-- Kato USA, N track list: https://katousa.com/wp-content/uploads/2021/03/Download-N-Tracklist.pdf
+- Kato USA, N track list: https://katousa.com/wp-content/uploads/2025/11/Download-N-Tracklist.pdf
 - V1 20-860 contents: https://www.trainz.com/products/kato-20860-n-mainline-passing-siding-set-unitrack-variation-1
 - V5 20-864 contents: https://lombardhobby.com/kato-n-20-864-unitrack-v5-inside-loop-track-set/
 - M2 20-853: https://midwestmodelrr.com/kat20-853/

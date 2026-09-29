@@ -11,6 +11,7 @@ export function computeCrossingConnectors(geometry: CrossingGeometry): PartConne
     // Path A: horizontal, Path B: at crossingAngle
     const { length, crossingAngle } = geometry;
     const halfLength = length / 2;
+    const halfCross = (geometry.crossLength ?? length) / 2;
     const crossRad = degreesToRadians(crossingAngle);
 
     const nodes: ConnectorNode[] = [
@@ -31,8 +32,8 @@ export function computeCrossingConnectors(geometry: CrossingGeometry): PartConne
         {
             localId: 'B1',
             localPosition: {
-                x: -Math.cos(crossRad) * halfLength,
-                y: -Math.sin(crossRad) * halfLength,
+                x: -Math.cos(crossRad) * halfCross,
+                y: -Math.sin(crossRad) * halfCross,
             },
             localFacade: normalizeAngle(crossingAngle + 180),
             maxConnections: 1,
@@ -40,8 +41,8 @@ export function computeCrossingConnectors(geometry: CrossingGeometry): PartConne
         {
             localId: 'B2',
             localPosition: {
-                x: Math.cos(crossRad) * halfLength,
-                y: Math.sin(crossRad) * halfLength,
+                x: Math.cos(crossRad) * halfCross,
+                y: Math.sin(crossRad) * halfCross,
             },
             localFacade: crossingAngle,
             maxConnections: 1,

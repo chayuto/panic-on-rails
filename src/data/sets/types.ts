@@ -83,6 +83,13 @@ export interface LayoutPlan {
      * expansion). Tests fail on any other gap.
      */
     openEnds?: number;
+    /**
+     * Largest gap (mm) allowed where two connectors meet. Default 0.5. Some
+     * real plans are a millimetre or two off on paper and close thanks to
+     * UniJoiner play (e.g. #4 and #6 sidings); say why in `description`.
+     * At most 3.
+     */
+    tolerance?: number;
 }
 
 /** A real boxed product. */
@@ -102,6 +109,11 @@ export interface TrackSet {
     contents: SetContentItem[];
     /** Other things in the box (power pack, turnout controllers, tools) */
     accessories?: string[];
+    /**
+     * Pieces in the box that none of the plans need (e.g. the spare S60 cut
+     * straights of a #4 set). Also listed in `contents`.
+     */
+    spares?: SetContentItem[];
     /** Sets this one is designed to extend. Its plans may use their parts too. */
     extends?: string[];
     /** Size of the main plan as stated by the manufacturer (mm) */

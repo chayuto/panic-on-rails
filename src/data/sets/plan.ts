@@ -18,7 +18,7 @@ import { localToWorld, normalizeAngle, angleDifference } from '../../utils/geome
 import type { TrackTemplate, TemplateMetadata } from '../templates/types';
 import type { LayoutPlan, PlanAnchor, PlanStep } from './types';
 
-/** Connectors closer than this (mm) with opposite facades form a joint. */
+/** Connectors closer than this (mm) with opposite facades form a joint (see `LayoutPlan.tolerance`). */
 export const JOINT_TOLERANCE_MM = 0.5;
 /** Allowed facade error (degrees) for a joint. */
 export const JOINT_ANGLE_TOLERANCE = 0.5;
@@ -141,7 +141,10 @@ export function resolvePlan(plan: LayoutPlan): ResolvedPlan {
         pieces.push({ index, part, position, rotation, via, connectors: worldConnectors(index, part, position, rotation) });
     });
 
-    const { joints, openEnds } = matchConnectors(pieces.flatMap(p => p.connectors));
+    const { joints, openEnds } = matchConnectors(
+        pieces.flatMap(p => p.connectors),
+        plan.tolerance ?? JOINT_TOLERANCE_MM
+    );
 
     const billOfMaterials: Record<string, number> = {};
     for (const piece of pieces) {
@@ -188,7 +191,10 @@ function resolveAnchor(
 }
 
 /** Pair up connectors that meet face to face; the rest are open ends. */
-function matchConnectors(connectors: PlacedConnector[]): { joints: PlanJoint[]; openEnds: PlacedConnector[] } {
+function matchConnectors(
+    connectors: PlacedConnector[],
+    tolerance: number
+): { joints: PlanJoint[]; openEnds: PlacedConnector[] } {
     const used = new Set<number>();
     const joints: PlanJoint[] = [];
     for (let i = 0; i < connectors.length; i++) {
@@ -199,7 +205,7 @@ function matchConnectors(connectors: PlacedConnector[]): { joints: PlanJoint[]; 
             const b = connectors[j];
             if (a.piece === b.piece) continue;
             const gap = Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
-            if (gap > JOINT_TOLERANCE_MM) continue;
+            if (gap > tolerance) continue;
             if (Math.abs(angleDifference(a.facade, b.facade) - 180) > JOINT_ANGLE_TOLERANCE) continue;
             joints.push({ a, b, gap });
             used.add(i);
@@ -241,6 +247,6 @@ export function planToTemplate(plan: LayoutPlan, meta: Partial<TemplateMetadata>
         })),
         trains: (plan.trains ?? []).map(t => ({ partIndex: t.piece, color: t.color ?? '#E74C3C' })),
         // Plan positions are exact; only connectors that truly meet should merge
-        connectThreshold: 1,
+        connectThreshold: Math.max(1, (plan.tolerance ?? JOINT_TOLERANCE_MM) + 0.5),
     };
 }

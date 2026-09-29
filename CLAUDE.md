@@ -87,7 +87,7 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 ### Track Parts Catalog
 
-`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato N-Scale, Brio, IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Track creators live in `src/stores/slices/trackCreators/` (standard, switch, crossing, compound); `createPartTrack(part, position, rotation)` is the single pure entry point that dispatches to them.
+`src/data/catalog/` contains brand definitions (`brands/`), part definitions as JSON (`parts/`), connector specs per part type (`connectors/`), and Zod schemas for validation. Supports Kato N-Scale, Brio, IKEA. `helpers.ts` has `computeConnectors()` factory for all part types. Track creators live in `src/stores/slices/trackCreators/` (standard, switch, crossing, compound); `createPartTrack(part, position, rotation)` is the single pure entry point that dispatches to them. Parts carry a footprint `width` (the catalog file's `trackWidth` unless overridden, e.g. Kato's 69 mm road-crossing rerailer); straights may end in a buffer stop (`bumper: true`).
 
 ### Boxed Sets & Layout Plans
 

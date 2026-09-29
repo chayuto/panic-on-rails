@@ -7,11 +7,43 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getAllSets, getAvailableParts, getSetById, resolvePlan, planToTemplate } from '..';
 import type { PlacedConnector } from '../plan';
+import type { LayoutPlan } from '../types';
 import { getPartById } from '../../catalog/registry';
+import { createPartTrack } from '../../../stores/slices/trackCreators';
 import { resetWorld, loadRecipe, summarize, simHarness } from '../../../simulation/harness';
 
-/** Kato Unitrack roadbed width (mm): footprints are measured to its edges. */
-const ROADBED_WIDTH = 25;
+/**
+ * Outer size of a plan as a manufacturer measures it: every edge swept by
+ * its part's footprint width (roadbed, road-crossing plates, ...).
+ */
+function footprint(plan: LayoutPlan): { long: number; short: number } {
+    const xs: number[] = [];
+    const ys: number[] = [];
+    for (const piece of resolvePlan(plan).pieces) {
+        const half = (piece.part.width ?? 25) / 2;
+        for (const { geometry: g } of createPartTrack(piece.part, piece.position, piece.rotation).edges) {
+            for (let i = 0; i <= 64; i++) {
+                const t = i / 64;
+                if (g.type === 'straight') {
+                    const heading = Math.atan2(g.end.y - g.start.y, g.end.x - g.start.x);
+                    const x = g.start.x + (g.end.x - g.start.x) * t;
+                    const y = g.start.y + (g.end.y - g.start.y) * t;
+                    xs.push(x - Math.sin(heading) * half, x + Math.sin(heading) * half);
+                    ys.push(y + Math.cos(heading) * half, y - Math.cos(heading) * half);
+                } else {
+                    const a = ((g.startAngle + (g.endAngle - g.startAngle) * t) * Math.PI) / 180;
+                    for (const r of [g.radius - half, g.radius + half]) {
+                        xs.push(g.center.x + r * Math.cos(a));
+                        ys.push(g.center.y + r * Math.sin(a));
+                    }
+                }
+            }
+        }
+    }
+    const width = Math.max(...xs) - Math.min(...xs);
+    const depth = Math.max(...ys) - Math.min(...ys);
+    return { long: Math.max(width, depth), short: Math.min(width, depth) };
+}
 
 const sets = getAllSets();
 const plans = sets.flatMap(set => set.plans.map(plan => [`${set.id} ${plan.id}`, set, plan] as const));
@@ -36,6 +68,10 @@ describe('boxed sets', () => {
         }
         for (const base of set.extends ?? []) {
             expect(getSetById(base), `extends unknown set ${base}`).toBeDefined();
+        }
+        for (const spare of set.spares ?? []) {
+            const inBox = set.contents.find(i => i.part === spare.part)?.qty ?? 0;
+            expect(spare.qty, `spare ${spare.part} must be in the box`).toBeLessThanOrEqual(inBox);
         }
     });
 
@@ -71,20 +107,19 @@ describe('boxed sets', () => {
         // With "only what's in the boxes" above, this makes a starter set's first plan exact
         const used = resolvePlan(set.plans[0]).billOfMaterials;
         for (const item of set.contents) {
-            expect(used[item.part] ?? 0, item.part).toBeGreaterThanOrEqual(item.qty);
+            const spare = set.spares?.find(s => s.part === item.part)?.qty ?? 0;
+            expect(used[item.part] ?? 0, item.part).toBeGreaterThanOrEqual(item.qty - spare);
         }
     });
 
-    it.each(sets.filter(s => s.footprint).map(s => [s.id, s] as const))(
-        '%s: the first plan matches the footprint on the box',
+    // A starter's first plan is the box itself, so it must measure what the box says
+    it.each(sets.filter(s => s.kind === 'starter' && s.footprint).map(s => [s.id, s] as const))(
+        '%s: the first plan measures what is printed on the box',
         (_id, set) => {
-            const { bounds } = resolvePlan(set.plans[0]);
-            const width = bounds.maxX - bounds.minX + ROADBED_WIDTH;
-            const depth = bounds.maxY - bounds.minY + ROADBED_WIDTH;
-            const [long, short] = width >= depth ? [width, depth] : [depth, width];
+            const { long, short } = footprint(set.plans[0]);
             const [boxLong, boxShort] = [set.footprint!.width, set.footprint!.depth].sort((a, b) => b - a);
-            expect(Math.abs(long - boxLong) / boxLong).toBeLessThan(0.05);
-            expect(Math.abs(short - boxShort) / boxShort).toBeLessThan(0.05);
+            expect(Math.abs(long - boxLong) / boxLong, `long side ${long.toFixed(1)} vs ${boxLong}`).toBeLessThan(0.015);
+            expect(Math.abs(short - boxShort) / boxShort, `short side ${short.toFixed(1)} vs ${boxShort}`).toBeLessThan(0.015);
         }
     );
 });

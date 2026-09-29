@@ -193,11 +193,22 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
       each part's true shape.
 - [x] **Fixed:** turnout branches drew as near-full circles at some rotations, because the arc
       end angle was re-normalized across 0°.
-- [ ] The rest of the Kato ladder, once contents and plans are verified against Kato's own
-      documents:
-  - M2 (oval and siding);
-  - V1 (passing siding), V3 (yard), V4 (siding), V6 (outside loop);
-  - V7 (double crossover), which also needs a double crossover part.
+- [x] **The Kato ladder:** M2 (oval and siding), V1 (passing siding), V3 (yard), V4 (#4 siding)
+      and V6 (outside loop). Contents and plans are verified against Kato's 2025 catalog and set
+      guides. Starter boxes measure what's printed on them, to within 1.5%. M1 is exact.
+- [x] **Catalog corrected against Kato's catalog:**
+  - bumpers A and B (20-046/047);
+  - S60 cut straights, which have no product code of their own;
+  - 16 real curves, including the 15° and compact ones;
+  - compact turnouts (20-240/241);
+  - X15 crossings whose diagonal spans the same 186 mm;
+  - roadbed widths;
+  - the invented single-track R414, which is removed.
+- [x] **Fixed:** the #4 single crossovers' turnouts diverged *away* from each other, a 33 mm jump,
+      and only half of each track existed. A new invariant checks that every edge reaches its
+      nodes, for every part including compounds.
+- [ ] V7 (double crossover) needs a WX310 double crossover part. Double-track sets (V11–V15)
+      need double-track pieces.
 - [ ] More brands' ladders: Hornby Track Packs A–F and Märklin C1–C5 need curved turnouts and a
       double slip (Phase 6).
 

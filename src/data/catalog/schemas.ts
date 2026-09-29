@@ -17,6 +17,7 @@ import { z } from 'zod';
 
 const OptionalPartFields = {
     cost: z.number().int().positive().optional(),
+    width: z.number().positive().optional(),
     productCode: z.string().optional(),
     description: z.string().optional(),
     discontinued: z.boolean().optional(),
@@ -85,6 +86,7 @@ export const CrossingPartSchema = z.object({
     type: z.literal('crossing'),
     length: z.number().positive('Length must be positive'),
     crossingAngle: z.number().positive('Crossing angle must be positive').max(180),
+    crossLength: z.number().positive().optional(),
     ...OptionalPartFields,
 });
 
@@ -171,6 +173,8 @@ export const PartCatalogFileSchema = z.object({
     version: z.number().int().positive('Version must be positive integer'),
     brand: PartBrandSchema,
     scale: PartScaleSchema,
+    /** Roadbed width (mm) of this system's track; parts may override with `width` */
+    trackWidth: z.number().positive().optional(),
     parts: z.array(PartSchema).min(1, 'At least one part is required'),
 });
 

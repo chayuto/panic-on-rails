@@ -50,9 +50,10 @@ test('Compound crossover: place, connect, and simulate', async ({ page, snap }) 
     console.log(`  Edge ID: ${result.edgeId}`);
     console.log(`  Nodes: ${result.nodeCount}, Edges: ${result.edgeCount}`);
 
-    // 2 turnouts (3 nodes + 2 edges each) - 1 fused joint = 5 nodes, 4 edges
-    expect(result.nodeCount).toBe(5);
-    expect(result.edgeCount).toBe(4);
+    // Each track: #4 turnout (3 nodes, 2 edges) + S60 + S62 (2 nodes, 1 edge each)
+    // = 14 nodes, 8 edges; 5 fused joints: 9 nodes, 8 edges
+    expect(result.nodeCount).toBe(9);
+    expect(result.edgeCount).toBe(8);
 
     // All edges should have the compound partId
     for (const edge of result.edges) {

@@ -38,7 +38,8 @@ const TEMPLATES = [
     {
         id: 'crossover-express',
         name: 'Crossover Express',
-        expectedEdges: 13,
+        // 13 pieces of plain track + the crossover (8 edges) + 2 bumpers
+        expectedEdges: 22,
         expectedTrains: 2,
         isCircuit: true,
     },
