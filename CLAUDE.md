@@ -68,7 +68,7 @@ Rendering rules. They come from a measured budget (ROADMAP Phase 5); break them 
 Persisted stores (localStorage):
 - **useTrackStore** (`panic-on-rails-v1`) — Primary store. Composed from slices: `createTrackSlice`, `createConnectionSlice`, `createViewSlice`. Contains all track nodes/edges. Has migration logic in `onRehydrateStorage` (radian→degree conversion, rebuilds spatial indices).
 - **useLogicStore** — Sensors, signals, wires.
-- **useCollectionStore** (`panic-on-rails-collection-v1`) — The hobby: owned boxes (`ownedSets`) and loose parts, hobby money (`wallet`, US cents) and `mode` (`collection` = build with what you own and earn; `free` = unlimited parts). Purchases are not undoable.
+- **useCollectionStore** (`panic-on-rails-collection-v1`) — The hobby: owned boxes (`ownedSets`), loose parts, trains (`ownedTrains`, rolling stock ids from `src/data/rollingStock.ts`), hobby money (`wallet`, US cents) and `mode` (`collection` = build and run what you own, and earn; `free` = unlimited). Purchases are not undoable. Spawn trains through `simulation/controls.ts` (`spawnTrainAtClearestSpot`, `spawnLayoutTrain`), which respect the mode; loading a template switches to free build.
   - What's left to build with is **derived**, never stored: `src/data/collection.ts` computes inventory − `countPlacedPieces(edges)`. Every placed piece shares one `placementId` across its edges, so a turnout counts, selects and deletes as one piece.
   - Money: `src/simulation/economy.ts` is a pure function of step events (traverse → pay per metre; collision → repair bill). `tickSimulation` settles it into the wallet in collection mode.
 - **useOnboardingStore** — Tutorial progress.

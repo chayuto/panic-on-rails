@@ -231,7 +231,14 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
 - [x] Headless tests for the economy: earning is a pure function of simulation events.
 - [x] **Fixed:** deleting one route of a turnout left half a turnout behind. Every placed piece
       now shares one `placementId`, so it deletes and counts as a whole.
-- [ ] Rolling stock in the shop: trains are still free to add.
+- [x] **Rolling stock in the shop.** Trains are owned like track: you start with one diesel
+      passenger train and buy more (commuter, freight, express).
+  - In collection mode, Add Train runs a train you own that isn't on the track. When they're
+    all running, it opens the shop's Trains tab.
+  - Each train's throttle tops out at its top speed.
+  - Templates load in free build: they're demo layouts, not your collection, so they earn
+    nothing.
+  - The trains are generic models, flagged as such, until real train sets are verified.
 - [ ] More ways to earn: station stops, on-time runs, operating sessions.
 - [ ] **Shopping list:** a bill of materials for the current layout, with real product numbers,
       for planners.
@@ -250,8 +257,9 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     on a #6 turnout's R718 route.
   - At 1.25× that, the train derails. That throws debris, logs a `derail` event and bills a
     $20 repair.
-- [ ] Rolling stock as data: real-ish locomotives and cars with lengths in mm, a top speed and
-      colours. Buy trains in the shop.
+- [x] Rolling stock as data (`src/data/rollingStock.ts`): livery, cars, top speed and price,
+      bought in the shop.
+- [ ] Real train sets (Kato and other brands) with product numbers, and car lengths per model.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
 
 ### Phase 5: Looks
