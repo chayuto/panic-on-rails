@@ -18,9 +18,10 @@ async function dropPart(page: Page, label: string, screen: { x: number; y: numbe
 
 /**
  * Screen point just ahead of the newest open endpoint, offset to one side.
- * side = +1 hovers to the right of the endpoint's facade, -1 to the left.
+ * side = +1 hovers to the right of the endpoint's facade, -1 to the left,
+ * 0 straight ahead (a turnout then joins by its entry).
  */
-async function nearNewestEndpoint(page: Page, side: 1 | -1) {
+async function nearNewestEndpoint(page: Page, side: 1 | 0 | -1) {
     return page.evaluate((side) => {
         const s = window.__PANIC_STORES__!;
         const { zoom, pan } = s.editor.getState();
@@ -32,6 +33,23 @@ async function nearNewestEndpoint(page: Page, side: 1 | -1) {
         const wy = node.position.y + fy * 8 + fx * 6 * side;
         return { x: wx * zoom + pan.x, y: wy * zoom + pan.y };
     }, side);
+}
+
+/** Graph problems: edges ending at missing nodes, nodes listing missing edges. */
+async function integrityProblems(page: Page) {
+    return page.evaluate(() => {
+        const { nodes, edges } = window.__PANIC_STORES__!.track.getState();
+        const problems: string[] = [];
+        for (const e of Object.values(edges)) {
+            for (const id of [e.startNodeId, e.endNodeId]) {
+                if (!nodes[id]?.connections.includes(e.id)) problems.push(`${e.partId} edge ${e.id.slice(0, 6)} → node ${id.slice(0, 6)}`);
+            }
+        }
+        for (const n of Object.values(nodes)) {
+            for (const id of n.connections) if (!edges[id]) problems.push(`node ${n.id.slice(0, 6)} → missing edge`);
+        }
+        return problems;
+    });
 }
 
 async function trackSummary(page: Page) {
@@ -96,6 +114,17 @@ test.describe('Building by hand', () => {
             expect(Math.sign(turn.cross * Math.sign(turn.ahead))).toBe(side);
         });
     }
+
+    test('a turnout dropped onto a track end joins at its points and keeps them', async ({ page, app }) => {
+        void app;
+        await dropPart(page, 'Straight 248mm', { x: 300, y: 300 });
+        await dropPart(page, '#6 Turnout Left', await nearNewestEndpoint(page, 0));
+        const points = await page.evaluate(() => Object.values(window.__PANIC_STORES__!.track.getState().nodes)
+            .filter(n => n.type === 'switch').map(n => n.connections.length));
+        // Main, branch and the straight it was dropped on
+        expect(points).toEqual([3]);
+        expect(await integrityProblems(page)).toEqual([]);
+    });
 
     test('a curve dropped on a straight continues forward instead of folding back', async ({ page, app }) => {
         void app;

@@ -22,16 +22,14 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
      * 
      * @param survivorNodeId - ID of the node to keep
      * @param removedNodeId - ID of the node to remove (will merge into survivor)
-     * @param newEdgeId - ID of the new edge being created
      */
-    connectNodes: (survivorNodeId, removedNodeId, newEdgeId) => {
+    connectNodes: (survivorNodeId, removedNodeId) => {
         set((state) => {
             return connectNodesOp(
                 state.nodes,
                 state.edges,
                 survivorNodeId,
-                removedNodeId,
-                newEdgeId
+                removedNodeId
             );
         });
     },

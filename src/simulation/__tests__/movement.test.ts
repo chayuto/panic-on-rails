@@ -69,6 +69,12 @@ describe('calculateTrainMovement', () => {
             const u = calculateTrainMovement(train('t', 'branch', 5, -1), 0.1, e, sw(0))!;
             expect(u.edgeId).toBe('in');
         });
+
+        it('treats points with nothing joined beyond them as a dead end, not a hairpin', () => {
+            const open = { ...sw(1), S: node('S', 100, ['main', 'branch'], { type: 'switch', switchState: 1, switchBranches: ['main', 'branch'] }) };
+            const u = calculateTrainMovement(train('t', 'main', 5, -1), 0.1, e, open)!;
+            expect(u).toMatchObject({ edgeId: 'main', direction: 1, bounced: true });
+        });
     });
 
     describe('red signals', () => {

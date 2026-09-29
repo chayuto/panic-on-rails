@@ -70,7 +70,7 @@ async function extendCircuit(
             const dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist < 3) {
-                await stores.connectNodes(a.id, b.id, a.connections[0]);
+                await stores.connectNodes(a.id, b.id);
                 connected = true;
                 break;
             }
@@ -128,7 +128,7 @@ async function buildCircuit(
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist < 10) {
-                    await stores.connectNodes(a.id, b.id, a.connections[0]);
+                    await stores.connectNodes(a.id, b.id);
                     connectionsFormed++;
                     found = true;
                     break;

@@ -8,12 +8,14 @@
 
 import { useState, useEffect, useRef, memo } from 'react';
 import { Group, Circle, Wedge } from 'react-konva';
-import type { TrackNode, TrackEdge, EdgeId, Vector2 } from '../../types';
-import { getSwitchEntryFacade } from '../../utils/connectTransform';
+import type { TrackNode, Vector2 } from '../../types';
 
 // Visual constants
 const SWITCH_NODE_COLOR = '#FFD93D';
 const SWITCH_NODE_RADIUS = 7;
+/** How far the wedge swings toward the branch (degrees): readable, not to scale */
+const SWING = 25;
+const WEDGE_ANGLE = 30;
 
 // Animation constants
 const ANIMATION_DURATION = 150; // ms
@@ -21,8 +23,10 @@ const ANIMATION_DURATION = 150; // ms
 export interface SwitchRendererProps {
     /** The switch node to render */
     node: TrackNode;
-    /** All edges (needed to calculate entry facade) */
-    edges: Record<EdgeId, TrackEdge>;
+    /** Direction the main route leaves the points (degrees) */
+    heading: number;
+    /** The side the branch goes: +1 right (clockwise on screen), -1 left */
+    branchSide: 1 | -1;
     /** Returns true if the click toggled the switch */
     onSwitchClick: (nodeId: string) => boolean;
     /** Callback to trigger ripple effect */
@@ -38,55 +42,39 @@ export interface SwitchRendererProps {
  */
 export const SwitchRenderer = memo(function SwitchRenderer({
     node,
-    edges,
+    heading,
+    branchSide,
     onSwitchClick,
     onRipple,
     onHoverEnter,
     onHoverLeave,
 }: SwitchRendererProps) {
-    // Track animated state for smooth transitions
-    const [animatedAngle, setAnimatedAngle] = useState(node.switchState === 1 ? 15 : 0);
-    const animationRef = useRef<number | null>(null);
-    const prevStateRef = useRef(node.switchState);
+    // The wedge swings toward the branch when the points are thrown
+    const target = node.switchState === 1 ? branchSide * SWING : 0;
+    const [animatedAngle, setAnimatedAngle] = useState(target);
+    const angleRef = useRef(target);
 
-    // Animate when switch state changes
+    // Animate toward a new target. Only the target is a dependency: the
+    // animation's own re-renders must not cancel it.
     useEffect(() => {
-        if (prevStateRef.current !== node.switchState) {
-            prevStateRef.current = node.switchState;
+        const from = angleRef.current;
+        if (from === target) return;
+        const startTime = performance.now();
+        let frame = 0;
+        const animate = (currentTime: number) => {
+            const progress = Math.min(Math.max((currentTime - startTime) / ANIMATION_DURATION, 0), 1);
+            // Ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            angleRef.current = from + (target - from) * eased;
+            setAnimatedAngle(angleRef.current);
+            if (progress < 1) frame = requestAnimationFrame(animate);
+        };
+        frame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(frame);
+    }, [target]);
 
-            const startAngle = animatedAngle;
-            const targetAngle = node.switchState === 1 ? 15 : 0;
-            const startTime = performance.now();
-
-            const animate = (currentTime: number) => {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
-
-                // Ease-out cubic
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const newAngle = startAngle + (targetAngle - startAngle) * eased;
-
-                setAnimatedAngle(newAngle);
-
-                if (progress < 1) {
-                    animationRef.current = requestAnimationFrame(animate);
-                }
-            };
-
-            animationRef.current = requestAnimationFrame(animate);
-
-            return () => {
-                if (animationRef.current) {
-                    cancelAnimationFrame(animationRef.current);
-                }
-            };
-        }
-    }, [node.switchState, animatedAngle]);
-
-    // Derive wedge direction from entry edge facade
-    const entryFacade = getSwitchEntryFacade(node, edges);
-    const baseRotation = entryFacade !== null ? entryFacade + 180 : node.rotation + 180;
-    const wedgeRotation = baseRotation + animatedAngle;
+    // Konva draws a wedge clockwise from its rotation: centre it on the route
+    const wedgeRotation = heading + animatedAngle - WEDGE_ANGLE / 2;
 
     const handleClick = () => {
         if (onSwitchClick(node.id)) {
@@ -121,7 +109,7 @@ export const SwitchRenderer = memo(function SwitchRenderer({
                 x={node.position.x}
                 y={node.position.y}
                 radius={5}
-                angle={30}
+                angle={WEDGE_ANGLE}
                 rotation={wedgeRotation}
                 fill="#1A1A1A"
                 listening={false}

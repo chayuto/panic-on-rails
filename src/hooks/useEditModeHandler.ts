@@ -23,6 +23,7 @@ import { angleDifference } from '../utils/angle';
 import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
+import { canJoin, isOpenEnd } from '../utils/graphAnalysis';
 
 interface UseEditModeHandlerOptions {
     /** Function to convert screen coordinates to world coordinates */
@@ -201,9 +202,10 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);
         console.log('[useEditModeHandler] Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
 
-        // Post-placement: Always scan BOTH endpoints for nearby merge targets
-        // This catches both snap-assisted placements AND near-misses where user dropped
-        // close to an existing endpoint but snap detection didn't trigger
+        // Post-placement: join every open end of the new piece (a turnout's
+        // three, a double crossover's four) to open ends it now touches. This
+        // catches both snap-assisted placements AND near-misses where user
+        // dropped close to an existing endpoint but snap detection didn't trigger
         if (newEdgeId) {
             const { edges } = useTrackStore.getState();
             const newEdge = edges[newEdgeId];
@@ -211,19 +213,21 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             if (newEdge) {
                 const MERGE_THRESHOLD = 10; // pixels - slightly larger than snap tolerance to catch near-misses
                 let mergedAny = false;
-                const nodesToCheck = [newEdge.startNodeId, newEdge.endNodeId];
+                const pieceEdges = Object.values(edges).filter(e =>
+                    e.id === newEdgeId || (!!newEdge.placementId && e.placementId === newEdge.placementId));
+                const pieceNodes = new Set(pieceEdges.flatMap(e => [e.startNodeId, e.endNodeId]));
 
-                for (const newNodeId of nodesToCheck) {
+                for (const newNodeId of pieceNodes) {
                     // Re-fetch state each iteration as previous merge may have changed it
                     const currentState = useTrackStore.getState();
                     const newNode = currentState.nodes[newNodeId];
 
-                    // Skip if this node was already merged (deleted)
-                    if (!newNode) continue;
+                    // Skip if this node was already merged (deleted), or is inside the piece
+                    if (!newNode || !isOpenEnd(newNode)) continue;
 
                     // Find open endpoints excluding our own new nodes
                     const openEndpoints = currentState.getOpenEndpoints().filter(
-                        ep => ep.id !== newEdge.startNodeId && ep.id !== newEdge.endNodeId
+                        ep => !pieceNodes.has(ep.id) && canJoin(ep, newNode)
                     );
 
                     // Find nearest endpoint within threshold
@@ -255,7 +259,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
                             nodeToRemove: newNodeId.slice(0, 8),
                             distance: nearestDist.toFixed(1),
                         });
-                        connectNodes(nearestEndpoint.id, newNodeId, newEdgeId);
+                        connectNodes(nearestEndpoint.id, newNodeId);
                         mergedAny = true;
                     }
                 }

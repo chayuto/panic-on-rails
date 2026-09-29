@@ -46,7 +46,7 @@ describe('bumper track', () => {
         const nodes = useTrackStore.getState().nodes;
         const joinA = Object.values(nodes).find(n => n.position.x === 248 && n.connections.includes(edgeId))!;
         const joinB = Object.values(nodes).find(n => n.position.x === 248 && n.connections.includes(stopEdge))!;
-        useTrackStore.getState().connectNodes(joinA.id, joinB.id, stopEdge);
+        useTrackStore.getState().connectNodes(joinA.id, joinB.id);
 
         useSimulationStore.getState().spawnTrain(edgeId, '#fff', 1, 200);
         const events = simHarness.runSeconds(3);

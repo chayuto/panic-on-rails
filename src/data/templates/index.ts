@@ -3,6 +3,8 @@ import type {
     TemplateMetadata,
     TemplateManifest
 } from './types';
+import type { TrackNode } from '../../types';
+import { canJoin, isOpenEnd } from '../../utils/graphAnalysis';
 
 // Base URL for template files (served from public folder via base path)
 const getTemplateBaseUrl = (): string => {
@@ -55,8 +57,8 @@ export function applyTemplate(
     template: TrackTemplate,
     clearLayout: () => void,
     addTrack: (partId: string, position: { x: number; y: number }, rotation: number) => string | null,
-    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[]; bumper?: boolean }>,
-    connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
+    getNodes: () => Record<string, TrackNode>,
+    connectNodes: (survivorId: string, removedId: string) => void,
     spawnTrain: (edgeId: string, color?: string) => string,
     startSimulation: () => void,
     autoStart: boolean = true
@@ -95,18 +97,16 @@ export function applyTemplate(
 }
 
 /**
- * Find open endpoints within threshold distance of other nodes and merge them.
+ * Join open ends that sit within threshold distance of each other.
  *
- * Endpoints (1 connection) can merge with:
- * - Other endpoints (simple track-to-track connection)
- * - Switch/junction nodes (connecting a track to a switch entry)
- *
- * The endpoint is always the "removed" node; the other node survives
- * (preserving switch properties, etc.).
+ * Open ends are plain ends and points with nothing beyond them (a
+ * turnout's entry). The plain end is removed and the other node survives,
+ * keeping its switch properties; if the removed node had the points, they
+ * move to the survivor.
  */
 function autoConnectEndpoints(
-    getNodes: () => Record<string, { id: string; position: { x: number; y: number }; connections: string[]; bumper?: boolean }>,
-    connectNodes: (survivorId: string, removedId: string, edgeId: string) => void,
+    getNodes: () => Record<string, TrackNode>,
+    connectNodes: (survivorId: string, removedId: string) => void,
     threshold: number
 ): void {
     // Keep connecting until no more pairs found (iterative because merges change the graph)
@@ -114,17 +114,17 @@ function autoConnectEndpoints(
     while (merged) {
         merged = false;
         const nodes = getNodes();
-        const allNodes = Object.values(nodes);
-        const endpoints = allNodes.filter(n => n.connections.length === 1 && !n.bumper);
+        const open = Object.values(nodes).filter(isOpenEnd);
 
-        for (const ep of endpoints) {
-            for (const other of allNodes) {
-                if (other.id === ep.id) continue;
+        for (const ep of open) {
+            for (const other of open) {
+                if (!canJoin(ep, other)) continue;
                 const dx = ep.position.x - other.position.x;
                 const dy = ep.position.y - other.position.y;
                 if (dx * dx + dy * dy < threshold * threshold) {
-                    // Endpoint is removed; other node survives
-                    connectNodes(other.id, ep.id, ep.connections[0]);
+                    // A plain end is removed; points survive where they are
+                    const [survivor, removed] = ep.type === 'switch' ? [ep, other] : [other, ep];
+                    connectNodes(survivor.id, removed.id);
                     merged = true;
                     break;
                 }

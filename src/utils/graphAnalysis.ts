@@ -2,7 +2,34 @@
  * Track graph analysis helpers.
  */
 
-import type { EdgeId, NodeId, TrackEdge } from '../types';
+import type { EdgeId, NodeId, TrackEdge, TrackNode } from '../types';
+
+/**
+ * Whether more track can be joined here: a plain end, or points with
+ * nothing joined on their far side. A buffer stop is a dead end, not an
+ * open one.
+ */
+export function isOpenEnd(node: TrackNode): boolean {
+    if (node.bumper) return false;
+    if (node.connections.length === 1) return true;
+    const branches = node.switchBranches;
+    return node.type === 'switch' && !!branches && node.connections.every(id => branches.includes(id));
+}
+
+/** Two open ends can be joined, unless both are points: one joint holds one set. */
+export function canJoin(a: TrackNode, b: TrackNode): boolean {
+    return a.id !== b.id && isOpenEnd(a) && isOpenEnd(b) && !(a.type === 'switch' && b.type === 'switch');
+}
+
+/**
+ * Where two steps of one piece's own track meet (a curved turnout's
+ * straight and arc, say): not a joint the player made.
+ */
+export function isInsidePiece(node: TrackNode, edges: Record<EdgeId, TrackEdge>): boolean {
+    if (node.type === 'switch' || node.connections.length < 2) return false;
+    const piece = edges[node.connections[0]]?.placementId;
+    return !!piece && node.connections.every(id => edges[id]?.placementId === piece);
+}
 
 /**
  * True if the track contains a closed loop, i.e. the graph has a cycle, so

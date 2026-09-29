@@ -207,6 +207,16 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
 - [x] **Fixed:** the #4 single crossovers' turnouts diverged *away* from each other, a 33 mm jump,
       and only half of each track existed. A new invariant checks that every edge reaches its
       nodes, for every part including compounds.
+- [x] **Fixed: joining track at points.**
+  - Dropping a turnout onto a track end by its entry deleted the points, and left the
+    branch pointing at a node that no longer existed. Joins now move every edge and keep
+    the points (`connectionOps/merge.ts`).
+  - Unjoined points count as open ends (`isOpenEnd`), so track snaps onto a turnout's entry.
+  - Every open end of a dropped piece joins, not only its first edge's.
+  - A train reaching points with nothing beyond them stops, instead of U-turning onto the
+    other route.
+  - A route is dimmed along its whole length, and only when no points send trains along it.
+    The points' wedge swings toward the branch's side, and its animation now finishes.
 - [ ] V7 (double crossover) needs a WX310 double crossover part. Double-track sets (V11–V15)
       need double-track pieces.
 - [ ] More brands' ladders: Hornby Track Packs A–F and Märklin C1–C5 need curved turnouts and a
