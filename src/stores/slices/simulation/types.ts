@@ -20,7 +20,9 @@ export interface SimulationStateData {
 }
 
 export interface TrainSlice {
-    spawnTrain: (edgeId: EdgeId, color?: string, carriageCount?: number) => TrainId;
+    spawnTrain: (edgeId: EdgeId, color?: string, carriageCount?: number, distance?: number) => TrainId;
+    setTrainStopped: (trainId: TrainId, stopped: boolean) => void;
+    reverseTrain: (trainId: TrainId) => void;
     removeTrain: (trainId: TrainId) => void;
     updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1, bounceTime?: number) => void;
     setCrashed: (trainId: TrainId) => void;

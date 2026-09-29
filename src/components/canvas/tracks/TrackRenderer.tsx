@@ -76,7 +76,11 @@ export const TrackRenderer = memo(function TrackRenderer({
         if (geometry.type !== 'arc') return null; // Safety
 
         const { center, radius, startAngle, endAngle } = geometry as { center: Vector2; radius: number; startAngle: number; endAngle: number };
-        const sweepDeg = endAngle - startAngle;
+        // Konva's Arc sweeps clockwise from `rotation` by a positive `angle`.
+        // Arcs with decreasing angles (e.g. left-hand turnout branches) must be
+        // drawn from their end angle, or Konva renders them mirrored.
+        const sweepDeg = Math.abs(endAngle - startAngle);
+        const arcRotation = Math.min(startAngle, endAngle);
         const { inner, outer } = getDualArcRadii(radius, RAIL.GAUGE);
 
         return (
@@ -88,7 +92,7 @@ export const TrackRenderer = memo(function TrackRenderer({
                     innerRadius={inner - railStroke / 2}
                     outerRadius={inner + railStroke / 2}
                     angle={sweepDeg}
-                    rotation={startAngle}
+                    rotation={arcRotation}
                     fill={color}
                     listening={false}
                 />
@@ -99,7 +103,7 @@ export const TrackRenderer = memo(function TrackRenderer({
                     innerRadius={outer - railStroke / 2}
                     outerRadius={outer + railStroke / 2}
                     angle={sweepDeg}
-                    rotation={startAngle}
+                    rotation={arcRotation}
                     fill={color}
                     listening={false}
                 />
@@ -110,7 +114,7 @@ export const TrackRenderer = memo(function TrackRenderer({
                     innerRadius={inner - RAIL.GAUGE / 2}
                     outerRadius={outer + RAIL.GAUGE / 2}
                     angle={sweepDeg}
-                    rotation={startAngle}
+                    rotation={arcRotation}
                     fill="transparent"
                     onClick={(e) => onClick(edge.id, e)}
                     onTap={(e) => onClick(edge.id, e)}

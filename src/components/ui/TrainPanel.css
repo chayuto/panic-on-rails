@@ -179,6 +179,28 @@
     color: #ff6b6b;
 }
 
+/* Per-train Stop/Go and Reverse */
+.train-action-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--fg-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.train-action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--fg-primary);
+}
+
+.train-action-btn.active {
+    border-color: rgba(255, 200, 80, 0.6);
+    color: #ffc850;
+}
+
 /* Crash Warning */
 .crash-warning {
     padding: 12px;

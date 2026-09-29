@@ -14,6 +14,9 @@ const log = logger.scope('movement');
 /** Maximum edge transitions per frame to prevent infinite loops */
 const MAX_TRAVERSALS_PER_FRAME = 10;
 
+/** How far before a red signal's node a held train stops (px) */
+export const SIGNAL_STOP_GAP = 20;
+
 export interface TrainUpdate {
     trainId: TrainId;
     distance: number;
@@ -21,6 +24,8 @@ export interface TrainUpdate {
     direction: 1 | -1;
     /** True if the train hit a dead end and reversed during this update */
     bounced: boolean;
+    /** True if the train is standing at a red signal's stop line */
+    held: boolean;
 }
 
 /**
@@ -30,12 +35,17 @@ export interface TrainUpdate {
  *
  * Pure: no audio, no clock reads. Side effects (bounce sound, squash animation)
  * are driven by the caller from the returned `bounced` flag.
+ *
+ * Signals: a train heading into a node in `redNodes` stops `SIGNAL_STOP_GAP`
+ * short of it (`held`). A train already past that stop line when the signal
+ * turns red cannot stop and runs through.
  */
 export function calculateTrainMovement(
     train: Train,
     dt: number,
     edges: Record<EdgeId, TrackEdge>,
-    nodes: Record<NodeId, TrackNode>
+    nodes: Record<NodeId, TrackNode>,
+    redNodes: ReadonlySet<NodeId> = NO_RED_NODES
 ): TrainUpdate | null {
     const edge = edges[train.currentEdgeId];
     if (!edge) return null;
@@ -45,12 +55,32 @@ export function calculateTrainMovement(
     let newDirection = train.direction;
     let newEdgeId = train.currentEdgeId;
     let bounced = false;
+    let held = false;
     let traversals = 0;
+    // Where the train was on the current edge before this iteration moved it
+    let entryDistance = train.distanceAlongEdge;
 
     // Multi-edge traversal loop
     while (traversals < MAX_TRAVERSALS_PER_FRAME) {
         const currentEdge = edges[newEdgeId];
         if (!currentEdge) break;
+
+        // CHECK: Red signal ahead (stop line before the exit node)
+        if (newDirection === 1 && redNodes.has(currentEdge.endNodeId)) {
+            const stopLine = Math.max(0, currentEdge.length - SIGNAL_STOP_GAP);
+            if (entryDistance <= stopLine && newDistance > stopLine) {
+                newDistance = stopLine;
+                held = true;
+                break;
+            }
+        } else if (newDirection === -1 && redNodes.has(currentEdge.startNodeId)) {
+            const stopLine = Math.min(currentEdge.length, SIGNAL_STOP_GAP);
+            if (entryDistance >= stopLine && newDistance < stopLine) {
+                newDistance = stopLine;
+                held = true;
+                break;
+            }
+        }
 
         // CHECK: Past End of Edge
         if (newDistance > currentEdge.length) {
@@ -68,6 +98,7 @@ export function calculateTrainMovement(
                 newDistance = enterFromStart
                     ? overflow
                     : (nextEdge.length - overflow);
+                entryDistance = enterFromStart ? 0 : nextEdge.length;
                 traversals++;
                 continue; // Check if we overflow this edge too
             } else {
@@ -96,6 +127,7 @@ export function calculateTrainMovement(
                 newDistance = enterFromEnd
                     ? (nextEdge.length - overflow)
                     : overflow;
+                entryDistance = enterFromEnd ? nextEdge.length : 0;
                 traversals++;
                 continue; // Check if we overflow this edge too
             } else {
@@ -125,11 +157,14 @@ export function calculateTrainMovement(
         edgeId: newEdgeId,
         direction: newDirection,
         bounced,
+        held,
     };
 }
 
+const NO_RED_NODES: ReadonlySet<NodeId> = new Set();
+
 /**
- * details: helper to find next edge from a node
+ * Find the edge a train continues onto when leaving `currentEdgeId` via `node`.
  */
 function resolveNextEdge(
     currentEdgeId: EdgeId,

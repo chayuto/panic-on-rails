@@ -33,7 +33,8 @@ export interface SwitchRendererProps {
     /** All edges (needed to calculate entry facade) */
     edges: Record<EdgeId, TrackEdge>;
     /** Callback when switch is clicked */
-    onSwitchClick: (nodeId: string) => void;
+    /** Returns true if the click toggled the switch */
+    onSwitchClick: (nodeId: string) => boolean;
     /** Callback to trigger ripple effect */
     onRipple: (position: Vector2, options?: { color?: string }) => void;
     /** Callback when mouse enters switch */
@@ -123,8 +124,9 @@ export const SwitchRenderer = memo(function SwitchRenderer({
     };
 
     const handleClick = () => {
-        onSwitchClick(node.id);
-        onRipple(node.position, { color: '#FFD93D' });
+        if (onSwitchClick(node.id)) {
+            onRipple(node.position, { color: '#FFD93D' });
+        }
     };
 
     const handleMouseEnter = () => {

@@ -14,6 +14,10 @@ import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
+import { hasClosedLoop } from '../../../utils/graphAnalysis';
+
+/** How long the "You did it!" toast stays up before onboarding completes */
+export const COMPLETION_TOAST_MS = 5000;
 
 interface OnboardingProviderProps {
     children: ReactNode;
@@ -39,15 +43,13 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         }
     }, [stage, edgeCount, advanceStage]);
 
-    // Stage: loop_created - Detect when a loop/cycle exists
+    // Stage: loop_created - Detect when the track actually closes into a loop
+    const loopClosed = useTrackStore(s => hasClosedLoop(s.edges));
     useEffect(() => {
-        if (stage === 'first_track' && edgeCount >= 4) {
-            // Check if any node has degree > 1 (simple heuristic for connectivity)
-            // A more robust check would use graph cycle detection
-            // For now, advance when there are enough tracks for a minimal loop
+        if (stage === 'first_track' && loopClosed) {
             advanceStage('loop_created');
         }
-    }, [stage, edgeCount, advanceStage]);
+    }, [stage, loopClosed, advanceStage]);
 
     // Stage: mode_switched - Detect switch to simulate mode
     useEffect(() => {
@@ -67,10 +69,10 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     useEffect(() => {
         if (stage === 'train_placed' && isRunning) {
             advanceStage('simulation_run');
-            // Immediately complete after running
+            // Complete once the celebration toast has had its full time on screen
             setTimeout(() => {
                 advanceStage('complete');
-            }, 2000); // Give user 2 seconds to enjoy their success
+            }, COMPLETION_TOAST_MS);
         }
     }, [stage, isRunning, advanceStage]);
 

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StageWrapper } from './components/canvas';
 import { Toolbar, PartsBin, TrainPanel, DebugOverlay, MeasurementOverlay } from './components/ui';
+import { ErrorBanner } from './components/ui/ErrorBanner';
 import { OnboardingProvider, OnboardingHints } from './components/ui/Onboarding';
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
@@ -40,6 +41,8 @@ function App() {
                     {isEditing ? <PartsBin /> : <TrainPanel />}
                     <StageWrapper />
                 </main>
+                {/* Simulation errors pause the loop; tell the player why */}
+                <ErrorBanner />
                 <DebugOverlay />
                 <MeasurementOverlay />
                 {/* Tutorial hints overlay */}

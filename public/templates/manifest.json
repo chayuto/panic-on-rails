@@ -24,11 +24,11 @@
         {
             "id": "switch-showdown",
             "name": "Switch Showdown",
-            "description": "Two trains on a collision course! Can you stop them in time?",
+            "description": "Two trains, one line, one passing loop. Flip a switch before they meet!",
             "difficulty": "beginner",
             "system": "n-scale",
-            "estimatedCost": 3720,
-            "partCount": 4,
+            "estimatedCost": 7456,
+            "partCount": 11,
             "trainCount": 2
         },
         {

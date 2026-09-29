@@ -10,6 +10,7 @@ Works in both Edit and Simulate modes.
 |----------|--------|
 | `M` | Toggle between Edit/Simulate modes |
 | `Shift+M` | Toggle measurement overlay |
+| `F` | Fit the whole layout in view |
 
 ## Edit Mode
 
@@ -41,11 +42,17 @@ Active when running trains.
 | `S` | Toggle hovered switch |
 | `1`-`9` | Toggle switch by index |
 
+While trains run you can also **click a switch** to flip it and **click a signal** to
+turn it red/green — trains stop at red signals. Each train in the side panel has
+**Stop/Go** and **Reverse** buttons.
+
 ## Tips
 
 - **Rotation**: Press `R` while dragging a track from the Parts Bin
 - **Undo/Redo**: `Ctrl+Z` / `Ctrl+Y` step through layout edits — placements,
   deletions, connections, and sensor/signal/wire changes. Loading a new or
   saved layout resets the undo history.
-- **Switches**: Hover over a switch and press `S` for quick toggling
+- **Switches**: Click a switch (or hover it and press `S`) to flip it, even while trains run
+- **Snapping**: Drag a part near an open track end and it rotates itself to connect.
+  Hover slightly to the left or right of the end to choose which way a curve turns.
 - **Speed**: Use `+`/`-` for quick speed adjustments without the slider

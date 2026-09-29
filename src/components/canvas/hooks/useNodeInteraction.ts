@@ -17,12 +17,19 @@ export function useNodeInteraction() {
     const { handleConnectModeNodeClick } = useConnectMode();
     const { triggerRipple, setHoveredSwitch } = useEffectsStore();
 
-    const handleSwitchClick = useCallback((nodeId: string) => {
-        if (!isEditing) return;
+    /** Handle a click on a switch node. Returns true if the switch was toggled. */
+    const handleSwitchClick = useCallback((nodeId: string): boolean => {
+        if (!isEditing) {
+            // Simulate mode: switches are the player's main control
+            toggleSwitch(nodeId);
+            playSwitchSound('n-scale');
+            return true;
+        }
 
         if (editSubMode === 'select') {
             toggleSwitch(nodeId);
             playSwitchSound('n-scale');
+            return true;
         } else if (editSubMode === 'signal') {
             useHistoryStore.getState().record();
             addSignal(nodeId);
@@ -35,6 +42,7 @@ export function useNodeInteraction() {
                 clearWireSource();
             }
         }
+        return false;
     }, [isEditing, editSubMode, wireSource, toggleSwitch, addSignal, addWire, clearWireSource]);
 
     const handleNodeClick = useCallback((nodeId: string) => {

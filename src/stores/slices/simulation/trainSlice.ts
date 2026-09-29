@@ -16,16 +16,17 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
      * @param edgeId - ID of the starting edge
      * @param color - Optional color (cycles through defaults if omitted)
      * @param carriageCount - Number of carriages (default: 1)
+     * @param distance - Starting distance along the edge (default: 0)
      * @returns ID of the newly created train
      */
-    spawnTrain: (edgeId, color, carriageCount) => {
+    spawnTrain: (edgeId, color, carriageCount, distance) => {
         const trainId = `train-${++trainCounter}`;
         const trainColor = color || TRAIN_COLORS[trainCounter % TRAIN_COLORS.length];
 
         const train: Train = {
             id: trainId,
             currentEdgeId: edgeId,
-            distanceAlongEdge: 0,
+            distanceAlongEdge: distance ?? 0,
             direction: 1,
             speed: 100, // pixels per second
             color: trainColor,
@@ -70,6 +71,28 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             if (edgeId) train.currentEdgeId = edgeId;
             if (direction) train.direction = direction;
             if (bounceTime !== undefined) train.bounceTime = bounceTime;
+        });
+    },
+
+    /**
+     * Player stop/go control. A stopped train stays where it is (and can
+     * still be hit by other trains).
+     */
+    setTrainStopped: (trainId, stopped) => {
+        set((state) => {
+            const train = state.trains[trainId];
+            if (train && !train.crashed) train.stopped = stopped;
+        });
+    },
+
+    /** Reverse a train's direction of travel. */
+    reverseTrain: (trainId) => {
+        set((state) => {
+            const train = state.trains[trainId];
+            if (train && !train.crashed) {
+                train.direction = train.direction === 1 ? -1 : 1;
+                train.heldAtSignal = false;
+            }
         });
     },
 

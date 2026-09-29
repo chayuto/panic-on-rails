@@ -48,6 +48,8 @@ export interface StepContext {
 export type SimEvent =
     | { type: 'traverse'; trainId: TrainId; fromEdgeId: EdgeId; toEdgeId: EdgeId }
     | { type: 'bounce'; trainId: TrainId; edgeId: EdgeId }
+    | { type: 'signal-hold'; trainId: TrainId; edgeId: EdgeId }
+    | { type: 'signal-release'; trainId: TrainId; edgeId: EdgeId }
     | { type: 'collision'; trainId: TrainId; otherTrainIds: TrainId[]; edgeId: EdgeId; location: Vector2; severity: number }
     | { type: 'sensor'; sensorId: SensorId; edgeId: EdgeId; state: 'on' | 'off' }
     | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
@@ -61,8 +63,11 @@ export interface StepResult {
 /**
  * Advance the world by `dt` simulated seconds.
  *
- * Order matches the historical game loop: movement → collisions → debris →
- * sensors/wires. Inputs are never mutated; changed collections are copied.
+ * Order: movement → collisions → debris → sensors/wires. Inputs are never
+ * mutated; changed collections are copied.
+ *
+ * Trains stopped by the player don't move. Trains heading into a node with a
+ * red signal stop short of it (see `calculateTrainMovement`).
  */
 export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): StepResult {
     const events: SimEvent[] = [];
@@ -70,13 +75,18 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
     let nodes = world.nodes;
 
     // 1. Movement
+    const redNodes = new Set<NodeId>();
+    for (const signal of Object.values(world.signals)) {
+        if (signal.state === 'red') redNodes.add(signal.nodeId);
+    }
+
     const trains: Record<TrainId, Train> = {};
     for (const train of Object.values(world.trains)) {
-        if (train.crashed) {
+        if (train.crashed || train.stopped) {
             trains[train.id] = train;
             continue;
         }
-        const update = calculateTrainMovement(train, dt, edges, nodes);
+        const update = calculateTrainMovement(train, dt, edges, nodes, redNodes);
         if (!update) {
             trains[train.id] = train;
             continue;
@@ -93,6 +103,10 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         if (update.bounced) {
             next.bounceTime = ctx.now;
             events.push({ type: 'bounce', trainId: train.id, edgeId: update.edgeId });
+        }
+        if (update.held !== !!train.heldAtSignal) {
+            next.heldAtSignal = update.held;
+            events.push({ type: update.held ? 'signal-hold' : 'signal-release', trainId: train.id, edgeId: update.edgeId });
         }
         trains[train.id] = next;
     }

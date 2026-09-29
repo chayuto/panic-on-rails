@@ -28,6 +28,8 @@ import { useBudgetStore } from '../stores/useBudgetStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import type { CrashedPart } from './crashPhysics';
+import type { Sensor, Signal, Wire, Train } from '../types';
+import type { LogicStore } from '../stores/slices/logic/types';
 import type Konva from 'konva';
 
 // Extend Window interface for TypeScript
@@ -72,7 +74,7 @@ export interface PanicStoreBridge {
     };
     simulation: {
         getState: () => {
-            trains: Record<string, unknown>;
+            trains: Record<string, Train>;
             isRunning: boolean;
             speedMultiplier: number;
             error: string | null;
@@ -80,8 +82,10 @@ export interface PanicStoreBridge {
             simLog: { seq: number; time: number; type: string; trainId: string; edgeId: string; detail: string }[];
             simElapsed: number;
         };
-        spawnTrain: (edgeId: string, color?: string, carriageCount?: number) => string;
+        spawnTrain: (edgeId: string, color?: string, carriageCount?: number, distance?: number) => string;
         removeTrain: (trainId: string) => void;
+        setTrainStopped: (trainId: string, stopped: boolean) => void;
+        reverseTrain: (trainId: string) => void;
         setRunning: (running: boolean) => void;
         toggleRunning: () => void;
         clearTrains: () => void;
@@ -108,10 +112,16 @@ export interface PanicStoreBridge {
     };
     logic: {
         getState: () => {
-            sensors: Record<string, unknown>;
-            signals: Record<string, unknown>;
-            wires: Record<string, unknown>;
+            sensors: Record<string, Sensor>;
+            signals: Record<string, Signal>;
+            wires: Record<string, Wire>;
         };
+        addSensor: LogicStore['addSensor'];
+        addSignal: LogicStore['addSignal'];
+        setSignalState: LogicStore['setSignalState'];
+        toggleSignal: LogicStore['toggleSignal'];
+        addWire: LogicStore['addWire'];
+        clearLogic: LogicStore['clearLogic'];
     };
     effects: {
         getState: () => {
@@ -212,10 +222,14 @@ export function initDebugBridge(): void {
                     simElapsed: s.simElapsed,
                 };
             },
-            spawnTrain: (edgeId, color?, carriageCount?) =>
-                useSimulationStore.getState().spawnTrain(edgeId, color, carriageCount),
+            spawnTrain: (edgeId, color?, carriageCount?, distance?) =>
+                useSimulationStore.getState().spawnTrain(edgeId, color, carriageCount, distance),
             removeTrain: (trainId) =>
                 useSimulationStore.getState().removeTrain(trainId),
+            setTrainStopped: (trainId, stopped) =>
+                useSimulationStore.getState().setTrainStopped(trainId, stopped),
+            reverseTrain: (trainId) =>
+                useSimulationStore.getState().reverseTrain(trainId),
             setRunning: (running) =>
                 useSimulationStore.getState().setRunning(running),
             toggleRunning: () =>
@@ -263,6 +277,12 @@ export function initDebugBridge(): void {
                     wires: s.wires,
                 };
             },
+            addSensor: (...args) => useLogicStore.getState().addSensor(...args),
+            addSignal: (...args) => useLogicStore.getState().addSignal(...args),
+            setSignalState: (...args) => useLogicStore.getState().setSignalState(...args),
+            toggleSignal: (...args) => useLogicStore.getState().toggleSignal(...args),
+            addWire: (...args) => useLogicStore.getState().addWire(...args),
+            clearLogic: () => useLogicStore.getState().clearLogic(),
         },
         effects: {
             getState: () => {

@@ -29,9 +29,11 @@ const TEMPLATES = [
     {
         id: 'switch-showdown',
         name: 'Switch Showdown',
-        expectedEdges: 4,
+        // Line with a passing loop; in the first 3 s both trains run toward
+        // each other (the collision comes later unless the player acts).
+        expectedEdges: 13,
         expectedTrains: 2,
-        isCircuit: false,
+        isCircuit: true,
     },
     {
         id: 'crossover-express',
