@@ -51,28 +51,26 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         return Object.values(edges).filter(edge => idSet.has(edge.id));
     }, [edges, visibleEdgeIds]);
 
-    // V6: Track content hash for cache invalidation
-    // Use simple count-based hash - edges/nodes are new refs on any change
-    const contentHash = useMemo(() => {
-        return Object.keys(edges).length + '|' + Object.keys(nodes).length;
-    }, [edges, nodes]);
-
-    // V6: Cache track visuals when not editing for performance
+    // V6: Cache track visuals when not editing for performance.
+    // Invalidate on any graph change (edges/nodes are new objects on every
+    // change, including switch toggles) and on viewport-culling changes. A
+    // count-based key missed e.g. loading a template with the same number of
+    // edges/nodes, leaving the previous layout's bitmap on screen.
     useEffect(() => {
         const group = trackVisualsRef.current;
         if (!group) return;
 
+        // Drop the stale bitmap right away so changes show immediately
+        group.clearCache();
+
         if (!isEditing && !selectedEdgeId) {
-            // Cache after a short delay to ensure render is complete
+            // Re-cache after a short delay to ensure render is complete
             const timer = setTimeout(() => {
                 group.cache({ pixelRatio: 2 });
             }, INTERACTIONS.CACHE_DELAY_MS);
             return () => clearTimeout(timer);
-        } else {
-            // Clear cache when editing
-            group.clearCache();
         }
-    }, [isEditing, selectedEdgeId, contentHash]);
+    }, [isEditing, selectedEdgeId, edges, nodes, visibleEdges]);
 
     // Pre-compute switch-edge activity map (O(N) once, then O(1) per lookup)
     const switchEdgeActivity = useMemo(() => {
