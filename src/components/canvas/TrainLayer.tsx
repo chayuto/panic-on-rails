@@ -82,18 +82,23 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
                 lead.y < view.y - CULL_MARGIN || lead.y > view.y + view.height + CULL_MARGIN
             )) continue;
 
-            // Draw from the back so the locomotive sits on top at couplings
+            // The locomotive leads, or pushes from the back after turning back
+            const locoIndex = train.locoLeading === false ? poses.length - 1 : 0;
+            const pushing = train.locoLeading === false;
+            // Draw from the back so the leading car sits on top at couplings
             for (let i = poses.length - 1; i >= 0; i--) {
                 const pose = poses[i];
-                const sprite = getCarSprite(i === 0 ? 'loco' : 'coach', train.color, train.crashed);
+                const isLoco = i === locoIndex;
+                const sprite = getCarSprite(isLoco ? 'loco' : 'coach', train.color, train.crashed);
                 if (!sprite) continue;
                 ctx.save();
                 ctx.translate(pose.x, pose.y);
-                ctx.rotate((pose.rotation * Math.PI) / 180);
+                // A pushing locomotive still faces the way it was going
+                ctx.rotate(((pose.rotation + (isLoco && pushing ? 180 : 0)) * Math.PI) / 180);
                 ctx.drawImage(sprite, -L / 2 - m, -W / 2 - m, L + 2 * m, W + 2 * m);
                 ctx.restore();
             }
-            if (train.crashed) drawCrashMark(ctx, lead.x, lead.y);
+            if (train.crashed) drawCrashMark(ctx, poses[locoIndex].x, poses[locoIndex].y);
         }
     }, []);
 
