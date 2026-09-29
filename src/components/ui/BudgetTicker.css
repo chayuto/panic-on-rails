@@ -46,3 +46,10 @@
 .budget-reset:hover {
     opacity: 1;
 }
+/* Keep the toolbar on one line on common laptop widths; the "spent" figure
+   is secondary to the balance. */
+@media (max-width: 1400px) {
+    .budget-spent {
+        display: none;
+    }
+}
