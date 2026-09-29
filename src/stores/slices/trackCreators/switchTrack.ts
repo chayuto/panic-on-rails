@@ -189,9 +189,10 @@ export function createSwitchTrack(
         const startAngleRad = Math.atan2(position.y - arcCenter.y, position.x - arcCenter.x);
         const startAngleDeg = normalizeAngle((startAngleRad * 180) / Math.PI);
 
-        // End angle: from center to branch exit point
-        const endAngleRad = Math.atan2(branchExitPosition.y - arcCenter.y, branchExitPosition.x - arcCenter.x);
-        const endAngleDeg = normalizeAngle((endAngleRad * 180) / Math.PI);
+        // End angle: sweep from the start, never re-normalized — an arc that
+        // crosses 0° must keep going (e.g. 345° → 360°), not wrap to 0°, or it
+        // renders as a near-full circle.
+        const endAngleDeg = startAngleDeg + perpDir * branchAngle;
 
         // 'ccw' here means increasing angles (see calculateArcCenter), which is
         // clockwise on screen (+Y down): the right-hand branch.

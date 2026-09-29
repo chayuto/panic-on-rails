@@ -13,6 +13,7 @@ import { getWorldConnectors } from '../../../../utils/snapManager';
 import { getPartConnectors } from '../../../../data/catalog/helpers';
 import { deriveWorldGeometry } from '../../../../utils/geometry';
 import { useTrackStore } from '../../../useTrackStore';
+import { createPartTrack } from '../createPartTrack';
 import type { TrackGeometry } from '../../../../types';
 
 const ORIGIN = { x: 1000, y: 1000 };
@@ -84,5 +85,22 @@ describe('catalog geometry invariants', () => {
             for (const d of ahead) expect(d).toBeGreaterThan(-0.5);
             expect(Math.max(...ahead)).toBeGreaterThan(1);
         });
+    });
+});
+
+describe('arc edges sweep exactly the part angle', () => {
+    // Arcs are drawn from min(start, end) through |end - start|. An end angle
+    // re-normalized across 0° (345° → 0°) turns a 15° branch into a 345° circle.
+    const every5 = Array.from({ length: 72 }, (_, i) => i * 5);
+    it.each(getAllParts().map(p => [p.id, p] as const))('%s at every 5° rotation', (_id, part) => {
+        for (const rotation of every5) {
+            const { edges } = createPartTrack(part, ORIGIN, rotation);
+            for (const edge of edges) {
+                if (edge.geometry.type !== 'arc' || edge.intrinsicGeometry?.type !== 'arc') continue;
+                const sweep = Math.abs(edge.geometry.endAngle - edge.geometry.startAngle);
+                expect(sweep, `rotation ${rotation}°: ${edge.geometry.startAngle}→${edge.geometry.endAngle}`)
+                    .toBeCloseTo(edge.intrinsicGeometry.sweepAngle, 6);
+            }
+        }
     });
 });

@@ -11,3 +11,4 @@ export { createSwitchTrack, type SwitchTrackResult } from './switchTrack';
 export { createCrossingTrack, type CrossingTrackResult } from './crossingTrack';
 export { createStraightTrack, createCurveTrack, type StandardTrackResult } from './standardTrack';
 export { createCompoundTrack, type CompoundTrackResult } from './compoundTrack';
+export { createPartTrack, type PartTrackResult } from './createPartTrack';
