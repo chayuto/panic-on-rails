@@ -59,3 +59,13 @@ export function fitViewToLayout(): void {
     editor.setZoom(view.zoom);
     editor.setPan(view.pan.x, view.pan.y);
 }
+
+/**
+ * Frame the layout once the screen has settled: starting the trains swaps
+ * the parts bin for the wider train panel, which shrinks the canvas.
+ */
+export function fitViewWhenSettled(): void {
+    fitViewToLayout();
+    // Two frames: React renders the new sidebar, then the browser lays it out
+    requestAnimationFrame(() => requestAnimationFrame(fitViewToLayout));
+}

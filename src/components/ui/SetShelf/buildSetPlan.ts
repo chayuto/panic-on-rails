@@ -10,7 +10,7 @@ import { useLogicStore } from '../../../stores/useLogicStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useHistoryStore } from '../../../stores/useHistoryStore';
-import { fitViewToLayout } from '../../../utils/viewFit';
+import { fitViewToLayout, fitViewWhenSettled } from '../../../utils/viewFit';
 import { spawnLayoutTrain } from '../../../simulation/controls';
 
 export function buildSetPlan(set: TrackSet, plan: LayoutPlan): void {
@@ -38,6 +38,7 @@ export function buildSetPlan(set: TrackSet, plan: LayoutPlan): void {
         () => {
             useModeStore.getState().enterSimulateMode();
             useSimulationStore.getState().setRunning(true);
+            fitViewWhenSettled();
         },
         true
     );
