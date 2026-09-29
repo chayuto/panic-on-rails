@@ -10,7 +10,11 @@ export interface Train {
     currentEdgeId: EdgeId;
     distanceAlongEdge: number; // 0 to edge.length
     direction: 1 | -1;
-    speed: number; // pixels per second
+    speed: number; // current speed, model mm/s
+    /** Speed the driver has set (mm/s). Missing: hold the current speed. */
+    throttle?: number;
+    /** Stop, then set off the other way (the power pack's direction lever) */
+    reverseRequested?: boolean;
     color: string;
     // Bounce animation state
     bounceTime?: number;    // Timestamp when bounce started (performance.now())

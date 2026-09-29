@@ -29,6 +29,13 @@ export const browserEffectsSink: SimEventSink = (event) => {
             playSound('crash');
             break;
         }
+        case 'derail': {
+            const { triggerScreenShake, triggerFlash } = useEffectsStore.getState();
+            triggerScreenShake(10, 300);
+            triggerFlash(event.location, { color: '#FFB347', duration: 120 });
+            playSound('crash');
+            break;
+        }
         case 'switch':
             playSwitchSound('n-scale');
             break;

@@ -22,6 +22,9 @@ import { calculateTrainMovement } from './movement';
 import { checkCollisions } from './collision';
 import { updateSensors } from './signals';
 import { TRAIL_LENGTH } from '../config/rollingStock';
+import { AT_STOP_LINE, approachSpeed, derailSpeed, lookaheadFor, stopAhead, stoppingLimit, targetSpeed, throttleOf } from './driving';
+import { explodeTrain } from '../utils/crashPhysics';
+import { getPositionOnEdge } from '../utils/trainGeometry';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -52,6 +55,7 @@ export type SimEvent =
     | { type: 'signal-hold'; trainId: TrainId; edgeId: EdgeId }
     | { type: 'signal-release'; trainId: TrainId; edgeId: EdgeId }
     | { type: 'collision'; trainId: TrainId; otherTrainIds: TrainId[]; edgeId: EdgeId; location: Vector2; severity: number }
+    | { type: 'derail'; trainId: TrainId; edgeId: EdgeId; location: Vector2; speed: number }
     | { type: 'sensor'; sensorId: SensorId; edgeId: EdgeId; state: 'on' | 'off' }
     | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
     | { type: 'signal'; signalId: SignalId; state: SignalState };
@@ -82,21 +86,43 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
     }
 
     const trains: Record<TrainId, Train> = {};
+    let crashedParts = world.crashedParts;
     for (const train of Object.values(world.trains)) {
         if (train.crashed || train.stopped) {
             trains[train.id] = train;
             continue;
         }
-        const update = calculateTrainMovement(train, dt, edges, nodes, redNodes);
+
+        // Power pack: speed follows the throttle with momentum, braking in
+        // time for red signals and buffer stops ahead
+        let limit = targetSpeed(train);
+        const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed));
+        if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt));
+        let speed = approachSpeed(train.speed, limit, dt);
+        let direction = train.direction;
+        let reverseRequested = train.reverseRequested;
+        if (reverseRequested && speed === 0) {
+            // Stopped: the direction lever takes effect
+            direction = -direction as 1 | -1;
+            reverseRequested = false;
+        }
+
+        const moving: Train = { ...train, speed, direction, throttle: throttleOf(train) };
+        const update = calculateTrainMovement(moving, dt, edges, nodes, redNodes);
         if (!update) {
             trains[train.id] = train;
             continue;
         }
+        // Standing at the stop line of a red signal counts as held, too
+        const atRedLine = stop?.kind === 'signal' && stop.distance <= AT_STOP_LINE && speed === 0;
+        if (atRedLine) update.held = true;
+        if (update.held) speed = 0;
         const next: Train = {
-            ...train,
+            ...moving,
             distanceAlongEdge: update.distance,
             currentEdgeId: update.edgeId,
             direction: update.direction,
+            reverseRequested,
         };
         if (update.direction !== train.direction) {
             // Turned back: the route behind is now ahead
@@ -116,11 +142,27 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             next.heldAtSignal = update.held;
             events.push({ type: update.held ? 'signal-hold' : 'signal-release', trainId: train.id, edgeId: update.edgeId });
         }
+        next.speed = speed;
+
+        // Too fast for the curve: off the rails
+        const curve = edges[update.edgeId]?.intrinsicGeometry;
+        if (curve?.type === 'arc' && speed > derailSpeed(curve.radius)) {
+            const edge = edges[update.edgeId];
+            const location = getPositionOnEdge(edge, update.distance, nodes);
+            crashedParts = [...crashedParts, ...explodeTrain({
+                position: location,
+                velocity: { x: 0, y: 0 },
+                trainColor: train.color,
+                severity: 2,
+            }, ctx.random)];
+            trains[train.id] = { ...next, crashed: true, crashTime: ctx.now, speed: 0 };
+            events.push({ type: 'derail', trainId: train.id, edgeId: update.edgeId, location, speed });
+            continue;
+        }
         trains[train.id] = next;
     }
 
     // 2. Collisions
-    let crashedParts = world.crashedParts;
     const collisions = checkCollisions(trains, edges, ctx.random);
     const collidedIds = new Set(collisions.flatMap(c => c.trainIds));
     for (const collision of collisions) {
