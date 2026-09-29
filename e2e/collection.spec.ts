@@ -54,6 +54,28 @@ test.describe('Collection', () => {
         await expect(page.getByTestId('wallet-balance')).not.toHaveText('$20.00');
     });
 
+    test('trains are yours too: run the one you own, buy another to run two', async ({ page, app }) => {
+        void app;
+        const trainCount = () => page.evaluate(() => Object.keys(window.__PANIC_STORES__!.simulation.getState().trains).length);
+        await page.getByTestId('open-set-shelf').click();
+        await page.getByTestId('set-build-kato-20-852').click();
+
+        // The M1 plan's train is the starter diesel you own
+        await expect.poll(trainCount).toBe(1);
+        await expect(page.getByTestId('stock-left-diesel-passenger')).toHaveText('0/1');
+
+        // Every train you own is running: Add Train takes you to the shop's trains
+        await page.getByTestId('train-add-btn').click();
+        await expect(page.getByTestId('shop-tab-trains')).toHaveAttribute('aria-selected', 'true');
+        expect(await trainCount()).toBe(1);
+
+        await page.evaluate(() => window.__PANIC_STORES__!.collection.earn(20_000));
+        await page.getByTestId('shop-buy-train-commuter').click();
+        await page.getByTestId('set-shelf-close').click();
+        await page.getByTestId('run-stock-commuter').click();
+        await expect.poll(trainCount).toBe(2);
+    });
+
     test('a loose part bought in the shop shows up in the bin', async ({ page, app }) => {
         void app;
         await expect(page.getByTestId('part-card-kato-20-202')).toHaveCount(0);

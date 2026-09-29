@@ -8,6 +8,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ROLLING_STOCK, type RollingStock } from '../../../data/rollingStock';
+import { getCarSprite } from '../../canvas/trains/carSprites';
+import { scaleKmh } from '../../../simulation/driving';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
 import { getAllSets, resolvePlan, type LayoutPlan, type TrackSet } from '../../../data/sets';
@@ -157,6 +160,52 @@ function PartForSale({ part, owned, wallet, onBuy }: { part: PartDefinition; own
     );
 }
 
+/** The train drawn from the same sprites the layout uses: locomotive and up to three cars. */
+function TrainPreview({ stock }: { stock: RollingStock }) {
+    const ref = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        const canvas = ref.current;
+        const ctx = canvas?.getContext('2d');
+        const loco = getCarSprite('loco', stock.color);
+        const coach = getCarSprite('coach', stock.color);
+        if (!canvas || !ctx || !loco || !coach) return;
+        const shown = Math.min(stock.cars, 4);
+        const w = canvas.width / shown;
+        const h = (loco.height / loco.width) * w;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < shown; i++) {
+            // Locomotive at the front (right), facing the way it drives
+            ctx.drawImage(i === 0 ? loco : coach, canvas.width - (i + 1) * w, (canvas.height - h) / 2, w, h);
+        }
+    }, [stock]);
+    return <canvas ref={ref} className="train-preview" width={320} height={48} aria-hidden="true" />;
+}
+
+function TrainsForSale({ wallet }: { wallet: number }) {
+    const ownedTrains = useCollectionStore(s => s.ownedTrains);
+    const buyTrain = useCollectionStore(s => s.buyTrain);
+    return (
+        <div className="shop-trains">
+            {ROLLING_STOCK.map(stock => (
+                <div className="shop-train" key={stock.id} data-testid={`shop-train-${stock.id}`}>
+                    <TrainPreview stock={stock} />
+                    <div className="shop-train-text">
+                        <span className="shop-part-name">{stock.name}</span>
+                        <span className="shop-part-code">
+                            {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed))} km/h · you have {ownedTrains[stock.id] ?? 0}
+                        </span>
+                        <span className="shop-train-description">{stock.description}</span>
+                    </div>
+                    <span className="shop-part-price">{formatMoney(stock.price)}</span>
+                    <button onClick={() => buyTrain(stock.id)} disabled={wallet < stock.price} data-testid={`shop-buy-train-${stock.id}`}>
+                        Buy
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function PartsForSale({ wallet, inventory }: { wallet: number; inventory: PartCounts }) {
     const buyPart = useCollectionStore(s => s.buyPart);
     // Pieces without a product number of their own only come in boxes
@@ -210,6 +259,7 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
     ].filter(section => section.sets.length > 0);
 
     const showParts = inCollection && tab === 'parts';
+    const showTrains = inCollection && tab === 'trains';
 
     return (
         <div className="set-shelf-overlay" onClick={onClose}>
@@ -239,11 +289,14 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
 
                 {inCollection && (
                     <div className="shop-tabs" role="tablist">
-                        <button role="tab" aria-selected={!showParts} className={!showParts ? 'active' : ''} onClick={() => setTab('sets')} data-testid="shop-tab-sets">
+                        <button role="tab" aria-selected={!showParts && !showTrains} className={!showParts && !showTrains ? 'active' : ''} onClick={() => setTab('sets')} data-testid="shop-tab-sets">
                             Boxed sets
                         </button>
                         <button role="tab" aria-selected={showParts} className={showParts ? 'active' : ''} onClick={() => setTab('parts')} data-testid="shop-tab-parts">
                             Loose parts
+                        </button>
+                        <button role="tab" aria-selected={showTrains} className={showTrains ? 'active' : ''} onClick={() => setTab('trains')} data-testid="shop-tab-trains">
+                            Trains
                         </button>
                     </div>
                 )}
@@ -259,7 +312,9 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
                 )}
 
                 <div className="set-shelf-body">
-                    {showParts ? (
+                    {showTrains ? (
+                        <TrainsForSale wallet={wallet} />
+                    ) : showParts ? (
                         <PartsForSale wallet={wallet} inventory={inventory} />
                     ) : sections.map(section => (
                         <section key={section.title}>

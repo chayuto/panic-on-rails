@@ -5,15 +5,52 @@
 
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
+import { useCollectionStore } from '../stores/useCollectionStore';
+import { trainsLeft } from '../data/collection';
 import { pickSpawnLocation } from './spawn';
-import type { TrainId } from '../types';
+import type { EdgeId, TrainId } from '../types';
 
-/** Spawn a train at the clearest spot on the layout. Returns its ID, or null with no track. */
-export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string): TrainId | null {
+/**
+ * In collection mode, the rolling stock to put on the track: `preferred` if
+ * the player has one spare, else any train they own that isn't running.
+ * Null when every owned train is already on the track. In free build
+ * there's no limit: returns `preferred` (or undefined for a generic train).
+ */
+export function nextAvailableStock(preferred?: string): string | undefined | null {
+    const collection = useCollectionStore.getState();
+    if (collection.mode === 'free') return preferred;
+    const left = trainsLeft(collection.ownedTrains, useSimulationStore.getState().trains);
+    if (preferred && (left[preferred] ?? 0) > 0) return preferred;
+    return Object.keys(left).find(id => left[id] > 0) ?? null;
+}
+
+/**
+ * Spawn a train at the clearest spot on the layout. In collection mode it's
+ * one of the player's own trains. Returns its ID, or null with no track or
+ * no train to spare.
+ */
+export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string, stockId?: string): TrainId | null {
     const { edges } = useTrackStore.getState();
     const { trains, spawnTrain } = useSimulationStore.getState();
     const spot = pickSpawnLocation(edges, trains);
-    return spot ? spawnTrain(spot.edgeId, color, carriageCount, spot.distance) : null;
+    if (!spot) return null;
+    const stock = nextAvailableStock(stockId);
+    if (stock === null) return null;
+    return stock
+        ? spawnTrain(spot.edgeId, undefined, undefined, spot.distance, stock)
+        : spawnTrain(spot.edgeId, color, carriageCount, spot.distance);
+}
+
+/**
+ * Spawn a train where a layout (template or set plan) puts one. In
+ * collection mode it's one of the player's own trains, or nothing if they
+ * have none to spare. Returns the train ID, or '' if none was placed.
+ */
+export function spawnLayoutTrain(edgeId: EdgeId, color?: string): TrainId {
+    const stock = nextAvailableStock();
+    if (stock === null) return '';
+    const { spawnTrain } = useSimulationStore.getState();
+    return stock ? spawnTrain(edgeId, undefined, undefined, undefined, stock) : spawnTrain(edgeId, color);
 }
 
 /**

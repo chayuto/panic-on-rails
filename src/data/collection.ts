@@ -9,7 +9,7 @@
 
 import { getPartById } from './catalog/registry';
 import { getSetById } from './sets';
-import type { EdgeId, TrackEdge } from '../types';
+import type { EdgeId, TrackEdge, Train, TrainId } from '../types';
 
 export type PartCounts = Record<string, number>;
 
@@ -74,6 +74,19 @@ export function shortfall(need: PartCounts, have: PartCounts): PartCounts {
         if (short > 0) missing[partId] = short;
     }
     return missing;
+}
+
+/** Owned trains not on the track, per rolling stock id. */
+export function trainsLeft(ownedTrains: Record<string, number>, trains: Record<TrainId, Train>): PartCounts {
+    const onTrack: PartCounts = {};
+    for (const train of Object.values(trains)) {
+        if (train.stockId) onTrack[train.stockId] = (onTrack[train.stockId] ?? 0) + 1;
+    }
+    const left: PartCounts = {};
+    for (const [stockId, owned] of Object.entries(ownedTrains)) {
+        left[stockId] = Math.max(0, owned - (onTrack[stockId] ?? 0));
+    }
+    return left;
 }
 
 /** Format US cents as dollars. */

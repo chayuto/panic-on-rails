@@ -16,6 +16,10 @@ import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
 import { DRIVING, scaleKmh, throttleOf } from '../../simulation/driving';
+import { useCollectionStore } from '../../stores/useCollectionStore';
+import { useShopStore } from '../../stores/useShopStore';
+import { getRollingStock, ROLLING_STOCK } from '../../data/rollingStock';
+import { trainsLeft } from '../../data/collection';
 import type { Train } from '../../types';
 import './TrainPanel.css';
 
@@ -31,14 +35,21 @@ export function TrainPanel() {
     const clearTrains = useSimulationStore(s => s.clearTrains);
     const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
 
-    // State for carriage count selector
+    const mode = useCollectionStore(s => s.mode);
+    const ownedTrains = useCollectionStore(s => s.ownedTrains);
+    const openShop = useShopStore(s => s.openShop);
+    const inCollection = mode === 'collection';
+
+    // State for carriage count selector (free build)
     const [carriageCount, setCarriageCount] = useState(1);
 
     const trainList = Object.values(trains);
+    const left = trainsLeft(ownedTrains, trains);
+    const anyLeft = !inCollection || Object.values(left).some(n => n > 0);
 
     const handleSpawnTrain = useCallback(() => {
-        spawnTrainAtClearestSpot(carriageCount);
-    }, [carriageCount]);
+        if (!spawnTrainAtClearestSpot(carriageCount)) openShop('trains');
+    }, [carriageCount, openShop]);
 
     const handleSpeedChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSpeedMultiplier(parseFloat(e.target.value));
@@ -71,7 +82,7 @@ export function TrainPanel() {
                     className="control-btn add-train-btn"
                     onClick={handleSpawnTrain}
                     disabled={!hasEdges}
-                    title="Add Train"
+                    title={anyLeft ? 'Add Train' : 'All your trains are running: buy another'}
                     data-testid="train-add-btn"
                 >
                     <Plus size={14} /> Add Train
@@ -87,20 +98,46 @@ export function TrainPanel() {
                 </button>
             </div>
 
-            {/* Carriage Count Control */}
-            <div className="carriage-control">
-                <label>
-                    <span>Carriages: {carriageCount}</span>
-                    <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        step="1"
-                        value={carriageCount}
-                        onChange={handleCarriageCountChange}
-                    />
-                </label>
-            </div>
+            {inCollection ? (
+                /* Your trains: run one you own */
+                <div className="owned-trains" data-testid="owned-trains">
+                    {ROLLING_STOCK.filter(s => (ownedTrains[s.id] ?? 0) > 0).map(stock => (
+                        <div className="owned-train" key={stock.id}>
+                            <span className="train-color" style={{ backgroundColor: stock.color }} />
+                            <span className="owned-train-name">{stock.name}</span>
+                            <span className="owned-train-left" data-testid={`stock-left-${stock.id}`}>
+                                {left[stock.id] ?? 0}/{ownedTrains[stock.id]}
+                            </span>
+                            <button
+                                onClick={() => spawnTrainAtClearestSpot(undefined, undefined, stock.id)}
+                                disabled={!hasEdges || (left[stock.id] ?? 0) === 0}
+                                title="Put this train on the track"
+                                data-testid={`run-stock-${stock.id}`}
+                            >
+                                Run
+                            </button>
+                        </div>
+                    ))}
+                    <button className="owned-trains-shop" onClick={() => openShop('trains')}>
+                        Get more trains
+                    </button>
+                </div>
+            ) : (
+                /* Carriage Count Control */
+                <div className="carriage-control">
+                    <label>
+                        <span>Carriages: {carriageCount}</span>
+                        <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            step="1"
+                            value={carriageCount}
+                            onChange={handleCarriageCountChange}
+                        />
+                    </label>
+                </div>
+            )}
 
             {/* Speed Control */}
             <div className="speed-control">
@@ -134,7 +171,7 @@ export function TrainPanel() {
                                 className="train-color"
                                 style={{ backgroundColor: train.color }}
                             />
-                            <span className="train-name">
+                            <span className="train-name" title={getRollingStock(train.stockId)?.name}>
                                 {train.id.replace('train-', 'Train ')}
                                 {(train.carriageCount ?? 1) > 1 && (
                                     <span className="carriage-info"> ({train.carriageCount} cars)</span>
@@ -180,7 +217,7 @@ export function TrainPanel() {
                                     <input
                                         type="range"
                                         min={0}
-                                        max={DRIVING.MAX_THROTTLE}
+                                        max={getRollingStock(train.stockId)?.topSpeed ?? DRIVING.MAX_THROTTLE}
                                         step={5}
                                         value={throttleOf(train)}
                                         onChange={e => setTrainThrottle(train.id, Number(e.target.value))}

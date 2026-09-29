@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 
-export type ShopTab = 'sets' | 'parts';
+export type ShopTab = 'sets' | 'parts' | 'trains';
 
 interface ShopState {
     open: boolean;
