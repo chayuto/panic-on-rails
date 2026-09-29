@@ -59,7 +59,7 @@ pnpm install
 pnpm run dev
 ```
 
-Open [http://localhost:5173/panic-on-rails/](http://localhost:5173/panic-on-rails/) in your browser.
+Open [http://localhost:5173/](http://localhost:5173/) in your browser.
 
 ### Build for Production
 
@@ -111,13 +111,13 @@ Currently focused on Kato N-Scale with accurate track geometry. More track types
 - ✅ Layout persistence (local storage)
 - ✅ File export/import (JSON)
 - ✅ Snap-to-connect track placement
-- ✅ Train simulation with graph-based movement
+- ✅ Train simulation with graph-based movement, switches, sensors and crashes
+- ✅ Undo/redo
+- ✅ Headless, deterministic simulation core (for tests and agents)
 
-**Planned Features:**
-- 🔜 Extended part catalog
-- 🔜 URL-based layout sharing
-- 🔜 Collision detection
-- 🔜 Multiplayer mode
+**Next:** see [docs/ROADMAP.md](docs/ROADMAP.md) for the current assessment and the phased plan.
+This covers making the controls real (signals, switches, per-train control), then a mission layer
+with objectives and progression, then feel and polish.
 
 ## Contributing
 

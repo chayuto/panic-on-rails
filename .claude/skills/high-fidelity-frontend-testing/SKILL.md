@@ -36,7 +36,7 @@ pass `--headed` in CI or agentic loops.
 ## Commands
 
 ```bash
-pnpm test --run                  # Vitest unit tests (706+ tests, ~1s)
+pnpm test --run                  # Vitest unit + headless scenario tests (~1-2s)
 pnpm e2e                         # CI E2E: builds prod + runs `chromium` project
 pnpm e2e:dev                     # Agentic E2E: PLAYWRIGHT_DEV=1, `dev` project
 pnpm e2e:report                  # Open the last HTML report
@@ -78,9 +78,33 @@ Test helpers in `e2e/helpers/` wrap the bridge:
 
 Use `e2e/fixtures/app-fixture.ts` (`{ app, stores, snap }`) for new tests.
 
-## Deterministic simulation testing (Clock API)
+## Deterministic simulation testing
 
-The simulation (`src/hooks/useGameLoop.ts`) runs on `requestAnimationFrame` with
+### First choice: no browser at all
+
+Simulation behavior (movement, switches, sensors, collisions, crashes) is a pure
+function, `stepSimulation()` in `src/simulation/step.ts`. Test it in Vitest via
+`src/simulation/harness.ts` — see `src/simulation/__tests__/scenarios.test.ts`:
+
+```ts
+resetWorld();
+seedSimulation(1);                               // or simHarness.seed(1)
+loadRecipe(loadTemplateJson('switch-showdown')); // any TrackTemplate
+const events = simHarness.runSeconds(20);        // 1200 fixed 60fps ticks
+expect(summarize().crashed).toBe(2);
+```
+
+### In the browser: `window.__PANIC_SIM__`
+
+The same harness is on the debug bridge. With the rAF loop paused
+(`simulation.isRunning === false`), `__PANIC_SIM__.run(frames)` steps the real
+stores deterministically; the canvas re-renders from the stepped state, so you
+can screenshot exact frames. Reference: `e2e/simulation-harness.spec.ts`.
+
+### Driving the real rAF loop (Clock API)
+
+Only needed when the thing under test *is* the loop (timing, pausing, rAF
+lifecycle). The simulation (`src/hooks/useGameLoop.ts`) runs on `requestAnimationFrame` with
 delta-time from the rAF `timestamp`. **Never test it with `waitForTimeout()`** —
 that is wall-clock dependent and flaky. Use `page.clock` instead: it fakes
 `requestAnimationFrame` + `performance.now()`.
