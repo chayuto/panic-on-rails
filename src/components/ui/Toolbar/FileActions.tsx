@@ -106,8 +106,15 @@ function ConfirmModal({
 export function FileActions() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { getLayout, loadLayout, clearLayout, addTrack, edges, connectNodes } = useTrackStore();
-    const { spawnTrain, clearTrains, setRunning } = useSimulationStore();
+    const getLayout = useTrackStore(s => s.getLayout);
+    const loadLayout = useTrackStore(s => s.loadLayout);
+    const clearLayout = useTrackStore(s => s.clearLayout);
+    const addTrack = useTrackStore(s => s.addTrack);
+    const edges = useTrackStore(s => s.edges);
+    const connectNodes = useTrackStore(s => s.connectNodes);
+    const spawnTrain = useSimulationStore(s => s.spawnTrain);
+    const clearTrains = useSimulationStore(s => s.clearTrains);
+    const setRunning = useSimulationStore(s => s.setRunning);
 
     // Template state
     const [templates, setTemplates] = useState<TemplateMetadata[]>([]);

@@ -19,9 +19,15 @@ import type { NodeId } from '../types';
  * Hook that provides connect mode functionality
  */
 export function useConnectMode() {
-    const { connectSource, setConnectSource, clearConnectSource, selectedSystem } = useEditorStore();
-    const { nodes, edges, connectNetworks } = useTrackStore();
-    const { editSubMode, setEditSubMode } = useModeStore();
+    const connectSource = useEditorStore(s => s.connectSource);
+    const setConnectSource = useEditorStore(s => s.setConnectSource);
+    const clearConnectSource = useEditorStore(s => s.clearConnectSource);
+    const selectedSystem = useEditorStore(s => s.selectedSystem);
+    const nodes = useTrackStore(s => s.nodes);
+    const edges = useTrackStore(s => s.edges);
+    const connectNetworks = useTrackStore(s => s.connectNetworks);
+    const editSubMode = useModeStore(s => s.editSubMode);
+    const setEditSubMode = useModeStore(s => s.setEditSubMode);
 
     /**
      * Check if a node is a valid connect target (open endpoint, different part from source)

@@ -24,7 +24,9 @@ const HOVER_GLOW_PERIOD = 1200; // ms
 // ===========================
 
 export function EffectsLayer() {
-    const { ripples, flashes, hoveredSwitchPosition } = useEffectsStore();
+    const ripples = useEffectsStore(s => s.ripples);
+    const flashes = useEffectsStore(s => s.flashes);
+    const hoveredSwitchPosition = useEffectsStore(s => s.hoveredSwitchPosition);
 
     // Animation frame counter - triggers re-render
     const [tick, setTick] = useState(0);

@@ -58,15 +58,17 @@ export function useSwitchInteraction(
     const { enableKeyboard = true } = options;
 
     const isSimulating = useIsSimulating();
-    const { nodes, edges, toggleSwitch } = useTrackStore();
-    const { trains } = useSimulationStore();
-    const { hoveredSwitchId, triggerRipple } = useEffectsStore();
+    const hoveredSwitchId = useEffectsStore(s => s.hoveredSwitchId);
 
     /**
      * Safely toggle a switch, checking if a train is on it first.
      * Returns true if toggle succeeded, false if blocked.
      */
+    // Reads the stores when called: subscribing to trains here would re-render
+    // the whole canvas on every simulation tick
     const safeToggleSwitch = useCallback((nodeId: NodeId): boolean => {
+        const { nodes, edges, toggleSwitch } = useTrackStore.getState();
+        const { trains } = useSimulationStore.getState();
         const node = nodes[nodeId];
         if (!node || node.type !== 'switch') {
             console.warn('[useSwitchInteraction] Not a switch node:', nodeId);
@@ -86,11 +88,11 @@ export function useSwitchInteraction(
 
         // Trigger visual effect
         if (node.position) {
-            triggerRipple(node.position, { color: '#FFD93D' });
+            useEffectsStore.getState().triggerRipple(node.position, { color: '#FFD93D' });
         }
 
         return true;
-    }, [nodes, edges, trains, toggleSwitch, triggerRipple]);
+    }, []);
 
     // Keyboard shortcuts for switch control
     useEffect(() => {
@@ -113,7 +115,7 @@ export function useSwitchInteraction(
             // Number keys 1-9 toggle switches by index
             const num = parseInt(e.key);
             if (num >= 1 && num <= 9) {
-                const switches = Object.values(nodes)
+                const switches = Object.values(useTrackStore.getState().nodes)
                     .filter(n => n.type === 'switch')
                     .sort((a, b) => a.id.localeCompare(b.id));  // Consistent ordering
 
@@ -126,7 +128,7 @@ export function useSwitchInteraction(
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [enableKeyboard, isSimulating, hoveredSwitchId, nodes, safeToggleSwitch]);
+    }, [enableKeyboard, isSimulating, hoveredSwitchId, safeToggleSwitch]);
 
     return {
         safeToggleSwitch,

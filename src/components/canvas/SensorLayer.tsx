@@ -109,12 +109,11 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
                 width={sensor.length}
                 height={SENSOR_HEIGHT}
                 fill={fillColor}
-                stroke={sensor.state === 'on' ? '#FFF' : '#444'}
-                strokeWidth={1}
+                stroke={sensor.state === 'on' ? '#FFD93D' : '#444'}
+                strokeWidth={sensor.state === 'on' ? 2 : 1}
                 cornerRadius={3}
                 opacity={sensor.state === 'on' ? 0.9 : 0.6}
-                shadowColor={sensor.state === 'on' ? '#FFD93D' : 'transparent'}
-                shadowBlur={sensor.state === 'on' ? 10 : 0}
+                perfectDrawEnabled={false}
             />
             {/* Sensor label (only in sensor mode) */}
             {editSubMode === 'sensor' && (
