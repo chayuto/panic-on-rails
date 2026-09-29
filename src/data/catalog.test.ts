@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getPartById, getPartsByScale, calculateArcLength, ALL_PARTS } from './catalog';
+import { getPartById, getPartsByScale, calculateArcLength, getAllParts } from './catalog';
 
 describe('Part Catalog', () => {
     describe('getPartById', () => {
@@ -51,10 +51,11 @@ describe('Part Catalog', () => {
         });
     });
 
-    describe('ALL_PARTS', () => {
+    describe('getAllParts', () => {
         it('should contain both Kato and Wooden parts', () => {
-            const hasKato = ALL_PARTS.some(p => p.brand === 'kato');
-            const hasBrio = ALL_PARTS.some(p => p.brand === 'brio');
+            const all = getAllParts();
+            const hasKato = all.some(p => p.brand === 'kato');
+            const hasBrio = all.some(p => p.brand === 'brio');
             expect(hasKato).toBe(true);
             expect(hasBrio).toBe(true);
         });
