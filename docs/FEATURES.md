@@ -6,7 +6,7 @@ Complete feature documentation for PanicOnRails - the free, browser-based train 
 
 ### Track Building
 
-- **Snap-to-connect placement** — Tracks automatically connect when placed near each other
+- **Snap-to-connect placement** — Drag a part near an open track end and it rotates itself to connect; hover left or right of the end to choose the curve direction
 - **Kato N-Scale accuracy** — Real-world track geometry and dimensions
 - **Multiple track types** — Straight, curved, switches, and crossings
 - **Rotation and flip** — Full control over track orientation
@@ -16,9 +16,11 @@ Complete feature documentation for PanicOnRails - the free, browser-based train 
 
 - **Graph-based movement** — Trains follow track topology intelligently
 - **Multiple trains** — Run several trains simultaneously
-- **Speed control** — Adjust train velocity in real-time
-- **Direction control** — Reverse trains on demand
-- **Collision awareness** — Visual feedback for potential collisions
+- **Speed control** — Adjust simulation speed in real-time
+- **Per-train control** — Stop/Go and Reverse each train from the train panel
+- **Live switching** — Click a switch while trains run to reroute them
+- **Signals that stop trains** — Click a signal to turn it red; trains halt before it and go on green
+- **Crashes** — Head-on and rear-end collisions explode into physics debris, with screen shake
 
 ### Layout Management
 
@@ -56,6 +58,7 @@ Complete feature documentation for PanicOnRails - the free, browser-based train 
 | `Ctrl+Z` / `Cmd+Z` | Undo last edit |
 | `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
 | `Space` | Play / Pause simulation |
+| `F` | Fit the whole layout in view |
 | `+` / `-` | Adjust simulation speed |
 
 See [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) for the full reference.

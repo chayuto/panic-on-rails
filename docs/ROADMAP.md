@@ -123,23 +123,32 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
       - swapped arc-direction labels on all switch branches, which distorted a turnout's branch
         when it was moved;
       - the #2 Wye being built as a plain left turnout.
-- [ ] Toolbar wraps onto two lines at 1280px width.
-- [ ] **Signals stop trains.** A train approaching a node with a red signal decelerates and holds
-      before the node, then resumes on green. Implemented in `movement.ts`/`step.ts` and emits
-      `signal-hold`/`signal-release` events.
-- [ ] **Switches clickable in Simulate mode.** Only animate when a toggle actually happened.
-- [ ] **Per-train controls.** Stop/go and reverse per train, from the panel and by clicking a
-      train. Spawn picks a free edge, away from other trains.
-- [ ] **Toolbar pause stays in Simulate mode.** Loading a template fits the view and does not
-      auto-run.
-- [ ] **Crash feedback that lands.** Wire up screen shake. Render the flash above the trains.
-      Show `ErrorBanner` and a crash counter.
-- [ ] **Rebuild "Switch Showdown"** as a real puzzle: a switch plus a siding, where a crash is
-      avoidable by flipping it. The headless test proves both outcomes: the crash without
-      input, and no crash with the flip.
-- [ ] **Onboarding.** Detect an actual closed loop (a graph cycle), celebrate only real
-      milestones, and hide "Skip" when complete.
-- [ ] **Parts bin layout.** No clipped column.
+- [x] **Toolbar and parts bin fit on laptop screens.** The toolbar stays on one line from
+      1280px up, and the bin's second column is no longer clipped.
+- [x] **Signals stop trains.** A train heading into a node with a red signal stops a short gap
+      before it and resumes on green. A train already past the stop line when the signal
+      changes can't stop and runs through. Implemented in `movement.ts`; `step.ts` emits
+      `signal-hold`/`signal-release`.
+- [x] **Switches clickable in Simulate mode.** The ripple only plays when the switch actually
+      toggled.
+- [x] **Per-train Stop/Go and Reverse** in the train panel. Spawning picks the spot farthest
+      from other trains (`simulation/spawn.ts`), so trains never stack.
+- [x] **Toolbar pause stays in Simulate mode.** Loading a template fits it to the view, and `F`
+      re-fits at any time. Templates still auto-run for instant gratification.
+- [x] **Crash feedback that lands.** Screen shake is wired up, the flash renders above the
+      trains, and `ErrorBanner` shows simulation errors.
+- [x] **"Switch Showdown" rebuilt** as a real puzzle: a line with a passing loop. Headless
+      tests prove both outcomes: a crash without input, and a safe pass after flipping the
+      west switch.
+- [x] **Onboarding** requires an actual closed loop (a graph cycle). The celebration toast
+      shows for its full duration and points the player at signals and switches. "Skip" is
+      hidden during the celebration.
+- [x] **Fixed while playing:**
+      - Left-hand turnout branches rendered mirrored, because Konva got a negative arc sweep.
+      - The track bitmap cache used an edge/node *count* key, so loading a template with the
+        same counts kept showing the old layout.
+- [ ] Crash counter, and wreckage that blocks the track until cleared (moved to Phase 3).
+- [ ] Clicking a train on the canvas to stop it (the panel buttons cover this for now).
 
 ### Phase 2: The game layer (missions)
 
