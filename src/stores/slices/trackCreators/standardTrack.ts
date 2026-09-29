@@ -65,6 +65,7 @@ export function createStraightTrack(
         rotation: normalizeAngle(rotation),
         connections: [edgeId],
         type: 'endpoint',
+        ...(geometry.bumper && { bumper: true }),
     };
 
     const edge: TrackEdge = {

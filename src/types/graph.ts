@@ -12,6 +12,8 @@ export interface TrackNode {
     rotation: number; // degrees, direction the connector faces
     connections: EdgeId[];
     type: 'endpoint' | 'junction' | 'switch';
+    /** Buffer stop at the end of a bumper track: never an open endpoint */
+    bumper?: boolean;
     // Switch-specific fields
     switchState?: 0 | 1;           // 0 = main path, 1 = branch path
     switchBranches?: [EdgeId, EdgeId]; // [mainEdgeId, branchEdgeId] - exit edges

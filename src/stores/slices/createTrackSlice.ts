@@ -271,9 +271,10 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      */
     getOpenEndpoints: () => {
         const state = get();
-        // Open endpoints are nodes with only 1 connection (one open side)
+        // Open endpoints are nodes with only 1 connection (one open side);
+        // a buffer stop is a dead end, not an open end
         return Object.values(state.nodes).filter(
-            node => node.connections.length === 1
+            node => node.connections.length === 1 && !node.bumper
         );
     },
 });

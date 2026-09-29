@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { Group, Circle, Ring } from 'react-konva';
-import { NODE_KEY_COLORS, NODE_RADIUS, CONNECT_HIGHLIGHT_RADIUS } from './constants';
+import { Group, Circle, Ring, Rect } from 'react-konva';
+import { NODE_KEY_COLORS, NODE_RADIUS, CONNECT_HIGHLIGHT_RADIUS, BUMPER } from './constants';
 import type { TrackNode } from '../../../types';
 
 interface NodeRendererProps {
@@ -32,6 +32,26 @@ export const NodeRenderer = memo(function NodeRenderer({
         : isValidTarget
             ? NODE_KEY_COLORS.CONNECT_TARGET
             : NODE_KEY_COLORS.INVALID;
+
+    if (node.bumper) {
+        // Buffer stop: a red beam across the end of the track
+        return (
+            <Rect
+                x={node.position.x}
+                y={node.position.y}
+                width={BUMPER.DEPTH}
+                height={BUMPER.WIDTH}
+                offsetX={BUMPER.DEPTH / 2}
+                offsetY={BUMPER.WIDTH / 2}
+                rotation={node.rotation}
+                fill={BUMPER.COLOR}
+                stroke="#1A1A1A"
+                strokeWidth={1.5}
+                cornerRadius={1}
+                listening={false}
+            />
+        );
+    }
 
     return (
         <Group>

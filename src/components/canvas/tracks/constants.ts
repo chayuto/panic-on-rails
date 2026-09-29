@@ -20,3 +20,10 @@ export const CONNECT_HIGHLIGHT_RADIUS = 12;
 
 // Hit area width for easier clicking
 export const HIT_STROKE_WIDTH = 16;
+
+/** Buffer stop drawn at the end of a bumper track (mm) */
+export const BUMPER = {
+    DEPTH: 6,
+    WIDTH: 22,
+    COLOR: '#C0392B',
+};

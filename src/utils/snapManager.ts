@@ -85,7 +85,7 @@ export function getConnectorById(
  * An open endpoint has connections < maxConnections (typically 1).
  */
 export function findOpenEndpoints(nodes: Record<NodeId, TrackNode>): TrackNode[] {
-    return Object.values(nodes).filter(node => node.connections.length === 1);
+    return Object.values(nodes).filter(node => node.connections.length === 1 && !node.bumper);
 }
 
 /**

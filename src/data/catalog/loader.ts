@@ -30,7 +30,7 @@ function transformToPart(
 
     switch (jsonPart.type) {
         case 'straight':
-            geometry = { type: 'straight', length: jsonPart.length };
+            geometry = { type: 'straight', length: jsonPart.length, ...(jsonPart.bumper && { bumper: true }) };
             // Default cost: ~$0.02 per mm, min $2
             defaultCost = Math.max(200, Math.round(jsonPart.length * 2));
             break;

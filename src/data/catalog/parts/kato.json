@@ -25,6 +25,15 @@
             "productCode": "20-020"
         },
         {
+            "id": "kato-20-026",
+            "name": "Rerailer 124mm",
+            "type": "straight",
+            "length": 124,
+            "productCode": "20-026",
+            "description": "Road-crossing track with rerailer ramps: set a train on the rails here.",
+            "referenceUrl": "https://lombardhobby.com/kato-n-20-026-unitrack-rerailer-track-124mm-4-7-8-2-pieces/"
+        },
+        {
             "id": "kato-20-030",
             "name": "Straight 64mm",
             "type": "straight",
@@ -33,10 +42,19 @@
         },
         {
             "id": "kato-20-040",
-            "name": "Feeder/Spacer 62mm",
+            "name": "Straight 62mm",
             "type": "straight",
             "length": 62,
             "productCode": "20-040"
+        },
+        {
+            "id": "kato-20-041",
+            "name": "Feeder 62mm",
+            "type": "straight",
+            "length": 62,
+            "productCode": "20-041",
+            "description": "62mm straight with the power feeder cable: where the power pack connects.",
+            "referenceUrl": "https://lombardhobby.com/products/kato-n-20-041-unitrack-straight-track-62mm-2-7-16-feeder-track-1-piece"
         },
         {
             "id": "kato-20-046",
