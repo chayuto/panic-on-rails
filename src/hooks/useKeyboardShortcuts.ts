@@ -7,10 +7,13 @@
  * - 1-6: Switch edit sub-modes (Edit mode only)
  * - Ctrl/Cmd+Z: Undo, Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y: Redo (Edit mode only)
  * - Space: Play/Pause (Simulate mode only)
+ * - F: Fit layout to view
  * - +/-: Speed control (Simulate mode only)
  * - R/Shift+R: Rotate (handled in StageWrapper during drag)
  */
 
+import { fitViewToLayout } from '../utils/viewFit';
+import { togglePlayPause } from '../simulation/controls';
 import { useEffect } from 'react';
 import { useModeStore } from '../stores/useModeStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
@@ -30,7 +33,8 @@ const EDIT_MODE_SHORTCUTS: Record<string, EditSubMode> = {
 
 export function useKeyboardShortcuts() {
     const { primaryMode, togglePrimaryMode, setEditSubMode } = useModeStore();
-    const { isRunning, toggleRunning, speedMultiplier, setSpeedMultiplier } = useSimulationStore();
+    const speedMultiplier = useSimulationStore(s => s.speedMultiplier);
+    const setSpeedMultiplier = useSimulationStore(s => s.setSpeedMultiplier);
     const toggleMeasurements = useEditorStore(s => s.toggleMeasurements);
 
     useEffect(() => {
@@ -59,6 +63,13 @@ export function useKeyboardShortcuts() {
             if (key === 'm') {
                 e.preventDefault();
                 togglePrimaryMode();
+                return;
+            }
+
+            // F: Fit the whole layout in view (both modes)
+            if (key === 'f' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                fitViewToLayout();
                 return;
             }
 
@@ -95,7 +106,7 @@ export function useKeyboardShortcuts() {
                 // Space: Play/Pause
                 if (key === ' ') {
                     e.preventDefault();
-                    toggleRunning();
+                    togglePlayPause();
                     return;
                 }
 
@@ -122,8 +133,6 @@ export function useKeyboardShortcuts() {
         togglePrimaryMode,
         setEditSubMode,
         toggleMeasurements,
-        isRunning,
-        toggleRunning,
         speedMultiplier,
         setSpeedMultiplier,
     ]);

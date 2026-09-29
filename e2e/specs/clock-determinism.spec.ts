@@ -69,7 +69,7 @@ async function runDeterministicSim(page: Page, tickMs: number): Promise<SimResul
 
   return page.evaluate(() => {
     const sim = window.__PANIC_STORES__!.simulation.getState();
-    const train = Object.values(sim.trains)[0] as Record<string, unknown>;
+    const train = Object.values(sim.trains)[0];
     return {
       edgeId: train.currentEdgeId as string,
       distance: train.distanceAlongEdge as number,

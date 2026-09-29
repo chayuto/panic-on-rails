@@ -7,6 +7,7 @@
  */
 
 import type { TrackGeometry } from '../../src/types/geometry';
+import type { Train } from '../../src/types';
 
 export interface Vector2 {
     x: number;
@@ -41,16 +42,8 @@ export interface ModeStateSnapshot {
     simulateSubMode: string;
 }
 
-export interface TrainSnapshot {
-    id: string;
-    currentEdgeId: string;
-    distanceAlongEdge: number;
-    direction: number;
-    speed: number;
-    crashed: boolean;
-    color: string;
-    [key: string]: unknown;
-}
+/** A train as the debug bridge returns it — the app's own type. */
+export type TrainSnapshot = Train;
 
 export interface SimulationStateSnapshot {
     trains: Record<string, TrainSnapshot>;

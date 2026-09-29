@@ -9,7 +9,7 @@ export const ErrorBanner: React.FC = () => {
     if (!error) return null;
 
     return (
-        <div style={{
+        <div role="alert" data-testid="error-banner" style={{
             position: 'absolute',
             top: '20px',
             left: '50%',

@@ -4,44 +4,39 @@
  * Features:
  * - List of active trains with status and carriage count
  * - Add/Remove train controls with carriage selector
+ * - Per-train Stop/Go and Reverse
  * - Play/Pause simulation
  * - Speed multiplier slider
  * - Crash warnings
  */
 
 import { useCallback, useState } from 'react';
-import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X } from 'lucide-react';
+import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Repeat, OctagonX } from 'lucide-react';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
+import { spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
+import type { Train } from '../../types';
 import './TrainPanel.css';
 
 export function TrainPanel() {
-    const {
-        trains,
-        isRunning,
-        speedMultiplier,
-        spawnTrain,
-        removeTrain,
-        toggleRunning,
-        setSpeedMultiplier,
-        clearTrains
-    } = useSimulationStore();
-    const { edges } = useTrackStore();
-    
+    const trains = useSimulationStore(s => s.trains);
+    const isRunning = useSimulationStore(s => s.isRunning);
+    const speedMultiplier = useSimulationStore(s => s.speedMultiplier);
+    const removeTrain = useSimulationStore(s => s.removeTrain);
+    const setSpeedMultiplier = useSimulationStore(s => s.setSpeedMultiplier);
+    const setTrainStopped = useSimulationStore(s => s.setTrainStopped);
+    const reverseTrain = useSimulationStore(s => s.reverseTrain);
+    const clearTrains = useSimulationStore(s => s.clearTrains);
+    const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
+
     // State for carriage count selector
     const [carriageCount, setCarriageCount] = useState(1);
 
     const trainList = Object.values(trains);
-    const hasEdges = Object.keys(edges).length > 0;
 
     const handleSpawnTrain = useCallback(() => {
-        const edgeIds = Object.keys(edges);
-        if (edgeIds.length > 0) {
-            // Spawn on random edge for variety
-            const randomEdge = edgeIds[Math.floor(Math.random() * edgeIds.length)];
-            spawnTrain(randomEdge, undefined, carriageCount);
-        }
-    }, [edges, spawnTrain, carriageCount]);
+        spawnTrainAtClearestSpot(carriageCount);
+    }, [carriageCount]);
 
     const handleSpeedChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSpeedMultiplier(parseFloat(e.target.value));
@@ -62,8 +57,9 @@ export function TrainPanel() {
             <div className="train-controls">
                 <button
                     className={`control-btn play-btn ${isRunning ? 'active' : ''}`}
-                    onClick={toggleRunning}
-                    title={isRunning ? 'Pause' : 'Play'}
+                    onClick={togglePlayPause}
+                    disabled={!hasEdges}
+                    title={isRunning ? 'Pause (Space)' : 'Play (Space)'}
                     data-testid="train-play-btn"
                 >
                     {isRunning ? <Pause size={14} /> : <Play size={14} />}
@@ -142,9 +138,33 @@ export function TrainPanel() {
                                     <span className="carriage-info"> ({train.carriageCount} cars)</span>
                                 )}
                             </span>
-                            <span className="train-status">
-                                {train.crashed ? <Zap size={14} /> : isRunning ? <TrainFront size={14} /> : <Pause size={14} />}
+                            <span className="train-status" title={trainStatus(train, isRunning)}>
+                                {train.crashed ? <Zap size={14} />
+                                    : train.heldAtSignal ? <OctagonX size={14} />
+                                        : train.stopped ? <Hand size={14} />
+                                            : isRunning ? <TrainFront size={14} /> : <Pause size={14} />}
                             </span>
+                            {!train.crashed && (
+                                <>
+                                    <button
+                                        className={`train-action-btn ${train.stopped ? 'active' : ''}`}
+                                        onClick={() => setTrainStopped(train.id, !train.stopped)}
+                                        title={train.stopped ? 'Go' : 'Stop'}
+                                        aria-pressed={!!train.stopped}
+                                        data-testid={`train-stop-${train.id}`}
+                                    >
+                                        {train.stopped ? <Play size={12} /> : <Hand size={12} />}
+                                    </button>
+                                    <button
+                                        className="train-action-btn"
+                                        onClick={() => reverseTrain(train.id)}
+                                        title="Reverse"
+                                        data-testid={`train-reverse-${train.id}`}
+                                    >
+                                        <Repeat size={12} />
+                                    </button>
+                                </>
+                            )}
                             <button
                                 className="remove-btn"
                                 onClick={() => removeTrain(train.id)}
@@ -165,4 +185,11 @@ export function TrainPanel() {
             )}
         </div>
     );
+}
+
+function trainStatus(train: Train, isRunning: boolean): string {
+    if (train.crashed) return 'Crashed';
+    if (train.heldAtSignal) return 'Waiting at red signal';
+    if (train.stopped) return 'Stopped';
+    return isRunning ? 'Running' : 'Paused';
 }

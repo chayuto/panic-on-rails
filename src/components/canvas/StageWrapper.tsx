@@ -14,6 +14,7 @@ import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
+import { useScreenShake } from '../../hooks/useScreenShake';
 import { useEditModeHandler } from '../../hooks/useEditModeHandler';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 import { useCanvasCoordinates } from '../../hooks/useCanvasCoordinates';
@@ -68,6 +69,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
 
     // Run the game loop for train simulation
     useGameLoop();
+    const shake = useScreenShake();
 
     // Enable keyboard shortcuts for switch interaction during simulation
     useSwitchInteraction({ enableKeyboard: isSimulating });
@@ -175,15 +177,15 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 height={dimensions.height}
                 scaleX={zoom}
                 scaleY={zoom}
-                x={pan.x}
-                y={pan.y}
+                x={pan.x + shake.x}
+                y={pan.y + shake.y}
                 draggable={!draggedPartId} // Disable pan during drag
                 onWheel={handleWheel}
                 onDragEnd={handleDragEnd}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                {/* Layer 1: Background + Effects (non-interactive) */}
+                {/* Layer 1: Background (non-interactive) */}
                 <Layer listening={false}>
                     <BackgroundLayer
                         width={dimensions.width}
@@ -192,7 +194,6 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                         pan={pan}
                         showGrid={showGrid}
                     />
-                    <EffectsLayer />
                 </Layer>
 
                 {/* Layer 2: Track + Logic (interactive) */}
@@ -211,13 +212,13 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                     </Layer>
                 )}
 
-                {/* Layer 4: Simulation (conditional, trains + crash debris) */}
-                {isSimulating && (
-                    <Layer listening={false}>
-                        <TrainLayer viewport={viewport} />
-                        <CrashLayer />
-                    </Layer>
-                )}
+                {/* Layer 4: Simulation + effects (non-interactive, on top so crash
+                    flashes and ripples draw over track and trains) */}
+                <Layer listening={false}>
+                    {isSimulating && <TrainLayer viewport={viewport} />}
+                    {isSimulating && <CrashLayer />}
+                    <EffectsLayer />
+                </Layer>
             </Stage>
 
             {/* Viewport warning for small screens */}

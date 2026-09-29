@@ -8,6 +8,7 @@
  * - Load from file (JSON import)
  */
 
+import { fitViewToLayout } from '../../../utils/viewFit';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FilePlus, Save, FolderOpen } from 'lucide-react';
 import { useTrackStore } from '../../../stores/useTrackStore';
@@ -151,6 +152,8 @@ export function FileActions() {
                 () => { useModeStore.getState().enterSimulateMode(); setRunning(true); },
                 true // autoStart
             );
+            // Templates are laid out in world coordinates that may not fit the window
+            fitViewToLayout();
         } catch (error) {
             console.error('Failed to load template:', error);
             alert('Failed to load template');
