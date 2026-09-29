@@ -164,15 +164,22 @@ function randomSpread(range: number): number {
  * @param parts - Array of crashed parts
  * @param dt - Delta time in seconds
  * @param groundY - Y position of ground/track surface
- * @returns Updated parts array (may be smaller if parts removed)
+ * @returns New parts array; input parts are never mutated
  */
 export function updateCrashedParts(
     parts: CrashedPart[],
     dt: number,
     groundY: number = GROUND_Y
 ): CrashedPart[] {
-    return parts.map(part => {
-        if (part.settled) return part;
+    return parts.map(prev => {
+        if (prev.settled) return prev;
+
+        // Copy: parts may come from a frozen (immer) store snapshot
+        const part: CrashedPart = {
+            ...prev,
+            position: { ...prev.position },
+            velocity: { ...prev.velocity },
+        };
 
         // Apply gravity
         part.velocity.y += GRAVITY * dt;
