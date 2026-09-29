@@ -52,8 +52,10 @@ export interface SwitchGeometry {
 /** Crossing/Diamond track piece */
 export interface CrossingGeometry {
     type: 'crossing';
-    length: number;         // Length of each track (mm)
+    length: number;         // Length of the straight-through track A (mm)
     crossingAngle: number;  // Degrees (90 for perpendicular, 45 for diagonal)
+    /** Length of the crossing track B (mm). Default: `length`. */
+    crossLength?: number;
 }
 
 // ===========================
@@ -177,6 +179,13 @@ export interface PartDefinition {
 
     /** URL to product page or documentation */
     referenceUrl?: string;
+
+    /**
+     * Footprint width across the track (mm): the roadbed, or wider for pieces
+     * like a road crossing. Set from the catalog file's `trackWidth` unless
+     * the part overrides it.
+     */
+    width?: number;
 }
 
 // ===========================

@@ -47,6 +47,8 @@ export function createCrossingTrack(
 ): CrossingTrackResult {
     const { length, crossingAngle } = geometry;
     const halfLength = length / 2;
+    const crossLength = geometry.crossLength ?? length;
+    const halfCross = crossLength / 2;
     const radians = degreesToRadians(rotation);
 
     // Position is the part origin (center of crossing), matching connector convention
@@ -69,13 +71,13 @@ export function createCrossingTrack(
     // Calculate Start/End for Cross Track
     // Start is half-length BACKWARDS from center
     const crossStart: Vector2 = {
-        x: center.x - Math.cos(crossRadians) * halfLength,
-        y: center.y - Math.sin(crossRadians) * halfLength,
+        x: center.x - Math.cos(crossRadians) * halfCross,
+        y: center.y - Math.sin(crossRadians) * halfCross,
     };
 
     const crossEnd: Vector2 = {
-        x: center.x + Math.cos(crossRadians) * halfLength,
-        y: center.y + Math.sin(crossRadians) * halfLength,
+        x: center.x + Math.cos(crossRadians) * halfCross,
+        y: center.y + Math.sin(crossRadians) * halfCross,
     };
 
     // Generate IDs
@@ -134,8 +136,8 @@ export function createCrossingTrack(
         startNodeId: crossStartNodeId,
         endNodeId: crossEndNodeId,
         geometry: { type: 'straight', start: crossStart, end: crossEnd },
-        length,
-        intrinsicGeometry: { type: 'straight', length },
+        length: crossLength,
+        intrinsicGeometry: { type: 'straight', length: crossLength },
     };
 
     return {

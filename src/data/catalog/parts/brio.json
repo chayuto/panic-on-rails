@@ -2,6 +2,7 @@
     "version": 1,
     "brand": "brio",
     "scale": "wooden",
+    "trackWidth": 40,
     "parts": [
         {
             "id": "wooden-straight-long",

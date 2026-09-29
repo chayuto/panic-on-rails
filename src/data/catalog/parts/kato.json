@@ -2,6 +2,7 @@
     "version": 1,
     "brand": "kato",
     "scale": "n-scale",
+    "trackWidth": 25,
     "parts": [
         {
             "id": "kato-20-000",
@@ -29,8 +30,9 @@
             "name": "Rerailer 124mm",
             "type": "straight",
             "length": 124,
+            "width": 69,
             "productCode": "20-026",
-            "description": "Road-crossing track with rerailer ramps: set a train on the rails here.",
+            "description": "S124C: a road crossing whose ramps also rerail trains. The road plates make it 69mm wide.",
             "referenceUrl": "https://lombardhobby.com/kato-n-20-026-unitrack-rerailer-track-124mm-4-7-8-2-pieces/"
         },
         {
@@ -57,43 +59,96 @@
             "referenceUrl": "https://lombardhobby.com/products/kato-n-20-041-unitrack-straight-track-62mm-2-7-16-feeder-track-1-piece"
         },
         {
-            "id": "kato-20-046",
-            "name": "S60 Straight Left Cut",
+            "id": "kato-s60l",
+            "name": "Straight 60mm Left Cut",
             "type": "straight",
             "length": 60,
-            "productCode": "20-046L",
-            "description": "Clearance piece with left roadbed cut for #4 turnout yards."
+            "description": "S60L: roadbed cut on the left so a #4 turnout's diverging track clears it. Comes with #4 turnouts and the V4 set; not sold on its own."
         },
         {
-            "id": "kato-20-047",
-            "name": "S60 Straight Right Cut",
+            "id": "kato-s60r",
+            "name": "Straight 60mm Right Cut",
             "type": "straight",
             "length": 60,
-            "productCode": "20-046R",
-            "description": "Clearance piece with right roadbed cut for #4 turnout yards."
+            "description": "S60R: roadbed cut on the right so a #4 turnout's diverging track clears it. Comes with #4 turnouts and the V4 set; not sold on its own."
         },
         {
             "id": "kato-20-091",
             "name": "Short Straight 29mm",
             "type": "straight",
             "length": 29,
-            "productCode": "20-091"
+            "productCode": "20-091",
+            "description": "S29, sold in the 20-091 pack with S45.5s."
         },
         {
             "id": "kato-20-092",
             "name": "Short Straight 45.5mm",
             "type": "straight",
             "length": 45.5,
-            "productCode": "20-092",
-            "description": "Gap filler for complex layouts"
+            "productCode": "20-091",
+            "description": "S45.5, sold in the 20-091 pack with S29s. Four of them extend the 90° crossing to 124mm."
+        },
+        {
+            "id": "kato-20-046",
+            "name": "Bumper A 62mm",
+            "type": "straight",
+            "length": 62,
+            "bumper": true,
+            "productCode": "20-046",
+            "description": "S62B-A: 62mm of track ending in a buffer stop (95mm overall). Three come with the V3 yard set."
+        },
+        {
+            "id": "kato-20-047",
+            "name": "Bumper B 62mm",
+            "type": "straight",
+            "length": 62,
+            "bumper": true,
+            "productCode": "20-047",
+            "description": "S62B-B: 62mm of track ending in a buffer stop (95mm overall), in a different style."
+        },
+        {
+            "id": "kato-20-176",
+            "name": "Curve R117-45°",
+            "type": "curve",
+            "radius": 117,
+            "angle": 45,
+            "productCode": "20-176",
+            "description": "Compact curve for small layouts and streetcars."
+        },
+        {
+            "id": "kato-20-174",
+            "name": "Curve R150-45°",
+            "type": "curve",
+            "radius": 150,
+            "angle": 45,
+            "productCode": "20-174",
+            "description": "Compact curve for small layouts and streetcars."
+        },
+        {
+            "id": "kato-20-172",
+            "name": "Curve R183-45°",
+            "type": "curve",
+            "radius": 183,
+            "angle": 45,
+            "productCode": "20-172",
+            "description": "Compact curve for small layouts and streetcars."
         },
         {
             "id": "kato-20-170",
-            "name": "Curve R216-45° (Tight)",
+            "name": "Curve R216-45°",
             "type": "curve",
             "radius": 216,
             "angle": 45,
-            "productCode": "20-170"
+            "productCode": "20-170",
+            "description": "Tightest standard curve: short cars and locomotives only."
+        },
+        {
+            "id": "kato-20-171",
+            "name": "Curve R216-15°",
+            "type": "curve",
+            "radius": 216,
+            "angle": 15,
+            "productCode": "20-171"
         },
         {
             "id": "kato-20-100",
@@ -104,20 +159,54 @@
             "productCode": "20-100"
         },
         {
+            "id": "kato-20-101",
+            "name": "Curve R249-15°",
+            "type": "curve",
+            "radius": 249,
+            "angle": 15,
+            "productCode": "20-101"
+        },
+        {
             "id": "kato-20-110",
-            "name": "Curve R282-45° (Inner)",
+            "name": "Curve R282-45°",
             "type": "curve",
             "radius": 282,
             "angle": 45,
-            "productCode": "20-110"
+            "productCode": "20-110",
+            "description": "33mm inside R315: the inner track of a double oval (V5)."
+        },
+        {
+            "id": "kato-20-111",
+            "name": "Curve R282-15°",
+            "type": "curve",
+            "radius": 282,
+            "angle": 15,
+            "productCode": "20-111"
         },
         {
             "id": "kato-20-120",
-            "name": "Curve R315-45° (Outer)",
+            "name": "Curve R315-45°",
             "type": "curve",
             "radius": 315,
             "angle": 45,
-            "productCode": "20-120"
+            "productCode": "20-120",
+            "description": "The Master Set curve: eight make the M1 oval's ends."
+        },
+        {
+            "id": "kato-20-121",
+            "name": "Curve R315-15°",
+            "type": "curve",
+            "radius": 315,
+            "angle": 15,
+            "productCode": "20-121"
+        },
+        {
+            "id": "kato-20-130",
+            "name": "Curve R348-30°",
+            "type": "curve",
+            "radius": 348,
+            "angle": 30,
+            "productCode": "20-130"
         },
         {
             "id": "kato-20-132",
@@ -125,7 +214,8 @@
             "type": "curve",
             "radius": 348,
             "angle": 45,
-            "productCode": "20-132"
+            "productCode": "20-132",
+            "description": "33mm outside R315: the outer track of a double oval (V6)."
         },
         {
             "id": "kato-20-140",
@@ -136,31 +226,22 @@
             "productCode": "20-140"
         },
         {
-            "id": "kato-20-150",
-            "name": "Curve R718-15° (Large)",
-            "type": "curve",
-            "radius": 718,
-            "angle": 15,
-            "productCode": "20-150",
-            "description": "Matches #6 turnout diverging geometry for parallel track creation."
-        },
-        {
             "id": "kato-20-160",
-            "name": "Curve R481-15° (Switch Match)",
+            "name": "Curve R481-15°",
             "type": "curve",
             "radius": 481,
             "angle": 15,
             "productCode": "20-160",
-            "description": "Matches #4 turnout diverging geometry for parallel track creation."
+            "description": "Matches the #4 turnout's diverging route: brings it back parallel at 33mm."
         },
         {
-            "id": "kato-20-150-2",
-            "name": "Curve R414-45° (Wide)",
+            "id": "kato-20-150",
+            "name": "Curve R718-15°",
             "type": "curve",
-            "radius": 414,
-            "angle": 45,
-            "productCode": "20-150-2",
-            "description": "Very wide radius curve"
+            "radius": 718,
+            "angle": 15,
+            "productCode": "20-150",
+            "description": "Matches the #6 turnout's diverging route: brings it back parallel at 49.5mm."
         },
         {
             "id": "kato-20-220",
@@ -171,7 +252,7 @@
             "branchAngle": 15,
             "branchDirection": "left",
             "productCode": "20-220",
-            "description": "Compact turnout, R481mm diverge. Requires S60 clearance for parallel tracks."
+            "description": "EP481-15L: 126mm straight route, R481 15° diverging route. With an R481-15 curve the branch runs parallel at 33mm. Packed with S60 cut straights."
         },
         {
             "id": "kato-20-221",
@@ -182,7 +263,7 @@
             "branchAngle": 15,
             "branchDirection": "right",
             "productCode": "20-221",
-            "description": "Compact turnout, R481mm diverge. Requires S60 clearance for parallel tracks."
+            "description": "EP481-15R: 126mm straight route, R481 15° diverging route. With an R481-15 curve the branch runs parallel at 33mm. Packed with S60 cut straights."
         },
         {
             "id": "kato-20-202",
@@ -193,7 +274,7 @@
             "branchAngle": 15,
             "branchDirection": "left",
             "productCode": "20-202",
-            "description": "Mainline turnout, R718mm diverge. Suitable for high-speed operations."
+            "description": "EP718-15L: 186mm straight route, R718 15° diverging route. The mainline turnout: with an R718-15 curve the branch runs parallel at 49.5mm."
         },
         {
             "id": "kato-20-203",
@@ -204,19 +285,41 @@
             "branchAngle": 15,
             "branchDirection": "right",
             "productCode": "20-203",
-            "description": "Mainline turnout, R718mm diverge. Suitable for high-speed operations."
+            "description": "EP718-15R: 186mm straight route, R718 15° diverging route. The mainline turnout: with an R718-15 curve the branch runs parallel at 49.5mm."
         },
         {
             "id": "kato-20-222",
             "name": "#2 Wye Turnout",
             "type": "switch",
-            "mainLength": 126,
+            "mainLength": 124,
             "branchRadius": 481,
             "branchAngle": 15,
             "branchDirection": "left",
             "productCode": "20-222",
-            "description": "Symmetric wye turnout. Both exits diverge at 15° with R481mm radius.",
+            "description": "EP481-15Y: symmetric wye, both routes R481 15°, one each way.",
             "isWye": true
+        },
+        {
+            "id": "kato-20-240",
+            "name": "Compact Turnout Left",
+            "type": "switch",
+            "mainLength": 124,
+            "branchRadius": 150,
+            "branchAngle": 45,
+            "branchDirection": "left",
+            "productCode": "20-240",
+            "description": "EP150-45L: 124mm straight route, tight R150 45° diverging route for compact layouts and streetcars."
+        },
+        {
+            "id": "kato-20-241",
+            "name": "Compact Turnout Right",
+            "type": "switch",
+            "mainLength": 124,
+            "branchRadius": 150,
+            "branchAngle": 45,
+            "branchDirection": "right",
+            "productCode": "20-241",
+            "description": "EP150-45R: 124mm straight route, tight R150 45° diverging route for compact layouts and streetcars."
         },
         {
             "id": "kato-20-320",
@@ -225,16 +328,17 @@
             "length": 124,
             "crossingAngle": 90,
             "productCode": "20-320",
-            "description": "Perpendicular track crossing for junctions"
+            "description": "X90: a 33mm square crossing extended to 124mm each way with four S45.5s."
         },
         {
             "id": "kato-20-300",
             "name": "15° Crossing Left 186mm",
             "type": "crossing",
             "length": 186,
-            "crossingAngle": 15,
+            "crossingAngle": 165,
+            "crossLength": 192.56,
             "productCode": "20-300",
-            "description": "Shallow angle diamond crossing (left). Creates 49.5mm track spacing."
+            "description": "X15L: both routes span the same 186mm, so the diagonal ends about 25mm either side of the straight. Mirror image of X15R."
         },
         {
             "id": "kato-20-301",
@@ -242,41 +346,37 @@
             "type": "crossing",
             "length": 186,
             "crossingAngle": 15,
+            "crossLength": 192.56,
             "productCode": "20-301",
-            "description": "Shallow angle diamond crossing (right). Creates 49.5mm track spacing."
+            "description": "X15R: both routes span the same 186mm, so the diagonal ends about 25mm either side of the straight. Mirror image of X15L."
         },
         {
             "id": "kato-20-230",
             "name": "#4 Single Crossover Left",
             "type": "compound",
             "productCode": "20-230",
-            "description": "Two #4 turnouts connecting parallel tracks 33mm apart. 248mm total length.",
+            "description": "SX248L: two parallel tracks 248mm long at 33mm centres, joined by #4 turnouts; the crossover route diverges left. Built here as each track's #4 turnout + S60 + S62, as in Kato's #4 geometry chart.",
             "cost": 3500,
             "subParts": [
-                {
-                    "partRef": "kato-20-220",
-                    "offset": { "x": 0, "y": 0 },
-                    "rotation": 0,
-                    "label": "turnout-upper"
-                },
-                {
-                    "partRef": "kato-20-221",
-                    "offset": { "x": 248, "y": 33 },
-                    "rotation": 180,
-                    "label": "turnout-lower"
-                }
+                { "partRef": "kato-20-220", "offset": { "x": 0, "y": 0 }, "rotation": 0, "label": "a-turnout" },
+                { "partRef": "kato-s60l", "offset": { "x": 126, "y": 0 }, "rotation": 0, "label": "a-s60" },
+                { "partRef": "kato-20-040", "offset": { "x": 186, "y": 0 }, "rotation": 0, "label": "a-s62" },
+                { "partRef": "kato-20-040", "offset": { "x": 0, "y": -33 }, "rotation": 0, "label": "b-s62" },
+                { "partRef": "kato-s60r", "offset": { "x": 62, "y": -33 }, "rotation": 0, "label": "b-s60" },
+                { "partRef": "kato-20-220", "offset": { "x": 248, "y": -33 }, "rotation": 180, "label": "b-turnout" }
             ],
             "joints": [
-                {
-                    "a": { "subPart": "turnout-upper", "connector": "branch" },
-                    "b": { "subPart": "turnout-lower", "connector": "branch" }
-                }
+                { "a": { "subPart": "a-turnout", "connector": "main" }, "b": { "subPart": "a-s60", "connector": "A" } },
+                { "a": { "subPart": "a-s60", "connector": "B" }, "b": { "subPart": "a-s62", "connector": "A" } },
+                { "a": { "subPart": "b-s62", "connector": "B" }, "b": { "subPart": "b-s60", "connector": "A" } },
+                { "a": { "subPart": "b-s60", "connector": "B" }, "b": { "subPart": "b-turnout", "connector": "main" } },
+                { "a": { "subPart": "a-turnout", "connector": "branch" }, "b": { "subPart": "b-turnout", "connector": "branch" } }
             ],
             "externalConnectors": [
-                { "subPart": "turnout-upper", "connector": "entry", "externalId": "A1" },
-                { "subPart": "turnout-upper", "connector": "main", "externalId": "A2" },
-                { "subPart": "turnout-lower", "connector": "entry", "externalId": "B1" },
-                { "subPart": "turnout-lower", "connector": "main", "externalId": "B2" }
+                { "subPart": "a-turnout", "connector": "entry", "externalId": "A1" },
+                { "subPart": "a-s62", "connector": "B", "externalId": "A2" },
+                { "subPart": "b-s62", "connector": "A", "externalId": "B1" },
+                { "subPart": "b-turnout", "connector": "entry", "externalId": "B2" }
             ],
             "boundingBox": { "width": 248, "height": 33 }
         },
@@ -285,33 +385,28 @@
             "name": "#4 Single Crossover Right",
             "type": "compound",
             "productCode": "20-231",
-            "description": "Two #4 turnouts connecting parallel tracks 33mm apart. 248mm total length. Mirror of 20-230.",
+            "description": "SX248R: two parallel tracks 248mm long at 33mm centres, joined by #4 turnouts; the crossover route diverges right. Built here as each track's #4 turnout + S60 + S62, as in Kato's #4 geometry chart.",
             "cost": 3500,
             "subParts": [
-                {
-                    "partRef": "kato-20-221",
-                    "offset": { "x": 0, "y": 0 },
-                    "rotation": 0,
-                    "label": "turnout-upper"
-                },
-                {
-                    "partRef": "kato-20-220",
-                    "offset": { "x": 248, "y": -33 },
-                    "rotation": 180,
-                    "label": "turnout-lower"
-                }
+                { "partRef": "kato-20-221", "offset": { "x": 0, "y": 0 }, "rotation": 0, "label": "a-turnout" },
+                { "partRef": "kato-s60r", "offset": { "x": 126, "y": 0 }, "rotation": 0, "label": "a-s60" },
+                { "partRef": "kato-20-040", "offset": { "x": 186, "y": 0 }, "rotation": 0, "label": "a-s62" },
+                { "partRef": "kato-20-040", "offset": { "x": 0, "y": 33 }, "rotation": 0, "label": "b-s62" },
+                { "partRef": "kato-s60l", "offset": { "x": 62, "y": 33 }, "rotation": 0, "label": "b-s60" },
+                { "partRef": "kato-20-221", "offset": { "x": 248, "y": 33 }, "rotation": 180, "label": "b-turnout" }
             ],
             "joints": [
-                {
-                    "a": { "subPart": "turnout-upper", "connector": "branch" },
-                    "b": { "subPart": "turnout-lower", "connector": "branch" }
-                }
+                { "a": { "subPart": "a-turnout", "connector": "main" }, "b": { "subPart": "a-s60", "connector": "A" } },
+                { "a": { "subPart": "a-s60", "connector": "B" }, "b": { "subPart": "a-s62", "connector": "A" } },
+                { "a": { "subPart": "b-s62", "connector": "B" }, "b": { "subPart": "b-s60", "connector": "A" } },
+                { "a": { "subPart": "b-s60", "connector": "B" }, "b": { "subPart": "b-turnout", "connector": "main" } },
+                { "a": { "subPart": "a-turnout", "connector": "branch" }, "b": { "subPart": "b-turnout", "connector": "branch" } }
             ],
             "externalConnectors": [
-                { "subPart": "turnout-upper", "connector": "entry", "externalId": "A1" },
-                { "subPart": "turnout-upper", "connector": "main", "externalId": "A2" },
-                { "subPart": "turnout-lower", "connector": "entry", "externalId": "B1" },
-                { "subPart": "turnout-lower", "connector": "main", "externalId": "B2" }
+                { "subPart": "a-turnout", "connector": "entry", "externalId": "A1" },
+                { "subPart": "a-s62", "connector": "B", "externalId": "A2" },
+                { "subPart": "b-s62", "connector": "A", "externalId": "B1" },
+                { "subPart": "b-turnout", "connector": "entry", "externalId": "B2" }
             ],
             "boundingBox": { "width": 248, "height": 33 }
         }

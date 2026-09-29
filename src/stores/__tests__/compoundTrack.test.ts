@@ -54,11 +54,14 @@ describe('Compound parts catalog', () => {
         expect(hasPartId('kato-20-300')).toBe(true);
         expect(hasPartId('kato-20-301')).toBe(true);
 
-        const p300 = getPartById('kato-20-300')!;
-        expect(p300.geometry.type).toBe('crossing');
-        if (p300.geometry.type === 'crossing') {
-            expect(p300.geometry.length).toBe(186);
-            expect(p300.geometry.crossingAngle).toBe(15);
+        // X15L and X15R are mirror images: the diagonal crosses at 165° vs 15°
+        for (const [id, angle] of [['kato-20-300', 165], ['kato-20-301', 15]] as const) {
+            const part = getPartById(id)!;
+            expect(part.geometry.type).toBe('crossing');
+            if (part.geometry.type === 'crossing') {
+                expect(part.geometry.length).toBe(186);
+                expect(part.geometry.crossingAngle).toBe(angle);
+            }
         }
     });
 
@@ -101,10 +104,10 @@ describe('createCompoundTrack', () => {
             geo
         );
 
-        // Two #4 turnouts: each has 3 nodes + 2 edges = 6 nodes + 4 edges
-        // 1 joint fuses 2 nodes into 1, so: 5 nodes + 4 edges
-        expect(result.nodes.length).toBe(5);
-        expect(result.edges.length).toBe(4);
+        // Each track: #4 turnout (3 nodes, 2 edges) + S60 + S62 (2 nodes, 1 edge each)
+        // = 14 nodes, 8 edges; 5 joints each fuse 2 nodes into 1: 9 nodes, 8 edges
+        expect(result.nodes.length).toBe(9);
+        expect(result.edges.length).toBe(8);
     });
 
     it('all edges share the compound partId', () => {
@@ -260,16 +263,16 @@ describe('compound track store integration', () => {
     it('addTrack places compound part correctly', () => {
         const edgeId = getState().addTrack('kato-20-230', { x: 400, y: 300 }, 0);
         expect(edgeId).toBeDefined();
-        expect(nodeCount()).toBe(5);
-        expect(edgeCount()).toBe(4);
+        expect(nodeCount()).toBe(9);
+        expect(edgeCount()).toBe(8);
     });
 
     it('removeTrack cascades to all compound edges', () => {
         const edgeId = getState().addTrack('kato-20-230', { x: 400, y: 300 }, 0);
         expect(edgeId).toBeDefined();
-        expect(edgeCount()).toBe(4);
+        expect(edgeCount()).toBe(8);
 
-        // Remove one edge — should cascade to all 4
+        // Remove one edge — should cascade to all 8
         getState().removeTrack(edgeId!);
         expect(edgeCount()).toBe(0);
         expect(nodeCount()).toBe(0);
@@ -279,10 +282,10 @@ describe('compound track store integration', () => {
         // Place a compound and a simple straight
         getState().addTrack('kato-20-230', { x: 400, y: 300 }, 0);
         const straightEdge = getState().addTrack('kato-20-000', { x: 100, y: 100 }, 0);
-        expect(edgeCount()).toBe(5); // 4 compound + 1 straight
+        expect(edgeCount()).toBe(9); // 8 compound + 1 straight
 
         // Remove the straight — only 1 edge should go
         getState().removeTrack(straightEdge!);
-        expect(edgeCount()).toBe(4); // compound still intact
+        expect(edgeCount()).toBe(8); // compound still intact
     });
 });

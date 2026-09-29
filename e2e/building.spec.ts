@@ -7,7 +7,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
 
-const CURVE = 'Curve R216-45° (Tight)';
+const CURVE = 'Curve R216-45°';
 
 async function dropPart(page: Page, label: string, screen: { x: number; y: number }) {
     await page.getByText(label, { exact: true }).dragTo(page.locator('.konvajs-content'), {
@@ -49,9 +49,9 @@ test.describe('Building by hand', () => {
         void app;
         await dropPart(page, '90° Crossing 124mm', { x: 300, y: 200 });
         expect((await trackSummary(page)).edges).toBe(2);
-        // Two #4 turnouts joined branch to branch: four routes
+        // Each track: a #4 turnout (two routes) + S60 + S62, i.e. 4 edges a track
         await dropPart(page, '#4 Single Crossover Left', { x: 300, y: 450 });
-        expect((await trackSummary(page)).edges).toBe(6);
+        expect((await trackSummary(page)).edges).toBe(10);
     });
 
     test('eight curves dragged end to end close a loop', async ({ page, app }) => {

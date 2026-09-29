@@ -15,6 +15,9 @@ test.describe('Parts Bin', () => {
         // Should have section headers for part categories
         await expect(partsBin.getByRole('heading', { name: 'Straights' })).toBeVisible();
         await expect(partsBin.getByRole('heading', { name: 'Curves' })).toBeVisible();
+        await expect(partsBin.getByRole('heading', { name: 'Turnouts' })).toBeAttached();
+        await expect(partsBin.getByRole('heading', { name: 'Crossings & crossovers' })).toBeAttached();
+        await expect(partsBin.getByRole('heading', { name: 'Buffer stops' })).toBeAttached();
     });
 
     test('should display draggable part cards', async ({ page }) => {

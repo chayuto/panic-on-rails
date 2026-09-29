@@ -4,7 +4,7 @@
  * Goes beyond template-simlog's basic "loads + trains move" check.
  * Validates:
  * 1. Graph topology: correct node types, switch nodes, open endpoints
- * 2. Figure-8 geometry: two semicircle centers, crossing region
+ * 2. Oval geometry: two semicircle centers
  * 3. Full loop coverage: trains visit ALL main-loop edges (not just 1-2)
  * 4. Switch toggling: divert a train into the siding branch
  * 5. Siding dead-end: train bounces when diverted to siding
@@ -17,7 +17,7 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     await page.selectOption('[data-testid="file-template-selector"]', 'crossover-express');
 
     await page.waitForFunction(
-        () => Object.keys(window.__PANIC_STORES__?.track.getState().edges ?? {}).length === 13,
+        () => Object.keys(window.__PANIC_STORES__?.track.getState().edges ?? {}).length === 22,
         { timeout: 5000 },
     );
 
@@ -89,13 +89,13 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     console.log(`  Edges by part:`, topo.edgesByPart);
     console.log(`  Main loop edges: ${topo.mainLoopEdgeCount}`);
 
-    expect(topo.edgeCount).toBe(13);
-    expect(topo.switchCount).toBe(2); // A1 and B1 of the crossover
-    expect(topo.endpointCount).toBeLessThanOrEqual(2); // B2 siding + possibly 1 more
+    expect(topo.edgeCount).toBe(22);
+    expect(topo.switchCount).toBe(2); // the crossover's two turnouts
+    expect(topo.endpointCount).toBe(2); // the siding's two buffer stops
     // All edges should be reachable from any edge (single connected component)
-    expect(topo.mainLoopEdgeCount).toBe(13);
+    expect(topo.mainLoopEdgeCount).toBe(22);
 
-    // ─── 3. FIGURE-8 GEOMETRY ───────────────────────────────────────
+    // ─── 3. OVAL GEOMETRY ───────────────────────────────────────────
     const geo = await page.evaluate(() => {
         const state = window.__PANIC_STORES__!.track.getState();
         const edges = Object.values(state.edges) as any[];
@@ -139,14 +139,14 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
         };
     });
 
-    console.log('\n=== Figure-8 Geometry ===');
+    console.log('\n=== Oval Geometry ===');
     console.log(`  Arc center groups: ${geo.arcCenterGroups.length}`);
     for (const g of geo.arcCenterGroups) {
         console.log(`    Center (${g.x}, ${g.y}): ${g.count} arcs`);
     }
     console.log(`  Bounding box: ${geo.bbox.width.toFixed(0)}×${geo.bbox.height.toFixed(0)}`);
 
-    // Figure-8 requires exactly 2 distinct arc centers (one per semicircle)
+    // An oval has exactly 2 distinct arc centers (one per end)
     const curveCenters = geo.arcCenterGroups.filter(g => g.count >= 3);
     expect(curveCenters.length).toBe(2);
 
@@ -155,7 +155,7 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     console.log(`  Center separation: ${centerDist.toFixed(0)}px`);
     expect(centerDist).toBeGreaterThan(50);
 
-    // Both centers should be at roughly the same Y (figure-8 is vertically symmetric)
+    // Both centers should be at roughly the same Y (the oval is symmetric)
     const yDiff = Math.abs(curveCenters[0].y - curveCenters[1].y);
     expect(yDiff).toBeLessThan(10);
 
@@ -241,8 +241,9 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     console.log(`  Events: ${coverage.traverseEvents} traversals, ${coverage.bounceEvents} bounces, ${coverage.totalEvents} total`);
     console.log(`  Elapsed: ${coverage.elapsed.toFixed(1)}s`);
 
-    // Unvisited edges are: siding (1) + crossover branch paths (2, only used when switch toggled)
-    expect(coverage.unvisitedCount).toBeLessThanOrEqual(3);
+    // Unvisited: the siding track (4 edges + 2 bumpers) and the crossover route (1),
+    // all only reachable once the crossover is thrown
+    expect(coverage.unvisitedCount).toBeLessThanOrEqual(7);
     // Both trains should have visited multiple edges
     for (const count of Object.values(coverage.trainCoverage)) {
         expect(count).toBeGreaterThanOrEqual(3);
@@ -267,7 +268,9 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     const switchResult = await page.evaluate(() => {
         const state = window.__PANIC_STORES__!.track.getState();
         const nodes = Object.values(state.nodes) as any[];
-        const switchNode = nodes.find((n: any) => n.type === 'switch' && n.switchState === 0);
+        // The main line's turnout: the one joined to a plain S124 of the oval
+        const switchNode = nodes.find((n: any) => n.type === 'switch' && n.switchState === 0
+            && n.connections.some((id: string) => (state.edges as any)[id]?.partId === 'kato-20-020'));
         if (!switchNode) return { toggled: false, nodeId: null, beforeState: -1 };
 
         const beforeState = switchNode.switchState;

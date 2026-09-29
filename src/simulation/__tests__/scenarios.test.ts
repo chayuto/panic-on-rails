@@ -28,11 +28,28 @@ describe('template scenarios (headless)', () => {
         expect(count(events, 'traverse')).toBeGreaterThan(20);
     });
 
-    it('crossover-express: two trains share a figure-8 for 60 s without crashing', () => {
-        loadRecipe(loadTemplateJson('crossover-express'));
-        const events = simHarness.runSeconds(60);
-        expect(summarize().crashed).toBe(0);
-        expect(count(events, 'traverse')).toBeGreaterThan(40);
+    describe('crossover-express (oval with a crossover into a siding)', () => {
+        /** The main line's turnout: the one joined to a plain S124 of the oval. */
+        const mainTurnout = () => {
+            const { nodes, edges } = useTrackStore.getState();
+            return Object.values(nodes).find(n => n.type === 'switch'
+                && n.connections.some(id => edges[id]?.partId === 'kato-20-020'))!;
+        };
+
+        it('two trains lap the oval for 60 s without crashing', () => {
+            loadRecipe(loadTemplateJson('crossover-express'));
+            const events = simHarness.runSeconds(60);
+            expect(summarize().crashed).toBe(0);
+            expect(count(events, 'traverse')).toBeGreaterThan(40);
+            expect(count(events, 'bounce')).toBe(0);
+        });
+
+        it('throwing the crossover sends a train into the siding, where the buffer stops turn it back', () => {
+            loadRecipe(loadTemplateJson('crossover-express'));
+            useTrackStore.getState().toggleSwitch(mainTurnout().id);
+            const events = simHarness.runSeconds(20);
+            expect(count(events, 'bounce')).toBeGreaterThan(0);
+        });
     });
 
     describe('switch-showdown (passing-loop puzzle)', () => {

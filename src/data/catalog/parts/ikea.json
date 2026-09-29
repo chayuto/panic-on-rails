@@ -2,6 +2,7 @@
     "version": 1,
     "brand": "ikea",
     "scale": "wooden",
+    "trackWidth": 40,
     "parts": [
         {
             "id": "ikea-straight-long",

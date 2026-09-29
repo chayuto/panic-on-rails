@@ -34,11 +34,11 @@
         {
             "id": "crossover-express",
             "name": "Crossover Express",
-            "description": "A figure-8 loop with a #4 crossover — flip the switch to divert trains!",
+            "description": "An oval with a #4 crossover into a siding. Throw it to send a train in, but mind the buffer stops!",
             "difficulty": "intermediate",
             "system": "n-scale",
-            "estimatedCost": 9500,
-            "partCount": 10,
+            "estimatedCost": 9516,
+            "partCount": 15,
             "trainCount": 2
         }
     ]

@@ -23,7 +23,8 @@ import { calculateArcLength } from './helpers';
 function transformToPart(
     jsonPart: JsonPart,
     brand: PartBrand,
-    scale: PartScale
+    scale: PartScale,
+    trackWidth?: number
 ): PartDefinition {
     let geometry: PartGeometry;
     let defaultCost: number;
@@ -63,6 +64,7 @@ function transformToPart(
                 type: 'crossing',
                 length: jsonPart.length,
                 crossingAngle: jsonPart.crossingAngle,
+                ...(jsonPart.crossLength !== undefined && { crossLength: jsonPart.crossLength }),
             };
             // Default cost: $20 for crossings
             defaultCost = 2000;
@@ -92,6 +94,7 @@ function transformToPart(
         description: jsonPart.description,
         discontinued: jsonPart.discontinued,
         referenceUrl: jsonPart.referenceUrl,
+        width: jsonPart.width ?? trackWidth,
     };
 }
 
@@ -120,7 +123,7 @@ export function parsePartsCatalog(data: unknown): PartDefinition[] {
     }
 
     const catalog = result.data;
-    return catalog.parts.map(part => transformToPart(part, catalog.brand, catalog.scale));
+    return catalog.parts.map(part => transformToPart(part, catalog.brand, catalog.scale, catalog.trackWidth));
 }
 
 /**
@@ -144,7 +147,7 @@ export function parseCatalogWithMeta(data: unknown): {
     return {
         brand: catalog.brand,
         scale: catalog.scale,
-        parts: catalog.parts.map(part => transformToPart(part, catalog.brand, catalog.scale)),
+        parts: catalog.parts.map(part => transformToPart(part, catalog.brand, catalog.scale, catalog.trackWidth)),
     };
 }
 
