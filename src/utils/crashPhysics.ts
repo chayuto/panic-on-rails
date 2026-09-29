@@ -67,7 +67,14 @@ function generatePartId(): string {
  * Explode a train into scattered parts.
  * Creates parts with velocities based on impact and random spread.
  */
-export function explodeTrain(crash: CrashEvent): CrashedPart[] {
+export function explodeTrain(crash: CrashEvent, random: () => number = Math.random): CrashedPart[] {
+    const randomSpread = (range: number) => (random() - 0.5) * range;
+    const createPart = (
+        type: CrashPartType,
+        position: Vector2,
+        baseVelocity: { vx: number; vy: number },
+        color: string
+    ) => createPartWith(type, position, baseVelocity, color, randomSpread);
     const parts: CrashedPart[] = [];
     const { position, velocity, trainColor, severity } = crash;
 
@@ -118,11 +125,12 @@ export function explodeTrain(crash: CrashEvent): CrashedPart[] {
 /**
  * Create a single crashed part with physics properties.
  */
-function createPart(
+function createPartWith(
     type: CrashPartType,
     position: Vector2,
     baseVelocity: { vx: number; vy: number },
-    color: string
+    color: string,
+    randomSpread: (range: number) => number
 ): CrashedPart {
     const def = PART_DEFINITIONS[type];
 
@@ -145,13 +153,6 @@ function createPart(
         color,
         settled: false,
     };
-}
-
-/**
- * Generate random spread value for explosion variation.
- */
-function randomSpread(range: number): number {
-    return (Math.random() - 0.5) * range;
 }
 
 // ===========================

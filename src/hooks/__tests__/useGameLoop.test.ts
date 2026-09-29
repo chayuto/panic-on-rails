@@ -80,6 +80,7 @@ describe('useGameLoop', () => {
                 distance: 100,
                 edgeId: 'e1',
                 direction: 1,
+                bounced: false,
             };
         });
 
