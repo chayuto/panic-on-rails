@@ -1,6 +1,6 @@
 # 🚂 PanicOnRails
 
-> **Free, open-source train track planner that runs entirely in your browser.**
+> **A virtual model railway in your browser: real starter sets, real track, trains that run.**
 
 [![Try Live Demo](https://img.shields.io/badge/Try-Live%20Demo-blue?style=for-the-badge)](https://panic-on-rails.chayuto.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -10,18 +10,32 @@
 
 ## What is PanicOnRails?
 
-PanicOnRails is an **open-source web application** for designing model train layouts and simulating train operations. It combines precision track geometry from real-world standards (Kato N-Scale) with an intuitive, playful interface inspired by classic wooden train sets.
+Model trains are wonderful, but the boxes are expensive and the table is never big enough. PanicOnRails is a **virtual model railway** for everyone who loves the hobby without the budget or the space.
+
+1. **Open a real starter set.** The Kato Unitrack M1 box, for example, holds four 248 mm straights, eight R315 curves, a feeder and a rerailer, just as in the shop.
+2. **Build the layouts from its manual,** or your own. Every piece is a real product with its real geometry, so if it closes here it closes on your table.
+3. **Run your trains.** Throw switches, set signals, and try not to crash.
 
 **🎮 [Try it now - no download required!](https://panic-on-rails.chayuto.com/)**
 
 ### Key Features
 
-- 🌐 **Runs in your browser** — No installation, works on any device
-- 💰 **100% Free & Open Source** — MIT licensed, forever free
-- 🛤️ **Kato N-Scale accuracy** — Real track geometry and dimensions
-- 💾 **Save & Share** — Export/import layouts as JSON files
-- 🖥️ **Desktop-first** — Optimized for precision with tablet support
-- 🚂 **Graph-based simulation** — Realistic train movement logic
+- 📦 **Real boxed sets:**
+  - Kato Unitrack master sets and the expansion sets that extend them.
+  - Exact contents and layout plans. Tests prove every plan closes.
+- 🛤️ **Accurate track:**
+  - Kato N-scale geometry: straights, R216–R718 curves, #4/#6 turnouts, crossings and
+    crossovers.
+  - Brio and IKEA wooden track too.
+- 🚂 **A real running simulation:**
+  - Trains follow the track graph through switches and stop at red signals.
+  - Sensors can automate switches.
+  - Two trains on one line end in a spectacular crash.
+- 🌐 **Runs in your browser:** no install, free and open source (MIT).
+- 💾 **Save & share:** export and import layouts as JSON.
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for where it's going: a collection you grow with
+virtual money earned by running trains, power-pack driving, and more brands.
 
 ## Why PanicOnRails?
 
