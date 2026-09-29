@@ -82,11 +82,11 @@ export class StoreBridge {
         );
     }
 
-    async connectNodes(survivorId: string, removedId: string, edgeId: string): Promise<void> {
+    async connectNodes(survivorId: string, removedId: string): Promise<void> {
         await this.page.evaluate(
-            ({ survivorId, removedId, edgeId }) =>
-                window.__PANIC_STORES__!.track.connectNodes(survivorId, removedId, edgeId),
-            { survivorId, removedId, edgeId },
+            ({ survivorId, removedId }) =>
+                window.__PANIC_STORES__!.track.connectNodes(survivorId, removedId),
+            { survivorId, removedId },
         );
     }
 

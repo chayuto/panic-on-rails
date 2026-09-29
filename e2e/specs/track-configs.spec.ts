@@ -38,7 +38,7 @@ async function autoConnect(stores: StoreBridge, _page: Page, tolerance = 5): Pro
 
                 if (dist < tolerance) {
                     // Connect them
-                    await stores.connectNodes(a.id, b.id, a.connections[0]);
+                    await stores.connectNodes(a.id, b.id);
                     connected++;
                     foundPair = true;
                     break;

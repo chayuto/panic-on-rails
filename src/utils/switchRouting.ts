@@ -7,9 +7,60 @@
  */
 
 import type { TrackNode, TrackEdge } from '../types';
+import { isInsidePiece } from './graphAnalysis';
 
 type NodeId = string;
 type EdgeId = string;
+
+/** The points that move with `node`: every set linked to it, or just itself. */
+export function linkedPoints(node: TrackNode, nodes: Record<NodeId, TrackNode>): TrackNode[] {
+    if (!node.switchGroup) return [node];
+    return Object.values(nodes).filter(n => n.type === 'switch' && n.switchGroup === node.switchGroup);
+}
+
+/**
+ * One route through a piece, from the points at `from` along `firstEdgeId`:
+ * on through the joints inside the piece (a curved turnout's straight and
+ * arc, a crossover's diagonal), to the node where the piece ends.
+ */
+export function routeThroughPiece(
+    from: NodeId,
+    firstEdgeId: EdgeId,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): { edges: EdgeId[]; end: NodeId } {
+    const route: EdgeId[] = [];
+    let at = from;
+    let edge: TrackEdge | undefined = edges[firstEdgeId];
+    while (edge && !route.includes(edge.id)) {
+        route.push(edge.id);
+        at = edge.startNodeId === at ? edge.endNodeId : edge.startNodeId;
+        const node = nodes[at];
+        if (!node || !isInsidePiece(node, edges)) break;
+        const current: EdgeId = edge.id;
+        edge = edges[node.connections.find(id => id !== current) ?? ''];
+    }
+    return { edges: route, end: at };
+}
+
+/**
+ * Which way the branch leaves the main route at a set of points: +1 to the
+ * right (clockwise on screen), -1 to the left. Judged from where each route
+ * leaves the piece, since both may start out straight ahead (a double
+ * crossover's diagonal does).
+ */
+export function branchSide(
+    node: TrackNode,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): 1 | -1 {
+    if (!node.switchBranches) return 1;
+    const [main, branch] = node.switchBranches.map(id => nodes[routeThroughPiece(node.id, id, edges, nodes).end]?.position);
+    if (!main || !branch) return 1;
+    const m = { x: main.x - node.position.x, y: main.y - node.position.y };
+    const b = { x: branch.x - node.position.x, y: branch.y - node.position.y };
+    return m.x * b.y - m.y * b.x >= 0 ? 1 : -1;
+}
 
 /**
  * Determine the exit edge when a train reaches a switch node.

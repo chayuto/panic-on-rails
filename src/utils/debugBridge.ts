@@ -56,7 +56,7 @@ export interface PanicStoreBridge {
         clearLayout: () => void;
         getLayout: () => unknown;
         getOpenEndpoints: () => unknown[];
-        connectNodes: (survivorId: string, removedId: string, edgeId: string) => void;
+        connectNodes: (survivorId: string, removedId: string) => void;
         connectNetworks: (anchorId: string, movingId: string, movingEdgeId: string, rotationDelta: number) => void;
         toggleSwitch: (nodeId: string) => void;
     };
@@ -193,8 +193,8 @@ export function initDebugBridge(): void {
                 useTrackStore.getState().getLayout(),
             getOpenEndpoints: () =>
                 useTrackStore.getState().getOpenEndpoints(),
-            connectNodes: (survivorId, removedId, edgeId) =>
-                useTrackStore.getState().connectNodes(survivorId, removedId, edgeId),
+            connectNodes: (survivorId, removedId) =>
+                useTrackStore.getState().connectNodes(survivorId, removedId),
             connectNetworks: (anchorId, movingId, movingEdgeId, rotationDelta) =>
                 useTrackStore.getState().connectNetworks(anchorId, movingId, movingEdgeId, rotationDelta),
             toggleSwitch: (nodeId) =>

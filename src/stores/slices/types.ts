@@ -44,7 +44,8 @@ export type TrackSlice = TrackSliceState & TrackSliceActions;
 // ===========================
 
 export interface ConnectionSliceActions {
-    connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId, newEdgeId: EdgeId) => void;
+    /** Join two nodes: every edge at the removed one moves to the survivor */
+    connectNodes: (survivorNodeId: NodeId, removedNodeId: NodeId) => void;
     connectNetworks: (
         anchorNodeId: NodeId,
         movingNodeId: NodeId,
@@ -57,6 +58,7 @@ export interface ConnectionSliceActions {
         targetPosition: Vector2,
         rotationDelta: number
     ) => void;
+    /** Throw a set of points, and any points linked to it */
     toggleSwitch: (nodeId: NodeId) => void;
 }
 

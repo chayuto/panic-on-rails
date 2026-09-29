@@ -224,7 +224,7 @@ describe('useConnectMode Logic', () => {
             const track2 = placeTrack({ x: 224, y: 100 });
 
             // Connect them to create a junction
-            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId, track2.edgeId);
+            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId);
 
             const mergedNode = getTrackState().nodes[track1.endNodeId];
             expect(mergedNode.connections.length).toBe(2);
@@ -323,7 +323,7 @@ describe('useConnectMode Logic', () => {
         it('should do nothing if node has 2+ connections (junction)', () => {
             const track1 = placeTrack({ x: 100, y: 100 });
             const track2 = placeTrack({ x: 224, y: 100 });
-            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId, track2.edgeId);
+            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId);
 
             const result = handleFirstClick(track1.endNodeId);
 
@@ -633,7 +633,7 @@ describe('useConnectMode Logic', () => {
             const track3 = placeTrack({ x: 500, y: 100 });
 
             // Create junction at track1.end
-            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId, track2.edgeId);
+            useTrackStore.getState().connectNodes(track1.endNodeId, track2.startNodeId);
 
             const junctionNode = getTrackState().nodes[track1.endNodeId];
             const targetNode = getTrackState().nodes[track3.startNodeId];
@@ -650,7 +650,7 @@ describe('useConnectMode Logic', () => {
             const track3 = placeTrack({ x: 500, y: 100 });
 
             // Create junction at track2.end
-            useTrackStore.getState().connectNodes(track2.endNodeId, track3.startNodeId, track3.edgeId);
+            useTrackStore.getState().connectNodes(track2.endNodeId, track3.startNodeId);
 
             const sourceNode = getTrackState().nodes[track1.startNodeId];
             const junctionNode = getTrackState().nodes[track2.endNodeId];

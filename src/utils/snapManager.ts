@@ -33,6 +33,7 @@ import {
 } from './geometry';
 
 import { INTERACTIONS } from '../config/interactions';
+import { isOpenEnd } from './graphAnalysis';
 
 // Re-export for backward compatibility
 export { normalizeAngle, angleDifference, distance, localToWorld, rotateAroundPivot };
@@ -81,11 +82,11 @@ export function getConnectorById(
 // ===========================
 
 /**
- * Find all open endpoints in the track graph.
- * An open endpoint has connections < maxConnections (typically 1).
+ * Find all open endpoints in the track graph: plain ends, and points with
+ * nothing joined beyond them.
  */
 export function findOpenEndpoints(nodes: Record<NodeId, TrackNode>): TrackNode[] {
-    return Object.values(nodes).filter(node => node.connections.length === 1 && !node.bumper);
+    return Object.values(nodes).filter(isOpenEnd);
 }
 
 /**

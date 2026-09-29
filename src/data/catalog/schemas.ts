@@ -19,6 +19,7 @@ const OptionalPartFields = {
     cost: z.number().int().positive().optional(),
     width: z.number().positive().optional(),
     roadCrossing: z.boolean().optional(),
+    category: z.enum(['straight', 'curve', 'turnout', 'crossing', 'bumper']).optional(),
     productCode: z.string().optional(),
     description: z.string().optional(),
     discontinued: z.boolean().optional(),
@@ -128,6 +129,34 @@ const CompoundPartBaseSchema = z.object({
 });
 
 // ===========================
+// Topology Part Schema (curved turnouts, slips, scissors)
+// ===========================
+
+const TopologyStepSchema = z.union([
+    z.object({ straight: z.number().positive() }).strict(),
+    z.object({
+        arc: z.number().positive(),
+        angle: z.number().positive().max(180),
+        turn: z.enum(['left', 'right']),
+    }).strict(),
+]);
+
+const TopologyPartSchema = z.object({
+    id: z.string().min(1, 'Part ID is required'),
+    name: z.string().min(1, 'Part name is required'),
+    type: z.literal('topology'),
+    connectors: z.record(z.string(), z.object({ x: z.number(), y: z.number(), heading: z.number() }))
+        .refine(c => Object.keys(c).length > 0, 'At least one connector is required'),
+    routes: z.array(z.object({
+        from: z.string().min(1),
+        to: z.string().min(1),
+        path: z.array(TopologyStepSchema).min(1),
+    })).min(1),
+    points: z.array(z.array(z.string().min(1)).min(2)).optional(),
+    ...OptionalPartFields,
+});
+
+// ===========================
 // Combined Part Schema
 // ===========================
 
@@ -141,6 +170,7 @@ export const PartSchema = z.discriminatedUnion('type', [
     SwitchPartBaseSchema,
     CrossingPartSchema,
     CompoundPartBaseSchema,
+    TopologyPartSchema,
 ]).superRefine((data, ctx) => {
     if (data.type === 'switch') {
         if (data.branchRadius === undefined && data.branchLength === undefined) {
@@ -159,12 +189,12 @@ export const PartSchema = z.discriminatedUnion('type', [
 /**
  * Brand enum matching PartBrand type
  */
-export const PartBrandSchema = z.enum(['kato', 'tomix', 'brio', 'ikea', 'generic']);
+export const PartBrandSchema = z.enum(['kato', 'marklin', 'hornby', 'tomix', 'brio', 'ikea', 'generic']);
 
 /**
  * Scale enum matching PartScale type
  */
-export const PartScaleSchema = z.enum(['n-scale', 'ho-scale', 'wooden']);
+export const PartScaleSchema = z.enum(['n-scale', 'ho-scale', 'oo-scale', 'wooden']);
 
 /**
  * Complete parts catalog file schema

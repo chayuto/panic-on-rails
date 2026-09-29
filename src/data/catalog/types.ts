@@ -105,13 +105,57 @@ export interface CompoundGeometry {
     boundingBox: { width: number; height: number };
 }
 
+// ===========================
+// Topology Geometry (general parts: curved turnouts, slips, scissors)
+// ===========================
+
+/** One piece of a route: a straight, or an arc turning left or right. */
+export type TopologyStep =
+    | { straight: number }
+    | { arc: number; angle: number; turn: 'left' | 'right' };
+
+/** A way through the piece, from one connector to another. */
+export interface TopologyRoute {
+    /** Connector the route starts at */
+    from: string;
+    /** Connector it ends at: created here if new, checked if it already exists */
+    to: string;
+    /** The track, in order, like a manufacturer's spec sheet: "straight 17, R583 12.9° right..." */
+    path: TopologyStep[];
+}
+
+/**
+ * A general track piece, described by its routes. Where two routes meet at
+ * a connector there is a set of points; the earlier-listed route is the
+ * points' normal position (state 0). Routes may cross each other without
+ * meeting (a diamond). Covers curved turnouts, double slips and scissors
+ * crossovers that the fixed geometry types can't.
+ */
+export interface TopologyGeometry {
+    type: 'topology';
+    /**
+     * Connectors routes start from: position (mm) and heading INTO the
+     * piece (degrees). The first is the part's primary connector.
+     */
+    connectors: Record<string, { x: number; y: number; heading: number }>;
+    routes: TopologyRoute[];
+    /**
+     * Points thrown together by one control, named by connector: all four of
+     * Kato's double crossover, or each end of a double slip. Linked points
+     * take the same position, so list each one's normal route first. Points
+     * not named here move alone.
+     */
+    points?: string[][];
+}
+
 /** Union of all geometry types */
 export type PartGeometry =
     | StraightGeometry
     | CurveGeometry
     | SwitchGeometry
     | CrossingGeometry
-    | CompoundGeometry;
+    | CompoundGeometry
+    | TopologyGeometry;
 
 // ===========================
 // Brand & Scale
@@ -120,6 +164,8 @@ export type PartGeometry =
 /** Known track brands */
 export type PartBrand =
     | 'kato'      // Kato Unitrack
+    | 'marklin'   // Märklin C-track
+    | 'hornby'    // Hornby Setrack
     | 'tomix'     // Tomix Fine Track
     | 'brio'      // Brio Wooden Railway
     | 'ikea'      // IKEA Lillabo
@@ -128,7 +174,8 @@ export type PartBrand =
 /** Track scales/systems */
 export type PartScale =
     | 'n-scale'   // 1:160, 9mm gauge
-    | 'ho-scale'  // 1:87, 16.5mm gauge
+    | 'ho-scale'  // 1:87, 16.5mm gauge (Märklin C-track)
+    | 'oo-scale'  // 1:76, 16.5mm gauge (Hornby Setrack)
     | 'wooden';   // Toy wooden railways
 
 // ===========================
@@ -195,7 +242,13 @@ export interface PartDefinition {
 
     /** The piece carries road-crossing plates as wide as `width` */
     roadCrossing?: boolean;
+
+    /** Where the part sits in the parts bin. Default: from its geometry. */
+    category?: PartCategory;
 }
+
+/** Parts-bin section a part belongs to. */
+export type PartCategory = 'straight' | 'curve' | 'turnout' | 'crossing' | 'bumper';
 
 // ===========================
 // Re-exports for convenience

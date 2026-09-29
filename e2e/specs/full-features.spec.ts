@@ -51,7 +51,7 @@ test.describe('Connect Mode — Join Track Endpoints', () => {
         const nodeB = sorted[2] as any;  // Left end of second track
 
         // Connect them via store
-        await stores.connectNodes(nodeA.id, nodeB.id, Object.keys(before.edges)[1]);
+        await stores.connectNodes(nodeA.id, nodeB.id);
         await page.waitForTimeout(200);
         await snap('02-after-connect');
 

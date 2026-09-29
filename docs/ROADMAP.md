@@ -207,8 +207,20 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
 - [x] **Fixed:** the #4 single crossovers' turnouts diverged *away* from each other, a 33 mm jump,
       and only half of each track existed. A new invariant checks that every edge reaches its
       nodes, for every part including compounds.
-- [ ] V7 (double crossover) needs a WX310 double crossover part. Double-track sets (V11–V15)
-      need double-track pieces.
+- [x] **Fixed: joining track at points.**
+  - Dropping a turnout onto a track end by its entry deleted the points, and left the
+    branch pointing at a node that no longer existed. Joins now move every edge and keep
+    the points (`connectionOps/merge.ts`).
+  - Unjoined points count as open ends (`isOpenEnd`), so track snaps onto a turnout's entry.
+  - Every open end of a dropped piece joins, not only its first edge's.
+  - A train reaching points with nothing beyond them stops, instead of U-turning onto the
+    other route.
+  - A route is dimmed along its whole length, and only when no points send trains along it.
+    The points' wedge swings toward the branch's side, and its animation now finishes.
+- [x] **V7 double crossover** (20-866): the WX310 scissors crossover (20-210), built with the
+      general part topology (Phase 6). Its plans lay it into M1 with V5's inner oval, or V6's
+      outer one.
+- [ ] Double-track sets (V11–V15) need double-track pieces.
 - [ ] More brands' ladders: Hornby Track Packs A–F and Märklin C1–C5 need curved turnouts and a
       double slip (Phase 6).
 
@@ -318,9 +330,15 @@ Order, biggest win per millisecond first:
 
 ### Phase 6: More systems and complex parts
 
-- [ ] A general part topology (connectors, segments and routes) that replaces the per-type track
-      creators. It enables double slips, curved turnouts, 3-way turnouts and scissors
-      crossovers.
+- [x] **General part topology** (`type: "topology"`): a part is its connectors and the routes
+      between them, as paths of straights and arcs. Two routes at one connector make points.
+  - One resolver (`data/catalog/topology.ts`) feeds both the connector model and the track
+    creator, and rejects routes that should meet but don't.
+  - It builds scissors crossovers (Kato WX310), curved turnouts and double slips.
+  - **Linked points:** one control throws several sets, like the WX310's single control for
+    all four (`switchGroup` on the nodes).
+  - Still open: 3-way turnouts need three-position points. The older parts keep their
+    per-type creators; move them over only if one needs a change.
 - [ ] Brands: Märklin C-track (start sets plus C1–C5), Hornby Setrack (Track Packs A–F), Tomix
       Fine Track, Bachmann E-Z Track.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.

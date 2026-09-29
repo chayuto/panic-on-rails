@@ -68,7 +68,7 @@ Measurements"), cross-checked against Kato's set guides and Kato Japan's set pag
 | **V4** 20-863 | S248×4, S62×2, R481-15×2, #4 L + R, S60L×2, S60R×2 | 992 × 58 | ✅ #4 siding inside M1, at 33 mm |
 | **V5** 20-864 | M1's straights, R282-45×8 | 1271 × 611 | ✅ Inner oval, 33 mm inside M1 |
 | **V6** 20-865 | M1's straights, R348-45×8 | 1403 × 743 | ✅ Outer oval, 33 mm outside M1 |
-| **V7** 20-866 | WX310 double crossover, S248×2, S62×2 | 310 × 58 | ❌ Needs a double crossover part |
+| **V7** 20-866 | WX310 double crossover, S248×2, S62×2 | 310 × 58 | ✅ Scissors crossover laid into M1 with V5's or V6's oval |
 | **V11–V15** 20-870… | Double-track pieces, some superelevated or elevated | — | ❌ Needs double-track pieces |
 
 What the measurements taught us:
@@ -96,10 +96,10 @@ Exact contents and sources for every shipped set live in its JSON file
 | Feeder, rerailer/road-crossing straights, S60 cut straights | ✅ as their own parts, with product numbers | Their visuals: Phase 5 |
 | Bumpers | ✅ Buffer-stop ends: not connectable, trains turn back | — |
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
-| Double crossover (V7) | ❌ | Needs the general part topology (Phase 6) |
+| Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
 | Double-track pieces (V11–V15) | ❌ | Phase 6 |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
-| Curved turnouts, double slip (Märklin C3–C5, Hornby) | ❌ | General part topology (Phase 6) |
+| Curved turnouts, double slip (Märklin C3–C5, Hornby) | Engine ready: the topology parts that built the WX310 | The parts and their brands (Phase 6) |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
 | The train in a train set | Partial: generic coloured trains | Rolling stock as data (Phase 4) |
 | Buying the next box | ❌ | Collection, wallet and shop (Phase 3) |

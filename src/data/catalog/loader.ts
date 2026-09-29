@@ -81,6 +81,16 @@ function transformToPart(
             // Default cost: $30 for compound parts
             defaultCost = 3000;
             break;
+
+        case 'topology':
+            geometry = {
+                type: 'topology',
+                connectors: jsonPart.connectors,
+                routes: jsonPart.routes,
+                ...(jsonPart.points && { points: jsonPart.points }),
+            };
+            defaultCost = 4000;
+            break;
     }
 
     return {
@@ -97,6 +107,7 @@ function transformToPart(
         width: jsonPart.width ?? trackWidth,
         roadbedWidth: trackWidth,
         ...(jsonPart.roadCrossing && { roadCrossing: true }),
+        ...(jsonPart.category && { category: jsonPart.category }),
     };
 }
 

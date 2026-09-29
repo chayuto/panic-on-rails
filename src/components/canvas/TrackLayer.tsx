@@ -9,7 +9,11 @@ import { useConnectMode } from '../../hooks/useConnectMode';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
-import type { Vector2 } from '../../types';
+import type { EdgeId, NodeId, Vector2 } from '../../types';
+import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
+import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
+import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
+import { normalizeAngle } from '../../utils/geometry';
 
 import { NodeRenderer } from './tracks';
 import { EdgeHitTarget } from './tracks/EdgeHitTarget';
@@ -56,16 +60,36 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         return Object.values(edges).filter(edge => idSet.has(edge.id));
     }, [edges, visibleEdgeIds]);
 
-    // Turnout routes currently set against trains
+    // Routes through a piece that no set of points on them is set for: a
+    // crossover's diagonal is live if the points at either end send trains
+    // along it
     const inactiveEdges = useMemo(() => {
-        const set = new Set<string>();
+        const live = new Set<EdgeId>();
+        const against = new Set<EdgeId>();
         for (const node of Object.values(nodes)) {
-            if (node.type === 'switch' && node.switchBranches) {
-                set.add(node.switchBranches[node.switchState === 1 ? 0 : 1]);
-            }
+            if (node.type !== 'switch' || !node.switchBranches) continue;
+            node.switchBranches.forEach((branch, i) => {
+                const into = i === (node.switchState ?? 0) ? live : against;
+                for (const id of routeThroughPiece(node.id, branch, edges, nodes).edges) into.add(id);
+            });
         }
-        return set;
-    }, [nodes]);
+        for (const id of live) against.delete(id);
+        return against;
+    }, [nodes, edges]);
+
+    // Each set of points: the way its main route leaves, and the side its branch goes
+    const pointsLook = useMemo(() => {
+        const looks = new Map<NodeId, { heading: number; side: 1 | -1 }>();
+        for (const node of Object.values(nodes)) {
+            const main = node.switchBranches && edges[node.switchBranches[0]];
+            if (node.type !== 'switch' || !main) continue;
+            looks.set(node.id, {
+                heading: normalizeAngle(getNodeFacadeFromEdge(node.id, main) + 180),
+                side: branchSide(node, edges, nodes),
+            });
+        }
+        return looks;
+    }, [nodes, edges]);
 
     const painted = useMemo<PaintedEdge[]>(() => visibleEdges.flatMap(edge => {
         const geometry = getEdgeWorldGeometry(edge, nodes);
@@ -108,11 +132,13 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
 
             {Object.values(nodes).map((node) => {
                 if (node.type === 'switch') {
+                    const look = pointsLook.get(node.id);
                     return (
                         <SwitchRenderer
                             key={node.id}
                             node={node}
-                            edges={edges}
+                            heading={look?.heading ?? node.rotation + 180}
+                            branchSide={look?.side ?? 1}
                             onSwitchClick={handleSwitchClick}
                             onRipple={triggerRipple}
                             onHoverEnter={onSwitchHoverEnter}
@@ -123,8 +149,10 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
 
                 // Joint dots are an editing aid; buffer stops are part of the track
                 if (!isEditing && !node.bumper) return null;
+                // Where a piece's own track joins itself is no joint to show
+                if (isInsidePiece(node, edges)) return null;
 
-                const isOpenEndpoint = node.connections.length === 1 && !node.bumper;
+                const isOpenEndpoint = isOpenEnd(node);
                 const isSource = connectSource?.nodeId === node.id;
                 const isValidTarget = isConnectMode && isOpenEndpoint && isValidConnectTarget(node.id);
 

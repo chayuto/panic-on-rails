@@ -29,6 +29,7 @@ import { createPartTrack } from './trackCreators';
 
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
 import { LayoutDataSchema } from '../../schemas/layout';
+import { isOpenEnd } from '../../utils/graphAnalysis';
 
 // Declare build-time constant
 declare const __BUILD_TIME__: string;
@@ -266,12 +267,8 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      * @returns Array of track nodes with open connections
      */
     getOpenEndpoints: () => {
-        const state = get();
-        // Open endpoints are nodes with only 1 connection (one open side);
-        // a buffer stop is a dead end, not an open end
-        return Object.values(state.nodes).filter(
-            node => node.connections.length === 1 && !node.bumper
-        );
+        // Plain ends and points with nothing beyond them; not buffer stops
+        return Object.values(get().nodes).filter(isOpenEnd);
     },
 });
 

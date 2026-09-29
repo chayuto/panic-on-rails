@@ -179,6 +179,12 @@ export function resolveNextEdge(
 
     // Choice logic
     if (node.type === 'switch' && node.switchBranches) {
+        // Trailing through points with no track beyond them: a dead end, not
+        // a hairpin onto the other route
+        const branches: readonly EdgeId[] = node.switchBranches;
+        if (branches.includes(currentEdgeId) && otherConnections.every(id => branches.includes(id))) {
+            return null;
+        }
         const switchExit = getSwitchExitEdge(node, currentEdgeId);
         if (switchExit && otherConnections.includes(switchExit)) {
             return switchExit;

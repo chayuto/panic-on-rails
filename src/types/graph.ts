@@ -17,6 +17,8 @@ export interface TrackNode {
     // Switch-specific fields
     switchState?: 0 | 1;           // 0 = main path, 1 = branch path
     switchBranches?: [EdgeId, EdgeId]; // [mainEdgeId, branchEdgeId] - exit edges
+    /** Points that share a group are thrown together by one control (a double crossover's four) */
+    switchGroup?: string;
 }
 
 /** A rail segment connecting two nodes */

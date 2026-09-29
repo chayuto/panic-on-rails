@@ -69,8 +69,9 @@ function previousEdge(node: TrackNode, edgeId: EdgeId, remembered: EdgeId | unde
     if (node.type === 'switch' && node.switchBranches) {
         const [main, branch] = node.switchBranches;
         if (edgeId === main || edgeId === branch) {
-            // Leaving the turnout's routes backward: out through its entry
-            return candidates.find(id => id !== main && id !== branch) ?? candidates[0];
+            // Leaving the turnout's routes backward: out through its entry,
+            // or nothing if no track is joined there
+            return candidates.find(id => id !== main && id !== branch);
         }
         // Backing into the turnout from its entry: the route it's set for
         return node.switchState === 1 ? branch : main;

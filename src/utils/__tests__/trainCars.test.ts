@@ -67,7 +67,7 @@ describe('getCarPoses', () => {
             const { nodes } = useTrackStore.getState();
             const entry = Object.values(nodes).find(n => n.type === 'switch')!;
             const leadEnd = Object.values(nodes).find(n => n.id !== entry.id && n.position.x === 0 && n.position.y === 0)!;
-            store.connectNodes(entry.id, leadEnd.id, lead);
+            store.connectNodes(entry.id, leadEnd.id);
             const state = useTrackStore.getState();
             return { lead, switchNode: state.nodes[entry.id], ...state };
         }
@@ -84,6 +84,17 @@ describe('getCarPoses', () => {
             expect(withTrail[1].y).toBeLessThan(-1);
             expect(guessed[1].y).toBeCloseTo(0, 6);
         });
+
+        it('bunches cars up at points with nothing joined behind them, never folding onto the other route', () => {
+            const store = useTrackStore.getState();
+            store.addTrack('kato-20-202', { x: 0, y: 0 }, 0);
+            const { edges, nodes } = useTrackStore.getState();
+            const entry = Object.values(nodes).find(n => n.type === 'switch')!;
+            const [main] = entry.switchBranches!;
+            // Just off the points on the main route, the rest of the train behind them
+            const poses = getCarPoses(train({ currentEdgeId: main, distanceAlongEdge: 20 }), edges, nodes);
+            for (const pose of poses) expect(pose.y).toBeCloseTo(0, 6);
+        });
     });
 
     describe('turning back', () => {
@@ -94,7 +105,7 @@ describe('getCarPoses', () => {
             const second = useTrackStore.getState().addTrack('kato-20-000', { x: 248, y: 0 }, 0)!;
             const { nodes } = useTrackStore.getState();
             const [a, b] = Object.values(nodes).filter(n => n.position.x === 248);
-            useTrackStore.getState().connectNodes(a.id, b.id, second);
+            useTrackStore.getState().connectNodes(a.id, b.id);
             const { edges } = useTrackStore.getState();
             const firstEdge = Object.values(edges).find(e => e.id !== second)!.id;
 
@@ -123,7 +134,7 @@ describe('getCarPoses', () => {
             const { nodes: n0, edges: e0 } = useTrackStore.getState();
             const [a, b] = Object.values(n0).filter(n => n.position.x === 248);
             const secondId = Object.values(e0).find(e => e.geometry.type === 'straight' && e.geometry.start.x === 248)!.id;
-            store.connectNodes(a.id, b.id, secondId);
+            store.connectNodes(a.id, b.id);
             const { edges, nodes } = useTrackStore.getState();
             let w: SimWorld = {
                 trains: { t1: train({ currentEdgeId: secondId, distanceAlongEdge: 150, carriageCount: 3 }) },

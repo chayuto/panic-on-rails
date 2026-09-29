@@ -15,6 +15,7 @@ import { createStraightTrack, createCurveTrack } from './standardTrack';
 import { createSwitchTrack } from './switchTrack';
 import { createCrossingTrack } from './crossingTrack';
 import { createCompoundTrack } from './compoundTrack';
+import { createTopologyTrack } from './topologyTrack';
 
 export interface PartTrackResult {
     nodes: TrackNode[];
@@ -48,5 +49,7 @@ function buildPart(part: PartDefinition, position: Vector2, rotation: number): P
             return createCrossingTrack(partId, position, rotation, geometry);
         case 'compound':
             return createCompoundTrack(partId, position, rotation, geometry);
+        case 'topology':
+            return createTopologyTrack(partId, position, rotation, geometry);
     }
 }

@@ -54,7 +54,9 @@ Each field of a step:
     - a straight or curve: its other end;
     - a turnout entered at `entry`: `main` (`right` for a wye);
     - a turnout entered at `main` or `branch`: `entry`;
-    - a crossing or crossover: the opposite end of the same track (`A1`↔`A2`, `B1`↔`B2`).
+    - a crossing or crossover: the opposite end of the same track (`A1`↔`A2`, `B1`↔`B2`);
+    - a topology part (curved turnout, double slip, double crossover): the other end of the
+      first route listed through the connector it was entered at.
   - `{ "piece": n, "connector": "branch" }` names the connector explicitly.
   - `{ "alongside": n, "offset": 33 }` does not attach. It starts a **separate, parallel run**:
     - The piece is placed exactly like step `n`, shifted `offset` mm to the right of its
@@ -63,7 +65,7 @@ Each field of a step:
       double-track spacing.
 - `via`: which connector of the new piece attaches.
   - The default is the primary connector: `A` for straights and curves, `entry` for turnouts,
-    `A1` for crossings.
+    `A1` for crossings, the first listed connector for topology parts.
   - Curves turn **right** (clockwise on screen) from `A`. Attach a curve with `"via": "B"` to
     turn **left**.
 - Connector names:
@@ -74,6 +76,7 @@ Each field of a step:
   | Turnout | `entry`, `main`, `branch` |
   | Wye | `entry`, `left`, `right` |
   | Crossing, crossover | `A1`, `A2`, `B1`, `B2` |
+  | Topology part | The names in its catalog entry: Kato's WX310 double crossover has `A1`, `A2`, `B1`, `B2` |
 
 The first step sits at the origin, heading east (right). The builder places everything else
 from catalog geometry, then pairs connectors that meet face to face within 0.5 mm and 0.5°. The

@@ -465,12 +465,13 @@ describe('useTrackStore', () => {
             expect(endpoints).toHaveLength(4);
         });
 
-        it('should return only nodes with 1 connection', () => {
+        it('counts a lone turnout\'s entry as open: points with nothing beyond them', () => {
             getState().addTrack('kato-20-202', { x: 100, y: 100 }, 0); // Switch has 3 nodes
 
             const endpoints = getState().getOpenEndpoints();
-            // Switch entry node has 2 connections, so only 2 exit nodes are open
-            expect(endpoints).toHaveLength(2);
+            // The entry (the points, two connections) and the main and branch ends
+            expect(endpoints).toHaveLength(3);
+            expect(endpoints.filter(n => n.type === 'switch')).toHaveLength(1);
         });
     });
 
@@ -490,7 +491,7 @@ describe('useTrackStore', () => {
             expect(nodeCount()).toBe(4);
 
             // Connect end of edge1 to start of edge2
-            getState().connectNodes(edge1.endNodeId, edge2.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2.startNodeId);
 
             expect(nodeCount()).toBe(3); // Reduced by 1
         });
@@ -502,7 +503,7 @@ describe('useTrackStore', () => {
             const edge1 = getState().edges[edgeId1];
             const edge2Original = getState().edges[edgeId2];
 
-            getState().connectNodes(edge1.endNodeId, edge2Original.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2Original.startNodeId);
 
             // After connection, edge2's startNodeId should point to survivor
             const edge2Updated = getState().edges[edgeId2];
@@ -519,7 +520,7 @@ describe('useTrackStore', () => {
             // Before: endpoint
             expect(getState().nodes[edge1.endNodeId].type).toBe('endpoint');
 
-            getState().connectNodes(edge1.endNodeId, edge2.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2.startNodeId);
 
             // After: junction (has 2+ connections)
             expect(getState().nodes[edge1.endNodeId].type).toBe('junction');
@@ -535,7 +536,7 @@ describe('useTrackStore', () => {
             // Before: survivor has 1 connection
             expect(getState().nodes[edge1.endNodeId].connections).toHaveLength(1);
 
-            getState().connectNodes(edge1.endNodeId, edge2.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2.startNodeId);
 
             // After: survivor has 2 connections
             expect(getState().nodes[edge1.endNodeId].connections).toHaveLength(2);
@@ -550,7 +551,7 @@ describe('useTrackStore', () => {
             const edge2 = getState().edges[edgeId2];
             const survivorPos = getState().nodes[edge1.endNodeId].position;
 
-            getState().connectNodes(edge1.endNodeId, edge2.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2.startNodeId);
 
             // Check geometry updated
             const updatedEdge2 = getState().edges[edgeId2];
@@ -561,11 +562,11 @@ describe('useTrackStore', () => {
         });
 
         it('should handle missing nodes gracefully', () => {
-            const edgeId1 = getState().addTrack('kato-20-020', { x: 100, y: 100 }, 0)!;
+            getState().addTrack('kato-20-020', { x: 100, y: 100 }, 0)!;
 
             // Should not throw
             expect(() => {
-                getState().connectNodes('non-existent', 'also-non-existent', edgeId1);
+                getState().connectNodes('non-existent', 'also-non-existent');
             }).not.toThrow();
         });
     });
@@ -712,7 +713,7 @@ describe('useTrackStore', () => {
             const edge2 = getState().edges[edgeId2];
 
             // Connect them first
-            getState().connectNodes(edge1.endNodeId, edge2.startNodeId, edgeId2);
+            getState().connectNodes(edge1.endNodeId, edge2.startNodeId);
 
             // Now place a third track far away
             const edgeId3 = getState().addTrack('kato-20-020', { x: 600, y: 100 }, 0)!;
@@ -1024,7 +1025,7 @@ describe('useTrackStore', () => {
             // 3. Connect them
             const e1 = getState().edges[edge1];
             const e2 = getState().edges[edge2];
-            getState().connectNodes(e1.endNodeId, e2.startNodeId, edge2);
+            getState().connectNodes(e1.endNodeId, e2.startNodeId);
 
             // Should have 3 nodes (one merged)
             expect(nodeCount()).toBe(3);

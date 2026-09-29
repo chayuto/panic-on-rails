@@ -5,24 +5,12 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
+import { clickWorld } from './helpers/canvas.js';
 
 async function loadTemplate(page: Page, id: string) {
     await page.getByTestId('file-template-selector').selectOption(id);
     await expect.poll(() => page.evaluate(() =>
         Object.keys(window.__PANIC_STORES__!.simulation.getState().trains).length)).toBeGreaterThan(0);
-}
-
-/** Click a track node on the canvas by world position. */
-async function clickWorld(page: Page, world: { x: number; y: number }) {
-    const screen = await page.evaluate(({ x, y }) => {
-        const { zoom, pan } = window.__PANIC_STORES__!.editor.getState();
-        return { x: x * zoom + pan.x, y: y * zoom + pan.y };
-    }, world);
-    // Konva draws its hit graph a frame after the store changes: wait until
-    // something clickable is actually under the point
-    await expect.poll(() => page.evaluate((p) => !!window.__PANIC_STAGE__?.getIntersection(p), screen)).toBe(true);
-    const box = (await page.getByTestId('canvas-container').boundingBox())!;
-    await page.mouse.click(box.x + screen.x, box.y + screen.y);
 }
 
 test.describe('Simulation controls', () => {

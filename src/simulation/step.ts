@@ -26,6 +26,7 @@ import { AT_STOP_LINE, approachSpeed, derailSpeed, lookaheadFor, stopAhead, stop
 import { explodeTrain } from '../utils/crashPhysics';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 import { reverseConsist } from '../utils/trainCars';
+import { linkedPoints } from '../utils/switchRouting';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -207,8 +208,12 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
                         : action.action === 'set_branch' ? 1
                             : (current === 0 ? 1 : 0);
                 if (target === current) continue;
-                nodes = { ...nodes, [node.id]: { ...node, switchState: target } };
-                events.push({ type: 'switch', nodeId: node.id, switchState: target });
+                const moved = linkedPoints(node, nodes);
+                nodes = { ...nodes };
+                for (const points of moved) {
+                    nodes[points.id] = { ...points, switchState: target };
+                    events.push({ type: 'switch', nodeId: points.id, switchState: target });
+                }
             } else {
                 const signal = signals[action.targetId];
                 if (!signal) continue;

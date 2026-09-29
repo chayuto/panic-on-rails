@@ -11,6 +11,7 @@ import { computeCurveConnectors } from './curve';
 import { computeSwitchConnectors } from './switch';
 import { computeCrossingConnectors } from './crossing';
 import { computeCompoundConnectors } from './compound';
+import { computeTopologyConnectors } from './topology';
 
 export function computeConnectors(part: PartDefinition): PartConnectors {
     const geometry = part.geometry;
@@ -26,6 +27,8 @@ export function computeConnectors(part: PartDefinition): PartConnectors {
             return computeCrossingConnectors(geometry);
         case 'compound':
             return computeCompoundConnectors(geometry);
+        case 'topology':
+            return computeTopologyConnectors(geometry);
         default: {
             // Fallback for unknown geometry types
             const nodes: ConnectorNode[] = [

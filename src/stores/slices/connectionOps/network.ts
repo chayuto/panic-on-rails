@@ -15,6 +15,7 @@ import {
     getNodeBounds,
 } from '../spatialHelpers';
 import { validateLayoutIntegrity } from './validation';
+import { mergeNodeInto } from './merge';
 import { transformPosition } from './transform';
 
 /**
@@ -174,45 +175,7 @@ export function connectNetworksOp(
     }
 
     // STEP 5: Merge nodes (movingNode into anchorNode)
-    const movingEdge = newEdges[movingEdgeId];
-    if (movingEdge) {
-        if (movingEdge.startNodeId === movingNodeId) {
-            let updatedGeometry = movingEdge.geometry;
-            if (movingEdge.geometry.type === 'straight') {
-                updatedGeometry = { ...movingEdge.geometry, start: anchorNode.position };
-            }
-            newEdges[movingEdgeId] = {
-                ...movingEdge,
-                startNodeId: anchorNodeId,
-                geometry: updatedGeometry,
-            };
-        } else if (movingEdge.endNodeId === movingNodeId) {
-            let updatedGeometry = movingEdge.geometry;
-            if (movingEdge.geometry.type === 'straight') {
-                updatedGeometry = { ...movingEdge.geometry, end: anchorNode.position };
-            }
-            newEdges[movingEdgeId] = {
-                ...movingEdge,
-                endNodeId: anchorNodeId,
-                geometry: updatedGeometry,
-            };
-        }
-    }
-
-    // Add edge connection to anchor and upgrade type (preserve switch)
-    const anchorCurrent = newNodes[anchorNodeId];
-    const mergedType = anchorCurrent.type === 'switch'
-        ? 'switch'
-        : (anchorCurrent.connections.length >= 1 ? 'junction' : 'endpoint');
-    newNodes[anchorNodeId] = {
-        ...anchorCurrent,
-        connections: [...anchorCurrent.connections, movingEdgeId],
-        type: mergedType,
-    };
-
-    // Delete moving node
-    delete newNodes[movingNodeId];
-    nodeIndex.remove(movingNodeId);
+    mergeNodeInto(newNodes, newEdges, anchorNodeId, movingNodeId);
 
     console.log('[connectNetworksOp] Atomic connect complete:', {
         totalNodes: Object.keys(newNodes).length,
