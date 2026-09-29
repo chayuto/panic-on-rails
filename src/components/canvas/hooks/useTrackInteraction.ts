@@ -9,10 +9,12 @@ import { playSound } from '../../../utils/audioManager';
 import type { TrackEdge, Vector2 } from '../../../types';
 
 export function useTrackInteraction() {
-    const { edges, removeTrack } = useTrackStore();
-    const { selectedEdgeId, setSelectedEdge } = useEditorStore();
-    const { addSensor } = useLogicStore();
-    const { editSubMode } = useModeStore();
+    const edges = useTrackStore(s => s.edges);
+    const removeTrack = useTrackStore(s => s.removeTrack);
+    const selectedEdgeId = useEditorStore(s => s.selectedEdgeId);
+    const setSelectedEdge = useEditorStore(s => s.setSelectedEdge);
+    const addSensor = useLogicStore(s => s.addSensor);
+    const editSubMode = useModeStore(s => s.editSubMode);
     const isEditing = useIsEditing();
 
     // Helper: Calculate distance along edge (ported from TrackLayer)

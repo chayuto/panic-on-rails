@@ -61,7 +61,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     });
 
     // Get remaining editor state
-    const { showGrid, draggedPartId } = useEditorStore();
+    const showGrid = useEditorStore(s => s.showGrid);
+    const draggedPartId = useEditorStore(s => s.draggedPartId);
 
     // Mode hooks for conditional rendering
     const isEditing = useIsEditing();

@@ -4,10 +4,10 @@
 
 import type { Train } from '../../../types';
 import type { SimulationSliceCreator, TrainSlice } from './types';
+import { CAR_PITCH } from '../../../config/rollingStock';
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 let trainCounter = 0;
-const DEFAULT_CARRIAGE_SPACING = 30;
 
 export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     /**
@@ -31,7 +31,7 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             speed: 100, // pixels per second
             color: trainColor,
             carriageCount: carriageCount ?? 1,
-            carriageSpacing: DEFAULT_CARRIAGE_SPACING,
+            carriageSpacing: CAR_PITCH,
         };
 
         set((state) => {
@@ -92,6 +92,8 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
             if (train && !train.crashed) {
                 train.direction = train.direction === 1 ? -1 : 1;
                 train.heldAtSignal = false;
+                // The route behind the train is now ahead of it
+                train.trail = [];
             }
         });
     },

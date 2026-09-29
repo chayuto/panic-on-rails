@@ -18,6 +18,7 @@ import { z } from 'zod';
 const OptionalPartFields = {
     cost: z.number().int().positive().optional(),
     width: z.number().positive().optional(),
+    roadCrossing: z.boolean().optional(),
     productCode: z.string().optional(),
     description: z.string().optional(),
     discontinued: z.boolean().optional(),

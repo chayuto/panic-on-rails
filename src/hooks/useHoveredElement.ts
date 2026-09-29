@@ -86,9 +86,11 @@ function distanceToEdge(point: Vector2, edge: TrackEdge): number {
  * Hook to find the element under the current mouse position
  */
 export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
-    const { nodes, edges } = useTrackStore();
-    const { trains } = useSimulationStore();
-    const { sensors, signals } = useLogicStore();
+    const nodes = useTrackStore(s => s.nodes);
+    const edges = useTrackStore(s => s.edges);
+    const trains = useSimulationStore(s => s.trains);
+    const sensors = useLogicStore(s => s.sensors);
+    const signals = useLogicStore(s => s.signals);
 
     return useMemo(() => {
         if (!worldPos) return null;

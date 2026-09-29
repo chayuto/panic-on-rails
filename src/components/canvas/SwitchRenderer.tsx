@@ -1,28 +1,19 @@
 /**
  * Switch Renderer Component
  *
- * Renders switch (turnout) track nodes with visual feedback.
- * Extracted from TrackLayer.tsx for better separation of concerns.
- *
- * Features:
- * - Yellow circular switch indicator
- * - Directional wedge showing active branch
- * - Animated rail points that move when toggling
- * - Hover and click feedback with audio
- * - Ripple effect on toggle
+ * The control for one turnout: a yellow button on the points with a wedge
+ * that swings toward the route that's set. The track painter shows the
+ * route itself (the route set against trains is drawn dimmer).
  */
 
 import { useState, useEffect, useRef, memo } from 'react';
-import { Group, Circle, Wedge, Line } from 'react-konva';
+import { Group, Circle, Wedge } from 'react-konva';
 import type { TrackNode, TrackEdge, EdgeId, Vector2 } from '../../types';
 import { getSwitchEntryFacade } from '../../utils/connectTransform';
 
 // Visual constants
 const SWITCH_NODE_COLOR = '#FFD93D';
-const SWITCH_NODE_RADIUS = 10;
-const RAIL_POINT_LENGTH = 14;
-const RAIL_POINT_COLOR = '#888888';
-const RAIL_POINT_ACTIVE_COLOR = '#4ECDC4';
+const SWITCH_NODE_RADIUS = 7;
 
 // Animation constants
 const ANIMATION_DURATION = 150; // ms
@@ -32,7 +23,6 @@ export interface SwitchRendererProps {
     node: TrackNode;
     /** All edges (needed to calculate entry facade) */
     edges: Record<EdgeId, TrackEdge>;
-    /** Callback when switch is clicked */
     /** Returns true if the click toggled the switch */
     onSwitchClick: (nodeId: string) => boolean;
     /** Callback to trigger ripple effect */
@@ -44,7 +34,7 @@ export interface SwitchRendererProps {
 }
 
 /**
- * Renders a switch node with visual indicator, animated rail points, and interaction handlers.
+ * Renders a switch node's control button and interaction handlers.
  */
 export const SwitchRenderer = memo(function SwitchRenderer({
     node,
@@ -98,31 +88,6 @@ export const SwitchRenderer = memo(function SwitchRenderer({
     const baseRotation = entryFacade !== null ? entryFacade + 180 : node.rotation + 180;
     const wedgeRotation = baseRotation + animatedAngle;
 
-    // Calculate rail point positions (small lines showing diverging rails)
-    const railPointOffset = SWITCH_NODE_RADIUS + 4;
-    const mainAngleRad = (baseRotation * Math.PI) / 180;
-    const branchAngleRad = ((baseRotation + animatedAngle) * Math.PI) / 180;
-
-    // Main rail point (always straight ahead)
-    const mainRailStart = {
-        x: node.position.x + Math.cos(mainAngleRad) * railPointOffset,
-        y: node.position.y + Math.sin(mainAngleRad) * railPointOffset,
-    };
-    const mainRailEnd = {
-        x: node.position.x + Math.cos(mainAngleRad) * (railPointOffset + RAIL_POINT_LENGTH),
-        y: node.position.y + Math.sin(mainAngleRad) * (railPointOffset + RAIL_POINT_LENGTH),
-    };
-
-    // Branch rail point (moves with animation)
-    const branchRailStart = {
-        x: node.position.x + Math.cos(branchAngleRad) * railPointOffset,
-        y: node.position.y + Math.sin(branchAngleRad) * railPointOffset,
-    };
-    const branchRailEnd = {
-        x: node.position.x + Math.cos(branchAngleRad) * (railPointOffset + RAIL_POINT_LENGTH * 0.7),
-        y: node.position.y + Math.sin(branchAngleRad) * (railPointOffset + RAIL_POINT_LENGTH * 0.7),
-    };
-
     const handleClick = () => {
         if (onSwitchClick(node.id)) {
             onRipple(node.position, { color: '#FFD93D' });
@@ -133,54 +98,33 @@ export const SwitchRenderer = memo(function SwitchRenderer({
         onHoverEnter(node.id, node.position);
     };
 
-    // Determine which rail is active
-    const mainActive = node.switchState === 0;
-
     return (
         <Group>
-            {/* Rail point indicators - shows which direction trains will go */}
-            {/* Main rail (straight) */}
-            <Line
-                points={[mainRailStart.x, mainRailStart.y, mainRailEnd.x, mainRailEnd.y]}
-                stroke={mainActive ? RAIL_POINT_ACTIVE_COLOR : RAIL_POINT_COLOR}
-                strokeWidth={mainActive ? 3 : 2}
-                lineCap="round"
-                opacity={mainActive ? 1 : 0.5}
-            />
-            {/* Branch rail (diverging) */}
-            <Line
-                points={[branchRailStart.x, branchRailStart.y, branchRailEnd.x, branchRailEnd.y]}
-                stroke={!mainActive ? RAIL_POINT_ACTIVE_COLOR : RAIL_POINT_COLOR}
-                strokeWidth={!mainActive ? 3 : 2}
-                lineCap="round"
-                opacity={!mainActive ? 1 : 0.5}
-            />
-
-            {/* Switch indicator - larger clickable circle */}
+            {/* Switch control button (no shadow: Konva blurs shadows on a
+                full-screen scratch canvas, per shape, per frame) */}
             <Circle
                 x={node.position.x}
                 y={node.position.y}
                 radius={SWITCH_NODE_RADIUS}
                 fill={SWITCH_NODE_COLOR}
                 stroke="#1A1A1A"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 onClick={handleClick}
                 onTap={handleClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={onHoverLeave}
-                shadowColor="black"
-                shadowBlur={4}
-                shadowOpacity={0.3}
+                perfectDrawEnabled={false}
             />
 
-            {/* Direction indicator - small wedge showing active branch */}
+            {/* Direction indicator - small wedge toward the route that's set */}
             <Wedge
                 x={node.position.x}
                 y={node.position.y}
-                radius={6}
+                radius={5}
                 angle={30}
                 rotation={wedgeRotation}
                 fill="#1A1A1A"
+                listening={false}
             />
         </Group>
     );

@@ -1,13 +1,3 @@
-import { RAIL, SLEEPER } from '../../../utils/trackRenderingUtils';
-
-export { RAIL, SLEEPER };
-
-export const RAIL_COLORS = {
-    DEFAULT: '#888888',
-    SELECTED: '#00FF88',
-    INACTIVE: '#555555',
-};
-
 export const NODE_KEY_COLORS = {
     DEFAULT: '#4ECDC4',
     CONNECT_SOURCE: '#00FF88',

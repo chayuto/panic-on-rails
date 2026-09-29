@@ -88,15 +88,15 @@ function SignalEntity({ signal }: { signal: Signal }) {
                 strokeWidth={3}
                 lineCap="round"
             />
-            {/* Signal light with glow */}
+            {/* Glow: a soft halo rather than a blurred shadow, which Konva
+                renders on a full-screen scratch canvas */}
             <Circle
                 x={signalX}
                 y={signalY}
-                radius={SIGNAL_RADIUS + 4}
-                fill="transparent"
-                shadowColor={glowColor}
-                shadowBlur={15}
-                shadowOpacity={0.8}
+                radius={SIGNAL_RADIUS + 6}
+                fill={glowColor}
+                opacity={0.3}
+                listening={false}
             />
             {/* Signal housing (dark circle) */}
             <Circle
@@ -113,8 +113,6 @@ function SignalEntity({ signal }: { signal: Signal }) {
                 y={signalY}
                 radius={SIGNAL_RADIUS}
                 fill={fillColor}
-                shadowColor={glowColor}
-                shadowBlur={8}
             />
         </Group>
     );

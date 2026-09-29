@@ -1,140 +1,112 @@
 import type Konva from 'konva';
-import { Group } from 'react-konva';
-import { useMemo, useRef, useEffect } from 'react';
+import { Group, Shape } from 'react-konva';
+import { useMemo, useCallback } from 'react';
 import { useTrackStore, type BoundingBox } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { useConnectMode } from '../../hooks/useConnectMode';
+import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
+import type { Vector2 } from '../../types';
 
-// New R03 Components and Hooks
-import { SleeperRenderer, TrackRenderer, NodeRenderer } from './tracks';
+import { NodeRenderer } from './tracks';
+import { EdgeHitTarget } from './tracks/EdgeHitTarget';
+import { paintTrack, type PaintedEdge } from './tracks/trackPainter';
 import { SwitchRenderer } from './SwitchRenderer';
 import { useTrackInteraction } from './hooks/useTrackInteraction';
 import { useNodeInteraction } from './hooks/useNodeInteraction';
-import { INTERACTIONS } from '../../config/interactions';
+
+/** Roadbed width (mm) for parts that don't say. */
+const DEFAULT_ROADBED = 25;
 
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
     viewport: BoundingBox | null;
 }
 
+/**
+ * Track layer: all visible track painted by one shape (see trackPainter),
+ * plus switch controls, joint dots and buffer stops, and — while editing —
+ * invisible click targets along each edge.
+ */
 export function TrackLayer({ viewport }: TrackLayerProps) {
-    const { nodes, edges } = useTrackStore();
-    const { selectedEdgeId } = useEditorStore();
-    const { editSubMode } = useModeStore();
+    const nodes = useTrackStore(s => s.nodes);
+    const edges = useTrackStore(s => s.edges);
+    const selectedEdgeId = useEditorStore(s => s.selectedEdgeId);
+    const editSubMode = useModeStore(s => s.editSubMode);
     const isEditing = useIsEditing();
     const { connectSource, isValidConnectTarget } = useConnectMode();
 
-    // Hooks for interaction
     const { handleEdgeClick } = useTrackInteraction();
     const {
         handleSwitchClick,
         handleNodeClick,
         triggerRipple,
-        setHoveredSwitch
+        setHoveredSwitch,
     } = useNodeInteraction();
 
-    // V6: Ref for caching track visuals
-    const trackVisualsRef = useRef<Konva.Group>(null);
-
-    // Check if we're in connect mode
     const isConnectMode = editSubMode === 'connect';
 
-    // Get visible edge IDs from spatial index
+    // Culling: only paint edges near the viewport
     const visibleEdgeIds = useVisibleEdges(viewport);
-
-    // Create a Set for O(1) lookup and filter edges
     const visibleEdges = useMemo(() => {
         const idSet = new Set(visibleEdgeIds);
         return Object.values(edges).filter(edge => idSet.has(edge.id));
     }, [edges, visibleEdgeIds]);
 
-    // V6: Cache track visuals when not editing for performance.
-    // Invalidate on any graph change (edges/nodes are new objects on every
-    // change, including switch toggles) and on viewport-culling changes. A
-    // count-based key missed e.g. loading a template with the same number of
-    // edges/nodes, leaving the previous layout's bitmap on screen.
-    useEffect(() => {
-        const group = trackVisualsRef.current;
-        if (!group) return;
-
-        // Drop the stale bitmap right away so changes show immediately
-        group.clearCache();
-
-        if (!isEditing && !selectedEdgeId) {
-            // Re-cache after a short delay to ensure render is complete
-            const timer = setTimeout(() => {
-                group.cache({ pixelRatio: 2 });
-            }, INTERACTIONS.CACHE_DELAY_MS);
-            return () => clearTimeout(timer);
-        }
-    }, [isEditing, selectedEdgeId, edges, nodes, visibleEdges]);
-
-    // Pre-compute switch-edge activity map (O(N) once, then O(1) per lookup)
-    const switchEdgeActivity = useMemo(() => {
-        const map = new Map<string, boolean>();
+    // Turnout routes currently set against trains
+    const inactiveEdges = useMemo(() => {
+        const set = new Set<string>();
         for (const node of Object.values(nodes)) {
             if (node.type === 'switch' && node.switchBranches) {
-                const [mainEdgeId, branchEdgeId] = node.switchBranches;
-                map.set(mainEdgeId, node.switchState === 0);
-                map.set(branchEdgeId, node.switchState === 1);
+                set.add(node.switchBranches[node.switchState === 1 ? 0 : 1]);
             }
         }
-        return map;
+        return set;
     }, [nodes]);
 
-    // Helper to determine if edge is the active branch of a switch
-    const isEdgeActiveOnSwitch = (edgeId: string): boolean | null => {
-        return switchEdgeActivity.has(edgeId) ? switchEdgeActivity.get(edgeId)! : null;
-    };
+    const painted = useMemo<PaintedEdge[]>(() => visibleEdges.flatMap(edge => {
+        const geometry = getEdgeWorldGeometry(edge, nodes);
+        if (!geometry) return [];
+        const part = getPartById(edge.partId);
+        return [{
+            geometry,
+            style: part?.scale === 'wooden' ? 'wooden' : 'model',
+            width: part?.roadbedWidth ?? DEFAULT_ROADBED,
+            roadWidth: part?.roadCrossing ? part.width : undefined,
+            selected: edge.id === selectedEdgeId,
+            inactive: inactiveEdges.has(edge.id),
+        }];
+    }), [visibleEdges, nodes, selectedEdgeId, inactiveEdges]);
+
+    const paint = useCallback((ctx: Konva.Context, shape: Konva.Shape) => {
+        const zoom = shape.getStage()?.scaleX() ?? 1;
+        paintTrack(ctx._context, painted, zoom);
+    }, [painted]);
+
+    const onSwitchHoverEnter = useCallback((nodeId: string, position: Vector2) => {
+        setHoveredSwitch(nodeId, position);
+        playHoverSound();
+    }, [setHoveredSwitch]);
+    const onSwitchHoverLeave = useCallback(() => setHoveredSwitch(null), [setHoveredSwitch]);
 
     return (
         <Group>
-            {/* V6: Cacheable track visuals group (sleepers + rails) */}
-            <Group ref={trackVisualsRef}>
-                {/* V5: Render sleepers first (behind rails) */}
-                {visibleEdges.map((edge) => {
-                    const startNode = nodes[edge.startNodeId];
-                    const endNode = nodes[edge.endNodeId];
-                    if (!startNode || !endNode) return null;
+            <Shape sceneFunc={paint} listening={false} perfectDrawEnabled={false} />
 
-                    return (
-                        <SleeperRenderer
-                            key={`sleeper-${edge.id}`}
-                            edge={edge}
-                            startNode={startNode}
-                            endNode={endNode}
-                            nodes={nodes}
-                        />
-                    );
-                })}
+            {/* Click targets for selecting and deleting track (editor only) */}
+            {isEditing && painted.map((p, i) => (
+                <EdgeHitTarget
+                    key={visibleEdges[i].id}
+                    edgeId={visibleEdges[i].id}
+                    geometry={p.geometry}
+                    onClick={handleEdgeClick}
+                />
+            ))}
 
-                {/* Render only visible edges (tracks) */}
-                {visibleEdges.map((edge) => {
-                    const startNode = nodes[edge.startNodeId];
-                    const endNode = nodes[edge.endNodeId];
-                    if (!startNode || !endNode) return null;
-
-                    return (
-                        <TrackRenderer
-                            key={`track-${edge.id}`}
-                            edge={edge}
-                            startNode={startNode}
-                            endNode={endNode}
-                            nodes={nodes}
-                            isSelected={selectedEdgeId === edge.id}
-                            isSwitchActive={isEdgeActiveOnSwitch(edge.id)}
-                            onClick={handleEdgeClick}
-                        />
-                    );
-                })}
-            </Group>
-
-            {/* Render all nodes (connection points) - nodes are fewer so no culling needed */}
             {Object.values(nodes).map((node) => {
-                // Switch nodes get special rendering via SwitchRenderer component
                 if (node.type === 'switch') {
                     return (
                         <SwitchRenderer
@@ -143,16 +115,15 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                             edges={edges}
                             onSwitchClick={handleSwitchClick}
                             onRipple={triggerRipple}
-                            onHoverEnter={(nodeId, pos) => {
-                                setHoveredSwitch(nodeId, pos);
-                                playHoverSound();
-                            }}
-                            onHoverLeave={() => setHoveredSwitch(null)}
+                            onHoverEnter={onSwitchHoverEnter}
+                            onHoverLeave={onSwitchHoverLeave}
                         />
                     );
                 }
 
-                // Regular nodes
+                // Joint dots are an editing aid; buffer stops are part of the track
+                if (!isEditing && !node.bumper) return null;
+
                 const isOpenEndpoint = node.connections.length === 1 && !node.bumper;
                 const isSource = connectSource?.nodeId === node.id;
                 const isValidTarget = isConnectMode && isOpenEndpoint && isValidConnectTarget(node.id);

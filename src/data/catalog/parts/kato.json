@@ -31,6 +31,7 @@
             "type": "straight",
             "length": 124,
             "width": 69,
+            "roadCrossing": true,
             "productCode": "20-026",
             "description": "S124C: a road crossing whose ramps also rerail trains. The road plates make it 69mm wide.",
             "referenceUrl": "https://lombardhobby.com/kato-n-20-026-unitrack-rerailer-track-124mm-4-7-8-2-pieces/"

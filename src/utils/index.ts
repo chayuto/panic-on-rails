@@ -28,12 +28,8 @@ export {
 export {
     getPositionOnEdge,
     getRotationOnEdge,
-    getCarriagePositions,
-    getBounceScale,
-    lightenColor,
-    BOUNCE_DURATION,
-    type CarriagePosition,
 } from './trainGeometry';
+export { getCarPoses, type CarPose } from './trainCars';
 
 // Connection utilities
 export { getNodeFacadeFromEdge } from './connectTransform';
