@@ -56,6 +56,7 @@ Fun comes first and realism second. It should feel instantly playable and be goo
 | # | Gap | Evidence | Phase |
 |---|-----|----------|-------|
 | 1 | **The simulation froze on the first crash.** Immer deep-freezes store state; `updateCrashedParts` mutated it, the loop threw, and `setError` paused. Because `ErrorBanner` is never rendered, it happened silently. | `utils/crashPhysics.ts` (fixed); `e2e/simulation-harness.spec.ts` fails without the fix | 0 ✅ |
+| 1b | **You couldn't build a loop by hand.** Every curve (Kato and wooden) was defined so its body extended *behind* its start connector: snapped onto a track end, it folded back over the track. Snapping also required the ghost to already face within 15° of the target, so curve-to-curve joints never snapped (rotate-during-drag with `R` can't work because native drag-and-drop swallows key events). | `connectors/curve.ts`, `createCurveTrack`, `findBestSnap` (fixed); `e2e/building.spec.ts` | 1 ✅ |
 | 2 | **No goal.** No win/lose, score, levels or progression. Budget can't be earned, and "Reset Budget" is free. | No mission code; `BudgetTicker.tsx`, `createTrackSlice.clearLayout` refunds | 2 |
 | 3 | **Signals don't stop trains.** Red and green are cosmetic, so the whole logic toolset has no teeth. | `simulation/movement.ts` never reads signals | 1 |
 | 4 | **Switches can't be clicked while trains run.** The ripple plays but the switch doesn't toggle. Only hidden keys (S on hover, 1–9) work. | `useNodeInteraction.ts` returns early unless editing | 1 |
@@ -109,8 +110,20 @@ CI E2E spec (top-level `e2e/`); docs are updated if a convention changed.
 
 ### Phase 1: Make the controls real
 
-Goal: in every template, the player can prevent a crash by acting.
+Goal: a player can build by hand, and in every template can prevent a crash by acting.
 
+- [x] **Curves extend forward.** The connector model, the track creator and the ghost preview
+      now agree. Templates were converted by rotating each curve 180°, which gives an
+      identical body.
+- [x] **Auto-align snapping.** A part hovered near an endpoint rotates to mate. The turn
+      direction follows the side of the endpoint you hover. Hand-built loops close
+      (`e2e/building.spec.ts`).
+- [x] **Catalog geometry invariants** for every part: connector model = created nodes, created
+      geometry = `deriveWorldGeometry`, and the body extends forward. These found and fixed:
+      - swapped arc-direction labels on all switch branches, which distorted a turnout's branch
+        when it was moved;
+      - the #2 Wye being built as a plain left turnout.
+- [ ] Toolbar wraps onto two lines at 1280px width.
 - [ ] **Signals stop trains.** A train approaching a node with a red signal decelerates and holds
       before the node, then resumes on green. Implemented in `movement.ts`/`step.ts` and emits
       `signal-hold`/`signal-release` events.

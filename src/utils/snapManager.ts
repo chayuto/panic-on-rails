@@ -157,27 +157,32 @@ export function calculateSnapTransform(
  * Candidate for snap matching with scoring metadata
  */
 interface SnapCandidate extends SnapMatchResult {
-    /** How close the ghost is to snap position */
-    distanceFromCurrent: number;
     /** How far from user's current rotation */
     rotationDelta: number;
+    /** How well the placed part points toward the cursor (-1..1, higher = better) */
+    towardCursor: number;
     /** Is this the primary connector? (tiebreaker) */
     isPrimary: boolean;
 }
 
 /**
  * Find the best snap match for a part being placed.
- * 
- * Algorithm:
- * 1. For each open endpoint in the graph
- * 2. For each connector on the ghost part
- * 3. Check if facades would be compatible
- * 4. Calculate the required transform
- * 5. Score by distance and rotation preference
- * 6. Return the best match
- * 
+ *
+ * Snapping auto-aligns: the part is rotated so the chosen connector mates
+ * the target facade, whatever the ghost's current rotation. A connector is a
+ * candidate for a target when either
+ * - that connector is already within the snap radius of the target
+ *   (the user brought that end of the part to the endpoint), or
+ * - the cursor is within the snap radius of the target (the user is hovering
+ *   the endpoint; any connector may attach there).
+ *
+ * Ranking: closer target first; then the placement whose body extends toward
+ * the cursor (drag slightly left of an endpoint for a left-hand curve, right
+ * for right-hand); then least rotation from the user's rotation; then the
+ * primary connector.
+ *
  * @param part - The part being placed
- * @param ghostPosition - Current ghost position (primary connector location)
+ * @param ghostPosition - Current ghost position (primary connector location = cursor)
  * @param ghostRotation - Current ghost rotation (degrees)
  * @param openEndpoints - Available endpoints to snap to
  * @param system - Track system for config lookup
@@ -198,28 +203,24 @@ export function findBestSnap(
     const ghostWorldConnectors = getWorldConnectors(part, ghostPosition, ghostRotation);
 
     for (const target of openEndpoints) {
+        const cursorDist = distance(ghostPosition, target.position);
+
         for (const ghostConnector of ghostWorldConnectors) {
-            // Check facade compatibility
-            if (!areFacadesCompatible(ghostConnector.worldFacade, target.rotation, config.angleTolerance)) {
-                continue;
-            }
-
-            // Calculate how far this connector currently is from target
-            const distToTarget = distance(ghostConnector.worldPosition, target.position);
-
-            // Only consider if within snap radius
+            const connectorDist = distance(ghostConnector.worldPosition, target.position);
+            const distToTarget = Math.min(connectorDist, cursorDist);
             if (distToTarget > config.snapRadius) {
                 continue;
             }
 
-            // Calculate the transform needed to achieve this snap
+            // Transform that makes this connector mate the target exactly
             const transform = calculateSnapTransform(part, ghostConnector.localId, target);
 
-            // Calculate how far the ghost would need to move
-            const distanceFromCurrent = distance(ghostPosition, transform.position);
-
-            // Calculate rotation delta
-            const rotationDelta = angleDifference(ghostRotation, transform.rotation);
+            // Where would the rest of the part end up, relative to the target?
+            const placed = getWorldConnectors(part, transform.position, transform.rotation);
+            const centroid = {
+                x: placed.reduce((sum, c) => sum + c.worldPosition.x, 0) / placed.length,
+                y: placed.reduce((sum, c) => sum + c.worldPosition.y, 0) / placed.length,
+            };
 
             candidates.push({
                 ghostConnectorId: ghostConnector.localId,
@@ -228,8 +229,11 @@ export function findBestSnap(
                 targetFacade: target.rotation,
                 distance: distToTarget,
                 ghostTransform: transform,
-                distanceFromCurrent,
-                rotationDelta,
+                rotationDelta: angleDifference(ghostRotation, transform.rotation),
+                towardCursor: cosineBetween(
+                    { x: centroid.x - target.position.x, y: centroid.y - target.position.y },
+                    { x: ghostPosition.x - target.position.x, y: ghostPosition.y - target.position.y },
+                ),
                 isPrimary: ghostConnector.localId === connectors.primaryNodeId,
             });
         }
@@ -239,20 +243,20 @@ export function findBestSnap(
         return null;
     }
 
-    // Sort candidates by preference:
-    // 1. Distance to target (closer = better)
-    // 2. Rotation delta (less rotation = better, when distances similar)
-    // 3. Primary connector preference (tiebreaker)
     candidates.sort((a, b) => {
-        // Primary sort: distance to target
+        // Primary: distance to target
         const distDiff = a.distance - b.distance;
         if (Math.abs(distDiff) > 5) return distDiff;
 
-        // Secondary: rotation delta
+        // Secondary: part extends toward the cursor
+        const towardDiff = b.towardCursor - a.towardCursor;
+        if (Math.abs(towardDiff) > 0.05) return towardDiff;
+
+        // Tertiary: least rotation from what the user had
         const rotDiff = a.rotationDelta - b.rotationDelta;
         if (Math.abs(rotDiff) > 10) return rotDiff;
 
-        // Tertiary: prefer primary connector
+        // Finally: prefer primary connector
         if (a.isPrimary !== b.isPrimary) {
             return a.isPrimary ? -1 : 1;
         }
@@ -271,6 +275,14 @@ export function findBestSnap(
         distance: best.distance,
         ghostTransform: best.ghostTransform,
     };
+}
+
+/** Cosine of the angle between two vectors; 0 if either is (near) zero. */
+function cosineBetween(a: Vector2, b: Vector2): number {
+    const la = Math.hypot(a.x, a.y);
+    const lb = Math.hypot(b.x, b.y);
+    if (la < 1e-6 || lb < 1e-6) return 0;
+    return (a.x * b.x + a.y * b.y) / (la * lb);
 }
 
 // ===========================
