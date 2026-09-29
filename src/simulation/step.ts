@@ -21,6 +21,7 @@ import { updateCrashedParts } from '../utils/crashPhysics';
 import { calculateTrainMovement } from './movement';
 import { checkCollisions } from './collision';
 import { updateSensors } from './signals';
+import { TRAIL_LENGTH } from '../config/rollingStock';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -97,6 +98,13 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             currentEdgeId: update.edgeId,
             direction: update.direction,
         };
+        if (update.direction !== train.direction) {
+            // Turned back: the route behind is now ahead
+            next.trail = [];
+        } else if (update.edgeId !== train.currentEdgeId) {
+            // Remember the route so the cars behind can follow it through turnouts
+            next.trail = [train.currentEdgeId, ...(train.trail ?? [])].slice(0, TRAIL_LENGTH);
+        }
         if (update.edgeId !== train.currentEdgeId) {
             events.push({ type: 'traverse', trainId: train.id, fromEdgeId: train.currentEdgeId, toEdgeId: update.edgeId });
         }

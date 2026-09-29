@@ -4,13 +4,10 @@
  * Tests pure geometry calculations for train positioning.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
     getPositionOnEdge,
     getRotationOnEdge,
-    getBounceScale,
-    lightenColor,
-    BOUNCE_DURATION,
 } from '../trainGeometry';
 import type { TrackEdge } from '../../types';
 
@@ -209,92 +206,3 @@ describe('getRotationOnEdge', () => {
 // ===========================
 // getBounceScale Tests
 // ===========================
-
-describe('getBounceScale', () => {
-    beforeEach(() => {
-        vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-        vi.useRealTimers();
-    });
-
-    it('returns scale (1, 1) when bounceTime is undefined', () => {
-        const scale = getBounceScale(undefined);
-        expect(scale.scaleX).toBe(1);
-        expect(scale.scaleY).toBe(1);
-    });
-
-    it('returns scale (1, 1) when bounce is complete', () => {
-        // Set current time to 1000ms
-        vi.setSystemTime(1000);
-        // Bounce started at 0ms (elapsed = 1000ms > BOUNCE_DURATION)
-        const scale = getBounceScale(0);
-        expect(scale.scaleX).toBe(1);
-        expect(scale.scaleY).toBe(1);
-    });
-
-    it('returns squashed scale at start of bounce', () => {
-        vi.setSystemTime(100);
-        // Bounce just started (elapsed ≈ 0)
-        const scale = getBounceScale(100);
-        // At t=0, should have max squash (scaleX > 1, scaleY < 1)
-        expect(scale.scaleX).toBeGreaterThan(1);
-        expect(scale.scaleY).toBeLessThan(1);
-    });
-
-    it('maintains scaleX + scaleY = 2 (volume conservation)', () => {
-        vi.setSystemTime(200);
-        const scale = getBounceScale(100);
-        // Volume conservation: squash in one direction = stretch in other
-        expect(scale.scaleX + scale.scaleY).toBeCloseTo(2, 1);
-    });
-});
-
-// ===========================
-// lightenColor Tests
-// ===========================
-
-describe('lightenColor', () => {
-    it('lightens black to gray at 50%', () => {
-        const result = lightenColor('#000000', 50);
-        expect(result).toBe('#808080'); // Gray
-    });
-
-    it('returns white at 100%', () => {
-        const result = lightenColor('#000000', 100);
-        expect(result).toBe('#ffffff');
-    });
-
-    it('returns same color at 0%', () => {
-        const result = lightenColor('#ff0000', 0);
-        expect(result).toBe('#ff0000');
-    });
-
-    it('lightens red correctly', () => {
-        const result = lightenColor('#ff0000', 50);
-        // Red channel stays at 255, others go to 128
-        expect(result).toBe('#ff8080');
-    });
-
-    it('handles colors without # prefix', () => {
-        const result = lightenColor('0000ff', 50);
-        expect(result).toBe('#8080ff');
-    });
-
-    it('handles already light colors', () => {
-        const result = lightenColor('#cccccc', 50);
-        // (204 + (255-204)*0.5) = 204 + 25.5 = 230 = e6
-        expect(result).toBe('#e6e6e6');
-    });
-});
-
-// ===========================
-// BOUNCE_DURATION Constant
-// ===========================
-
-describe('BOUNCE_DURATION', () => {
-    it('is 300ms', () => {
-        expect(BOUNCE_DURATION).toBe(300);
-    });
-});

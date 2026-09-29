@@ -13,8 +13,10 @@ import {
     createEventLogSlice,
 } from './slices/simulation';
 import { immer } from 'zustand/middleware/immer';
+import { CAR_PITCH } from '../config/rollingStock';
 
-export const DEFAULT_CARRIAGE_SPACING = 30;
+/** Distance between consecutive cars' front bogies (mm). */
+export const DEFAULT_CARRIAGE_SPACING = CAR_PITCH;
 
 export const useSimulationStore = create<SimulationStore>()(
     immer((...args) => ({
