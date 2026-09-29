@@ -547,9 +547,11 @@ Train can travel A→B (direction +1) or B→A (direction -1).
 | `src/data/catalog/types.ts` | Part geometry types |
 | `src/data/catalog/helpers.ts` | `computeConnectors()` for all part types |
 | `src/utils/snapManager.ts` | `normalizeAngle()`, `angleDifference()`, snap logic |
-| `src/utils/facadeConnection.ts` | `canMate()`, facade calculations |
+| `src/utils/connectTransform.ts` | Facade mating, connection validation and transforms |
 | `src/stores/useTrackStore.ts` | `addTrack()`, node/edge creation |
-| `src/hooks/useGameLoop.ts` | `getPositionOnEdge()`, train movement |
+| `src/simulation/step.ts` | `stepSimulation()`: pure per-tick simulation core |
+| `src/simulation/movement.ts` | Train movement, switch routing, dead-end bounce |
+| `src/utils/trainGeometry.ts` | `getPositionOnEdge()` |
 
 ---
 

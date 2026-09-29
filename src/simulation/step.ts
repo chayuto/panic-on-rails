@@ -1,0 +1,184 @@
+/**
+ * Simulation Step — the pure core of the game loop.
+ *
+ * `stepSimulation(world, dt, ctx)` advances the simulation by one tick and
+ * returns the next world plus a list of events. It never touches Zustand,
+ * audio, the DOM, `performance.now()` or `Math.random()` directly: time and
+ * randomness come in through `ctx`, side effects go out as `events`.
+ *
+ * This is what lets the simulation run headlessly (Vitest, agents, replays)
+ * and deterministically (seeded RNG, fixed dt). The browser game loop
+ * (`useGameLoop`) is a thin rAF wrapper around `tickSimulation()` in
+ * `./tick.ts`, which reads the stores, calls this, and writes back.
+ */
+
+import type {
+    Train, TrainId, TrackEdge, TrackNode, EdgeId, NodeId, Vector2,
+    Sensor, SensorId, Signal, SignalId, Wire, WireId, SignalState,
+} from '../types';
+import type { CrashedPart } from '../utils/crashPhysics';
+import { updateCrashedParts } from '../utils/crashPhysics';
+import { calculateTrainMovement } from './movement';
+import { checkCollisions } from './collision';
+import { updateSensors } from './signals';
+
+/** World Y that debris falls onto (historical game-loop value). */
+const DEBRIS_GROUND_Y = 500;
+
+/** Everything the simulation reads or writes during a tick. */
+export interface SimWorld {
+    trains: Record<TrainId, Train>;
+    edges: Record<EdgeId, TrackEdge>;
+    nodes: Record<NodeId, TrackNode>;
+    sensors: Record<SensorId, Sensor>;
+    signals: Record<SignalId, Signal>;
+    wires: Record<WireId, Wire>;
+    crashedParts: CrashedPart[];
+}
+
+/** Injected clock and randomness — the only sources of nondeterminism. */
+export interface StepContext {
+    /** Timestamp (ms) stamped onto bounce/crash animations. */
+    now: number;
+    /** Uniform random in [0, 1). Use `createRng(seed)` for determinism. */
+    random: () => number;
+}
+
+/** Something that happened during a tick. Consumers map these to audio, FX and logs. */
+export type SimEvent =
+    | { type: 'traverse'; trainId: TrainId; fromEdgeId: EdgeId; toEdgeId: EdgeId }
+    | { type: 'bounce'; trainId: TrainId; edgeId: EdgeId }
+    | { type: 'collision'; trainId: TrainId; otherTrainIds: TrainId[]; edgeId: EdgeId; location: Vector2; severity: number }
+    | { type: 'sensor'; sensorId: SensorId; edgeId: EdgeId; state: 'on' | 'off' }
+    | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
+    | { type: 'signal'; signalId: SignalId; state: SignalState };
+
+export interface StepResult {
+    world: SimWorld;
+    events: SimEvent[];
+}
+
+/**
+ * Advance the world by `dt` simulated seconds.
+ *
+ * Order matches the historical game loop: movement → collisions → debris →
+ * sensors/wires. Inputs are never mutated; changed collections are copied.
+ */
+export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): StepResult {
+    const events: SimEvent[] = [];
+    const { edges } = world;
+    let nodes = world.nodes;
+
+    // 1. Movement
+    const trains: Record<TrainId, Train> = {};
+    for (const train of Object.values(world.trains)) {
+        if (train.crashed) {
+            trains[train.id] = train;
+            continue;
+        }
+        const update = calculateTrainMovement(train, dt, edges, nodes);
+        if (!update) {
+            trains[train.id] = train;
+            continue;
+        }
+        const next: Train = {
+            ...train,
+            distanceAlongEdge: update.distance,
+            currentEdgeId: update.edgeId,
+            direction: update.direction,
+        };
+        if (update.edgeId !== train.currentEdgeId) {
+            events.push({ type: 'traverse', trainId: train.id, fromEdgeId: train.currentEdgeId, toEdgeId: update.edgeId });
+        }
+        if (update.bounced) {
+            next.bounceTime = ctx.now;
+            events.push({ type: 'bounce', trainId: train.id, edgeId: update.edgeId });
+        }
+        trains[train.id] = next;
+    }
+
+    // 2. Collisions
+    let crashedParts = world.crashedParts;
+    const collisions = checkCollisions(trains, edges, ctx.random);
+    const collidedIds = new Set(collisions.flatMap(c => c.trainIds));
+    for (const collision of collisions) {
+        crashedParts = [...crashedParts, ...collision.debris];
+        for (const id of collision.trainIds) {
+            const train = trains[id];
+            if (!train) continue;
+            trains[id] = { ...train, crashed: true, crashTime: ctx.now, speed: 0 };
+            events.push({
+                type: 'collision',
+                trainId: id,
+                // Partners are whichever other trains crashed in this same tick
+                otherTrainIds: [...collidedIds].filter(other => other !== id),
+                edgeId: train.currentEdgeId,
+                location: collision.location,
+                severity: collision.severity,
+            });
+        }
+    }
+
+    // 3. Debris physics
+    if (crashedParts.length > 0) {
+        crashedParts = updateCrashedParts(crashedParts, dt, DEBRIS_GROUND_Y);
+    }
+
+    // 4. Sensors and wires
+    let sensors = world.sensors;
+    let signals = world.signals;
+    const sensorUpdates = updateSensors(trains, sensors, world.wires);
+    if (sensorUpdates.length > 0) sensors = { ...sensors };
+
+    for (const update of sensorUpdates) {
+        const sensor = sensors[update.sensorId];
+        if (!sensor) continue;
+        sensors[update.sensorId] = { ...sensor, state: update.newState };
+        events.push({ type: 'sensor', sensorId: sensor.id, edgeId: sensor.edgeId, state: update.newState });
+
+        for (const action of update.triggeredActions) {
+            if (action.targetType === 'switch') {
+                const node = nodes[action.targetId];
+                if (!node || node.type !== 'switch') continue;
+                const current = node.switchState ?? 0;
+                const target: 0 | 1 =
+                    action.action === 'set_main' ? 0
+                        : action.action === 'set_branch' ? 1
+                            : (current === 0 ? 1 : 0);
+                if (target === current) continue;
+                nodes = { ...nodes, [node.id]: { ...node, switchState: target } };
+                events.push({ type: 'switch', nodeId: node.id, switchState: target });
+            } else {
+                const signal = signals[action.targetId];
+                if (!signal) continue;
+                const target: SignalState =
+                    action.action === 'set_red' ? 'red'
+                        : action.action === 'set_green' ? 'green'
+                            : (signal.state === 'red' ? 'green' : 'red');
+                if (target === signal.state) continue;
+                signals = { ...signals, [signal.id]: { ...signal, state: target } };
+                events.push({ type: 'signal', signalId: signal.id, state: target });
+            }
+        }
+    }
+
+    return {
+        world: { ...world, trains, nodes, sensors, signals, crashedParts },
+        events,
+    };
+}
+
+/**
+ * Small, fast seeded PRNG (mulberry32). Same seed → same sequence, so
+ * crash debris and any future randomness replay exactly in tests.
+ */
+export function createRng(seed: number): () => number {
+    let a = seed >>> 0;
+    return () => {
+        a = (a + 0x6D2B79F5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}

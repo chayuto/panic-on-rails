@@ -67,7 +67,14 @@ function generatePartId(): string {
  * Explode a train into scattered parts.
  * Creates parts with velocities based on impact and random spread.
  */
-export function explodeTrain(crash: CrashEvent): CrashedPart[] {
+export function explodeTrain(crash: CrashEvent, random: () => number = Math.random): CrashedPart[] {
+    const randomSpread = (range: number) => (random() - 0.5) * range;
+    const createPart = (
+        type: CrashPartType,
+        position: Vector2,
+        baseVelocity: { vx: number; vy: number },
+        color: string
+    ) => createPartWith(type, position, baseVelocity, color, randomSpread);
     const parts: CrashedPart[] = [];
     const { position, velocity, trainColor, severity } = crash;
 
@@ -118,11 +125,12 @@ export function explodeTrain(crash: CrashEvent): CrashedPart[] {
 /**
  * Create a single crashed part with physics properties.
  */
-function createPart(
+function createPartWith(
     type: CrashPartType,
     position: Vector2,
     baseVelocity: { vx: number; vy: number },
-    color: string
+    color: string,
+    randomSpread: (range: number) => number
 ): CrashedPart {
     const def = PART_DEFINITIONS[type];
 
@@ -147,13 +155,6 @@ function createPart(
     };
 }
 
-/**
- * Generate random spread value for explosion variation.
- */
-function randomSpread(range: number): number {
-    return (Math.random() - 0.5) * range;
-}
-
 // ===========================
 // Physics Update
 // ===========================
@@ -164,15 +165,22 @@ function randomSpread(range: number): number {
  * @param parts - Array of crashed parts
  * @param dt - Delta time in seconds
  * @param groundY - Y position of ground/track surface
- * @returns Updated parts array (may be smaller if parts removed)
+ * @returns New parts array; input parts are never mutated
  */
 export function updateCrashedParts(
     parts: CrashedPart[],
     dt: number,
     groundY: number = GROUND_Y
 ): CrashedPart[] {
-    return parts.map(part => {
-        if (part.settled) return part;
+    return parts.map(prev => {
+        if (prev.settled) return prev;
+
+        // Copy: parts may come from a frozen (immer) store snapshot
+        const part: CrashedPart = {
+            ...prev,
+            position: { ...prev.position },
+            velocity: { ...prev.velocity },
+        };
 
         // Apply gravity
         part.velocity.y += GRAVITY * dt;

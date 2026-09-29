@@ -10,8 +10,12 @@
  * - Active in preview/CI when `?e2e` URL parameter is present
  * - Active when `localStorage.panic-e2e === 'true'`
  *
- * The bridge is tree-shaken from production builds via the DEV guard
- * in App.tsx. The `?e2e` path is only used for preview builds in CI.
+ * Also exposes `window.__PANIC_SIM__` (see `src/simulation/harness.ts`):
+ * pause the rAF loop, then `__PANIC_SIM__.seed(1); __PANIC_SIM__.runSeconds(5)`
+ * steps the exact same simulation code deterministically, no clock mocking.
+ *
+ * The bridge module ships in production bundles but stays inert unless one
+ * of the activation conditions above holds.
  */
 
 import { useTrackStore } from '../stores/useTrackStore';
@@ -22,6 +26,8 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
 import { useBudgetStore } from '../stores/useBudgetStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
+import { simHarness, type SimHarness } from '../simulation/harness';
+import type { CrashedPart } from './crashPhysics';
 import type Konva from 'konva';
 
 // Extend Window interface for TypeScript
@@ -29,6 +35,8 @@ declare global {
     interface Window {
         __PANIC_STORES__?: PanicStoreBridge;
         __PANIC_STAGE__?: Konva.Stage | null;
+        /** Headless simulation harness: step, seed, load recipes, summarize. */
+        __PANIC_SIM__?: SimHarness;
     }
 }
 
@@ -68,7 +76,7 @@ export interface PanicStoreBridge {
             isRunning: boolean;
             speedMultiplier: number;
             error: string | null;
-            crashedParts: unknown[];
+            crashedParts: CrashedPart[];
             simLog: { seq: number; time: number; type: string; trainId: string; edgeId: string; detail: string }[];
             simElapsed: number;
         };
@@ -296,7 +304,8 @@ export function initDebugBridge(): void {
     };
 
     window.__PANIC_STORES__ = bridge;
-    console.log('[DebugBridge] Stores exposed to window.__PANIC_STORES__');
+    window.__PANIC_SIM__ = simHarness;
+    console.log('[DebugBridge] Stores exposed to window.__PANIC_STORES__, sim harness to window.__PANIC_SIM__');
 }
 
 /**

@@ -1,6 +1,16 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+It is the canonical guide for all coding agents (`AGENTS.md` points here).
+
+## Read Order
+
+1. This file — commands, architecture, conventions.
+2. `docs/ROADMAP.md` — current state of the game, known gaps, and the phased plan. Check it before starting feature work.
+3. `docs/architecture/constitution.md` — authoritative geometry/angle/connector rules. Required before touching `src/utils/`, `src/geometry/`, catalog, or track creators.
+4. `.claude/skills/high-fidelity-frontend-testing/SKILL.md` — before writing E2E tests.
+
+`docs/change_notes/` and `docs/research/` are historical records, not instructions. `docs/internal/` and `docs/personal/` are gitignored local notes; ignore them.
 
 ## Commands
 
@@ -10,7 +20,7 @@ pnpm build        # Production build (tsc -b && vite build)
 pnpm test         # Run Vitest tests (watch mode)
 pnpm test --run   # Single run (CI mode)
 pnpm lint         # ESLint
-pnpm typecheck    # TypeScript strict check (tsc --noEmit)
+pnpm typecheck    # TypeScript strict check (tsc -b; covers src, e2e, configs)
 ```
 
 Run a single test file:
@@ -26,7 +36,7 @@ PLAYWRIGHT_DEV=1 pnpm exec playwright test --project=dev  # Agent tests (needs p
 
 ## Architecture
 
-**Browser-based train track planner + simulator** using React 19, TypeScript 5.9 (strict), React-Konva for canvas rendering, and Zustand 5 for state management. Built with Vite; uses pnpm. Path alias: `@/` maps to `src/`.
+**Browser-based train track planner + simulator** using React 19, TypeScript 6 (strict), React-Konva for canvas rendering, and Zustand 5 for state management. Built with Vite 8; uses pnpm 11 on Node 24. Path alias: `@/` maps to `src/`.
 
 ### Canvas Rendering (React-Konva)
 
@@ -45,6 +55,7 @@ Non-persisted stores (reset on refresh):
 - **useSimulationStore** — Train positions, speeds, collision state. Includes `setError()`/`clearError()` for simulation errors.
 - **useEditorStore** — Transient UI state (dragging, selection, ghost previews).
 - **useEffectsStore** — Visual/audio effects (screen shake, flash).
+- **useHistoryStore** — Undo/redo stacks. Undoable gestures call `record()` *before* mutating; snapshots cover track + logic + budget.
 
 Always use atomic selectors: `useTrackStore(s => s.nodes)` not `useTrackStore()`. Use named selectors for derived reads (e.g., `selectTrains`, `selectError`).
 
@@ -70,15 +81,19 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 ### Simulation System
 
-`src/hooks/useGameLoop.ts` orchestrates four sub-systems each frame via `requestAnimationFrame` with delta time capping:
-1. `calculateTrainMovement()` — Train position along edges (`src/simulation/movement.ts`)
-2. `checkCollisions()` — Spatial hash grid + bounding box tests (`src/simulation/collision.ts`)
-3. `updateSensors()` — Sensor/signal state from train proximity (`src/simulation/signals.ts`)
-4. Effects update — Visual/audio feedback
+The simulation is a pure function plus thin adapters — keep it that way:
+
+- **`src/simulation/step.ts`** — `stepSimulation(world, dt, ctx) → { world, events }`. Pure: no stores, audio, DOM, `performance.now()` or `Math.random()`. Order per tick: movement → collisions → debris → sensors/wires. Clock and RNG come in via `ctx` (`createRng(seed)` for determinism); side effects go out as typed `SimEvent`s (`traverse`, `bounce`, `collision`, `sensor`, `switch`, `signal`).
+- Subsystems it calls: `movement.ts` (edge traversal, switch routing, dead-end bounce), `collision.ts` (+ `utils/collisionManager.ts`), `signals.ts` (sensor zones → wire actions), `utils/crashPhysics.ts` (debris; RNG-injected, never mutates input).
+- **`src/simulation/tick.ts`** — `tickSimulation(realDt, { sink })` reads the stores, steps, writes back only what changed, logs to `simLog`, and hands events to a sink. `seedSimulation(n)` makes runs reproducible.
+- **`src/hooks/useGameLoop.ts`** — rAF driver only: delta capping, error recovery, and `browserEffectsSink` (events → audio/flash/shake).
+- **`src/simulation/harness.ts`** — headless API: `resetWorld()`, `loadRecipe(template)`, `seed()`, `run(frames)`, `runSeconds(s)`, `summarize()`.
+
+New simulation behavior goes in `step.ts` or a subsystem, emits an event if it needs audio/FX, and gets a test in `src/simulation/__tests__/` (unit tests use the graph builders in `fixtures.ts`; `scenarios.test.ts` runs the shipped templates headlessly).
 
 ### Snap & Placement
 
-`src/utils/snapManager.ts` handles multi-node snapping (switches, crossings). Snaps pivot connector rotation, not center. `src/utils/facadeConnection.ts` handles facade alignment. `src/utils/connectTransform.ts` handles connection transformation.
+`src/utils/snapManager.ts` handles multi-node snapping (switches, crossings). Snaps pivot connector rotation, not center. `src/utils/connectTransform.ts` handles facade mating, connection validation and transformation.
 
 ### File Export/Import
 
@@ -95,11 +110,13 @@ Track layouts are stored as a graph of `TrackNode` (connection points) and `Trac
 
 ### Agentic Dev-Test Infrastructure
 
-`src/utils/debugBridge.ts` exposes all Zustand stores to `window.__PANIC_STORES__` and Konva stage to `window.__PANIC_STAGE__` (dev mode or `?e2e` param). Playwright helpers in `e2e/helpers/` provide:
+**Prefer headless first.** Most gameplay/simulation questions can be answered in Vitest with `src/simulation/harness.ts` — no browser, ~ms per simulated minute. Reach for the browser only for rendering, input, and layout.
+
+`src/utils/debugBridge.ts` exposes all Zustand stores to `window.__PANIC_STORES__`, the Konva stage to `window.__PANIC_STAGE__`, and the simulation harness to `window.__PANIC_SIM__` (dev mode, `?e2e` param, or `localStorage.panic-e2e`). With the rAF loop paused, `__PANIC_SIM__.seed(1); __PANIC_SIM__.runSeconds(5)` steps the real simulation deterministically — no clock mocking or `waitForTimeout`. Playwright helpers in `e2e/helpers/` provide:
 
 - **StoreBridge** — typed store access (read/write track, mode, simulation, editor state)
 - **AgentActions** — semantic API: `placeTrack()`, `switchMode()`, `verify()`, `clickCanvas()`
 - **ScreenshotManager** — paired `.png` + `.state.json` capture to `e2e-screenshots/`
 - **ConsistencyChecker** — verifies rendered Konva shapes match store data
 
-Two Playwright projects: `chromium` (CI, port 4173, builds first) and `dev` (agentic, port 5173, needs `pnpm dev` running + `PLAYWRIGHT_DEV=1`). Agent specs live in `e2e/specs/`.
+Two Playwright projects: `chromium` (CI, port 4173, builds first) and `dev` (agentic, port 5173, needs `pnpm dev` running + `PLAYWRIGHT_DEV=1`). Agent specs live in `e2e/specs/` (not run in CI); top-level `e2e/*.spec.ts` run in CI.

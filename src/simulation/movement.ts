@@ -7,7 +7,9 @@
 
 import type { Train, TrainId, TrackEdge, TrackNode, EdgeId, NodeId } from '../types';
 import { getSwitchExitEdge } from '../utils/switchRouting';
-import { playSound } from '../utils/audioManager';
+import { logger } from '../utils/logger';
+
+const log = logger.scope('movement');
 
 /** Maximum edge transitions per frame to prevent infinite loops */
 const MAX_TRAVERSALS_PER_FRAME = 10;
@@ -17,13 +19,17 @@ export interface TrainUpdate {
     distance: number;
     edgeId: EdgeId;
     direction: 1 | -1;
-    bounceTime?: number;
+    /** True if the train hit a dead end and reversed during this update */
+    bounced: boolean;
 }
 
 /**
  * Calculates the new position for a single train given a time delta.
  * Handles edge transitions and graph traversal.
  * Supports multi-edge traversal per frame via a while loop with safety limit.
+ *
+ * Pure: no audio, no clock reads. Side effects (bounce sound, squash animation)
+ * are driven by the caller from the returned `bounced` flag.
  */
 export function calculateTrainMovement(
     train: Train,
@@ -38,7 +44,7 @@ export function calculateTrainMovement(
     let newDistance = train.distanceAlongEdge + train.speed * train.direction * dt;
     let newDirection = train.direction;
     let newEdgeId = train.currentEdgeId;
-    let bounceTime: number | undefined = undefined;
+    let bounced = false;
     let traversals = 0;
 
     // Multi-edge traversal loop
@@ -70,8 +76,7 @@ export function calculateTrainMovement(
                 newDistance = currentEdge.length - overflow;
                 // W18: Clamp after bounce to prevent negative overflow
                 newDistance = Math.max(0, Math.min(newDistance, currentEdge.length));
-                bounceTime = performance.now();
-                playSound('bounce');
+                bounced = true;
                 break;
             }
         }
@@ -99,8 +104,7 @@ export function calculateTrainMovement(
                 newDistance = overflow;
                 // W18: Clamp after bounce
                 newDistance = Math.max(0, Math.min(newDistance, currentEdge.length));
-                bounceTime = performance.now();
-                playSound('bounce');
+                bounced = true;
                 break;
             }
         }
@@ -120,7 +124,7 @@ export function calculateTrainMovement(
         distance: newDistance,
         edgeId: newEdgeId,
         direction: newDirection,
-        bounceTime
+        bounced,
     };
 }
 
@@ -144,9 +148,9 @@ function resolveNextEdge(
         if (switchExit && otherConnections.includes(switchExit)) {
             return switchExit;
         }
-        // W17: Switch routing returned null or invalid edge — log warning and use fallback
-        console.warn(
-            `[movement] getSwitchExitEdge returned null for switch node ${node.id} ` +
+        // W17: Switch routing returned null or invalid edge — fall back below
+        log.warn(
+            `getSwitchExitEdge returned null for switch node ${node.id} ` +
             `(entry edge: ${currentEdgeId}). Falling back to first available connection.`
         );
     }
