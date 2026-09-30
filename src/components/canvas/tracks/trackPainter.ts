@@ -34,6 +34,17 @@ export interface PaintedEdge {
     infill?: boolean;
     /** Raised above the baseboard: its height along the middle (mm) */
     height?: number;
+    /** The structure it's carried on: a viaduct or a bridge */
+    deck?: PaintedDeck;
+}
+
+/** A structure track is carried on, painted under it (and a truss's bracing over it). */
+export interface PaintedDeck {
+    kind: 'viaduct' | 'truss';
+    /** Across the structure (mm) */
+    width: number;
+    /** A bridge's paint */
+    color?: string;
 }
 
 /** A raised joint: where a pier stands under the track. */
@@ -121,6 +132,19 @@ export const KATO_SLAB_LOOK: ModelLook = {
     sleeperLength: 15,
     sleeperWidth: 0.7,
     sleeperSpacing: 31,
+};
+
+/** Kato's viaduct track: the ties on the concrete deck, between the viaduct's walls. */
+export const KATO_VIADUCT_LOOK: ModelLook = {
+    ...KATO_LOOK,
+    ballast: '#9c9a93',
+    ballastEdge: '#9c9a93',
+};
+
+/** A truss bridge's track: open ties on the steel deck, no roadbed. */
+export const KATO_BRIDGE_LOOK: ModelLook = {
+    ...KATO_LOOK,
+    ballast: null,
 };
 
 /** Märklin C-track (H0): grey moulded roadbed, and studs down the middle. */
@@ -304,7 +328,7 @@ function paintShadows(ctx: Ctx, raised: PaintedEdge[], piers: PaintedPier[]): vo
         const d = (e.height ?? 0) * SHADOW_SLANT;
         ctx.save();
         ctx.translate(d, d);
-        strokeAll(ctx, [e], e.width, 'rgba(0, 0, 0, 0.45)');
+        strokeAll(ctx, [e], e.deck?.width ?? e.width, 'rgba(0, 0, 0, 0.45)');
         ctx.restore();
     }
     ctx.restore();
@@ -315,6 +339,9 @@ function paintLevel(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
     const px = 1 / Math.max(zoom, 0.01);
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'round';
+
+    const decked = all.filter(e => e.deck);
+    if (decked.length > 0) paintDecks(ctx, decked, px);
 
     const wooden = all.filter(e => e.style === 'wooden');
     if (wooden.length > 0) paintWooden(ctx, wooden, px);
@@ -329,6 +356,66 @@ function paintLevel(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
         else byLook.set(look, [e]);
     }
     for (const [look, edges] of byLook) paintModel(ctx, edges, look, zoom, px);
+
+    const trusses = decked.filter(e => e.deck?.kind === 'truss');
+    if (trusses.length > 0) paintTrussBracing(ctx, trusses, px);
+}
+
+const DECK = {
+    CONCRETE: '#9c9a93',
+    EDGE: '#6c6a64',
+    WALL: '#cfcdc6',
+    STEEL: '#45474a',
+    /** A truss's panels: an X of top bracing in each, about 31 mm long */
+    PANEL: 31,
+} as const;
+
+/** Viaducts' concrete decks between their walls, and bridges' steel decks between their trusses. */
+function paintDecks(ctx: Ctx, edges: PaintedEdge[], px: number): void {
+    for (const e of edges) {
+        const deck = e.deck!;
+        const truss = deck.kind === 'truss';
+        strokeAll(ctx, [e], deck.width + Math.max(1.5, px), DECK.EDGE);
+        strokeAll(ctx, [e], deck.width, truss ? DECK.STEEL : DECK.CONCRETE);
+        // The walls, or the truss's chords, along both sides
+        const side = deck.width / 2 - 1.1;
+        const color = truss ? deck.color ?? DECK.WALL : DECK.WALL;
+        const width = Math.max(truss ? 2.2 : 2, px);
+        strokeAll(ctx, [e], width, color, -side);
+        strokeAll(ctx, [e], width, color, side);
+    }
+}
+
+/** Over a truss bridge's track, its top bracing: a strut across and an X in each panel. */
+function paintTrussBracing(ctx: Ctx, edges: PaintedEdge[], px: number): void {
+    for (const e of edges) {
+        const g = e.geometry;
+        if (g.type !== 'straight') continue;
+        const dx = g.end.x - g.start.x;
+        const dy = g.end.y - g.start.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const half = e.deck!.width / 2 - 1.1;
+        // Across the track: right of travel
+        const ax = (-dy / length) * half;
+        const ay = (dx / length) * half;
+        const panels = Math.max(1, Math.round(length / DECK.PANEL));
+        const at = (t: number, s: number) => [g.start.x + dx * t + ax * s, g.start.y + dy * t + ay * s] as const;
+        ctx.beginPath();
+        for (let i = 0; i <= panels; i++) {
+            const t = i / panels;
+            ctx.moveTo(...at(t, -1));
+            ctx.lineTo(...at(t, 1));
+            if (i === panels) break;
+            const next = (i + 1) / panels;
+            ctx.moveTo(...at(t, -1));
+            ctx.lineTo(...at(next, 1));
+            ctx.moveTo(...at(t, 1));
+            ctx.lineTo(...at(next, -1));
+        }
+        ctx.lineWidth = Math.max(0.9, px);
+        ctx.strokeStyle = e.deck!.color ?? DECK.WALL;
+        ctx.stroke();
+    }
 }
 
 function paintModel(ctx: Ctx, all: PaintedEdge[], L: ModelLook, zoom: number, px: number): void {

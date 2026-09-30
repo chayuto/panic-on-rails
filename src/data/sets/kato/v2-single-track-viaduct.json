@@ -1,0 +1,52 @@
+{
+    "id": "kato-20-861",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-861",
+    "badge": "V2",
+    "name": "Single Track Viaduct Set",
+    "price": 12000,
+    "kind": "expansion",
+    "description": "A loop that climbs from the baseboard onto a viaduct 60mm up, crossing a red truss bridge on the way round. With a Master Set, the truss makes an up-and-over crossing.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-400", "qty": 4 },
+        { "part": "kato-20-420", "qty": 2 },
+        { "part": "kato-20-520", "qty": 8 },
+        { "part": "kato-20-430", "qty": 1 }
+    ],
+    "accessories": ["Incline Pier Set: piers No.1 to No.5, and stairs", "Pier No.5 (4)"],
+    "footprint": { "width": 1655, "depth": 911 },
+    "plans": [
+        {
+            "id": "viaduct-loop",
+            "name": "Viaduct loop",
+            "description": "Kato's standard heights: the ground track rises gently over a spacer to the stairs, then each end climbs on piers No.1 to No.5, about 4% a piece. The far straight runs level on No.5 piers, across the truss.",
+            "steps": [
+                { "part": "kato-20-000", "height": 5 },
+                { "part": "kato-20-000", "height": 10 },
+                { "part": "kato-20-520", "via": "B", "height": 25 },
+                { "part": "kato-20-520", "via": "B", "height": 35 },
+                { "part": "kato-20-400", "height": 45 },
+                { "part": "kato-20-520", "via": "B", "height": 55 },
+                { "part": "kato-20-520", "via": "B", "height": 60 },
+                { "part": "kato-20-400" },
+                { "part": "kato-20-420" },
+                { "part": "kato-20-430" },
+                { "part": "kato-20-420" },
+                { "part": "kato-20-400" },
+                { "part": "kato-20-520", "via": "B", "height": 55 },
+                { "part": "kato-20-520", "via": "B", "height": 45 },
+                { "part": "kato-20-400", "height": 35 },
+                { "part": "kato-20-520", "via": "B", "height": 25 },
+                { "part": "kato-20-520", "via": "B", "height": 10 },
+                { "part": "kato-20-000", "height": 5 },
+                { "part": "kato-20-000", "height": 0 }
+            ],
+            "trains": [
+                { "piece": 8, "color": "#E74C3C" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

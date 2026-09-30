@@ -510,7 +510,19 @@ Order, biggest win per millisecond first:
   - Raised track is painted over the track on the baseboard, lowest first, with its shadow
     and each pier's cast on what's below. The train layer paints raised track again over the
     trains passing under it, before the trains on top.
-- [ ] Elevation's products: Kato's viaduct track and piers, and the V2, V12 and V13 sets.
+- [x] **Kato's viaduct track and V2** (20-861, $120). The single-track viaduct straights (S248V,
+      S186V, S124V, S62V) and curves (R249 to R381), and the S248T truss bridge in its six
+      colours, each at Kato's list price per piece.
+  - V2 is a loop that climbs from the baseboard to a viaduct 60 mm up and crosses its red truss.
+    It measures its printed 1655 × 911 mm exactly, with a pier at every joint at Kato's
+    standard heights. The design doc has the sources, and flags the two heights Kato doesn't
+    print (the spacer and the stairs).
+  - Viaduct pieces are drawn as a concrete deck between walls. A truss bridge has a steel deck,
+    open ties, its chords along both sides and its bracing across the top.
+- [ ] More elevation:
+  - V12 and V13: Kato's double-track viaduct pieces, piers and the incline ramp.
+  - V2 with M1 as one loop, M1's ground track passing under the truss (Kato's "Master1 + V2").
+  - Editor controls for heights: raise or lower a piece onto piers.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
   - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin

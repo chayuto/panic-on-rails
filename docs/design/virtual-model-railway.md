@@ -63,7 +63,7 @@ Measurements"), cross-checked against Kato's set guides and Kato Japan's set pag
 | **M1** 20-852 | S248×4, S124, S124C, S62, S62F, R315-45×8, Power Pack SX | 1337 × 677 | ✅ Measures 1337 × 677 exactly |
 | **M2** 20-853 | M1 + V1 | 2019 × 751 | ✅ 2019 × 743 (the 8 mm is unexplained) |
 | **V1** 20-860 | S248×6, S64×2, R718-15×2, #6 L + R | 1364 × 91 | ✅ Passing siding outside M1, at 66 mm centres |
-| **V2** 20-861 | Viaduct loop on piers | 1655 × 911 | ❌ Needs elevation |
+| **V2** 20-861 | S248×4, S248V×4, S124V×2, R315-45V×8, S248T truss (red), Incline Pier Set, Pier No.5×4 | 1655 × 911 | ✅ Measures 1655 × 911 exactly: a loop that climbs from the baseboard to a viaduct on No.5 piers |
 | **V3** 20-862 | S248×6, S186×2, S64×2, bumper×3, R718-15×3, #6 L×2 + R | 1571 × 250 | ✅ Three-track yard |
 | **V4** 20-863 | S248×4, S62×2, R481-15×2, #4 L + R, S60L×2, S60R×2 | 992 × 58 | ✅ #4 siding inside M1, at 33 mm |
 | **V5** 20-864 | M1's straights, R282-45×8 | 1271 × 611 | ✅ Inner oval, 33 mm inside M1 |
@@ -82,6 +82,10 @@ What the measurements taught us:
   box says.
 - **Kato's 2025 catalog misprints V17 as 1473 × 753 mm.** Its own inch figure and the box give
   853, and the plan measures 1473.0 × 853.0.
+- **Kato's viaduct heights come from its piers.** The starter guide gives the incline piers'
+  heights, No.1 to No.5: 15, 25, 35, 45 and 50 mm. The track sits 10 mm above a pier, so on
+  No.5 it's 60 mm up. Five viaduct pieces climb from the stairs to No.5, about 4% each; the
+  last climbs half as much, Kato's 2% easement.
 - **Some Kato plans are 1–2 mm off on paper.** The #6 passing siding is 1 mm short and the #4
   siding 2 mm long. The real UniJoiners absorb it, so those plans declare a small `tolerance`.
 - **The real products corrected our catalog:**
@@ -153,7 +157,7 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
 | Double-track pieces (V11–V17) | ✅ V11, V14, V16 (concrete ties) and V17 (slab): straights, banked curves and approaches, as two-track topology parts drawn as one band | V12/V13 (elevation), V15 (widening sections) |
-| Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
+| Viaducts and elevation (V2, V12, V13) | ✅ V2: viaduct track and truss bridges, raised on piers at Kato's standard heights | V12/V13 need the double-track viaduct pieces and piers |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
 | Power pack | ✅ A throttle with momentum, braking for red signals and buffer stops, and a direction lever | — |
 | The train in a train set | ✅ Kato USA's N starter sets and Hornby's OO train sets, each with its own train | Märklin's Start up sets |
@@ -227,6 +231,22 @@ The plan format and its rules are in [`src/data/sets/README.md`](../../src/data/
 - Hornby Track Extension Pack A: https://uk.hornby.com/products/extension-pack-a-r8221
 - Märklin C1 extension set 24900: https://www.marklin.com/products/details/article/24900
 - Earlier project research: `docs/research/20260104_Kato N Scale Parts and Sets.md`
+
+Viaducts and piers (the V2 set):
+
+- Kato's 2025 catalog (above): V2's contents and size on p.6. The viaduct straights, truss bridges
+  and the note to put an S62V or S124V between a truss and a viaduct curve are on p.10, the S62V
+  on p.11, and the viaduct curves on p.15.
+- Kato's starter guide, "UNITRACK Viaduct System Standard Heights" (piers No.1–No.5, 15–50 mm),
+  and V2's plan with a pier at every joint: https://katousa.com/wp-content/uploads/2025/12/M1-Guide.pdf
+- The Incline Pier Set's box back: five viaduct pieces reach 50 mm, about 4% on S248 or R315-45,
+  and a 2% easement: https://unitrack.katomodels.com/products/line_single/elevated_line
+- The track is 10 mm above the pier, 60 mm on a No.5: Kato Japan, same page (23-068, 23-069).
+- Kato doesn't give the stairs' and spacer's heights. The plan puts the ground track 5 mm up on
+  the spacer and 10 mm up at the stairs, so the ground ramp is Kato's 2% easement and the first
+  viaduct piece climbs about 6%, as a modeler measured it:
+  https://kureport.livedoor.blog/archives/18495912.html
+- The viaduct's deck is 33 mm wide: V2's printed size is its track's centre line plus 33 mm.
 
 Car lengths of the real trains (`src/data/rollingStock.ts`):
 

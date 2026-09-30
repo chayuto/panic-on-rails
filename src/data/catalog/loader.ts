@@ -108,6 +108,8 @@ function transformToPart(
         roadbedWidth: trackWidth,
         ...(jsonPart.roadCrossing && { roadCrossing: true }),
         ...(jsonPart.slab && { slab: true }),
+        ...(jsonPart.deck && { deck: jsonPart.deck }),
+        ...(jsonPart.deckColor && { deckColor: jsonPart.deckColor }),
         ...(jsonPart.category && { category: jsonPart.category }),
     };
 }
