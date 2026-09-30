@@ -112,6 +112,16 @@ Chromium, so calling `look()` (or any bridge call) unlocks audio and other
 gesture-gated behaviour. To test gesture-gated features, record their state in the
 page at load and read it afterwards.
 
+**Console gate:** every spec using `e2e/fixtures/app-fixture.ts` fails on a page error or
+console error. A test that means to cause one opts out with
+`test.use({ allowedConsoleErrors: [/expected text/] })`.
+
+**Model-based building tests** (`src/stores/__tests__/buildModel.test.ts`, fast-check) are
+headless. They run random sequences of drops at open ends, deletes, undo, redo and points
+through the real stores, snap manager and `joinPlacedPiece`, and check graph invariants after
+every step. A failure shrinks to the shortest breaking sequence and prints a seed; pin it with
+`{ seed }` to replay, then add a plain regression test.
+
 Rule: **no report-only checks.** A table of PASS/FAIL printed to the console with a
 pass-rate threshold rots silently; assert every row, or delete it.
 

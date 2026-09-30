@@ -153,6 +153,14 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
                         for (const signal of orphanedSignals) {
                             logicStore.removeSignal(signal.id);
                         }
+                    } else if (node.switchBranches?.some(id => removedEdgeIds.has(id as EdgeId))) {
+                        // The points went with the piece: what's left is a plain joint or end
+                        const { switchState: _state, switchBranches: _branches, switchGroup: _group, ...plain } = node;
+                        newNodes[nodeId] = {
+                            ...plain,
+                            connections: filteredConnections,
+                            type: filteredConnections.length > 1 ? 'junction' : 'endpoint',
+                        };
                     } else {
                         newNodes[nodeId] = { ...node, connections: filteredConnections };
                     }

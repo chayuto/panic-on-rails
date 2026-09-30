@@ -28,7 +28,8 @@ Authenticity is a requirement, not polish:
 pnpm dev          # Dev server at http://localhost:5173
 pnpm build        # Production build (tsc -b && vite build)
 pnpm test         # Run Vitest tests (watch mode)
-pnpm test --run   # Single run (CI mode)
+pnpm test --run   # Single run
+pnpm test:coverage # Single run with coverage floors per area (what CI runs)
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript strict check (tsc -b; covers src, e2e, configs)
 ```
@@ -161,4 +162,6 @@ New simulation behavior goes in `step.ts` or a subsystem, emits an event if it n
 - **ScreenshotManager** — paired `.png` + `.state.json` capture to `e2e-screenshots/`
 - **ConsistencyChecker** — verifies rendered Konva shapes match store data
 
-Two Playwright projects: `chromium` (CI, port 4173, builds first) and `dev` (agentic, port 5173, needs `pnpm dev` running + `PLAYWRIGHT_DEV=1`). Agent specs live in `e2e/specs/` (not run in CI); top-level `e2e/*.spec.ts` run in CI.
+Two Playwright projects: `chromium` (CI, port 4173, builds first) and `dev` (agentic, port 5173, needs `pnpm dev` running + `PLAYWRIGHT_DEV=1`). Agent specs live in `e2e/specs/` (not run in CI); top-level `e2e/*.spec.ts` run in CI. Every spec fails on a page or console error (`consoleGate` in `e2e/fixtures/app-fixture.ts`; opt out per test with `allowedConsoleErrors`).
+
+**Play like a player.** The canvas is invisible to the DOM and to Playwright MCP snapshots. `window.__PANIC_QA__.look()` (`src/utils/qaLens.ts`) lists pieces, open ends (with drop points), points, trains, hints and dialogs, with page coordinates and whether each is clear of overlays. `e2e/helpers/player.ts` plays with real mouse and keyboard input only and counts actions, misses, recoveries and obstructions. `e2e/specs/playtest.spec.ts` holds that effort to budgets. For model-based fuzzing of building, see `src/stores/__tests__/buildModel.test.ts` (fast-check; failures shrink to the shortest breaking sequence and print a replay seed).
