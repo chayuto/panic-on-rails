@@ -59,6 +59,9 @@ export default defineConfig({
         {
             name: 'specs',
             testMatch: /specs\//,
+            // Screenshots compare pixel for pixel, so only where their baselines
+            // were made: the nightly's pinned Playwright image on Linux
+            ignoreSnapshots: process.platform !== 'linux',
             use: {
                 ...devices['Desktop Chrome'],
                 baseURL: 'http://localhost:4173',

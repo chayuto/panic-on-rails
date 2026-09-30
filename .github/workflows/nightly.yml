@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
+    inputs:
+      update-snapshots:
+        description: 'Write new screenshot baselines and upload them, instead of comparing'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -15,6 +20,12 @@ jobs:
   agent-specs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Screenshots compare pixel for pixel, so the browser and the system under
+    # it are pinned: Playwright's own image, with the browsers of the version
+    # the lockfile has. Bump the tag with @playwright/test (a mismatch fails
+    # loudly: the browser isn't there), then remake the baselines.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -32,25 +43,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium --with-deps
-
-      - name: Install Playwright system dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
-
-      # Builds the app and serves the preview; screenshot baselines are
-      # macOS-only so far, so their comparisons are skipped (--ignore-snapshots)
+      # Builds the app and serves the preview
       - name: Run the agent specs against the preview
-        run: pnpm run e2e:specs
+        run: pnpm run e2e:specs ${{ inputs.update-snapshots && '--update-snapshots=all' || '' }}
 
       - name: Upload report
         uses: actions/upload-artifact@v7
@@ -58,4 +53,13 @@ jobs:
         with:
           name: agent-specs-report
           path: e2e-report/
+          retention-days: 14
+
+      # Commit these into e2e/specs/ to adopt them
+      - name: Upload new screenshot baselines
+        uses: actions/upload-artifact@v7
+        if: ${{ inputs.update-snapshots }}
+        with:
+          name: screenshot-baselines
+          path: e2e/specs/**/*-specs-linux.png
           retention-days: 14

@@ -177,7 +177,7 @@ Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, p
 Playwright projects:
 - `chromium`: CI, port 4173, builds first.
 - `dev`: agentic, port 5173; needs `pnpm dev` running and `PLAYWRIGHT_DEV=1`.
-- `specs`: the agent specs against the production preview, which the nightly workflow runs (`pnpm e2e:specs`).
+- `specs`: the agent specs against the production preview, which the nightly workflow runs (`pnpm e2e:specs`) in a pinned Playwright image. Their screenshots compare only there, against Linux baselines; `looks.spec.ts` holds each brand's look.
 
 Agent specs live in `e2e/specs/`. They don't run on PRs, only nightly, so a new spec must pass against the preview too: load the page with `?e2e`. Top-level `e2e/*.spec.ts` run in CI. Every spec fails on a page or console error (`consoleGate` in `e2e/fixtures/app-fixture.ts`; opt out per test with `allowedConsoleErrors`).
 

@@ -602,8 +602,18 @@ Order, biggest win per millisecond first:
   - Replacing them found a bug: Shift+M never showed the measurements. The mode toggle had
     its own key handler for M, which flipped the mode first; the shortcut hook's handler was
     swapped out by the re-render before it ran. M now has one handler.
-- [ ] Add Linux screenshot baselines, generated in the pinned Playwright Docker image with the
-      headless mode pinned (GPU rasterization changes pixels).
+- [x] **Linux screenshot baselines.** The nightly runs in Playwright's own image
+      (`mcr.microsoft.com/playwright:v1.63.0-noble`, the version in the lockfile), so the browser
+      and the system under it are pinned. Its screenshots compare pixel for pixel against
+      baselines made in that image. Elsewhere the `specs` project skips the comparisons.
+  - `e2e/specs/looks.spec.ts` shows one set per painter style, its trains standing: Kato's
+    ballast and a US diesel, the V2 viaduct with its piers, shadows and truss, V17 slab, V13
+    double viaduct, Märklin's grey bed with H0 cars, and Hornby's bare sleepers with a tank
+    engine.
+  - Running the nightly by hand with "update snapshots" writes new baselines and uploads them to
+    commit. The baselines' first compare run passed on a fresh runner, all seven at zero pixels.
+  - The debug bridge exposes onboarding (stage, skip, reset), so a spec can start with the
+    tutorial done.
 - [x] **The debug bridge is typed from the stores.** Each store section is `expose(store,
       stateKeys, actionKeys)`, so its types come from the store itself and can't drift, with no
       `unknown` or `any` casts.
