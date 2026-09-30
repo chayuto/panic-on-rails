@@ -103,7 +103,7 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
             const edge = edges[train.currentEdgeId];
             if (!edge) continue;
 
-            const trainPos = getPositionOnEdge(edge, train.distanceAlongEdge);
+            const trainPos = getPositionOnEdge(edge, train.distanceAlongEdge, nodes);
             const distance = Math.hypot(worldPos.x - trainPos.x, worldPos.y - trainPos.y);
 
             if (distance < TRAIN_HIT_RADIUS && distance < closestDistance) {
@@ -120,7 +120,7 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
             const edge = edges[sensor.edgeId];
             if (!edge) continue;
 
-            const sensorPos = getPositionOnEdge(edge, sensor.position);
+            const sensorPos = getPositionOnEdge(edge, sensor.position, nodes);
             const distance = Math.hypot(worldPos.x - sensorPos.x, worldPos.y - sensorPos.y);
 
             if (distance < SENSOR_HIT_RADIUS && distance < closestDistance) {
