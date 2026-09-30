@@ -10,9 +10,100 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/app-fixture';
+import fc from 'fast-check';
 import { Player } from '../helpers/player';
+import type { QaLook } from '../../src/utils/qaLens';
 
 const M1 = 'kato-20-852';
+
+/** What the monkey plays on: the page, through a player. */
+interface Monkey {
+    page: Page;
+    player: Player;
+}
+type Move = fc.AsyncCommand<object, Monkey>;
+
+/** Somewhere on the canvas, as a fraction of its width and height. */
+const somewhere = fc.record({ fx: fc.double({ min: 0, max: 1, noNaN: true }), fy: fc.double({ min: 0, max: 1, noNaN: true }) });
+const onCanvas = (l: QaLook, { fx, fy }: { fx: number; fy: number }) =>
+    ({ x: l.canvas.x + fx * l.canvas.width, y: l.canvas.y + fy * l.canvas.height, onScreen: true, clear: true });
+
+/** After each move: the track is whole. */
+async function stillWhole(page: Page, move: Move): Promise<void> {
+    expect(await integrityProblems(page), `after ${move.toString()}`).toEqual([]);
+}
+
+class DragPart implements Move {
+    constructor(readonly part: string, readonly end: number | null, readonly side: 'ahead' | 'left' | 'right', readonly at: { fx: number; fy: number }) {}
+    check = () => true;
+    async run(_model: object, { page, player }: Monkey) {
+        const l = await player.look();
+        // A monkey only drags track while building
+        if (l.mode !== 'edit') return;
+        const to = this.end !== null && l.openEnds.length > 0 ? l.openEnds[this.end % l.openEnds.length].drop[this.side] : onCanvas(l, this.at);
+        await player.dragPart(this.part, to);
+        await stillWhole(page, this);
+    }
+    toString = () => `drag ${this.part} to ${this.end === null ? `(${this.at.fx.toFixed(2)}, ${this.at.fy.toFixed(2)})` : `open end ${this.end}, ${this.side}`}`;
+}
+
+class Click implements Move {
+    constructor(readonly at: { fx: number; fy: number }) {}
+    check = () => true;
+    async run(_model: object, { page, player }: Monkey) {
+        await player.click(onCanvas(await player.look(), this.at), { aimed: false });
+        await stillWhole(page, this);
+    }
+    toString = () => `click (${this.at.fx.toFixed(2)}, ${this.at.fy.toFixed(2)})`;
+}
+
+class Wheel implements Move {
+    constructor(readonly deltaY: number) {}
+    check = () => true;
+    async run(_model: object, { page, player }: Monkey) {
+        await player.wheel(this.deltaY);
+        await stillWhole(page, this);
+    }
+    toString = () => `wheel ${this.deltaY}`;
+}
+
+class Press implements Move {
+    constructor(readonly key: string) {}
+    check = () => true;
+    async run(_model: object, { page, player }: Monkey) {
+        await player.press(this.key);
+        await stillWhole(page, this);
+    }
+    toString = () => `press ${this.key}`;
+}
+
+class SwitchMode implements Move {
+    check = () => true;
+    async run(_model: object, { page, player }: Monkey) {
+        const l = await player.look();
+        await player.click(page.getByRole('button', { name: l.mode === 'edit' ? /simulate/i : /edit/i }).first());
+        await stillWhole(page, this);
+    }
+    toString = () => 'switch mode';
+}
+
+/** The monkey's moves: mostly building, then clicks and keys, sometimes a wheel or a mode switch. */
+const MONKEY_MOVE: fc.Arbitrary<Move> = fc.oneof(
+    {
+        weight: 35,
+        arbitrary: fc.tuple(
+            fc.constantFrom('Straight 248mm', 'Curve R315-45°', 'Straight 124mm'),
+            // Mostly at an open end, as a player builds; now and then anywhere
+            fc.option(fc.nat(50), { freq: 3 }),
+            fc.constantFrom('ahead' as const, 'left' as const, 'right' as const),
+            somewhere,
+        ).map(([part, end, side, at]) => new DragPart(part, end, side, at)),
+    },
+    { weight: 20, arbitrary: somewhere.map(at => new Click(at)) },
+    { weight: 10, arbitrary: fc.constantFrom(240, -240).map(delta => new Wheel(delta)) },
+    { weight: 20, arbitrary: fc.constantFrom('Delete', 'Escape', 'Control+z', 'Control+y', 'Space', 'm', 'f', '1', '3', '+', '-').map(key => new Press(key)) },
+    { weight: 15, arbitrary: fc.constant(new SwitchMode()) },
+);
 const V4 = 'kato-20-863';
 
 /** Graph problems: edges ending at missing nodes, nodes listing missing edges. Read-only. */
@@ -187,47 +278,33 @@ test.describe('Playtests', () => {
         });
     }
 
-    test('a monkey plays for 60 moves: no errors, the track stays whole', async ({ page, app }) => {
+    /**
+     * A monkey plays: random drags, clicks, wheels, keys and mode switches,
+     * as fast-check commands (`fc.commands`). After every move the track must
+     * be whole, and at the end nothing may have errored. A failure shrinks to
+     * the shortest run of moves that still breaks, and fast-check prints the
+     * seed and path to replay it: pass them to `fc.assert` as `{ seed, path }`.
+     */
+    test('a monkey plays: no errors, the track stays whole', async ({ page, app }) => {
         void app;
-        test.setTimeout(120_000);
+        test.setTimeout(300_000);
         const player = new Player(page);
-        // Seeded, so a failure replays exactly
-        let seed = 20260930;
-        const random = () => {
-            seed = (seed + 0x6D2B79F5) | 0;
-            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-        const pick = <T,>(items: T[]): T => items[Math.floor(random() * items.length)];
-        const parts = ['Straight 248mm', 'Curve R315-45°', 'Straight 124mm'];
-
-        for (let move = 0; move < 60; move++) {
-            const l = await player.look();
-            const anywhere = { x: l.canvas.x + random() * l.canvas.width, y: l.canvas.y + random() * l.canvas.height, onScreen: true, clear: true };
-            const roll = random();
-            if (roll < 0.35 && l.mode === 'edit') {
-                const end = l.openEnds.length > 0 && random() < 0.7 ? pick(l.openEnds).drop[pick(['ahead', 'left', 'right'] as const)] : anywhere;
-                player.note(`move ${move}: drag at (${end.x}, ${end.y})`);
-                await player.dragPart(pick(parts), end);
-            } else if (roll < 0.55) {
-                player.note(`move ${move}: click (${anywhere.x.toFixed(0)}, ${anywhere.y.toFixed(0)})`);
-                await player.click(anywhere, { aimed: false });
-            } else if (roll < 0.65) {
-                await player.wheel(random() < 0.5 ? 240 : -240);
-            } else if (roll < 0.85) {
-                const key = pick(['Delete', 'Escape', 'Control+z', 'Control+y', 'Space', 'm', 'f', '1', '3', '+', '-']);
-                player.note(`move ${move}: press ${key}`);
-                await player.press(key);
-            } else {
-                const mode = l.mode === 'edit' ? /simulate/i : /edit/i;
-                player.note(`move ${move}: switch mode`);
-                await player.click(page.getByRole('button', { name: mode }).first());
-            }
-            const problems = await integrityProblems(page);
-            expect(problems, `after move ${move}: ${player.journal.at(-1)}`).toEqual([]);
-        }
-        player.report('monkey-60', { moves: 60 });
-        expect(player.consoleProblems.filter(p => p.startsWith('pageerror') || p.startsWith('error'))).toEqual([]);
+        let played = 0;
+        await fc.assert(
+            fc.asyncProperty(fc.commands([MONKEY_MOVE], { maxCommands: 60, size: 'max' }), async moves => {
+                const before = player.consoleProblems.length;
+                await fc.asyncModelRun(() => ({ model: {}, real: { page, player } }), moves);
+                played += [...moves].length;
+                const problems = player.consoleProblems.slice(before).filter(p => p.startsWith('pageerror') || p.startsWith('error'));
+                expect(problems).toEqual([]);
+            }).beforeEach(async () => {
+                // Each run, and each shrink, starts from a fresh page
+                await page.evaluate(() => localStorage.clear());
+                await page.reload();
+                await expect(page.getByTestId('app')).toBeVisible();
+            }),
+            { numRuns: 2 }
+        );
+        player.report('monkey', { moves: played });
     });
 });

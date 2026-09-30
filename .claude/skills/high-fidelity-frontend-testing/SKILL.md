@@ -100,8 +100,9 @@ the track, a toast that steals a click, a target 6 px wide. For those, play:
   `e2e-results/playtest/<name>.json` with a journal.
 - **Playtests** (`e2e/specs/playtest.spec.ts`) assert the goal *and* hold the effort
   to a budget (a ratchet): a change that makes the game harder to play fails. When
-  the game gets easier, lower the budget. There's also a seeded monkey that checks
-  graph integrity after every move; failures replay exactly.
+  the game gets easier, lower the budget. There's also a monkey, fast-check commands
+  (`fc.commands`), that checks graph integrity after every move; a failure shrinks
+  to the shortest breaking run of moves and prints the seed and path to replay it.
 - **LLM agents with Playwright MCP** can do the same. Call
   `browser_evaluate(() => window.__PANIC_QA__.look())`, then act at the returned
   coordinates with `browser_mouse_click_xy` / `browser_mouse_drag_xy`. This is how
