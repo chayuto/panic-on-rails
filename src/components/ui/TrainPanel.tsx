@@ -17,7 +17,7 @@ import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Rep
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useLogicStore } from '../../stores/useLogicStore';
-import { beginSession, endSessionEarly, rerailWrecks, spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
+import { addTrain, beginSession, endSessionEarly, rerailWrecks, togglePlayPause } from '../../simulation/controls';
 import { SESSION, type SessionResult } from '../../simulation/session';
 import { nextDeparture } from '../../simulation/stations';
 import { STATIONS } from '../../config/stations';
@@ -45,6 +45,8 @@ export function TrainPanel() {
     const sessionWrecks = useSimulationStore(s => s.wrecks);
     const lastWreckAt = useSimulationStore(s => s.lastWreckAt);
     const simElapsed = useSimulationStore(s => s.simElapsed);
+    const notice = useSimulationStore(s => s.notice);
+    const setNotice = useSimulationStore(s => s.setNotice);
     const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
     const stations = useLogicStore(s => s.stations);
 
@@ -64,8 +66,9 @@ export function TrainPanel() {
     const left = trainsLeft(ownedTrains, trains);
     const anyLeft = !inCollection || Object.values(left).some(n => n > 0);
 
+    // Every train you own is running: time to buy another. No room: the notice says so
     const handleSpawnTrain = useCallback(() => {
-        if (!spawnTrainAtClearestSpot(carriageCount)) openShop('trains');
+        if (addTrain(carriageCount) === 'no-train') openShop('trains');
     }, [carriageCount, openShop]);
 
     const handleSpeedChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,6 +129,15 @@ export function TrainPanel() {
                 </button>
             </div>
 
+            {notice && (
+                <div className="train-notice" role="status" data-testid="train-notice">
+                    <p>{notice}</p>
+                    <button onClick={() => setNotice(null)} aria-label="Dismiss" title="Dismiss">
+                        <X size={12} />
+                    </button>
+                </div>
+            )}
+
             <SessionBox canRun={hasEdges} paid={inCollection} />
 
             <TimetableBox />
@@ -141,7 +153,7 @@ export function TrainPanel() {
                                 {left[stock.id] ?? 0}/{ownedTrains[stock.id]}
                             </span>
                             <button
-                                onClick={() => spawnTrainAtClearestSpot(undefined, undefined, stock.id)}
+                                onClick={() => addTrain(undefined, stock.id)}
                                 disabled={!hasEdges || (left[stock.id] ?? 0) === 0}
                                 title="Put this train on the track"
                                 data-testid={`run-stock-${stock.id}`}

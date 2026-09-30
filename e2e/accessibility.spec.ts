@@ -37,6 +37,13 @@ test.describe('Accessibility', () => {
         await page.getByTestId('mode-simulate-btn').click();
         await expect(page.getByTestId('train-panel')).toBeVisible();
         await expectAccessible(page, 'Simulate, empty');
+        // One curve, too short for the starter train: the panel says why none was added
+        await page.evaluate(() => window.__PANIC_STORES__!.track.addTrack('kato-20-120', { x: 0, y: 0 }, 0));
+        await page.getByTestId('train-add-btn').click();
+        await expect(page.getByTestId('train-notice')).toBeVisible();
+        // The button fades in from disabled over 0.2 s; judge its colours once it has
+        await expect.poll(() => page.getByTestId('train-add-btn').evaluate(b => getComputedStyle(b).opacity)).toBe('1');
+        await expectAccessible(page, 'Simulate, no room for a train');
     });
 
     test('the hobby shop, every tab', async ({ page, app }) => {

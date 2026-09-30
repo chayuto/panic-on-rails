@@ -113,6 +113,16 @@ test.describe('Simulation controls', () => {
         await expect.poll(stopped).toBe(false);
     });
 
+    test('a train too long for the track isn\'t put on it, and the panel says why', async ({ page, app }) => {
+        void app;
+        // One curve, 247 mm: the starter set's diesel and coaches are 412 mm
+        await page.evaluate(() => window.__PANIC_STORES__!.track.addTrack('kato-20-120', { x: 0, y: 0 }, 0));
+        await page.getByTestId('mode-simulate-btn').click();
+        await page.getByTestId('train-add-btn').click();
+        await expect(page.getByTestId('train-notice')).toContainText('No room for the Diesel passenger train');
+        expect(await page.evaluate(() => Object.keys(window.__PANIC_STORES__!.simulation.getState().trains))).toEqual([]);
+    });
+
     test('pausing from the toolbar stays in Simulate mode', async ({ page, app }) => {
         void app;
         await loadTemplate(page, 'simple-oval');

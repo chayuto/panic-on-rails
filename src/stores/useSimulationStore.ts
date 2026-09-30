@@ -23,6 +23,7 @@ export const useSimulationStore = create<SimulationStore>()(
         isRunning: false,
         speedMultiplier: 1.0,
         error: null,
+        notice: null,
 
         // Slices
         ...createTrainSlice(...args),
