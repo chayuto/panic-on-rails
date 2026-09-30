@@ -7,10 +7,10 @@ import { useSimulationStore } from '../stores/useSimulationStore';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { trainsLeft } from '../data/collection';
-import { pickSpawnLocation } from './spawn';
+import { pickSpawnLocation, standingSpot } from './spawn';
 import { finishSession, startSession } from './session';
-import type { EdgeId, PartScale, TrainId } from '../types';
-import { getRollingStock } from '../data/rollingStock';
+import type { EdgeId, PartScale, TrackEdge, Train, TrainId } from '../types';
+import { genericCarLengths, getRollingStock, trainLength } from '../data/rollingStock';
 import { getPartById } from '../data/catalog';
 
 /**
@@ -34,26 +34,83 @@ function scaleAt(edgeId: EdgeId): PartScale | undefined {
     return edge ? getPartById(edge.partId)?.scale : undefined;
 }
 
+/** The track of one scale. */
+function ofScale(edges: Record<EdgeId, TrackEdge>, scale: PartScale): Record<EdgeId, TrackEdge> {
+    return Object.fromEntries(Object.entries(edges).filter(([, e]) => (getPartById(e.partId)?.scale ?? 'n-scale') === scale));
+}
+
+/** What adding a train did: put one on, or why not. */
+export type AddTrainResult = 'added' | 'no-track' | 'no-train' | 'no-room';
+
+type Placement =
+    | { trainId: TrainId }
+    | { refused: 'no-track' | 'no-train' }
+    | { refused: 'no-room'; name: string; length: number; full: boolean };
+
 /**
- * Spawn a train at the clearest spot on the layout. In collection mode it's
- * one of the player's own trains. Returns its ID, or null with no track or
- * no train to spare.
+ * Put a train on at the clearest spot where all its cars stand on the track.
+ * In collection mode it's one of the player's own trains.
  */
-export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string, stockId?: string): TrainId | null {
+function placeTrain(carriageCount?: number, color?: string, stockId?: string): Placement {
     const { edges, nodes } = useTrackStore.getState();
     const { trains, spawnTrain } = useSimulationStore.getState();
     // A particular train goes on track of its own scale
-    const scale = getRollingStock(stockId)?.scale;
-    const fitting = scale
-        ? Object.fromEntries(Object.entries(edges).filter(([, e]) => getPartById(e.partId)?.scale === scale))
-        : edges;
-    const spot = pickSpawnLocation(fitting, trains, nodes);
-    if (!spot) return null;
-    const stock = nextAvailableStock(stockId, scaleAt(spot.edgeId));
-    if (stock === null) return null;
-    return stock
-        ? spawnTrain(spot.edgeId, undefined, undefined, spot.distance, stock)
-        : spawnTrain(spot.edgeId, color, carriageCount, spot.distance);
+    const asked = getRollingStock(stockId)?.scale;
+    const clearest = pickSpawnLocation(asked ? ofScale(edges, asked) : edges, trains, nodes);
+    if (!clearest) return { refused: 'no-track' };
+    const stock = nextAvailableStock(stockId, scaleAt(clearest.edgeId));
+    if (stock === null) return { refused: 'no-train' };
+
+    // The train it would be: its model's cars, or free build's generic ones
+    const model = getRollingStock(stock);
+    const scale = model?.scale ?? scaleAt(clearest.edgeId) ?? 'n-scale';
+    const carLengths = model?.carLengths ?? genericCarLengths(carriageCount ?? 1, scale);
+    const train: Train = {
+        id: 'new-train', currentEdgeId: clearest.edgeId, distanceAlongEdge: 0, direction: 1, speed: 0, color: '',
+        carLengths, carriageCount: carLengths.length, scale,
+    };
+    const track = ofScale(edges, scale);
+    const spot = standingSpot(train, track, edges, trains, nodes);
+    if (!spot) {
+        // Room on the bare track: it's the other trains in the way
+        const full = standingSpot(train, track, edges, {}, nodes) !== null;
+        return { refused: 'no-room', name: model?.name ?? 'train', length: trainLength({ carLengths }), full };
+    }
+    return {
+        trainId: stock
+            ? spawnTrain(spot.edgeId, undefined, undefined, spot.distance, stock)
+            : spawnTrain(spot.edgeId, color, carriageCount, spot.distance),
+    };
+}
+
+/**
+ * Spawn a train at the clearest spot on the layout where all its cars stand
+ * on the track. In collection mode it's one of the player's own trains.
+ * Returns its ID, or null with no track, no train to spare, or no room.
+ */
+export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string, stockId?: string): TrainId | null {
+    const placed = placeTrain(carriageCount, color, stockId);
+    return 'trainId' in placed ? placed.trainId : null;
+}
+
+/**
+ * Add a train as the player's buttons do (`spawnTrainAtClearestSpot`), and
+ * say what happened. When there's no room for it, the train panel says why.
+ */
+export function addTrain(carriageCount?: number, stockId?: string): AddTrainResult {
+    const placed = placeTrain(carriageCount, undefined, stockId);
+    const sim = useSimulationStore.getState();
+    if ('trainId' in placed) {
+        sim.setNotice(null);
+        return 'added';
+    }
+    if (placed.refused === 'no-room') {
+        const cm = Math.round(placed.length / 10);
+        sim.setNotice(placed.full
+            ? `No room for the ${placed.name}: the track is full of trains.`
+            : `No room for the ${placed.name}: it's ${cm} cm long, longer than any stretch of this track.`);
+    }
+    return placed.refused;
 }
 
 /**
@@ -79,7 +136,7 @@ export function startSimulation(): void {
     if (Object.keys(useTrackStore.getState().edges).length === 0) return;
     const sim = useSimulationStore.getState();
     if (Object.keys(sim.trains).length === 0) {
-        spawnTrainAtClearestSpot();
+        addTrain();
     }
     sim.setRunning(true);
 }

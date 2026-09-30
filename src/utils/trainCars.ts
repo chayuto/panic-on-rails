@@ -77,6 +77,8 @@ interface TrackPoint {
     direction: 1 | -1;
     /** Edges walked through to get there, starting with the train's own */
     path: EdgeId[];
+    /** The track ran out behind the train first: the point is at its end */
+    bunched?: true;
 }
 
 /** World geometry per edge, derived once per frame. */
@@ -154,7 +156,7 @@ function walkBack(
         step++;
         if (!prev) {
             // Dead end behind the train: bunch up at the buffer
-            return { edgeId: edge.id, distance: direction === 1 ? 0 : edge.length, direction, path };
+            return { edgeId: edge.id, distance: direction === 1 ? 0 : edge.length, direction, path, bunched: true };
         }
         // We arrived at `node` from `prev`: moving toward its end means direction +1
         direction = prev.endNodeId === nodeId ? 1 : -1;
@@ -170,6 +172,40 @@ export function consistLength(train: Train): number {
     const spans = carSpans(train);
     const last = spans[spans.length - 1];
     return last.offset + last.bogies;
+}
+
+/**
+ * How far a train reaches from its leading car's front bogie (mm): ahead,
+ * to the front of that car's body, and behind, to the back of the last one.
+ */
+export function trainReach(train: Train): { ahead: number; behind: number } {
+    const spans = carSpans(train);
+    const first = spans[0];
+    const last = spans[spans.length - 1];
+    return {
+        ahead: (first.length - first.bogies) / 2 - first.offset,
+        behind: last.offset + last.bogies + (last.length - last.bogies) / 2,
+    };
+}
+
+/**
+ * Whether the whole train stands on the track: there's track under every
+ * car, from the front of the first to the back of the last, before the
+ * track ends. Otherwise its end cars would bunch up at a buffer, off the
+ * rails.
+ */
+export function fitsOnTrack(
+    train: Train,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): boolean {
+    const { ahead, behind } = trainReach(train);
+    // A micrometre's slack: a train whose end is exactly at a buffer fits
+    const slack = 1e-3;
+    const rear = walkBack(train, behind - slack, edges, nodes);
+    // Ahead is behind a train facing the other way
+    const front = walkBack({ ...train, direction: train.direction === 1 ? -1 : 1, trail: undefined }, ahead - slack, edges, nodes);
+    return !!rear && !rear.bunched && !!front && !front.bunched;
 }
 
 /**

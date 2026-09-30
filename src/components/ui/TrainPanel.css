@@ -299,6 +299,33 @@
     margin: 0;
 }
 
+/* Why a train wasn't added: information, not an error */
+.train-notice {
+    contain: inline-size;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--fg-primary);
+}
+
+.train-notice p {
+    margin: 0;
+    flex: 1;
+}
+
+.train-notice button {
+    background: none;
+    border: none;
+    padding: 2px;
+    color: var(--fg-secondary);
+    cursor: pointer;
+}
+
 .crash-warning-hint {
     font-size: 12px;
     color: var(--fg-secondary);

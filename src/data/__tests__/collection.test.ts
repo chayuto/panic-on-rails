@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { countPlacedPieces, inventoryOf, piecesLeft, shortfall, formatMoney, trainsLeft } from '../collection';
-import { spawnTrainAtClearestSpot, spawnLayoutTrain, nextAvailableStock } from '../../simulation/controls';
+import { addTrain, spawnTrainAtClearestSpot, spawnLayoutTrain, nextAvailableStock } from '../../simulation/controls';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { getRollingStock } from '../rollingStock';
 import { useCollectionStore, STARTER_COLLECTION } from '../../stores/useCollectionStore';
@@ -133,8 +133,9 @@ describe('owned trains', () => {
     beforeEach(() => {
         resetWorld();
         useCollectionStore.getState().resetCollection();
-        useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 0 }, 0);
-        useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 200 }, 0);
+        // The M1 oval: room for any train
+        loadSetPlan(M1);
+        useSimulationStore.getState().clearTrains();
     });
 
     it('counts owned trains that are not running', () => {
@@ -159,9 +160,10 @@ describe('owned trains', () => {
     });
 
     it('only puts a train on track of its own scale', () => {
-        // An H0 oval beside the N track: the N starter train won't run on it
+        // An H0 oval, not the N track: the N starter train won't run on it
         resetWorld();
-        useTrackStore.getState().addTrack('marklin-24188', { x: 0, y: 0 }, 0);
+        loadSetPlan('marklin-S1');
+        useSimulationStore.getState().clearTrains();
         expect(spawnTrainAtClearestSpot()).toBeNull();
         useCollectionStore.getState().earn(50_000);
         useCollectionStore.getState().buyTrain('h0-goods');
@@ -181,6 +183,20 @@ describe('owned trains', () => {
         // Running already: the next layout train is another of yours
         const next = spawnLayoutTrain(edgeId, '#fff', 'kato-super-chief');
         expect(useSimulationStore.getState().trains[next].stockId).toBe('diesel-passenger');
+    });
+
+    it('puts no train on track too short for it, and says why', () => {
+        resetWorld();
+        // One R315 curve, 247 mm: the starter diesel and its coaches are 412 mm
+        useTrackStore.getState().addTrack('kato-20-120', { x: 0, y: 0 }, 0);
+        expect(addTrain()).toBe('no-room');
+        expect(useSimulationStore.getState().trains).toEqual({});
+        expect(useSimulationStore.getState().notice).toMatch(/No room for the Diesel passenger train: it's 41 cm long/);
+        // With room, it goes on, and the notice goes
+        loadSetPlan(M1);
+        useSimulationStore.getState().clearTrains();
+        expect(addTrain()).toBe('added');
+        expect(useSimulationStore.getState().notice).toBeNull();
     });
 
     it('free build runs as many generic trains as you like', () => {

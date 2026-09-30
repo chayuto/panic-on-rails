@@ -199,6 +199,15 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
 - [x] **Fixed:** in Simulate mode a click on a signal deleted it if the signal tool was the last
       one used, and sensors and wires answered their edit tools too. The edit tool stays chosen
       while simulating; now it acts only while editing.
+- [x] **Fixed: a train longer than its track was put on anyway.** Its last cars bunched up at a
+      buffer, off the rails, and it bounced for ever. An agent playtest found it: one curve,
+      then Run.
+  - A train now goes on only where every car stands on the track (`fitsOnTrack`), and fouls
+    no other train (`standingSpot`): the clearest middle of a piece, or failing those, the far
+    end of one with the train's front at the buffer. Re-railing a wreck follows the same rule.
+  - When there's nowhere, the train panel says why: "No room for the Diesel passenger train:
+    it's 41 cm long, longer than any stretch of this track", or that the track is full of
+    trains. The buttons open the shop only when you have no train to spare.
 
 ### Phase 2: The Box, real starter sets
 

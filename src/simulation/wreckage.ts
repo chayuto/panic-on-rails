@@ -6,14 +6,13 @@
  */
 
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Train, TrainId } from '../types';
-import { detectCollisions } from '../utils/collisionManager';
 import { getPartById } from '../data/catalog';
-import { spawnCandidates } from './spawn';
+import { standingSpot } from './spawn';
 
 /**
  * The wreck put back on the rails: on track of its own scale, at the
- * clearest spot where all its cars stand clear of every other train and
- * wreck, standing still with the loco leading, its throttle where the
+ * clearest spot where all its cars stand on the track, clear of every other
+ * train and wreck, standing still with the loco leading, its throttle where the
  * driver left it. Whatever it was doing before the crash (standing at a
  * platform, reversing) is forgotten. Null if there's no such spot.
  */
@@ -36,18 +35,8 @@ export function rerail(
     const fitting = Object.fromEntries(Object.entries(edges)
         .filter(([, edge]) => (getPartById(edge.partId)?.scale ?? 'n-scale') === scale));
 
-    for (const spot of spawnCandidates(fitting, others, nodes)) {
-        const placed: Train = {
-            ...train,
-            currentEdgeId: spot.edgeId,
-            distanceAlongEdge: spot.distance,
-            direction: 1,
-            speed: 0,
-            stopped: true,
-        };
-        const fouls = detectCollisions({ ...others, [placed.id]: placed }, edges, nodes)
-            .some(c => c.trainA.id === placed.id || c.trainB.id === placed.id);
-        if (!fouls) return placed;
-    }
-    return null;
+    const spot = standingSpot(train, fitting, edges, others, nodes);
+    return spot
+        ? { ...train, currentEdgeId: spot.edgeId, distanceAlongEdge: spot.distance, direction: 1, speed: 0, stopped: true }
+        : null;
 }

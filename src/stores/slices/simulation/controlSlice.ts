@@ -49,4 +49,9 @@ export const createControlSlice: SimulationSliceCreator<ControlSlice> = (set) =>
     clearError: () => set((state) => {
         state.error = null;
     }),
+
+    /** Tell the player something, or clear it (null). */
+    setNotice: (notice) => set((state) => {
+        state.notice = notice;
+    }),
 });

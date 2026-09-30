@@ -17,6 +17,8 @@ export interface SimulationStateData {
     isRunning: boolean;
     speedMultiplier: number;
     error: string | null;
+    /** Something the player should know that isn't an error: why a train wasn't added */
+    notice: string | null;
     simLog: SimEvent[];
     simLogSeq: number;
     simElapsed: number;
@@ -54,6 +56,7 @@ export interface ControlSlice {
     setSpeedMultiplier: (multiplier: number) => void;
     setError: (error: string | null) => void;
     clearError: () => void;
+    setNotice: (notice: string | null) => void;
 }
 
 export interface EventLogSliceActions {

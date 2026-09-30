@@ -55,6 +55,15 @@ describe('rerail', () => {
         expect(detectCollisions({ a: placed, c: long }, edges, nodes)).toEqual([]);
     });
 
+    it('needs track under every car: a wreck longer than the track isn\'t put back', () => {
+        // The starter diesel and its coaches, 412 mm, and one 247 mm piece
+        const long = { ...wreck('a', 'e0', 100), carLengths: [112, 150, 150], carriageCount: 3 };
+        const short = lineGraph(1, 247);
+        expect(rerail(long, { a: long }, short.edges, short.nodes)).toBeNull();
+        const room = lineGraph(3, 248);
+        expect(rerail(long, { a: long }, room.edges, room.nodes)).not.toBeNull();
+    });
+
     it('gives up when there\'s nowhere it fits', () => {
         const { edges, nodes } = lineGraph(1, 100);
         const trains = { a: wreck('a', 'e0', 40), b: wreck('b', 'e0', 60) };

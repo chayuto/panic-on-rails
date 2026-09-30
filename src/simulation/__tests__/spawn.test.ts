@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { pickSpawnLocation, spawnCandidates } from '../spawn';
+import { pickSpawnLocation, spawnCandidates, standingSpot } from '../spawn';
 import { lineGraph, straightEdge, train } from './fixtures';
+import { fitsOnTrack, trainReach } from '../../utils/trainCars';
 
 describe('pickSpawnLocation', () => {
     it('returns null with no track', () => {
@@ -38,5 +39,30 @@ describe('spawnCandidates', () => {
         const spots = spawnCandidates(edges, { t: train('t', 'e0', 50) }, nodes);
         expect(spots.map(s => s.edgeId)).toEqual(['e3', 'e2', 'e1', 'e0']);
         expect(spots.every(s => s.distance === 50)).toBe(true);
+    });
+});
+
+describe('standingSpot', () => {
+    // The generic diesel and two coaches: 412 mm over couplers
+    const diesel = { ...train('new', 'e0', 0), carLengths: [112, 150, 150], carriageCount: 3 };
+
+    it('puts a train where every car stands on the track, its front at a buffer if need be', () => {
+        // Two straights, 496 mm with an end at each side: no middle has room behind it
+        const { edges, nodes } = lineGraph(2, 248);
+        const spot = standingSpot(diesel, edges, edges, {}, nodes)!;
+        expect(spot.edgeId).toBe('e1');
+        // The front of the leading car at the buffer: its bogie a little short of it
+        expect(248 - spot.distance).toBeCloseTo(trainReach(diesel).ahead, 6);
+        expect(fitsOnTrack({ ...diesel, currentEdgeId: 'e1', distanceAlongEdge: 124 }, edges, nodes)).toBe(false);
+    });
+
+    it('finds no spot on track shorter than the train', () => {
+        const { edges, nodes } = lineGraph(1, 247);
+        expect(standingSpot(diesel, edges, edges, {}, nodes)).toBeNull();
+    });
+
+    it('takes the clearest spot where the train fits', () => {
+        const { edges, nodes } = lineGraph(5, 300);
+        expect(standingSpot(diesel, edges, edges, { t: train('t', 'e0', 50) }, nodes)).toEqual({ edgeId: 'e4', distance: 150 });
     });
 });

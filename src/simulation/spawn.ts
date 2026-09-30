@@ -4,7 +4,8 @@
 
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Train, TrainId, Vector2 } from '../types';
 import { getPositionOnEdge } from '../utils/trainGeometry';
-import { getCarPoses } from '../utils/trainCars';
+import { fitsOnTrack, getCarPoses, trainReach } from '../utils/trainCars';
+import { detectCollisions } from '../utils/collisionManager';
 
 export interface SpawnLocation {
     edgeId: EdgeId;
@@ -54,4 +55,32 @@ export function pickSpawnLocation(
     nodes?: Record<NodeId, TrackNode>
 ): SpawnLocation | null {
     return spawnCandidates(edges, trains, nodes)[0] ?? null;
+}
+
+/**
+ * Where `train` can stand: the clearest spot on one of `candidates` (edges
+ * of its scale) where every car is on the track and none fouls another
+ * train or a wreck. Every edge's middle first, clearest first; failing
+ * those, every edge's far end, the front of the train at a buffer. Null when
+ * the train is longer than any stretch of the track, or there's no room.
+ */
+export function standingSpot(
+    train: Train,
+    candidates: Record<EdgeId, TrackEdge>,
+    edges: Record<EdgeId, TrackEdge>,
+    trains: Record<TrainId, Train>,
+    nodes: Record<NodeId, TrackNode>
+): SpawnLocation | null {
+    const middles = spawnCandidates(candidates, trains, nodes);
+    const { ahead } = trainReach(train);
+    const ends = middles.map(spot => ({ edgeId: spot.edgeId, distance: Math.max(0, candidates[spot.edgeId].length - ahead) }));
+    for (const spot of [...middles, ...ends]) {
+        const { trail: _trail, ...rest } = train;
+        const placed: Train = { ...rest, currentEdgeId: spot.edgeId, distanceAlongEdge: spot.distance, direction: 1 };
+        if (!fitsOnTrack(placed, edges, nodes)) continue;
+        const fouls = detectCollisions({ ...trains, [placed.id]: placed }, edges, nodes)
+            .some(c => c.trainA.id === placed.id || c.trainB.id === placed.id);
+        if (!fouls) return spot;
+    }
+    return null;
 }

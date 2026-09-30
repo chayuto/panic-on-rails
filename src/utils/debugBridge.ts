@@ -85,7 +85,7 @@ function createBridge() {
             'enterEditMode', 'enterSimulateMode', 'setEditSubMode', 'setSimulateSubMode', 'togglePrimaryMode',
         ]),
         simulation: expose(useSimulationStore, [
-            'trains', 'isRunning', 'speedMultiplier', 'error', 'crashedParts', 'simLog', 'simElapsed',
+            'trains', 'isRunning', 'speedMultiplier', 'error', 'notice', 'crashedParts', 'simLog', 'simElapsed',
             'wrecks', 'lastWreckAt', 'session', 'sessionResult',
         ], [
             'spawnTrain', 'removeTrain', 'rerailTrain', 'setCrashed', 'setTrainStopped', 'reverseTrain',
