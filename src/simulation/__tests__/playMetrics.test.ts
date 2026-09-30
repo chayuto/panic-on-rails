@@ -97,15 +97,18 @@ describe('economy pacing: the starter train on the M1 oval', () => {
     it('saves up for each V-set in minutes, not seconds and not hours', () => {
         starterOval('diesel-passenger', 1);
         const rate = earningRate(10);
-        const vSets = getAllSets().filter(s => s.brand === 'kato' && s.badge?.startsWith('V'));
-        expect(vSets.length).toBeGreaterThanOrEqual(6);
         const minutesFor = (price: number) => Math.max(0, price - STARTER_COLLECTION.wallet) / rate;
-        for (const set of vSets) {
-            note(`  ${set.badge} (${dollars(set.price ?? 0)}): ${minutesFor(set.price ?? 0).toFixed(1)} min`);
-            expect(minutesFor(set.price ?? 0), `${set.badge}`).toBeLessThan(12);
+        // Single track (V1–V7) first, then double track (V11 on), the bigger step
+        for (const [tier, pattern, budget] of [['single track', /^V[1-7]$/, 12], ['double track', /^V1\d$/, 20]] as const) {
+            const vSets = getAllSets().filter(s => s.brand === 'kato' && pattern.test(s.badge ?? ''));
+            expect(vSets.length, tier).toBeGreaterThanOrEqual(3);
+            for (const set of vSets) {
+                note(`  ${set.badge} (${dollars(set.price ?? 0)}): ${minutesFor(set.price ?? 0).toFixed(1)} min`);
+                expect(minutesFor(set.price ?? 0), `${set.badge}`).toBeLessThan(budget);
+            }
+            // The dearest is still worth saving up for: money that came much faster would be a bug
+            expect(minutesFor(Math.max(...vSets.map(s => s.price ?? 0))), tier).toBeGreaterThan(4);
         }
-        // The dearest is still worth saving up for: money that came much faster would be a bug
-        expect(minutesFor(Math.max(...vSets.map(s => s.price ?? 0)))).toBeGreaterThan(4);
     });
 });
 

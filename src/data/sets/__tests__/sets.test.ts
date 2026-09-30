@@ -14,13 +14,15 @@ import { resetWorld, loadRecipe, summarize, simHarness } from '../../../simulati
 
 /**
  * Outer size of a plan as a manufacturer measures it: every edge swept by
- * its part's footprint width (roadbed, road-crossing plates, ...).
+ * its part's footprint width (roadbed, road-crossing plates, ...). A
+ * topology part's edges are its tracks, each on its own roadbed: a
+ * double-track piece is two of them, 33mm apart.
  */
 function footprint(plan: LayoutPlan): { long: number; short: number } {
     const xs: number[] = [];
     const ys: number[] = [];
     for (const piece of resolvePlan(plan).pieces) {
-        const half = (piece.part.width ?? 25) / 2;
+        const half = ((piece.part.geometry.type === 'topology' ? piece.part.roadbedWidth : piece.part.width) ?? 25) / 2;
         for (const { geometry: g } of createPartTrack(piece.part, piece.position, piece.rotation).edges) {
             for (let i = 0; i <= 64; i++) {
                 const t = i / 64;
@@ -112,8 +114,9 @@ describe('boxed sets', () => {
         }
     });
 
-    // A starter's first plan is the box itself, so it must measure what the box says
-    it.each(sets.filter(s => s.kind === 'starter' && s.footprint && !s.footprint.space).map(s => [s.id, s] as const))(
+    // A set that stands alone (a starter, or Kato's V11) is its own printed plan,
+    // so it must measure what the box says
+    it.each(sets.filter(s => !s.extends?.length && s.footprint && !s.footprint.space).map(s => [s.id, s] as const))(
         '%s: the first plan measures what is printed on the box',
         (_id, set) => {
             const { long, short } = footprint(set.plans[0]);

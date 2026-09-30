@@ -202,4 +202,25 @@ test.describe('Train sets shelf', () => {
         await expect.poll(() => page.evaluate(() =>
             Object.values(window.__PANIC_STORES__!.simulation.getState().trains).map(t => t.stockId))).toEqual(['kato-super-chief']);
     });
+
+    test('Kato V11: double track, a train on each track, passing each other', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+        await page.getByTestId('open-set-shelf').click();
+        const box = page.getByTestId('set-box-kato-20-870');
+        await expect(box).toContainText('2335 × 1261 mm');
+        await box.getByTestId('set-build-kato-20-870').click();
+
+        // 26 double-track pieces: two tracks each, every one joined
+        await expect.poll(() => edgeCount(page)).toBe(52);
+        expect(await openEnds(page)).toBe(0);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_STORES__!.simulation.getState().isRunning)).toBe(true);
+
+        // A train on each track: they run their own loops, and pass without touching
+        const start = await page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed);
+        await expect.poll(() => page.evaluate(() => window.__PANIC_SIM__!.summarize().elapsed)).toBeGreaterThan(start + 2);
+        const summary = await page.evaluate(() => window.__PANIC_SIM__!.summarize());
+        expect(summary.trains).toHaveLength(2);
+        expect(summary.crashed).toBe(0);
+    });
 });

@@ -1,0 +1,62 @@
+{
+    "id": "kato-20-870",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-870",
+    "badge": "V11",
+    "name": "Double Track Set R414/381",
+    "price": 18500,
+    "kind": "expansion",
+    "description": "Kato's basic double-track set: two concrete-tie tracks at 33mm centres, with superelevated R414/381 curves that approach tracks ease into. Each track is a loop of its own, so two trains pass each other.",
+    "contents": [
+        { "part": "kato-20-004", "qty": 7 },
+        { "part": "kato-20-023", "qty": 1 },
+        { "part": "kato-20-042", "qty": 1 },
+        { "part": "kato-20-043", "qty": 1 },
+        { "part": "kato-20-181", "qty": 8 },
+        { "part": "kato-20-182l", "qty": 4 },
+        { "part": "kato-20-182r", "qty": 4 }
+    ],
+    "accessories": ["Rerailer and UniJoiner remover"],
+    "footprint": { "width": 2335, "depth": 1261 },
+    "plans": [
+        {
+            "id": "double-track",
+            "name": "Double-track loop",
+            "description": "Kato's printed plan: each end sweeps round 225° and swings back 45°, so the long sides are offset. Approach, four banked curves, approach; a diagonal; then two approaches banked end to banked end.",
+            "steps": [
+                { "part": "kato-20-004" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-182r" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-182l", "via": "B2" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-182l" },
+                { "part": "kato-20-182r", "via": "B2" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-023" },
+                { "part": "kato-20-042" },
+                { "part": "kato-20-043" },
+                { "part": "kato-20-182r" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-181" },
+                { "part": "kato-20-182l", "via": "B2" },
+                { "part": "kato-20-004" },
+                { "part": "kato-20-182l" },
+                { "part": "kato-20-182r", "via": "B2" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" },
+                { "piece": 8, "color": "#2471A3" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

@@ -146,7 +146,7 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | Bumpers | ✅ Buffer-stop ends: not connectable, trains turn back | — |
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
-| Double-track pieces (V11–V15) | ❌ | Phase 6 |
+| Double-track pieces (V11–V17) | ✅ V11, V14 and V16: straights, superelevated curves and approaches, as two-track topology parts | V12/V13 (elevation), V15 (widening sections), V17 (slab track) |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |

@@ -489,6 +489,253 @@
                 { "subPart": "b-turnout", "connector": "entry", "externalId": "B2" }
             ],
             "boundingBox": { "width": 248, "height": 33 }
+        },
+        {
+            "id": "kato-20-004",
+            "cost": 675,
+            "name": "Double Straight 248mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-004",
+            "description": "WS248PC: two concrete-tie tracks 248mm long at 33mm centres. Each track joins ordinary Unitrack at both ends. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "straight": 248 }] },
+                { "from": "B1", "to": "B2", "path": [{ "straight": 248 }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-023",
+            "cost": 600,
+            "name": "Double Straight 124mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-023",
+            "description": "WS124PC: two concrete-tie tracks 124mm long at 33mm centres. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "straight": 124 }] },
+                { "from": "B1", "to": "B2", "path": [{ "straight": 124 }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-042",
+            "cost": 550,
+            "name": "Double Straight 62mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-042",
+            "description": "WS62PC: two concrete-tie tracks 62mm long at 33mm centres. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "straight": 62 }] },
+                { "from": "B1", "to": "B2", "path": [{ "straight": 62 }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-043",
+            "cost": 1150,
+            "name": "Double Feeder 62mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-043",
+            "description": "WS62FPC: a 62mm double straight with a feeder for each track, which Kato powers separately. Sold with a WS62PC (20-043).",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "straight": 62 }] },
+                { "from": "B1", "to": "B2", "path": [{ "straight": 62 }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-181",
+            "cost": 750,
+            "name": "Double Curve R414/381-45°",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-181",
+            "description": "WR414/381-45PC: two superelevated curves, R414 outside and R381 inside, 45°, at 33mm centres. Both ends are banked: they join each other or an approach's banked end. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 414, "angle": 45, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 381, "angle": 45, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-182r",
+            "cost": 675,
+            "name": "Double Approach R414/381-22.5° Right",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-182",
+            "description": "WR414/381-22.5PCAR: 22.5° of the R414/381 pair, easing from flat track into the bank. Turns right going from its flat end into the bank. Sold as a left and right pair, 20-182.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 414, "angle": 22.5, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 381, "angle": 22.5, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-182l",
+            "cost": 675,
+            "name": "Double Approach R414/381-22.5° Left",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-182",
+            "description": "WR414/381-22.5PCAL: 22.5° of the R414/381 pair, easing from flat track into the bank. Turns left going from its flat end into the bank. Sold as a left and right pair, 20-182.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 381, "angle": 22.5, "turn": "left" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 414, "angle": 22.5, "turn": "left" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-183",
+            "cost": 750,
+            "name": "Double Curve R315/282-45°",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-183",
+            "description": "WR315/282-45PC: two superelevated curves, R315 outside and R282 inside, 45°, at 33mm centres. Both ends are banked: they join each other or an approach's banked end. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 315, "angle": 45, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 282, "angle": 45, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-184r",
+            "cost": 675,
+            "name": "Double Approach R315/282-22.5° Right",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-184",
+            "description": "WR315/282-22.5PCAR: 22.5° of the R315/282 pair, easing from flat track into the bank. Turns right going from its flat end into the bank. Sold as a left and right pair, 20-184.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 315, "angle": 22.5, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 282, "angle": 22.5, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-184l",
+            "cost": 675,
+            "name": "Double Approach R315/282-22.5° Left",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-184",
+            "description": "WR315/282-22.5PCAL: 22.5° of the R315/282 pair, easing from flat track into the bank. Turns left going from its flat end into the bank. Sold as a left and right pair, 20-184.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 282, "angle": 22.5, "turn": "left" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 315, "angle": 22.5, "turn": "left" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-185",
+            "cost": 950,
+            "name": "Double Curve R480/447-45°",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-185",
+            "description": "WR480/447-45PC: two superelevated curves, R480 outside and R447 inside, 45°, at 33mm centres. Both ends are banked: they join each other or an approach's banked end. Sold in pairs.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 480, "angle": 45, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 447, "angle": 45, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-186r",
+            "cost": 800,
+            "name": "Double Approach R480/447-22.5° Right",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-186",
+            "description": "WR480/447-22.5PCAR: 22.5° of the R480/447 pair, easing from flat track into the bank. Turns right going from its flat end into the bank. Sold as a left and right pair, 20-186.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 480, "angle": 22.5, "turn": "right" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 447, "angle": 22.5, "turn": "right" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-186l",
+            "cost": 800,
+            "name": "Double Approach R480/447-22.5° Left",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-186",
+            "description": "WR480/447-22.5PCAL: 22.5° of the R480/447 pair, easing from flat track into the bank. Turns left going from its flat end into the bank. Sold as a left and right pair, 20-186.",
+            "width": 58,
+            "connectors": {
+                "A1": { "x": 0, "y": 0, "heading": 0 },
+                "B1": { "x": 0, "y": 33, "heading": 0 }
+            },
+            "routes": [
+                { "from": "A1", "to": "A2", "path": [{ "arc": 447, "angle": 22.5, "turn": "left" }] },
+                { "from": "B1", "to": "B2", "path": [{ "arc": 480, "angle": 22.5, "turn": "left" }] }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
         }
     ]
 }
