@@ -17,7 +17,7 @@ Complete feature documentation for PanicOnRails - the free, browser-based train 
 - **Graph-based movement** — Trains follow track topology intelligently
 - **Multiple trains** — Run several trains simultaneously
 - **Speed control** — Adjust simulation speed in real-time
-- **Per-train control** — Stop/Go and Reverse each train from the train panel
+- **Per-train control** — Stop/Go and Reverse each train from the train panel, or click a train to stop or start it
 - **Live switching** — Click a switch while trains run to reroute them
 - **Signals that stop trains** — Click a signal to turn it red; trains halt before it and go on green
 - **Crashes** — Head-on and rear-end collisions explode into physics debris, with screen shake

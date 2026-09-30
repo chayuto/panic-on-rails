@@ -43,8 +43,9 @@ Active when running trains.
 | `1`-`9` | Toggle switch by index |
 
 While trains run you can also **click a switch** to flip it and **click a signal** to
-turn it red/green — trains stop at red signals. Each train in the side panel has
-**Stop/Go** and **Reverse** buttons.
+turn it red/green — trains stop at red signals. **Click a train** to stop it, and
+again to start it. Each train in the side panel has **Stop/Go** and **Reverse**
+buttons.
 
 ## Tips
 

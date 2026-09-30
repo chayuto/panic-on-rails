@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 import { TrainFront, TrainTrack, Circle, GitBranch, Radio, TrafficCone } from 'lucide-react';
 import { useIsSimulating } from '../../stores/useModeStore';
 import { useHoveredElement, type HoveredElement } from '../../hooks/useHoveredElement';
+import { scaleKmh } from '../../simulation/driving';
+import { SCALES } from '../../config/scales';
 import './SimulationTooltip.css';
 
 // ===========================
@@ -30,7 +32,7 @@ function TrainTooltipContent({ element }: { element: Extract<HoveredElement, { t
                 </div>
                 <div className="simulation-tooltip-row">
                     <span className="simulation-tooltip-label">Speed:</span>
-                    <span className="simulation-tooltip-value">{train.speed} px/s</span>
+                    <span className="simulation-tooltip-value">{Math.round(scaleKmh(train.speed, SCALES[train.scale ?? 'n-scale'].ratio))} km/h</span>
                 </div>
                 <div className="simulation-tooltip-row">
                     <span className="simulation-tooltip-label">Direction:</span>
@@ -47,6 +49,9 @@ function TrainTooltipContent({ element }: { element: Extract<HoveredElement, { t
                     </div>
                 )}
             </div>
+            {!train.crashed && (
+                <div className="simulation-tooltip-hint">{train.stopped ? 'Click to start it' : 'Click to stop it'}</div>
+            )}
         </>
     );
 }

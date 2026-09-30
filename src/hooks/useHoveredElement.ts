@@ -11,12 +11,13 @@ import { useMemo } from 'react';
 import { useTrackStore } from '../stores/useTrackStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useLogicStore } from '../stores/useLogicStore';
+import { useEditorStore } from '../stores/useEditorStore';
 import { getPositionOnEdge } from '../utils/trainGeometry';
-import { pointToLineDistance, pointToArcDistance } from '../utils/hitTesting';
+import { pointToLineDistance, pointToArcDistance, trainAt } from '../utils/hitTesting';
+import { TRAIN_CLICK_SLACK } from '../config/interactions';
 import type { Vector2, Train, TrackEdge, TrackNode, Sensor, Signal } from '../types';
 
 // Detection radius for different element types
-const TRAIN_HIT_RADIUS = 20;
 const NODE_HIT_RADIUS = 15;
 const EDGE_HIT_RADIUS = 12;
 const SENSOR_HIT_RADIUS = 15;
@@ -89,6 +90,7 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
     const trains = useSimulationStore(s => s.trains);
     const sensors = useLogicStore(s => s.sensors);
     const signals = useLogicStore(s => s.signals);
+    const zoom = useEditorStore(s => s.zoom);
 
     return useMemo(() => {
         if (!worldPos) return null;
@@ -96,22 +98,10 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
         let closestElement: HoveredElement = null;
         let closestDistance = Infinity;
 
-        // Check trains first (highest priority)
-        for (const train of Object.values(trains)) {
-            const edge = edges[train.currentEdgeId];
-            if (!edge) continue;
-
-            const trainPos = getPositionOnEdge(edge, train.distanceAlongEdge, nodes);
-            const distance = Math.hypot(worldPos.x - trainPos.x, worldPos.y - trainPos.y);
-
-            if (distance < TRAIN_HIT_RADIUS && distance < closestDistance) {
-                closestDistance = distance;
-                closestElement = { type: 'train', train, edge };
-            }
-        }
-
-        // If we found a train, return it immediately (trains have priority)
-        if (closestElement?.type === 'train') return closestElement;
+        // Trains first (highest priority): anywhere on a car, as a click takes it
+        const train = trainAt(worldPos, trains, edges, nodes, TRAIN_CLICK_SLACK / zoom);
+        const trainEdge = train && edges[train.currentEdgeId];
+        if (train && trainEdge) return { type: 'train', train, edge: trainEdge };
 
         // Check sensors
         for (const sensor of Object.values(sensors)) {
@@ -169,5 +159,5 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
         }
 
         return closestElement;
-    }, [worldPos, nodes, edges, trains, sensors, signals]);
+    }, [worldPos, nodes, edges, trains, sensors, signals, zoom]);
 }

@@ -14,6 +14,8 @@ import { StationLayer } from './StationLayer';
 import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
+import { useSimulationStore } from '../../stores/useSimulationStore';
+import { useTrackStore } from '../../stores/useTrackStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { useScreenShake } from '../../hooks/useScreenShake';
 import { useEditModeHandler } from '../../hooks/useEditModeHandler';
@@ -22,6 +24,9 @@ import { useCanvasCoordinates } from '../../hooks/useCanvasCoordinates';
 import { useSwitchInteraction } from '../../hooks/useSwitchInteraction';
 import { initAudio } from '../../utils/audioManager';
 import { setStageRef } from '../../utils/debugBridge';
+import { trainAt } from '../../utils/hitTesting';
+import { TRAIN_CLICK_SLACK } from '../../config/interactions';
+import type { Train } from '../../types';
 
 interface StageWrapperProps {
     width?: number;
@@ -39,6 +44,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         worldX: number;
         worldY: number;
     } | null>(null);
+    // Whether the pointer is over a train, which a click stops or starts
+    const [overTrain, setOverTrain] = useState(false);
 
     // ========================================
     // Viewport management (extracted hook)
@@ -130,9 +137,30 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         }
     }, [setPan]);
 
+    // The train under the pointer, unless something that takes clicks (a
+    // set of points' button, a signal) is there first
+    const trainUnderPointer = useCallback((e: Konva.KonvaEventObject<Event>): Train | null => {
+        const stage = stageRef.current;
+        if (!stage || e.target !== stage) return null;
+        const at = stage.getRelativePointerPosition();
+        if (!at) return null;
+        const { nodes, edges } = useTrackStore.getState();
+        return trainAt(at, useSimulationStore.getState().trains, edges, nodes, TRAIN_CLICK_SLACK / zoom);
+    }, [zoom]);
+
+    // A click on a train stops it, or starts it again, as its Stop/Go button does
+    const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+        if (!isSimulating) return;
+        const train = trainUnderPointer(e);
+        if (!train || train.crashed) return;
+        useSimulationStore.getState().setTrainStopped(train.id, !train.stopped);
+    }, [isSimulating, trainUnderPointer]);
+
     // Mouse move handler for simulation tooltip
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!isSimulating) return;
+        const train = trainUnderPointer(e);
+        setOverTrain(!!train && !train.crashed);
 
         const stage = stageRef.current;
         if (!stage) return;
@@ -153,15 +181,16 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
         const screenY = rect ? e.evt.clientY : pointer.y;
 
         setTooltipPosition({ screenX, screenY, worldX, worldY });
-    }, [isSimulating, pan.x, pan.y, zoom]);
+    }, [isSimulating, pan.x, pan.y, zoom, trainUnderPointer]);
 
     // Clear tooltip on mouse leave
     const handleMouseLeave = useCallback(() => {
         setTooltipPosition(null);
+        setOverTrain(false);
     }, []);
 
     // Determine cursor based on drag state
-    const cursor = draggedPartId ? 'copy' : 'crosshair';
+    const cursor = draggedPartId ? 'copy' : isSimulating && overTrain ? 'pointer' : 'crosshair';
 
     return (
         <div
@@ -184,6 +213,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 draggable={!draggedPartId} // Disable pan during drag
                 onWheel={handleWheel}
                 onDragEnd={handleDragEnd}
+                onClick={handleClick}
+                onTap={handleClick}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >

@@ -23,6 +23,7 @@ import { scaleKmh } from '../simulation/driving';
 import { nextDeparture } from '../simulation/stations';
 import { isOpenEnd } from './graphAnalysis';
 import { getPositionOnEdge } from './trainGeometry';
+import { getCarPoses } from './trainCars';
 import { pointsButtonRadius } from '../config/interactions';
 import type { Vector2 } from '../types';
 
@@ -58,6 +59,7 @@ export interface QaLook {
     openEnds: { at: PagePoint; facing: number; drop: { ahead: PagePoint; left: PagePoint; right: PagePoint } }[];
     /** Sets of points, with the size of their button on screen (px across) */
     points: { part: string; at: PagePoint; set: 'normal' | 'reverse'; size: number }[];
+    /** Trains, `at` the middle of the leading car: a click there stops a train or starts it */
     trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean; atStation: string | null }[];
     /**
      * Station platforms, at the middle of the track beside them, with their
@@ -135,7 +137,7 @@ export function look(): QaLook {
         return [{
             id: train.id,
             name: stock?.name ?? train.id,
-            at: toPage(getPositionOnEdge(edge, train.distanceAlongEdge, nodes)),
+            at: toPage(getCarPoses(train, edges, nodes)[0] ?? getPositionOnEdge(edge, train.distanceAlongEdge, nodes)),
             kmh: Math.round(scaleKmh(train.speed, SCALES[train.scale ?? 'n-scale'].ratio)),
             crashed: !!train.crashed,
             stopped: !!train.stopped,

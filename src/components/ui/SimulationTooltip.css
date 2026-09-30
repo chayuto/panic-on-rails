@@ -60,6 +60,13 @@
     max-width: 120px;
 }
 
+/* What a click does */
+.simulation-tooltip-hint {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(78, 205, 196, 0.3);
+}
+
 /* Element type specific colors */
 .simulation-tooltip.train {
     border-color: rgba(255, 107, 107, 0.5);

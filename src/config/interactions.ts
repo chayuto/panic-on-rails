@@ -2,6 +2,9 @@
  * User interaction constants
  */
 
+/** How near a train a click or tap still takes it, on screen (px), however far out the view is */
+export const TRAIN_CLICK_SLACK = 4;
+
 /** A set of points' button: 7mm across on the track, but never too small to click. */
 export const POINTS_BUTTON = {
     /** Radius on the layout (mm) */
