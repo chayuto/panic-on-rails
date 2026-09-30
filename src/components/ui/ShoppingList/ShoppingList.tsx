@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from '../../../hooks/useDialogFocus';
 import { createPortal } from 'react-dom';
 import { ClipboardList, Copy, Download, X } from 'lucide-react';
 import { saveAs } from 'file-saver';
@@ -45,8 +46,8 @@ function ShoppingListDialog({ onClose }: { onClose: () => void }) {
     const [copied, setCopied] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
 
+    useDialogFocus(dialogRef);
     useEffect(() => {
-        dialogRef.current?.focus();
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };

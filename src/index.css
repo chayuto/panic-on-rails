@@ -466,6 +466,12 @@ button.active {
   user-select: none;
 }
 
+/* Laid from the keyboard too: show which card has the focus */
+.part-card:focus-visible {
+  outline: 2px solid var(--track-selected);
+  outline-offset: 2px;
+}
+
 .part-card:hover {
   background: var(--button-hover);
   border-color: var(--fg-muted);
@@ -660,4 +666,17 @@ button.active {
   .canvas-container {
     min-height: 0;
   }
+}
+
+/* Read by a screen reader, not shown */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

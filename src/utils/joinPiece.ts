@@ -16,7 +16,7 @@ export const JOIN_DISTANCE = 10;
 export const JOIN_FACING_TOLERANCE = 20;
 
 /** Every node of the piece `edgeId` belongs to. */
-function nodesOfPiece(edgeId: EdgeId): Set<NodeId> {
+export function nodesOfPiece(edgeId: EdgeId): Set<NodeId> {
     const { edges } = useTrackStore.getState();
     const placed = edges[edgeId];
     if (!placed) return new Set();
