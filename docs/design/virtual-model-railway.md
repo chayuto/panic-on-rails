@@ -51,6 +51,7 @@ needs no invented levels.
 | **Kato Unitrack** (N) | Master sets **M1** 20-852 (basic oval, 1337 × 677 mm) and **M2** 20-853 (oval and siding, 2019 × 751 mm) | Variation sets **V1–V7** (single track: passing siding, viaduct, yard, siding, inner and outer loops, double crossover) and **V11–V17** (double track) | Our first system: exact geometry is already in the catalog. |
 | **Hornby** (OO) | Train sets with a 3rd radius oval, and a TrakMat | **Track Extension Packs A–F** build the TrakMat plan step by step | ✅ In the game, every pack. |
 | **Märklin C-track** (H0) | Start up sets, whose oval Märklin's plans call **S1** | Extension sets **C1–C5**: siding, passing loop, curved turnouts, spurs and a yard with a double slip | ✅ In the game, every plan in the 2023 booklet. |
+| **Bachmann E-Z Track** (HO) | Train sets such as the **Thoroughbred** 00691: a 47" × 38" oval of 18" radius curves | The **Layout Expander Set** 44594 and loose pieces | ✅ The steel line's plain track and remote turnouts, and the Thoroughbred. |
 | **Brio / IKEA** (wooden) | Starter sets | Expansion packs | The generic wooden parts need product mapping. |
 
 ### What's in a real box (Kato)
@@ -152,6 +153,35 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
     R606, which the whole layout needs.
   - Pack D's crossing is listed as X2120; the game uses the R636 double level crossing's
     geometry.
+
+### What's in a real box (Bachmann)
+
+Sources: Bachmann's shop pages for each piece and set, and its E-Z Track planning book
+(1995), which ships in the Layout Expander box.
+
+| Box | Contents | Game |
+|-----|----------|------|
+| **Thoroughbred** 00691 ($209) | 44401 × 12, 44411, 44410 | ✅ 47" × 38", as printed |
+
+- **E-Z Track is roadbed, rail and ties in one.** Steel alloy rail comes on black roadbed (the
+  44400s), nickel silver on grey (the 44500s), with the same geometry. The train sets under
+  about $400 are photographed on black roadbed, the steel line. The game has the steel line.
+- **The geometry is Bachmann's own:**
+  - Four 9" straights "build 36" of railroad".
+  - Four 18" radius curves make "one-third (120 degrees) of a 36” diameter circle", so each
+    is 30°.
+  - Four 22" curves make "one quarter (90 degrees) of a 44” diameter circle", so 22.5°.
+- **The Remote Turnout** has "turnout radius matching 18” Radius Curved Track". Its diverging
+  route has a lead, from the planning book (p.14): "Each switch replaces both a 9-inch
+  straight and a standard 18-inch radius curved track, PLUS there is an extra 1 1/2-inches of
+  straight that is added to the length of the curved route of the switch."
+- **The roadbed is about 2" wide.** Bachmann doesn't publish it. XTrackCAD draws 50mm, and it
+  is what makes the set's 45" × 36" centreline oval the 47" × 38" on the box.
+- **Not in the game yet:**
+  - The #4, #5 and #6 turnouts: Bachmann publishes no geometry for them.
+  - The 30°, 45° and 60° crossings: their route lengths are unpublished.
+  - The Hayes bumper, whose length Bachmann doesn't give. That keeps the Layout Expander out
+    too, since it has two.
 
 ## 4. Can we build that? (feasibility, 2026-09-30)
 
@@ -276,3 +306,5 @@ Car lengths of the real trains (`src/data/rollingStock.ts`):
 - Hornby's High Speed Train sets, R1230M in GWR green (https://uk.hornby.com/products/high-speed-train-set-r1230m) and R1289M in British Rail blue and grey (https://uk.hornby.com/products/hornby-railways-br-high-speed-retro-train-set-r1289m): "2x Model Diesel Locomotives (1x Motorised, 1x Dummy), 1x Coach", the oval and Track Pack 1. Hornby gives no length for the sets' Class 43; the real one is 17.79 m (https://en.wikipedia.org/wiki/British_Rail_Class_43_(HST)), 233 mm at 1:76.2. RailRoad's Mk3 coaches are 30 cm (https://uk.hornby.com/products/railroad-gwr-mk3-tfo-41157-r40552, https://uk.hornby.com/products/railroad-br-intercity-42045-mk3-tso-coach-r40487).
 - Hornby's R1288M LNER Azuma (https://uk.hornby.com/products/lner-azuma-high-speed-train-set-r1288m): "2x Model Power Cars (1x Motorised, 1x Dummy), 1x Coaches". Kernow names them 815201, 811201 and MS coach 813201, cars of unit 800201 (https://www.kernowmodelrailcentre.com/products/r1288m-hornby-lner-azuma-high-speed-train-set-800201). Hornby's RailRoad pack of that unit's two driving cars is 68.2 cm (https://uk.hornby.com/products/railroad-lner-class-800-800201-train-pack-r30449), and its MS coach 34.1 cm (https://uk.hornby.com/products/railroad-lner-class-800-812201-ms-coach-r40488).
 - Hornby America doesn't list those three sets. Their prices follow the ratio of Hornby's US and UK prices for the Flying Scotsman set, $299.99 to £249.99: £169.99 is $204, £179.99 is $216.
+- Bachmann's pieces: the 9" straight 44411 (https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2521), the 18" curve 44401 (…&products_id=6403), the 22" curve 44403 (…&products_id=2519), the 3" straight 44412 (…&products_id=2522), the remote turnouts 44461 and 44462 (…&products_id=2527, 2528). The planning book: https://shop.bachmanntrains.com/documents/44594planningbook.pdf (p.14). XTrackCAD's E-Z Track library for the roadbed width: https://github.com/adbyrne/XTrkCAD/blob/GTK3V2MAIN/app/lib/params/HO-Bachmann%20EZ.xtp
+- Bachmann's Thoroughbred 00691 (https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=1804): "47" x 38" oval of snap-fit E-Z Track® including 12 pieces of curved track, 1 piece of straight track and 1 plug-in terminal rerailer", $209. Its box photo shows black roadbed. Its cars are Bachmann's own models, at the lengths of the same models sold on their own: the F7-A 7.5in (63712, https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=8539), the 40ft gondola 6in (17213, …&products_id=4582), the 40ft quad hopper 6.25in (17607, …&products_id=6620) and the 36ft wide-vision caboose 5.5in (17714, …&products_id=9319).

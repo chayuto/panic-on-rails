@@ -19,7 +19,7 @@ import type { PartScale } from './catalog/types';
 import type { Train } from '../types';
 import { carCount } from '../utils/trainCars';
 
-export type TrainBrand = 'kato' | 'marklin' | 'hornby';
+export type TrainBrand = 'kato' | 'marklin' | 'hornby' | 'bachmann';
 
 /** What a car is, for drawing it: the locomotive, a coach, or a freight car. */
 export type CarKind = 'loco' | 'coach' | 'wagon';
@@ -234,6 +234,24 @@ export const ROLLING_STOCK: RollingStock[] = [
         topSpeed: Math.round(195 * OO),
         comesIn: ['hornby-R1288M'],
         referenceUrl: 'https://uk.hornby.com/products/lner-azuma-high-speed-train-set-r1288m',
+    },
+    {
+        id: 'bachmann-thoroughbred',
+        name: 'Thoroughbred',
+        description: 'Bachmann\'s Norfolk Southern EMD F7-A No. 4270, with a Southern 40ft gondola, a Norfolk & Western 40ft quad hopper and a Norfolk Southern wide-vision caboose.',
+        brand: 'bachmann',
+        scale: 'ho-scale',
+        freight: true,
+        color: '#1E1E1E',
+        carColors: ['#1E1E1E', '#A8ADB2', '#2E2E2E', '#B3261E'],
+        // Bachmann's lengths for the same models sold on their own: the F7-A
+        // 7.5in (63712), the gondola 6in (17213), the hopper 6.25in (17607)
+        // and the caboose 5.5in (17714)
+        carLengths: [190.5, 152.4, 158.75, 139.7],
+        carKinds: ['loco', 'wagon', 'wagon', 'wagon'],
+        topSpeed: Math.round(160 * H0),
+        comesIn: ['bachmann-00691'],
+        referenceUrl: 'https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=1804',
     },
     // The game's own generic models, sold on their own
     {

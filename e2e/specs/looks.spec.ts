@@ -28,6 +28,10 @@ const LOOKS: { set: string; name: string }[] = [
     { set: 'marklin-24905', name: 'marklin-c5' },
     // Hornby's bare sleepers; a tank engine, its coach and its wagon
     { set: 'hornby-R1296M', name: 'hornby-smokey-joe' },
+    // Each car in its own livery: an apple green A1 and teak coaches; a point and a buffer stop
+    { set: 'hornby-R1255M', name: 'hornby-flying-scotsman' },
+    // Bachmann's steel E-Z Track on black roadbed; a freight train of four liveries
+    { set: 'bachmann-00691', name: 'bachmann-thoroughbred' },
 ];
 
 for (const { set, name } of LOOKS) {
