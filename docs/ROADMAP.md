@@ -241,7 +241,8 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
 - [x] **V7 double crossover** (20-866): the WX310 scissors crossover (20-210), built with the
       general part topology (Phase 6). Its plans lay it into M1 with V5's inner oval, or V6's
       outer one.
-- [ ] Double-track sets (V11–V15) need double-track pieces.
+- [x] Double-track sets: V11, V14 and V16 (see Phase 6). V12, V13, V15 and V17 still need
+      elevation, the widening sections or the slab pieces.
 - [x] **Märklin C-track (H0):** the start oval (S1) and extension sets C1–C5, with every plan
       from Märklin's 2023 track-plan booklet. They include curved turnouts (24671/24672) and the
       24624 double slip with one drive per end. Every plan closes exactly, except S2's passing
@@ -442,12 +443,13 @@ Order, biggest win per millisecond first:
     only starters. Its footprint sweeps a topology part track by track, each on its own
     roadbed.
   - Each plan runs a train on each track, in opposite directions.
+- [x] **A double piece is drawn as one band.** The painter lays an infill of ballast or concrete
+      between a double piece's two tracks (`tracks/paintedEdges.ts`), so the middle has no gap.
 - [ ] More double track:
   - V17's concrete-slab pieces.
   - V15's widening sections (20-051/052), whose inner S-curve Kato doesn't publish.
   - V12 and V13 (elevation).
   - V11 with V14 or V16 as four tracks, placed side by side.
-  - Draw a double piece as one slab: each track has its own roadbed for now.
 - [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
 - [ ] Real H0 rolling stock (Märklin's Start up trains; see Phase 4). OO has Hornby's train-set
       trains.

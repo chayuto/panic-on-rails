@@ -10,6 +10,7 @@
  */
 
 import type { TrackGeometry } from '../../../types';
+import { angleDifference } from '../../../utils/angle';
 
 /** One edge, ready to paint. */
 export interface PaintedEdge {
@@ -26,6 +27,34 @@ export interface PaintedEdge {
     selected?: boolean;
     /** A turnout route that is set against trains */
     inactive?: boolean;
+    /**
+     * Roadbed only, no sleepers or rails: the infill between a double-track
+     * piece's two tracks, along its middle, so the pair is one band
+     */
+    infill?: boolean;
+}
+
+/**
+ * The infill between a double-track piece's two tracks: along their middle,
+ * as wide as they are apart. Null unless the two run side by side (parallel
+ * straights, or concentric arcs over the same angle).
+ */
+export function infillBetween(a: TrackGeometry, b: TrackGeometry): { geometry: TrackGeometry; width: number } | null {
+    const mid = (p: { x: number; y: number }, q: { x: number; y: number }) => ({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 });
+    if (a.type === 'straight' && b.type === 'straight') {
+        const width = Math.hypot(b.start.x - a.start.x, b.start.y - a.start.y);
+        const apartAtEnd = Math.hypot(b.end.x - a.end.x, b.end.y - a.end.y);
+        if (Math.abs(width - apartAtEnd) > 0.5) return null;
+        return { geometry: { type: 'straight', start: mid(a.start, b.start), end: mid(a.end, b.end) }, width };
+    }
+    if (a.type === 'arc' && b.type === 'arc') {
+        const concentric = Math.hypot(a.center.x - b.center.x, a.center.y - b.center.y) < 0.5;
+        const sweep = (g: typeof a) => g.endAngle - g.startAngle;
+        const sameSweep = angleDifference(a.startAngle, b.startAngle) < 0.5 && Math.abs(sweep(a) - sweep(b)) < 0.5;
+        if (!concentric || !sameSweep) return null;
+        return { geometry: { ...a, radius: (a.radius + b.radius) / 2 }, width: Math.abs(a.radius - b.radius) };
+    }
+    return null;
 }
 
 /** How one system of model track looks, in mm. */
@@ -214,11 +243,14 @@ export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
     for (const [look, edges] of byLook) paintModel(ctx, edges, look, zoom, px);
 }
 
-function paintModel(ctx: Ctx, edges: PaintedEdge[], L: ModelLook, zoom: number, px: number): void {
+function paintModel(ctx: Ctx, all: PaintedEdge[], L: ModelLook, zoom: number, px: number): void {
+    // Infill is roadbed only; everything after the roadbed is the tracks'
+    const edges = all.filter(e => !e.infill);
+
     // 1. Roadbed, with a slightly darker shoulder
     if (L.ballast) {
         const byWidth = new Map<number, PaintedEdge[]>();
-        for (const e of edges) {
+        for (const e of all) {
             const list = byWidth.get(e.width);
             if (list) list.push(e);
             else byWidth.set(e.width, [e]);
