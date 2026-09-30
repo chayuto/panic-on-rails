@@ -361,6 +361,9 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     each train's front.
   - Freight cars have their own sprite. Hornby's set trains draw their coach and their
     wagon.
+  - Locomotives look like what they are (`traction`): a diesel's hood and fans, an
+    electric's pantographs, or a steam engine's boiler, chimney and dome, with a tank
+    engine's bunker or a tender engine's tender.
   - Widths stay 15 mm, a little under a real N-scale car's 19–20 mm, so trains passing on
     Kato's 33 mm double track keep clear of a near miss. Real widths need that threshold
     tuned first.

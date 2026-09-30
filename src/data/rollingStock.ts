@@ -23,6 +23,9 @@ export type TrainBrand = 'kato' | 'marklin' | 'hornby';
 /** What a car is, for drawing it: the locomotive, a coach, or a freight car. */
 export type CarKind = 'loco' | 'coach' | 'wagon';
 
+/** What kind of locomotive pulls it: a steam engine carries its water in tanks or a tender. */
+export type Traction = 'diesel' | 'electric' | 'steam-tank' | 'steam-tender';
+
 export interface RollingStock {
     id: string;
     name: string;
@@ -50,6 +53,8 @@ export interface RollingStock {
      * locomotive leads coaches, or a freight train's wagons.
      */
     carKinds?: CarKind[];
+    /** Its locomotive; diesel unless said */
+    traction?: Traction;
     /** Fastest the model runs, mm/s: the throttle's top */
     topSpeed: number;
     /** Hobby-shop price, US cents, when it's sold on its own; a train that only comes in a box has none */
@@ -121,6 +126,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         // (R4671); the long-wheelbase open wagon 88 mm
         carLengths: [108, 100, 88],
         carKinds: ['loco', 'coach', 'wagon'],
+        traction: 'steam-tank',
         topSpeed: Math.round(150 * OO),
         comesIn: ['hornby-R1296M'],
         referenceUrl: 'https://uk.hornby.com/products/smokey-joe-train-set-r1296m',
@@ -135,6 +141,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         // The GWR 101 Class body, 108 mm (R30053); coach and wagon as Smokey Joe's
         carLengths: [108, 100, 88],
         carKinds: ['loco', 'coach', 'wagon'],
+        traction: 'steam-tank',
         topSpeed: Math.round(150 * OO),
         comesIn: ['hornby-R1270M'],
         referenceUrl: 'https://uk.hornby.com/products/valley-drifter-train-set-r1270m',
@@ -154,11 +161,12 @@ export const ROLLING_STOCK: RollingStock[] = [
     {
         id: 'commuter',
         name: 'Commuter train',
-        description: 'Four cars, quick off the mark: good for a busy double oval.',
+        description: 'An electric train of four cars, quick off the mark: good for a busy double oval.',
         generic: true,
         scale: 'n-scale',
         color: '#2471A3',
         carLengths: [125, 125, 125, 125],
+        traction: 'electric',
         topSpeed: 220,
         price: 11000,
     },
@@ -205,6 +213,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         scale: 'ho-scale',
         color: '#1B4F72',
         carLengths: [216, 240, 240, 240],
+        traction: 'electric',
         topSpeed: Math.round(260 * H0),
         price: 32000,
     },
@@ -216,6 +225,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         scale: 'oo-scale',
         color: '#2E5E3E',
         carLengths: [125, 150, 150],
+        traction: 'steam-tank',
         topSpeed: Math.round(150 * OO),
         price: 18000,
     },
@@ -227,6 +237,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         scale: 'oo-scale',
         color: '#6B1D28',
         carLengths: [283, 257, 257, 257],
+        traction: 'steam-tender',
         topSpeed: Math.round(260 * OO),
         price: 26000,
     },
@@ -263,6 +274,11 @@ export function carKindAt(train: Pick<Train, 'stockId'>, index: number): CarKind
     if (index === 0) return 'loco';
     const stock = getRollingStock(train.stockId);
     return stock?.carKinds?.[index] ?? (stock?.freight ? 'wagon' : 'coach');
+}
+
+/** A train's locomotive: its model's, or a free-build train's diesel. */
+export function tractionOf(train: Pick<Train, 'stockId'>): Traction {
+    return getRollingStock(train.stockId)?.traction ?? 'diesel';
 }
 
 /** Fastest a train will go: its model's top speed, or a full throttle for its scale. */
