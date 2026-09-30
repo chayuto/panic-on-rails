@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ROLLING_STOCK, type RollingStock } from '../../../data/rollingStock';
+import { getRollingStock, ROLLING_STOCK, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
 import { getCarSprite } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
 import { SCALES } from '../../../config/scales';
@@ -91,7 +91,7 @@ function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }:
 
             <details className="set-box-contents">
                 <summary>
-                    In the box: {pieceCount} pieces
+                    In the box: {set.rollingStock?.length ? 'a train and ' : ''}{pieceCount} pieces
                     {set.footprint && (set.footprint.space
                         ? <> · needs {set.footprint.width / 10} × {set.footprint.depth / 10} cm</>
                         : <> · {set.footprint.width} × {set.footprint.depth} mm</>)}
@@ -103,6 +103,14 @@ function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }:
                             <li key={item.part}>
                                 <span className="qty">{item.qty}×</span> {name}
                                 {code && <span className="code"> {code}</span>}
+                            </li>
+                        );
+                    })}
+                    {set.rollingStock?.map(id => {
+                        const train = getRollingStock(id);
+                        return train && (
+                            <li key={id} className="train">
+                                <span className="qty">1×</span> {train.name}, {train.cars} cars
                             </li>
                         );
                     })}
@@ -186,28 +194,60 @@ function TrainPreview({ stock }: { stock: RollingStock }) {
     return <canvas ref={ref} className="train-preview" width={320} height={48} aria-hidden="true" />;
 }
 
+const TRAIN_BRANDS: TrainBrand[] = ['kato', 'marklin', 'hornby'];
+
+/** "the 106-0018 starter set", naming the boxes a train comes in. */
+function boxesNamed(setIds: string[]): string {
+    return setIds.map(id => {
+        const box = getAllSets().find(s => s.id === id);
+        return box ? `${box.productCode} ${box.name}` : id;
+    }).join(' or ');
+}
+
+/** Trains, each maker's real ones under its own heading, then the game's generic models. */
 function TrainsForSale({ wallet }: { wallet: number }) {
     const ownedTrains = useCollectionStore(s => s.ownedTrains);
     const buyTrain = useCollectionStore(s => s.buyTrain);
+    const groups: { key: string; title: string; note?: string; stock: RollingStock[] }[] = [
+        ...TRAIN_BRANDS.map(brand => ({ key: brand, title: BRAND_NAMES[brand]?.maker ?? brand, stock: ROLLING_STOCK.filter(s => s.brand === brand) })),
+        { key: 'generic', title: 'Generic trains', note: 'The game\'s own models rather than real products, sold on their own.', stock: ROLLING_STOCK.filter(s => s.generic) },
+    ].filter(group => group.stock.length > 0);
+
     return (
-        <div className="shop-trains">
-            {ROLLING_STOCK.map(stock => (
-                <div className="shop-train" key={stock.id} data-testid={`shop-train-${stock.id}`}>
-                    <TrainPreview stock={stock} />
-                    <div className="shop-train-text">
-                        <span className="shop-part-name">{stock.name}</span>
-                        <span className="shop-part-code">
-                            {SCALES[stock.scale].label} · {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed, SCALES[stock.scale].ratio))} km/h · you have {ownedTrains[stock.id] ?? 0}
-                        </span>
-                        <span className="shop-train-description">{stock.description}</span>
+        <>
+            {groups.map(group => (
+                <section key={group.key}>
+                    <h3 className="set-shelf-section">{group.title}</h3>
+                    {group.note && <p className="shop-section-note">{group.note}</p>}
+                    <div className="shop-trains">
+                        {group.stock.map(stock => (
+                            <div className="shop-train" key={stock.id} data-testid={`shop-train-${stock.id}`}>
+                                <TrainPreview stock={stock} />
+                                <div className="shop-train-text">
+                                    <span className="shop-part-name">{stock.name}</span>
+                                    <span className="shop-part-code">
+                                        {SCALES[stock.scale].label} · {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed, SCALES[stock.scale].ratio))} km/h · you have {ownedTrains[stock.id] ?? 0}
+                                    </span>
+                                    <span className="shop-train-description">{stock.description}</span>
+                                </div>
+                                {stock.price !== undefined ? (
+                                    <>
+                                        <span className="shop-part-price">{formatMoney(stock.price)}</span>
+                                        <button onClick={() => buyTrain(stock.id)} disabled={wallet < stock.price} data-testid={`shop-buy-train-${stock.id}`}>
+                                            Buy
+                                        </button>
+                                    </>
+                                ) : (
+                                    <span className="shop-train-in-box" data-testid={`shop-train-box-${stock.id}`}>
+                                        Comes in {boxesNamed(stock.comesIn ?? [])}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                    <span className="shop-part-price">{formatMoney(stock.price)}</span>
-                    <button onClick={() => buyTrain(stock.id)} disabled={wallet < stock.price} data-testid={`shop-buy-train-${stock.id}`}>
-                        Buy
-                    </button>
-                </div>
+                </section>
             ))}
-        </div>
+        </>
     );
 }
 

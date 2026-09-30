@@ -59,7 +59,7 @@ export function applyTemplate(
     addTrack: (partId: string, position: { x: number; y: number }, rotation: number) => string | null,
     getNodes: () => Record<string, TrackNode>,
     connectNodes: (survivorId: string, removedId: string) => void,
-    spawnTrain: (edgeId: string, color?: string) => string,
+    spawnTrain: (edgeId: string, color?: string, stock?: string) => string,
     startSimulation: () => void,
     autoStart: boolean = true
 ): void {
@@ -84,7 +84,7 @@ export function applyTemplate(
     for (const train of template.trains) {
         const edgeId = edgeIds[train.partIndex];
         if (edgeId) {
-            spawnTrain(edgeId, train.color);
+            spawnTrain(edgeId, train.color, train.stock);
         }
     }
 

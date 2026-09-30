@@ -57,12 +57,14 @@ export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string,
 }
 
 /**
- * Spawn a train where a layout (template or set plan) puts one. In
- * collection mode it's one of the player's own trains, or nothing if they
- * have none to spare. Returns the train ID, or '' if none was placed.
+ * Spawn a train where a layout (template or set plan) puts one: the
+ * `preferred` rolling stock if the layout names one (a train set's own
+ * train). In collection mode it's one of the player's own trains, that one
+ * if they have it spare, or nothing if they have none to spare. Returns
+ * the train ID, or '' if none was placed.
  */
-export function spawnLayoutTrain(edgeId: EdgeId, color?: string): TrainId {
-    const stock = nextAvailableStock(undefined, scaleAt(edgeId));
+export function spawnLayoutTrain(edgeId: EdgeId, color?: string, preferred?: string): TrainId {
+    const stock = nextAvailableStock(preferred, scaleAt(edgeId));
     if (stock === null) return '';
     const { spawnTrain } = useSimulationStore.getState();
     return stock ? spawnTrain(edgeId, undefined, undefined, undefined, stock) : spawnTrain(edgeId, color);

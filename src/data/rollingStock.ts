@@ -1,9 +1,16 @@
 /**
  * Rolling stock: the trains a player can own and run.
  *
- * These are generic models (a diesel with coaches, a freight train...),
- * not specific products: every entry is flagged `generic`. Real train sets
- * with product numbers belong here once their details are verified.
+ * Two kinds:
+ * - **Real trains**, from real train sets (`brand`, `referenceUrl`, and the
+ *   boxes they come in, `comesIn`). A train that only comes in a box has no
+ *   price of its own: you buy the box, track and all.
+ * - **Generic models** (a diesel with coaches, a freight train...), flagged
+ *   `generic`: the game's own archetypes, sold on their own.
+ *
+ * Top speeds are the game's, not the maker's: models don't publish one. They
+ * go by the kind of train: shunters and tank engines slowest, then freight,
+ * then passenger trains, which hold the starter ovals' curves flat out.
  */
 
 import { DRIVING } from '../simulation/driving';
@@ -11,12 +18,20 @@ import { sizeOf } from '../config/scales';
 import type { PartScale } from './catalog/types';
 import type { Train } from '../types';
 
+export type TrainBrand = 'kato' | 'marklin' | 'hornby';
+
 export interface RollingStock {
     id: string;
     name: string;
     description: string;
-    /** Not a specific real product */
-    generic: true;
+    /** One of the game's own models, not a specific real product */
+    generic?: true;
+    /** The maker, for a real train */
+    brand?: TrainBrand;
+    /** Where its details come from: the maker's page, or a retailer's for what the maker leaves out */
+    referenceUrl?: string;
+    /** The boxed sets it comes in (set ids): the train in a train set */
+    comesIn?: string[];
     /** The track it runs on */
     scale: PartScale;
     /** Livery colour */
@@ -25,8 +40,8 @@ export interface RollingStock {
     cars: number;
     /** Fastest the model runs, mm/s: the throttle's top */
     topSpeed: number;
-    /** Hobby-shop price, US cents, in line with typical train sets of its scale */
-    price: number;
+    /** Hobby-shop price, US cents, when it's sold on its own; a train that only comes in a box has none */
+    price?: number;
     /** A goods train: it passes through stations, carrying no passengers */
     freight?: true;
 }
