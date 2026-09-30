@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ROLLING_STOCK, carKindAt, genericCarLengths, getRollingStock, trainLength, tractionOf } from '../rollingStock';
+import { ROLLING_STOCK, carColorAt, carKindAt, genericCarLengths, getRollingStock, trainLength, tractionOf } from '../rollingStock';
 import { getAllSets, getSetById } from '../sets';
 import { SCALES, sizeOf } from '../../config/scales';
 
@@ -49,6 +49,7 @@ describe('rolling stock', () => {
             expect(stock.carKinds).toHaveLength(stock.carLengths.length);
             expect(stock.carKinds[0]).toBe('loco');
         }
+        if (stock.carColors) expect(stock.carColors, 'a livery for every car').toHaveLength(stock.carLengths.length);
     });
 
     it.each(getAllSets().filter(s => s.rollingStock).map(s => [s.id, s] as const))('%s holds known trains of its own scale, that say they come in it', (_id, set) => {
@@ -92,6 +93,14 @@ describe('cars', () => {
         expect(tractionOf({ stockId: 'h0-passenger' })).toBe('electric');
         expect(tractionOf({ stockId: 'kato-up-gevo-freight' })).toBe('diesel');
         expect(tractionOf({})).toBe('diesel');
+    });
+
+    it('are painted in their own liveries where the model has them, else in the train\'s colour', () => {
+        // Flying Scotsman's apple green engine pulls teak coaches
+        expect(carColorAt({ stockId: 'hornby-flying-scotsman', color: '#000000' }, 0)).toBe('#4C8B2B');
+        expect(carColorAt({ stockId: 'hornby-flying-scotsman', color: '#000000' }, 3)).toBe('#8A5A2B');
+        expect(carColorAt({ stockId: 'hornby-smokey-joe', color: '#123456' }, 2)).toBe('#123456');
+        expect(carColorAt({ color: '#ABCDEF' }, 1)).toBe('#ABCDEF');
     });
 
     it('add up to the train\'s length', () => {

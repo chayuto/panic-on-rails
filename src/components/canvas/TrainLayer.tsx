@@ -21,7 +21,7 @@ import { paintRaised } from './tracks/trackPainter';
 import { raisedTrack } from './tracks/paintedEdges';
 import { ROLLING_STOCK } from '../../config/rollingStock';
 import { sizeOf } from '../../config/scales';
-import { carKindAt, tractionOf } from '../../data/rollingStock';
+import { carColorAt, carKindAt, tractionOf } from '../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from './trains/carSprites';
 
 /** Cars this far outside the viewport (mm, N scale) still draw, to avoid pop-in. */
@@ -60,7 +60,7 @@ function drawTrain(ctx: CanvasRenderingContext2D, train: Train, poses: CarPose[]
         const pose = poses[i];
         const kind = carKindAt(train, fromLoco(i));
         const isLoco = kind === 'loco';
-        const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size, traction);
+        const sprite = getCarSprite(kind, carColorAt(train, fromLoco(i)), train.crashed === true, pose.length / size, traction);
         if (!sprite) continue;
         const L = pose.length;
         ctx.save();
