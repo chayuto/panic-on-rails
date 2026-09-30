@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { stepSimulation, type SimWorld, type SimEvent } from '../step';
 import { stopAhead } from '../driving';
 import { earningsFor } from '../economy';
-import { coachesOf, fareFor, fitPlatform, nextStationName, stationsByEdge, stopPointOf } from '../stations';
+import { coachesOf, departuresDue, fareFor, fitPlatform, nextDeparture, nextStationName, stationsByEdge, stopPointOf } from '../stations';
 import { SIGNAL_STOP_GAP } from '../movement';
 import { lineGraph, straightEdge, train, world } from './fixtures';
 import { STATIONS } from '../../config/stations';
@@ -162,6 +162,56 @@ describe('calling at a station (stepSimulation)', () => {
     it('freight passes through without stopping', () => {
         const w = world({ ...graph, stations, trains: { t: { ...train('t', 'e0', 0), stockId: 'freight' } } });
         expect(stops(run(w, 12).events)).toEqual([]);
+    });
+});
+
+describe('timetables', () => {
+    it('have a departure due on the clock, every interval', () => {
+        expect(nextDeparture({}, 10)).toBeUndefined();
+        const everyMinute = { interval: 60 };
+        expect(nextDeparture(everyMinute, 0)).toBe(0);
+        expect(nextDeparture(everyMinute, 0.5)).toBe(60);
+        expect(nextDeparture(everyMinute, 60)).toBe(60);
+        // Ready on the minute, give or take a rounding error: that departure
+        expect(nextDeparture(everyMinute, 120.0000001)).toBe(120);
+        expect(nextDeparture(everyMinute, 121)).toBe(180);
+    });
+
+    it('count the departures that fall due in a stretch of time', () => {
+        const stations = {
+            a: { ...station('a', 'e0', 124), interval: 60 },
+            b: { ...station('b', 'e1', 124), interval: 45 },
+            c: station('c', 'e2', 124),
+        };
+        // a at 60, 120 and 180; b at 45, 90, 135 and 180; c has none
+        expect(departuresDue(stations, 0, 180)).toBe(7);
+        expect(departuresDue(stations, 59.99, 60.01)).toBe(1);
+        expect(departuresDue(stations, 60.01, 60.02)).toBe(0);
+    });
+
+    it('hold a calling train for its departure, which it leaves on', () => {
+        const graph = lineGraph(4, 248);
+        const stations = { a: { ...station('a', 'e2', 124), interval: 60 } };
+        let w = world({ ...graph, stations, trains: { t: { ...train('t', 'e0', 0), carriageCount: 3 } } });
+        // Step with the railway clock running, as the tick does
+        let clock = 0;
+        const events: SimEvent[] = [];
+        const step = () => {
+            const r = stepSimulation(w, 1 / 60, { ...ctx(), clock });
+            clock += 1 / 60;
+            w = r.world;
+            events.push(...r.events);
+        };
+        while (stops(events).length === 0 && clock < 20) step();
+        const [stop] = stops(events);
+        // It pulled in some seconds after the start, so the first departure it can take is the 1:00
+        expect(stop.departs).toBe(60);
+        expect(w.trains.t.dwell!).toBeCloseTo(60 - clock, 6);
+        while (clock < 59.9) step();
+        expect(w.trains.t).toMatchObject({ speed: 0, currentEdgeId: 'e2' });
+        while (clock < 61) step();
+        expect(w.trains.t.dwell).toBeUndefined();
+        expect(w.trains.t.speed).toBeGreaterThan(0);
     });
 });
 

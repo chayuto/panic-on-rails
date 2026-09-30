@@ -129,9 +129,9 @@ The simulation is a pure function plus thin adapters — keep it that way:
   - `wreckage.ts`: `rerail()` puts a wreck back on its own scale's track, standing, at the clearest spot where all its cars fit. Play doesn't clear wrecks; the player re-rails them or takes them off.
   - `signals.ts`: sensor zones → wire actions.
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
-  - `stations.ts`: station stops. A passenger train brakes for the far end of a platform (`stopAhead` returns `kind: 'station'`), stands `dwell` seconds and is paid `fareFor` its ride; freight (`carriesPassengers`) passes through. Rates in `config/stations.ts`.
+  - `stations.ts`: station stops. A passenger train brakes for the far end of a platform (`stopAhead` returns `kind: 'station'`), stands `dwell` seconds and is paid `fareFor` its ride; freight (`carriesPassengers`) passes through. At a station with a timetable (`interval`), it waits for the next departure due (`nextDeparture`); the step reads the railway clock from `ctx.clock`. Rates in `config/stations.ts`.
   - `economy.ts`: money from events.
-  - `session.ts`: operating sessions, ten railway minutes tallied from the events (`tickSimulation` keeps the tally and pays a clean session's bonus).
+  - `session.ts`: operating sessions, ten railway minutes tallied from the events and the timetabled departures due (`departuresDue`). `tickSimulation` keeps the tally and pays the bonuses: one for no wreck, one for keeping to the timetables.
 - **`src/simulation/tick.ts`** — `tickSimulation(realDt, { sink })` reads the stores, steps, writes back only what changed, logs to `simLog`, and hands events to a sink. `seedSimulation(n)` makes runs reproducible.
 - **`src/hooks/useGameLoop.ts`** — rAF driver only: delta capping, error recovery, and `browserEffectsSink` (events → audio/flash/shake).
 - **`src/simulation/harness.ts`** — headless API: `resetWorld()`, `loadRecipe(template)`, `seed()`, `run(frames)`, `runSeconds(s)`, `summarize()`.

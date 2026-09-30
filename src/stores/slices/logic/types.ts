@@ -36,6 +36,8 @@ export interface SignalSlice {
 export interface StationSlice {
     addStation: (edgeId: EdgeId, position: number, length: number) => StationId;
     removeStation: (stationId: StationId) => void;
+    /** Give a station a clock-face timetable, a departure every `interval` railway seconds, or none */
+    setStationInterval: (stationId: StationId, interval: number | undefined) => void;
     getStationsOnEdge: (edgeId: EdgeId) => Station[];
 }
 

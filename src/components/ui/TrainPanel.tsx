@@ -18,7 +18,10 @@ import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { beginSession, endSessionEarly, rerailWrecks, spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
-import { SESSION } from '../../simulation/session';
+import { SESSION, type SessionResult } from '../../simulation/session';
+import { nextDeparture } from '../../simulation/stations';
+import { STATIONS } from '../../config/stations';
+import { formatClock } from '../../utils/railwayClock';
 import { scaleKmh, throttleOf } from '../../simulation/driving';
 import { SCALES } from '../../config/scales';
 import { useCollectionStore } from '../../stores/useCollectionStore';
@@ -125,6 +128,8 @@ export function TrainPanel() {
 
             <SessionBox canRun={hasEdges} paid={inCollection} />
 
+            <TimetableBox />
+
             {inCollection ? (
                 /* Your trains: run one you own */
                 <div className="owned-trains" data-testid="owned-trains">
@@ -222,7 +227,7 @@ export function TrainPanel() {
                                     <span className="carriage-info"> ({train.carriageCount} cars)</span>
                                 )}
                             </span>
-                            <span className="train-status" title={trainStatus(train, isRunning, stations)} data-testid={`train-status-${train.id}`}>
+                            <span className="train-status" title={trainStatus(train, isRunning, stations, simElapsed)} data-testid={`train-status-${train.id}`}>
                                 {train.crashed ? <Zap size={14} />
                                     : train.dwell !== undefined ? <Landmark size={14} />
                                     : train.heldAtSignal ? <OctagonX size={14} />
@@ -316,15 +321,14 @@ function SessionBox({ canRun, paid }: { canRun: boolean; paid: boolean }) {
                 </div>
                 <div className="session-tally" data-testid="session-tally">
                     {money(session.income)} taken · {plural(session.calls, 'call')} · {plural(session.wrecks, 'wreck')}
+                    {session.due > 0 && ` · ${session.ran} of ${plural(session.due, 'departure')} ran`}
                 </div>
             </div>
         );
     }
 
     if (result) {
-        const bonus = result.bonus > 0
-            ? `Crash-free: ${money(result.bonus)} bonus${paid ? '' : ' (paid in collection mode)'}`
-            : result.endedEarly ? 'Ended early: no bonus' : 'A wreck: no bonus';
+        const bonus = bonusLine(result, paid);
         return (
             <div className="session-box" role="status" data-testid="session-result">
                 <div className="session-line">
@@ -335,6 +339,7 @@ function SessionBox({ canRun, paid }: { canRun: boolean; paid: boolean }) {
                 </div>
                 <div className="session-tally">
                     {money(result.income)} taken · {plural(result.calls, 'call')} · {plural(result.wrecks, 'wreck')}
+                    {result.due > 0 && ` · ${result.ran} of ${plural(result.due, 'departure')} ran`}
                 </div>
                 <div className={`session-bonus ${result.bonus > 0 ? 'earned' : ''}`} data-testid="session-bonus">{bonus}</div>
                 <button className="session-start" onClick={beginSession} disabled={!canRun} data-testid="session-start">
@@ -349,7 +354,7 @@ function SessionBox({ canRun, paid }: { canRun: boolean; paid: boolean }) {
             className="session-start"
             onClick={beginSession}
             disabled={!canRun}
-            title={`${SESSION.MINUTES} minutes of railway time, tallied. Get through without a wreck for a ${SESSION.CLEAN_BONUS * 100}% bonus.`}
+            title={`${SESSION.MINUTES} minutes of railway time, tallied. Get through without a wreck for a ${SESSION.CLEAN_BONUS * 100}% bonus, and keep to the stations' timetables for another ${SESSION.PUNCTUAL_BONUS * 100}%.`}
             data-testid="session-start"
         >
             Start a {SESSION.MINUTES}-minute session
@@ -357,18 +362,67 @@ function SessionBox({ canRun, paid }: { canRun: boolean; paid: boolean }) {
     );
 }
 
-/** Railway time as m:ss, or h:mm:ss. */
-function formatClock(seconds: number): string {
-    const s = Math.max(0, Math.floor(seconds));
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    return h > 0 ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`;
+/** What a session's bonuses came to, and what cost the ones it missed. */
+function bonusLine(result: SessionResult, paid: boolean): string {
+    if (result.endedEarly) return 'Ended early: no bonus';
+    const late = result.due > 0 && !result.punctual ? `${result.ran} of ${plural(result.due, 'departure')} ran` : null;
+    if (!result.clean && !result.punctual) return late ? `A wreck, and ${late}: no bonus` : 'A wreck: no bonus';
+    const earned = result.clean && result.punctual ? 'Crash-free and on time' : result.clean ? 'Crash-free' : 'On time';
+    const line = `${earned}: ${money(result.bonus)} bonus${paid ? '' : ' (paid in collection mode)'}`;
+    if (!result.clean) return `${line} · a wreck: no crash-free bonus`;
+    return late ? `${line} · ${late}, too few for the timetable bonus` : line;
 }
 
-function trainStatus(train: Train, isRunning: boolean, stations: Record<StationId, Station>): string {
+/**
+ * Each station's clock-face timetable: how often a departure is due, and
+ * when the next one is. A passenger train calling there waits for it.
+ */
+function TimetableBox() {
+    const stations = useLogicStore(s => s.stations);
+    const setStationInterval = useLogicStore(s => s.setStationInterval);
+    // Whole railway seconds: the clock needs no finer
+    const now = useSimulationStore(s => Math.floor(s.simElapsed));
+    const list = Object.values(stations).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    if (list.length === 0) return null;
+    return (
+        <div className="timetable-box" data-testid="timetable">
+            <div className="session-line">
+                <strong>Timetable</strong>
+                <span className="timetable-clock" title="Railway time" data-testid="railway-clock">{formatClock(now)}</span>
+            </div>
+            {list.map(station => {
+                const next = nextDeparture(station, now);
+                return (
+                    <div className="timetable-row" key={station.id}>
+                        <span className="timetable-station">{station.name}</span>
+                        <select
+                            value={station.interval ?? 0}
+                            onChange={e => setStationInterval(station.id, Number(e.target.value) || undefined)}
+                            aria-label={`${station.name} timetable`}
+                            data-testid={`timetable-${station.name}`}
+                        >
+                            <option value={0}>No timetable</option>
+                            {STATIONS.INTERVALS.map(interval => (
+                                <option key={interval} value={interval}>Every {formatClock(interval)}</option>
+                            ))}
+                        </select>
+                        {next !== undefined && (
+                            <span className="timetable-next" data-testid={`timetable-next-${station.name}`}>next {formatClock(next)}</span>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function trainStatus(train: Train, isRunning: boolean, stations: Record<StationId, Station>, simElapsed: number): string {
     if (train.crashed) return 'Wrecked: blocking the line';
-    if (train.dwell !== undefined) return `At ${stations[train.calledAt ?? '']?.name ?? 'a station'}`;
+    if (train.dwell !== undefined) {
+        const station = stations[train.calledAt ?? ''];
+        const at = `At ${station?.name ?? 'a station'}`;
+        return station?.interval ? `${at}, for the ${formatClock(simElapsed + train.dwell)} departure` : at;
+    }
     if (train.heldAtSignal) return 'Waiting at red signal';
     if (train.stopped) return 'Stopped';
     return isRunning ? 'Running' : 'Paused';
