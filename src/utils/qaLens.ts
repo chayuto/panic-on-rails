@@ -21,6 +21,7 @@ import { SCALES } from '../config/scales';
 import { scaleKmh } from '../simulation/driving';
 import { isOpenEnd } from './graphAnalysis';
 import { getPositionOnEdge } from './trainGeometry';
+import { pointsButtonRadius } from '../config/interactions';
 import type { Vector2 } from '../types';
 
 /** A point on the page (CSS pixels, like `MouseEvent.clientX/Y`). */
@@ -53,7 +54,8 @@ export interface QaLook {
      * curve turn that way.
      */
     openEnds: { at: PagePoint; facing: number; drop: { ahead: PagePoint; left: PagePoint; right: PagePoint } }[];
-    points: { part: string; at: PagePoint; set: 'normal' | 'reverse' }[];
+    /** Sets of points, with the size of their button on screen (px across) */
+    points: { part: string; at: PagePoint; set: 'normal' | 'reverse'; size: number }[];
     trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean }[];
 }
 
@@ -113,6 +115,7 @@ export function look(): QaLook {
             part: getPartById(part)?.name ?? part,
             at: toPage(node.position),
             set: node.switchState === 1 ? 'reverse' as const : 'normal' as const,
+            size: Math.round(2 * pointsButtonRadius(zoom) * zoom),
         };
     });
 

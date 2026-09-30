@@ -14,6 +14,7 @@ import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
 import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
 import { normalizeAngle } from '../../utils/geometry';
+import { pointsButtonRadius } from '../../config/interactions';
 
 import { NodeRenderer } from './tracks';
 import { EdgeHitTarget } from './tracks/EdgeHitTarget';
@@ -45,6 +46,8 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     const nodes = useTrackStore(s => s.nodes);
     const edges = useTrackStore(s => s.edges);
     const selectedEdgeId = useEditorStore(s => s.selectedEdgeId);
+    // Only changes below the zoom where the points' buttons stop shrinking
+    const pointsRadius = useEditorStore(s => pointsButtonRadius(s.zoom));
     const editSubMode = useModeStore(s => s.editSubMode);
     const isEditing = useIsEditing();
     const { connectSource, isValidConnectTarget } = useConnectMode();
@@ -113,8 +116,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     }), [visibleEdges, nodes, selectedEdgeId, inactiveEdges]);
 
     const paint = useCallback((ctx: Konva.Context, shape: Konva.Shape) => {
-        const zoom = shape.getStage()?.scaleX() ?? 1;
-        paintTrack(ctx._context, painted, zoom);
+        paintTrack(ctx._context, painted, shape.getStage()?.scaleX() ?? 1);
     }, [painted]);
 
     const onSwitchHoverEnter = useCallback((nodeId: string, position: Vector2) => {
@@ -146,6 +148,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                             node={node}
                             heading={look?.heading ?? node.rotation + 180}
                             branchSide={look?.side ?? 1}
+                            radius={pointsRadius}
                             onSwitchClick={handleSwitchClick}
                             onRipple={triggerRipple}
                             onHoverEnter={onSwitchHoverEnter}

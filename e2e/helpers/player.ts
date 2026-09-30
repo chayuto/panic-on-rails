@@ -93,13 +93,14 @@ export class Player {
     }
 
     /**
-     * Click a button or a point on the canvas. On the canvas, first give it
-     * the moment a person would: Konva redraws what can be clicked a frame
-     * after anything changes.
+     * Click a button or a point on the canvas. When aiming at something on
+     * the canvas, first give it the moment a person would: Konva redraws what
+     * can be clicked a frame after anything changes. A click at random
+     * (`aimed: false`) doesn't wait.
      */
-    async click(target: Locator | PagePoint): Promise<boolean> {
+    async click(target: Locator | PagePoint, { aimed = true }: { aimed?: boolean } = {}): Promise<boolean> {
         if ('x' in target) {
-            await this.waitForHitTarget(target);
+            if (aimed) await this.waitForHitTarget(target);
             // A toast can pop up over the spot just before the click lands
             if (!(await this.reachesCanvas(target))) {
                 this.metrics.obstructions++;

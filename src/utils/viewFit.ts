@@ -69,3 +69,46 @@ export function fitViewWhenSettled(): void {
     // Two frames: React renders the new sidebar, then the browser lays it out
     requestAnimationFrame(() => requestAnimationFrame(fitViewToLayout));
 }
+
+/**
+ * The pan that brings every point inside the viewport, at least `margin`
+ * screen pixels from each edge, moving as little as possible and keeping the
+ * zoom. If the points are too far apart to all fit, it centres them. Null
+ * when they are all in view already.
+ */
+export function panToInclude(
+    points: Vector2[],
+    view: ViewTransform,
+    width: number,
+    height: number,
+    margin = 60
+): Vector2 | null {
+    if (points.length === 0) return null;
+    const screen = points.map(p => ({ x: p.x * view.zoom + view.pan.x, y: p.y * view.zoom + view.pan.y }));
+    const minX = Math.min(...screen.map(p => p.x)), maxX = Math.max(...screen.map(p => p.x));
+    const minY = Math.min(...screen.map(p => p.y)), maxY = Math.max(...screen.map(p => p.y));
+
+    const shift = (lo: number, hi: number, size: number) => {
+        if (hi - lo > size - 2 * margin) return size / 2 - (lo + hi) / 2;
+        if (lo < margin) return margin - lo;
+        if (hi > size - margin) return size - margin - hi;
+        return 0;
+    };
+    const dx = shift(minX, maxX, width);
+    const dy = shift(minY, maxY, height);
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return null;
+    return { x: view.pan.x + dx, y: view.pan.y + dy };
+}
+
+/**
+ * Keep the ends a player is building from in view: pan (never zoom) when a
+ * piece's open end lands off screen or near the edge (browser only).
+ */
+export function keepInView(points: Vector2[]): void {
+    const container = document.querySelector('[data-testid="canvas-container"]');
+    if (!container) return;
+    const { width, height } = container.getBoundingClientRect();
+    const editor = useEditorStore.getState();
+    const pan = panToInclude(points, { zoom: editor.zoom, pan: editor.pan }, width, height);
+    if (pan) editor.setPan(pan.x, pan.y);
+}

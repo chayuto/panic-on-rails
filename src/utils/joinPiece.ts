@@ -7,12 +7,28 @@
 import { useTrackStore } from '../stores/useTrackStore';
 import { angleDifference } from './angle';
 import { canJoin, isOpenEnd } from './graphAnalysis';
-import type { EdgeId, NodeId, TrackNode } from '../types';
+import type { EdgeId, NodeId, TrackNode, Vector2 } from '../types';
 
 /** A little more than the snap tolerance, to catch near misses (mm). */
 export const JOIN_DISTANCE = 10;
 /** Connectors must face each other to within this (degrees), per the constitution. */
 export const JOIN_FACING_TOLERANCE = 20;
+
+/** Every node of the piece `edgeId` belongs to. */
+function nodesOfPiece(edgeId: EdgeId): Set<NodeId> {
+    const { edges } = useTrackStore.getState();
+    const placed = edges[edgeId];
+    if (!placed) return new Set();
+    return new Set<NodeId>(Object.values(edges)
+        .filter(e => e.id === edgeId || (!!placed.placementId && e.placementId === placed.placementId))
+        .flatMap(e => [e.startNodeId, e.endNodeId]));
+}
+
+/** Where the piece `edgeId` belongs to can still be built on from. */
+export function openEndsOfPiece(edgeId: EdgeId): Vector2[] {
+    const { nodes } = useTrackStore.getState();
+    return [...nodesOfPiece(edgeId)].map(id => nodes[id]).filter(n => n && isOpenEnd(n)).map(n => n.position);
+}
 
 /**
  * Join every open end of the piece `edgeId` belongs to (a turnout's three,
@@ -20,13 +36,7 @@ export const JOIN_FACING_TOLERANCE = 20;
  * Returns how many joints were made.
  */
 export function joinPlacedPiece(edgeId: EdgeId): number {
-    const { edges } = useTrackStore.getState();
-    const placed = edges[edgeId];
-    if (!placed) return 0;
-
-    const pieceNodes = new Set<NodeId>(Object.values(edges)
-        .filter(e => e.id === edgeId || (!!placed.placementId && e.placementId === placed.placementId))
-        .flatMap(e => [e.startNodeId, e.endNodeId]));
+    const pieceNodes = nodesOfPiece(edgeId);
 
     let joined = 0;
     for (const nodeId of pieceNodes) {

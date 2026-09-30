@@ -47,10 +47,12 @@ test.describe('Playtests', () => {
         ];
         const { canvas } = start;
         await player.dragPart(plan[0], { x: canvas.x + canvas.width / 3, y: canvas.y + canvas.height / 3, onScreen: true, clear: true });
-        for (const label of plan.slice(1)) {
-            // Straight on for a straight; hover right of the end for a curve that turns right
-            const turn = label.startsWith('Curve') ? 'right' : 'ahead';
-            const drop = await player.bringIntoView(l => l.openEnds.at(-1)?.drop[turn]);
+        for (const [i, label] of plan.entries()) {
+            if (i === 0) continue;
+            // Hover right of the end for the first curve of a bend; after that, a
+            // curve dropped straight on keeps turning the same way
+            const firstOfBend = label.startsWith('Curve') && !plan[i - 1].startsWith('Curve');
+            const drop = await player.bringIntoView(l => l.openEnds.at(-1)?.drop[firstOfBend ? 'right' : 'ahead']);
             if (!drop) break;
             await player.dragPart(label, drop);
         }
@@ -64,10 +66,9 @@ test.describe('Playtests', () => {
         expect(await integrityProblems(page)).toEqual([]);
         // Budgets
         expect(metrics.misses, 'drops that placed nothing').toBe(0);
-        // 7 today: the view doesn't follow the build, and the Skip tutorial button
-        // covers the bottom of the canvas. Lower these when either is fixed.
-        expect(metrics.recoveries, 'zooming out because the track ran off screen or under a button').toBeLessThanOrEqual(7);
-        expect(metrics.obstructions, 'the Skip tutorial button in the way').toBeLessThanOrEqual(2);
+        // The view follows the build, and nothing lies over the track
+        expect(metrics.recoveries, 'zooming out because the track ran off screen or under a button').toBe(0);
+        expect(metrics.obstructions, 'a button or hint in the way').toBe(0);
         expect(player.consoleProblems).toEqual([]);
     });
 
@@ -146,6 +147,9 @@ test.describe('Playtests', () => {
 
             const count = (await player.look()).points.length;
             const unreachable: string[] = [];
+            // Every button big enough to hit at the zoom that fits the layout
+            const tiny = (await player.look()).points.filter(p => p.size < 12).map(p => `${p.part}: ${p.size}px`);
+            expect(tiny, 'points buttons under 12px across').toEqual([]);
             for (let i = 0; i < count; i++) {
                 // Look again each time: linked points move together
                 let p = (await player.look()).points[i];
@@ -177,9 +181,8 @@ test.describe('Playtests', () => {
             const { metrics } = player.report(`throw-points-${setId}`, { points: points.length, unreachable });
             expect(points.length).toBeGreaterThan(0);
             expect(unreachable).toEqual([]);
-            // Budget: the "You did it!" toast pops up over the layout for five seconds
-            // after the first run, and can hide a set of points or catch a click
-            expect(metrics.obstructions).toBeLessThanOrEqual(2);
+            // Hints and toasts let clicks through to the layout
+            expect(metrics.obstructions).toBe(0);
             expect(player.consoleProblems).toEqual([]);
         });
     }
@@ -209,7 +212,7 @@ test.describe('Playtests', () => {
                 await player.dragPart(pick(parts), end);
             } else if (roll < 0.55) {
                 player.note(`move ${move}: click (${anywhere.x.toFixed(0)}, ${anywhere.y.toFixed(0)})`);
-                await player.click(anywhere);
+                await player.click(anywhere, { aimed: false });
             } else if (roll < 0.65) {
                 await player.wheel(random() < 0.5 ? 240 : -240);
             } else if (roll < 0.85) {

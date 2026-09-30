@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import './Onboarding.css';
+import { SkipTutorialButton } from './SkipTutorialButton';
 
 type ArrowPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -91,6 +92,7 @@ export function Hint({
                     <span className="onboarding-hint__shortcut">{shortcut}</span>
                 )}
             </div>
+            <SkipTutorialButton />
         </div>
     );
 }

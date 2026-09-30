@@ -22,7 +22,8 @@ import { findBestSnap } from '../utils/snapManager';
 import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
-import { joinPlacedPiece } from '../utils/joinPiece';
+import { joinPlacedPiece, openEndsOfPiece } from '../utils/joinPiece';
+import { keepInView } from '../utils/viewFit';
 
 interface UseEditModeHandlerOptions {
     /** Function to convert screen coordinates to world coordinates */
@@ -102,7 +103,8 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             worldPos,
             userRotation,
             openEndpoints,
-            selectedSystem
+            selectedSystem,
+            useTrackStore.getState().edges
         );
 
         // Update ghost position and snap state
@@ -209,6 +211,9 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             const { selectedSystem: currentSystem } = useEditorStore.getState();
             playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
         }
+        // Follow the build: keep the new piece's open ends, where the player
+        // carries on from, in view
+        if (newEdgeId) keepInView(openEndsOfPiece(newEdgeId));
 
         // Clean up drag state
         endDrag();

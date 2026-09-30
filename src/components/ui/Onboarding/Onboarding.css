@@ -2,10 +2,12 @@
    Onboarding Components Styles
    ============================================ */
 
-/* Hint Tooltip - positioned near target element */
+/* Hint Tooltip - positioned near target element. It lies over the canvas, so
+   clicks and dropped track pass through it; only its buttons catch the pointer. */
 .onboarding-hint {
     position: fixed;
     z-index: 10000;
+    pointer-events: none;
     background: var(--bg-secondary);
     border: 1px solid var(--track-selected);
     border-radius: 8px;
@@ -100,12 +102,13 @@
     color: var(--fg-primary);
 }
 
-/* Toast notification - bottom right */
+/* Toast notification - bottom right, over the canvas: let clicks through */
 .onboarding-toast {
     position: fixed;
     bottom: 24px;
     right: 24px;
     z-index: 10000;
+    pointer-events: none;
     background: var(--bg-secondary);
     border: 1px solid var(--track-selected);
     border-radius: 8px;
@@ -191,27 +194,27 @@
     pointer-events: auto;
 }
 
-/* Skip tutorial button */
+.onboarding-hint button,
+.onboarding-toast button {
+    pointer-events: auto;
+}
+
+/* Skip tutorial: a quiet link at the foot of each hint, off the canvas */
 .onboarding-skip {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10001;
-    background: transparent;
-    border: 1px solid var(--border-color);
+    display: block;
+    margin: 8px 0 0 auto;
+    background: none;
+    border: none;
+    padding: 0;
     color: var(--fg-muted);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 12px;
+    font-size: 11px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
-    transition: all 0.15s;
 }
 
 .onboarding-skip:hover {
-    background: var(--bg-tertiary);
     color: var(--fg-secondary);
-    border-color: var(--fg-muted);
 }
 
 /* Pulsing highlight for elements */

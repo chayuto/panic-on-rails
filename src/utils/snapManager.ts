@@ -20,6 +20,8 @@ import type {
     SnapMatchResult,
     SnapConfig,
     PartScale,
+    EdgeId,
+    TrackEdge,
 } from '../types';
 import { DEFAULT_SNAP_CONFIG } from '../types';
 import { getPartConnectors } from '../data/catalog/helpers';
@@ -163,8 +165,23 @@ interface SnapCandidate extends SnapMatchResult {
     rotationDelta: number;
     /** How well the placed part points toward the cursor (-1..1, higher = better) */
     towardCursor: number;
+    /** A curve turning the same way as the track it joins (tiebreaker) */
+    continuesCurve: boolean;
     /** Is this the primary connector? (tiebreaker) */
     isPrimary: boolean;
+}
+
+/**
+ * Which way the track turns as it runs into its open end `node`: +1 right
+ * (clockwise on screen), -1 left, 0 straight or unknown.
+ */
+function turnInto(node: TrackNode, edges: Record<EdgeId, TrackEdge>): -1 | 0 | 1 {
+    if (node.connections.length !== 1) return 0;
+    const edge = edges[node.connections[0]];
+    if (!edge || edge.geometry.type !== 'arc') return 0;
+    // Increasing angles run clockwise on screen: a right turn from start to end
+    const sweep = Math.sign(edge.geometry.endAngle - edge.geometry.startAngle) as -1 | 0 | 1;
+    return edge.endNodeId === node.id ? sweep : (-sweep as -1 | 0 | 1);
 }
 
 /**
@@ -188,6 +205,8 @@ interface SnapCandidate extends SnapMatchResult {
  * @param ghostRotation - Current ghost rotation (degrees)
  * @param openEndpoints - Available endpoints to snap to
  * @param system - Track system for config lookup
+ * @param edges - The layout's edges: with them, a curve dropped straight
+ *   ahead of a curved track's end carries on turning the same way
  * @returns Best snap result, or null if no snap found
  */
 export function findBestSnap(
@@ -195,7 +214,8 @@ export function findBestSnap(
     ghostPosition: Vector2,
     ghostRotation: number,
     openEndpoints: TrackNode[],
-    system: PartScale = 'n-scale'
+    system: PartScale = 'n-scale',
+    edges: Record<EdgeId, TrackEdge> = {}
 ): SnapMatchResult | null {
     const config = DEFAULT_SNAP_CONFIG[system];
     const connectors = getPartConnectors(part);
@@ -206,6 +226,7 @@ export function findBestSnap(
 
     for (const target of openEndpoints) {
         const cursorDist = distance(ghostPosition, target.position);
+        const trackTurn = part.geometry.type === 'curve' ? turnInto(target, edges) : 0;
 
         for (const ghostConnector of ghostWorldConnectors) {
             const connectorDist = distance(ghostConnector.worldPosition, target.position);
@@ -224,6 +245,12 @@ export function findBestSnap(
                 y: placed.reduce((sum, c) => sum + c.worldPosition.y, 0) / placed.length,
             };
 
+            // Which way the piece turns as it leaves the target: right of the
+            // facade on screen (+Y down) is (-sin, cos)
+            const r = (target.rotation * Math.PI) / 180;
+            const side = -Math.sin(r) * (centroid.x - target.position.x) + Math.cos(r) * (centroid.y - target.position.y);
+            const pieceTurn = Math.abs(side) < 1e-6 ? 0 : Math.sign(side);
+
             candidates.push({
                 ghostConnectorId: ghostConnector.localId,
                 targetNodeId: target.id,
@@ -236,6 +263,7 @@ export function findBestSnap(
                     { x: centroid.x - target.position.x, y: centroid.y - target.position.y },
                     { x: ghostPosition.x - target.position.x, y: ghostPosition.y - target.position.y },
                 ),
+                continuesCurve: trackTurn !== 0 && pieceTurn === trackTurn,
                 isPrimary: ghostConnector.localId === connectors.primaryNodeId,
             });
         }
@@ -253,6 +281,9 @@ export function findBestSnap(
         // Secondary: part extends toward the cursor
         const towardDiff = b.towardCursor - a.towardCursor;
         if (Math.abs(towardDiff) > 0.05) return towardDiff;
+
+        // Cursor straight ahead: a curve keeps turning the way the track does
+        if (a.continuesCurve !== b.continuesCurve) return a.continuesCurve ? -1 : 1;
 
         // Tertiary: least rotation from what the user had
         const rotDiff = a.rotationDelta - b.rotationDelta;
