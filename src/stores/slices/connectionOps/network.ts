@@ -17,6 +17,7 @@ import {
 import { validateLayoutIntegrity } from './validation';
 import { mergeNodeInto } from './merge';
 import { transformPosition } from './transform';
+import { logger } from '../../../utils/logger';
 
 /**
  * Connects a moving network to an anchor network.
@@ -30,7 +31,7 @@ export function connectNetworksOp(
     movingEdgeId: EdgeId,
     rotationDelta: number
 ): { nodes: Record<NodeId, TrackNode>; edges: Record<EdgeId, TrackEdge> } {
-    console.log('[connectNetworksOp] Starting atomic connect:', {
+    logger.debug('connectNetworksOp', 'Starting atomic connect:', {
         anchorNodeId: anchorNodeId.slice(0, 8),
         movingNodeId: movingNodeId.slice(0, 8),
         movingEdgeId: movingEdgeId.slice(0, 8),
@@ -81,7 +82,7 @@ export function connectNetworksOp(
         }
     }
 
-    console.log('[connectNetworksOp] Network found:', {
+    logger.debug('connectNetworksOp', 'Network found:', {
         nodes: networkNodeIds.size,
         edges: networkEdgeIds.size,
     });
@@ -177,7 +178,7 @@ export function connectNetworksOp(
     // STEP 5: Merge nodes (movingNode into anchorNode)
     mergeNodeInto(newNodes, newEdges, anchorNodeId, movingNodeId);
 
-    console.log('[connectNetworksOp] Atomic connect complete:', {
+    logger.debug('connectNetworksOp', 'Atomic connect complete:', {
         totalNodes: Object.keys(newNodes).length,
         totalEdges: Object.keys(newEdges).length,
         anchorConnectionsNow: newNodes[anchorNodeId].connections.length,

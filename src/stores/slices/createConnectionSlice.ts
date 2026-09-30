@@ -12,6 +12,7 @@ import { linkedPoints } from '../../utils/switchRouting';
 import { connectNodesOp } from './connectionOps/connect';
 import { connectNetworksOp } from './connectionOps/network';
 import { movePartOp } from './connectionOps/move';
+import { logger } from '../../utils/logger';
 
 /**
  * Creates the connection slice with network manipulation operations.
@@ -92,7 +93,7 @@ export const createConnectionSlice: SliceCreator<ConnectionSlice> = (set) => ({
 
             const newState: 0 | 1 = node.switchState === 0 ? 1 : 0;
             const moved = linkedPoints(node, state.nodes);
-            console.log('[toggleSwitch] Toggling switch:', {
+            logger.debug('toggleSwitch', 'Toggling switch:', {
                 nodeId: nodeId.slice(0, 8),
                 from: node.switchState,
                 to: newState,

@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Signal } from '../../../types';
 import type { LogicSliceCreator, SignalSlice } from './types';
+import { logger } from '../../../utils/logger';
 
 export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => ({
     /**
@@ -27,7 +28,7 @@ export const createSignalSlice: LogicSliceCreator<SignalSlice> = (set, get) => (
             state.signals[signalId] = signal;
         });
 
-        console.log('[LogicStore] Added signal:', {
+        logger.debug('LogicStore', 'Added signal:', {
             id: signalId.slice(0, 8),
             nodeId: nodeId.slice(0, 8),
             state: 'red',

@@ -10,6 +10,8 @@
  * - Contextual sounds (hover, near-miss)
  */
 
+import { logger } from './logger';
+
 // Sound IDs
 export type SoundId =
     | 'snap-nscale'     // Metallic click for N-Scale tracks
@@ -115,7 +117,7 @@ export async function initAudio(): Promise<void> {
             state.muted = true;
         }
 
-        console.log('[AudioManager] Initialized');
+        logger.debug('AudioManager', 'Initialized');
     } catch (error) {
         console.warn('[AudioManager] Failed to initialize:', error);
     }

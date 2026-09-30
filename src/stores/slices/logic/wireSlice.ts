@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Wire } from '../../../types';
 import type { LogicSliceCreator, WireSlice } from './types';
+import { logger } from '../../../utils/logger';
 
 export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
     /**
@@ -33,7 +34,7 @@ export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
             state.wires[wireId] = wire;
         });
 
-        console.log('[LogicStore] Added wire:', {
+        logger.debug('LogicStore', 'Added wire:', {
             id: wireId.slice(0, 8),
             source: `${sourceType}:${sourceId.slice(0, 8)}`,
             target: `${targetType}:${targetId.slice(0, 8)}`,

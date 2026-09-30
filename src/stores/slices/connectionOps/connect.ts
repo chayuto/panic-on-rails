@@ -6,6 +6,7 @@
 
 import type { NodeId, EdgeId, TrackNode, TrackEdge } from '../../../types';
 import { mergeNodeInto } from './merge';
+import { logger } from '../../../utils/logger';
 
 /**
  * Connects two nodes by merging the removed node into the survivor node.
@@ -17,7 +18,7 @@ export function connectNodesOp(
     survivorNodeId: NodeId,
     removedNodeId: NodeId
 ): { nodes: Record<NodeId, TrackNode>; edges: Record<EdgeId, TrackEdge> } {
-    console.log('[connectNodesOp] Starting node merge:', {
+    logger.debug('connectNodesOp', 'Starting node merge:', {
         survivorNodeId: survivorNodeId.slice(0, 8),
         removedNodeId: removedNodeId.slice(0, 8),
     });
@@ -34,7 +35,7 @@ export function connectNodesOp(
     const newEdges = { ...edges };
     mergeNodeInto(newNodes, newEdges, survivorNodeId, removedNodeId);
 
-    console.log('[connectNodesOp] Merge complete:', {
+    logger.debug('connectNodesOp', 'Merge complete:', {
         totalNodes: Object.keys(newNodes).length,
         totalEdges: Object.keys(newEdges).length,
         survivorConnectionsNow: newNodes[survivorNodeId].connections.length,

@@ -21,6 +21,7 @@ import { spawnLayoutTrain } from '../../../simulation/controls';
 import { useCollectionStore } from '../../../stores/useCollectionStore';
 import type { TemplateMetadata } from '../../../data/templates';
 import { ShareLayoutButton } from '../ShareLayout/ShareLayout';
+import { logger } from '../../../utils/logger';
 
 // Custom confirmation modal component
 function ConfirmModal({
@@ -203,7 +204,7 @@ export function FileActions() {
     }, [loadLayout]);
 
     const performClear = useCallback(() => {
-        console.log('[FileActions] performClear - clearing layout');
+        logger.debug('FileActions', 'performClear - clearing layout');
 
         // Clear persisted stores from localStorage
         localStorage.removeItem('panic-on-rails-v1');
@@ -215,11 +216,11 @@ export function FileActions() {
         // "New Layout" is an explicit reset — discard the undo history too.
         useHistoryStore.getState().clear();
 
-        console.log('[FileActions] ✅ Layout cleared!');
+        logger.debug('FileActions', '✅ Layout cleared!');
     }, [clearLayout, clearTrains]);
 
     const handleNewClick = useCallback(() => {
-        console.log('[FileActions] handleNewClick - edges:', Object.keys(edges).length);
+        logger.debug('FileActions', 'handleNewClick - edges:', Object.keys(edges).length);
         if (Object.keys(edges).length > 0) {
             // Show custom modal instead of native confirm
             setShowConfirmModal(true);
@@ -236,7 +237,7 @@ export function FileActions() {
 
     const handleCancel = useCallback(() => {
         setShowConfirmModal(false);
-        console.log('[FileActions] User cancelled');
+        logger.debug('FileActions', 'User cancelled');
     }, []);
 
     return (

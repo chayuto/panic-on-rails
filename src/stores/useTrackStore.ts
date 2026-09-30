@@ -22,6 +22,7 @@ import {
     getEdgeBounds,
     getNodeBounds,
 } from './slices';
+import { logger } from '../utils/logger';
 
 /**
  * Combined track store using slice pattern.
@@ -63,7 +64,7 @@ export const useTrackStore = create<TrackStore>()(
                     });
 
                     if (migratedCount > 0) {
-                        console.log(`[useTrackStore] Migrated ${migratedCount} legacy arcs from radians to degrees`);
+                        logger.info('useTrackStore', `Migrated ${migratedCount} legacy arcs from radians to degrees`);
                     }
 
                     // V2 MIGRATION: Add intrinsicGeometry to edges that don't have it
@@ -100,11 +101,11 @@ export const useTrackStore = create<TrackStore>()(
                     }
 
                     if (v2MigratedCount > 0) {
-                        console.log(`[V2 Migration] Added intrinsicGeometry to ${v2MigratedCount} edges`);
+                        logger.info('V2 Migration', `Added intrinsicGeometry to ${v2MigratedCount} edges`);
                     }
 
                     rebuildSpatialIndices(state.nodes, state.edges);
-                    console.log('[useTrackStore] Spatial indices rebuilt after hydration');
+                    logger.info('useTrackStore', 'Spatial indices rebuilt after hydration');
                 }
             },
         }

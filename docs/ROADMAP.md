@@ -415,8 +415,11 @@ Order, biggest win per millisecond first:
       effect is gone. Movement keeps its own walker; merge the two if a third use appears.
 - [x] GhostLayer computes previews through the catalog connector code and track creators
       (`createPartTrack`); crossovers and bumpers now preview their true shape.
-- [ ] Move cross-store cascades into an orchestration layer. Replace `console.log` with
-      `logger` and add a `no-console` lint rule.
+- [ ] Move cross-store cascades into an orchestration layer.
+- [x] **Logging goes through `logger`**, which hides debug and info in production. A
+      `no-console` lint rule allows only `warn` and `error` in app code. The app's `console.log`
+      calls became logger calls, and the clear-layout trace shrank from four lines to one. Only
+      the startup banner and `window.debugExport()` still print directly, on purpose.
 - [x] `@vitest/coverage-v8` with floors per area (simulation, stores, data, utils) a little
       under today's numbers. CI runs `pnpm test:coverage`.
 - [x] **knip in CI** (`pnpm knip`) for unused files and dependencies. It deleted

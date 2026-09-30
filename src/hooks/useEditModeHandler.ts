@@ -24,6 +24,7 @@ import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
 import { joinPlacedPiece, openEndsOfPiece } from '../utils/joinPiece';
 import { keepInView } from '../utils/viewFit';
+import { logger } from '../utils/logger';
 
 interface UseEditModeHandlerOptions {
     /** Function to convert screen coordinates to world coordinates */
@@ -173,7 +174,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         // Get current snap state
         const { snapTarget, ghostRotation, ghostPosition } = useEditorStore.getState();
 
-        console.log('[useEditModeHandler] Drop initiated:', {
+        logger.debug('useEditModeHandler', 'Drop initiated:', {
             partId,
             worldPos,
             hasSnapTarget: !!snapTarget,
@@ -188,7 +189,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             finalPosition = ghostPosition;
             finalRotation = ghostRotation;
 
-            console.log('[useEditModeHandler] Snapping using ghost transform:', {
+            logger.debug('useEditModeHandler', 'Snapping using ghost transform:', {
                 targetNodeId: snapTarget.targetNodeId.slice(0, 8),
                 finalPosition,
                 finalRotation,
@@ -201,7 +202,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
 
         // Add the track
         const newEdgeId = addTrack(partId, finalPosition, finalRotation);
-        console.log('[useEditModeHandler] Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
+        logger.debug('useEditModeHandler', 'Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
 
         // Post-placement: join every open end of the new piece (a turnout's
         // three, a double crossover's four) to open ends it now touches. This

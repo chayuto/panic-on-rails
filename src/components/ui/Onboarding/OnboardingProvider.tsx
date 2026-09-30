@@ -15,6 +15,7 @@ import { useTrackStore } from '../../../stores/useTrackStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useSimulationStore } from '../../../stores/useSimulationStore';
 import { hasClosedLoop } from '../../../utils/graphAnalysis';
+import { logger } from '../../../utils/logger';
 
 /** How long the "You did it!" toast stays up before onboarding completes */
 export const COMPLETION_TOAST_MS = 5000;
@@ -79,7 +80,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     // Debug logging in development
     useEffect(() => {
         if (import.meta.env.DEV && isOnboardingActive()) {
-            console.log('[Onboarding] Stage:', stage);
+            logger.debug('Onboarding', 'Stage:', stage);
         }
     }, [stage, isOnboardingActive]);
 
