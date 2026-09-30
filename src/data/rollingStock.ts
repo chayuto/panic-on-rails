@@ -17,6 +17,7 @@ import { DRIVING } from '../simulation/driving';
 import { sizeOf } from '../config/scales';
 import type { PartScale } from './catalog/types';
 import type { Train } from '../types';
+import { carCount } from '../utils/trainCars';
 
 export type TrainBrand = 'kato' | 'marklin' | 'hornby';
 
@@ -318,9 +319,29 @@ export function carKindAt(train: Pick<Train, 'stockId'>, index: number): CarKind
     return stock?.carKinds?.[index] ?? (stock?.freight ? 'wagon' : 'coach');
 }
 
+/**
+ * Whether a car is drawn facing against the way its train runs: a
+ * locomotive pushing from the back, or a power car at the train's far end
+ * (an HST's), which faces away from the one that leads. `index` counts
+ * from the locomotive.
+ */
+export function facesBack(kind: CarKind, index: number, pushing: boolean): boolean {
+    return kind === 'loco' && pushing !== index > 0;
+}
+
 /** The livery of the `index`th car, counting from the locomotive: its model's, or the train's colour. */
 export function carColorAt(train: Pick<Train, 'stockId' | 'color'>, index: number): string {
     return getRollingStock(train.stockId)?.carColors?.[index] ?? train.color;
+}
+
+/**
+ * Cars carrying passengers: the coaches, not the locomotive, a wagon or a
+ * power car at the far end. A lone locomotive still takes a passenger or two.
+ */
+export function coachesOf(train: Pick<Train, 'stockId' | 'carLengths' | 'carriageCount'>): number {
+    let coaches = 0;
+    for (let i = 1; i < carCount(train); i++) if (carKindAt(train, i) === 'coach') coaches++;
+    return Math.max(1, coaches);
 }
 
 /** A train's locomotive: its model's, or a free-build train's diesel. */

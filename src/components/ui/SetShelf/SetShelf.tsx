@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { carColorAt, carKindAt, getRollingStock, ROLLING_STOCK, trainLength, tractionOf, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
+import { carColorAt, carKindAt, facesBack, getRollingStock, ROLLING_STOCK, trainLength, tractionOf, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
 import { SCALES, sizeOf } from '../../../config/scales';
@@ -192,11 +192,23 @@ function TrainPreview({ stock }: { stock: RollingStock }) {
         let front = canvas.width - SPRITE_MARGIN * px;
         cars.forEach((overCouplers, i) => {
             const body = overCouplers - CAR.GAP;
-            const sprite = getCarSprite(carKindAt({ stockId: stock.id }, i), carColorAt({ stockId: stock.id, color: stock.color }, i), false, body, tractionOf({ stockId: stock.id }));
+            const kind = carKindAt({ stockId: stock.id }, i);
+            const sprite = getCarSprite(kind, carColorAt({ stockId: stock.id, color: stock.color }, i), false, body, tractionOf({ stockId: stock.id }));
             if (!sprite) return;
             const w = (body + 2 * SPRITE_MARGIN) * px;
             const h = (sprite.height / sprite.width) * w;
-            ctx.drawImage(sprite, front - (CAR.GAP / 2 + body + SPRITE_MARGIN) * px, (canvas.height - h) / 2, w, h);
+            const x = front - (CAR.GAP / 2 + body + SPRITE_MARGIN) * px;
+            const y = (canvas.height - h) / 2;
+            if (facesBack(kind, i, false)) {
+                // A power car at the far end faces away from the train
+                ctx.save();
+                ctx.translate(x + w, y);
+                ctx.scale(-1, 1);
+                ctx.drawImage(sprite, 0, 0, w, h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(sprite, x, y, w, h);
+            }
             front -= overCouplers * px;
         });
     }, [stock]);

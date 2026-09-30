@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ROLLING_STOCK, carColorAt, carKindAt, genericCarLengths, getRollingStock, trainLength, tractionOf } from '../rollingStock';
+import { ROLLING_STOCK, carColorAt, carKindAt, coachesOf, facesBack, genericCarLengths, getRollingStock, trainLength, tractionOf } from '../rollingStock';
 import { getAllSets, getSetById } from '../sets';
 import { SCALES, sizeOf } from '../../config/scales';
 
@@ -101,6 +101,20 @@ describe('cars', () => {
         expect(carColorAt({ stockId: 'hornby-flying-scotsman', color: '#000000' }, 3)).toBe('#8A5A2B');
         expect(carColorAt({ stockId: 'hornby-smokey-joe', color: '#123456' }, 2)).toBe('#123456');
         expect(carColorAt({ color: '#ABCDEF' }, 1)).toBe('#ABCDEF');
+    });
+
+    it('face the way they go, but for a power car at the far end, and a locomotive pushing', () => {
+        expect(facesBack('loco', 0, false)).toBe(false);
+        // An HST's second power car faces away from the train
+        expect(facesBack('loco', 2, false)).toBe(true);
+        // Turned back, the first locomotive pushes, facing back, and the far one leads
+        expect(facesBack('loco', 0, true)).toBe(true);
+        expect(facesBack('loco', 2, true)).toBe(false);
+        expect(facesBack('coach', 1, true)).toBe(false);
+    });
+
+    it('carry passengers in their coaches', () => {
+        expect(coachesOf({ stockId: 'hornby-flying-scotsman', carLengths: [293, 247, 247, 247] })).toBe(3);
     });
 
     it('add up to the train\'s length', () => {
