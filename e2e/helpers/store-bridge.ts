@@ -6,6 +6,8 @@
  */
 
 import type { Page } from '@playwright/test';
+import type { LayoutData } from '../../src/types/serialization';
+import type { EditSubMode } from '../../src/types/mode';
 import type {
     Vector2,
     TrackStateSnapshot,
@@ -75,7 +77,7 @@ export class StoreBridge {
         await this.page.evaluate(() => window.__PANIC_STORES__!.track.clearLayout());
     }
 
-    async loadLayout(layoutJson: object): Promise<void> {
+    async loadLayout(layoutJson: LayoutData): Promise<void> {
         await this.page.evaluate(
             (data) => window.__PANIC_STORES__!.track.loadLayout(data),
             layoutJson,
@@ -115,7 +117,7 @@ export class StoreBridge {
         await this.page.evaluate(() => window.__PANIC_STORES__!.mode.enterSimulateMode());
     }
 
-    async setEditSubMode(mode: string): Promise<void> {
+    async setEditSubMode(mode: EditSubMode): Promise<void> {
         await this.page.evaluate(
             (m) => window.__PANIC_STORES__!.mode.setEditSubMode(m),
             mode,

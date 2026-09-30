@@ -27,13 +27,10 @@ import { useSimulationStore } from '../stores/useSimulationStore';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
-import { useCollectionStore, type CollectionMode } from '../stores/useCollectionStore';
+import { useCollectionStore } from '../stores/useCollectionStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import { look, type QaLook } from './qaLens';
-import type { CrashedPart } from './crashPhysics';
-import type { Sensor, Signal, Wire, Station, Train } from '../types';
-import type { LogicStore } from '../stores/slices/logic/types';
 import type Konva from 'konva';
 import { logger } from './logger';
 
@@ -49,130 +46,68 @@ declare global {
     }
 }
 
-export interface PanicStoreBridge {
-    track: {
+/**
+ * A store's chosen state and actions, typed by the store itself, so the
+ * bridge can't drift from it. `getState()` and the actions read the store
+ * when called, so they're never stale.
+ */
+function expose<S extends object, K extends keyof S, A extends keyof S>(
+    store: { getState: () => S },
+    state: readonly K[],
+    actions: readonly A[]
+): { getState: () => Pick<S, K> } & Pick<S, A> {
+    const bound = Object.fromEntries(actions.map(name => [
+        name,
+        (...args: unknown[]) => (store.getState()[name] as (...a: unknown[]) => unknown)(...args),
+    ])) as Pick<S, A>;
+    return {
         getState: () => {
-            nodes: ReturnType<typeof useTrackStore.getState>['nodes'];
-            edges: ReturnType<typeof useTrackStore.getState>['edges'];
-        };
-        addTrack: typeof useTrackStore.getState extends () => infer S
-            ? S extends { addTrack: infer F } ? F : never
-            : never;
-        removeTrack: (edgeId: string) => void;
-        loadLayout: (data: unknown) => void;
-        clearLayout: () => void;
-        getLayout: () => unknown;
-        getOpenEndpoints: () => unknown[];
-        connectNodes: (survivorId: string, removedId: string) => void;
-        connectNetworks: (anchorId: string, movingId: string, movingEdgeId: string, rotationDelta: number) => void;
-        toggleSwitch: (nodeId: string) => void;
-    };
-    mode: {
-        getState: () => {
-            primaryMode: string;
-            editSubMode: string;
-            simulateSubMode: string;
-        };
-        enterEditMode: () => void;
-        enterSimulateMode: () => void;
-        setEditSubMode: (sub: string) => void;
-        setSimulateSubMode: (sub: string) => void;
-        togglePrimaryMode: () => void;
-    };
-    simulation: {
-        getState: () => {
-            trains: Record<string, Train>;
-            isRunning: boolean;
-            speedMultiplier: number;
-            error: string | null;
-            crashedParts: CrashedPart[];
-            simLog: { seq: number; time: number; type: string; trainId: string; edgeId: string; detail: string }[];
-            simElapsed: number;
-            wrecks: number;
-            lastWreckAt: number | null;
-        };
-        spawnTrain: (edgeId: string, color?: string, carriageCount?: number, distance?: number) => string;
-        removeTrain: (trainId: string) => void;
-        rerailTrain: (trainId: string) => boolean;
-        setCrashed: (trainId: string) => void;
-        setTrainStopped: (trainId: string, stopped: boolean) => void;
-        reverseTrain: (trainId: string) => void;
-        setTrainThrottle: (trainId: string, throttle: number) => void;
-        setRunning: (running: boolean) => void;
-        toggleRunning: () => void;
-        clearTrains: () => void;
-        setSpeedMultiplier: (multiplier: number) => void;
-        clearLog: () => void;
-    };
-    editor: {
-        getState: () => {
-            selectedEdgeId: string | null;
-            selectedPartId: string;
-            selectedSystem: string;
-            showGrid: boolean;
-            zoom: number;
-            pan: { x: number; y: number };
-            draggedPartId: string | null;
-            ghostPosition: { x: number; y: number } | null;
-        };
-        setSelectedPart: (partId: string) => void;
-        setSelectedSystem: (system: 'n-scale' | 'wooden') => void;
-        setSelectedEdge: (edgeId: string | null) => void;
-        resetView: () => void;
-        setZoom: (zoom: number) => void;
-        setPan: (x: number, y: number) => void;
-    };
-    logic: {
-        getState: () => {
-            sensors: Record<string, Sensor>;
-            signals: Record<string, Signal>;
-            wires: Record<string, Wire>;
-            stations: Record<string, Station>;
-        };
-        addSensor: LogicStore['addSensor'];
-        addStation: LogicStore['addStation'];
-        removeStation: LogicStore['removeStation'];
-        addSignal: LogicStore['addSignal'];
-        setSignalState: LogicStore['setSignalState'];
-        toggleSignal: LogicStore['toggleSignal'];
-        addWire: LogicStore['addWire'];
-        clearLogic: LogicStore['clearLogic'];
-    };
-    effects: {
-        getState: () => {
-            ripples: unknown[];
-            flashes: unknown[];
-            screenShake: unknown | null;
-        };
-        clearAllEffects: () => void;
-    };
-    collection: {
-        getState: () => {
-            mode: CollectionMode;
-            wallet: number;
-            lifetimeEarned: number;
-            ownedSets: Record<string, number>;
-            looseParts: Record<string, number>;
-        };
-        setMode: (mode: CollectionMode) => void;
-        earn: (cents: number) => void;
-        buySet: (setId: string) => boolean;
-        buyPart: (partId: string, qty?: number) => boolean;
-        resetCollection: () => void;
-    };
-    history: {
-        getState: () => {
-            canUndo: boolean;
-            canRedo: boolean;
-            pastCount: number;
-            futureCount: number;
-        };
-        record: () => void;
-        undo: () => void;
-        redo: () => void;
-        clear: () => void;
+            const current = store.getState();
+            return Object.fromEntries(state.map(key => [key, current[key]])) as Pick<S, K>;
+        },
+        ...bound,
     };
 }
+
+function createBridge() {
+    return {
+        track: expose(useTrackStore, ['nodes', 'edges'], [
+            'addTrack', 'removeTrack', 'loadLayout', 'clearLayout', 'getLayout', 'getOpenEndpoints',
+            'connectNodes', 'connectNetworks', 'toggleSwitch',
+        ]),
+        mode: expose(useModeStore, ['primaryMode', 'editSubMode', 'simulateSubMode'], [
+            'enterEditMode', 'enterSimulateMode', 'setEditSubMode', 'setSimulateSubMode', 'togglePrimaryMode',
+        ]),
+        simulation: expose(useSimulationStore, [
+            'trains', 'isRunning', 'speedMultiplier', 'error', 'crashedParts', 'simLog', 'simElapsed',
+            'wrecks', 'lastWreckAt', 'session', 'sessionResult',
+        ], [
+            'spawnTrain', 'removeTrain', 'rerailTrain', 'setCrashed', 'setTrainStopped', 'reverseTrain',
+            'setTrainThrottle', 'setRunning', 'toggleRunning', 'clearTrains', 'setSpeedMultiplier', 'clearLog',
+        ]),
+        editor: expose(useEditorStore, [
+            'selectedEdgeId', 'selectedPartId', 'selectedSystem', 'showGrid', 'zoom', 'pan', 'draggedPartId', 'ghostPosition',
+        ], ['setSelectedPart', 'setSelectedSystem', 'setSelectedEdge', 'resetView', 'setZoom', 'setPan']),
+        logic: expose(useLogicStore, ['sensors', 'signals', 'wires', 'stations'], [
+            'addSensor', 'removeSensor', 'addSignal', 'removeSignal', 'setSignalState', 'toggleSignal',
+            'addWire', 'removeWire', 'addStation', 'removeStation', 'clearLogic',
+        ]),
+        effects: expose(useEffectsStore, ['ripples', 'flashes', 'screenShake'], ['clearAllEffects']),
+        collection: expose(useCollectionStore, ['mode', 'wallet', 'lifetimeEarned', 'ownedSets', 'looseParts', 'ownedTrains'], [
+            'setMode', 'earn', 'buySet', 'buyPart', 'resetCollection',
+        ]),
+        history: {
+            ...expose(useHistoryStore, [], ['record', 'undo', 'redo', 'clear']),
+            getState: () => {
+                const { past, future } = useHistoryStore.getState();
+                return { canUndo: past.length > 0, canRedo: future.length > 0, pastCount: past.length, futureCount: future.length };
+            },
+        },
+    };
+}
+
+/** What `window.__PANIC_STORES__` offers: each store's state and actions, typed from the store. */
+export type PanicStoreBridge = ReturnType<typeof createBridge>;
 
 function shouldActivate(): boolean {
     if (import.meta.env.DEV) return true;
@@ -189,180 +124,7 @@ function shouldActivate(): boolean {
 export function initDebugBridge(): void {
     if (!shouldActivate()) return;
 
-    const bridge: PanicStoreBridge = {
-        track: {
-            getState: () => {
-                const s = useTrackStore.getState();
-                return { nodes: s.nodes, edges: s.edges };
-            },
-            addTrack: (partId, position, rotation) =>
-                useTrackStore.getState().addTrack(partId, position, rotation),
-            removeTrack: (edgeId) =>
-                useTrackStore.getState().removeTrack(edgeId),
-            loadLayout: (data) =>
-                useTrackStore.getState().loadLayout(data as Parameters<ReturnType<typeof useTrackStore.getState>['loadLayout']>[0]),
-            clearLayout: () =>
-                useTrackStore.getState().clearLayout(),
-            getLayout: () =>
-                useTrackStore.getState().getLayout(),
-            getOpenEndpoints: () =>
-                useTrackStore.getState().getOpenEndpoints(),
-            connectNodes: (survivorId, removedId) =>
-                useTrackStore.getState().connectNodes(survivorId, removedId),
-            connectNetworks: (anchorId, movingId, movingEdgeId, rotationDelta) =>
-                useTrackStore.getState().connectNetworks(anchorId, movingId, movingEdgeId, rotationDelta),
-            toggleSwitch: (nodeId) =>
-                useTrackStore.getState().toggleSwitch(nodeId),
-        },
-        mode: {
-            getState: () => {
-                const s = useModeStore.getState();
-                return {
-                    primaryMode: s.primaryMode,
-                    editSubMode: s.editSubMode,
-                    simulateSubMode: s.simulateSubMode,
-                };
-            },
-            enterEditMode: () => useModeStore.getState().enterEditMode(),
-            enterSimulateMode: () => useModeStore.getState().enterSimulateMode(),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setEditSubMode: (sub) => useModeStore.getState().setEditSubMode(sub as any),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setSimulateSubMode: (sub) => useModeStore.getState().setSimulateSubMode(sub as any),
-            togglePrimaryMode: () => useModeStore.getState().togglePrimaryMode(),
-        },
-        simulation: {
-            getState: () => {
-                const s = useSimulationStore.getState();
-                return {
-                    trains: s.trains,
-                    isRunning: s.isRunning,
-                    speedMultiplier: s.speedMultiplier,
-                    error: s.error,
-                    crashedParts: s.crashedParts,
-                    simLog: s.simLog,
-                    simElapsed: s.simElapsed,
-                    wrecks: s.wrecks,
-                    lastWreckAt: s.lastWreckAt,
-                };
-            },
-            spawnTrain: (edgeId, color?, carriageCount?, distance?) =>
-                useSimulationStore.getState().spawnTrain(edgeId, color, carriageCount, distance),
-            removeTrain: (trainId) =>
-                useSimulationStore.getState().removeTrain(trainId),
-            rerailTrain: (trainId) =>
-                useSimulationStore.getState().rerailTrain(trainId),
-            setCrashed: (trainId) =>
-                useSimulationStore.getState().setCrashed(trainId),
-            setTrainStopped: (trainId, stopped) =>
-                useSimulationStore.getState().setTrainStopped(trainId, stopped),
-            reverseTrain: (trainId) =>
-                useSimulationStore.getState().reverseTrain(trainId),
-            setTrainThrottle: (trainId, throttle) =>
-                useSimulationStore.getState().setTrainThrottle(trainId, throttle),
-            setRunning: (running) =>
-                useSimulationStore.getState().setRunning(running),
-            toggleRunning: () =>
-                useSimulationStore.getState().toggleRunning(),
-            clearTrains: () =>
-                useSimulationStore.getState().clearTrains(),
-            setSpeedMultiplier: (multiplier) =>
-                useSimulationStore.getState().setSpeedMultiplier(multiplier),
-            clearLog: () =>
-                useSimulationStore.getState().clearLog(),
-        },
-        editor: {
-            getState: () => {
-                const s = useEditorStore.getState();
-                return {
-                    selectedEdgeId: s.selectedEdgeId,
-                    selectedPartId: s.selectedPartId,
-                    selectedSystem: s.selectedSystem,
-                    showGrid: s.showGrid,
-                    zoom: s.zoom,
-                    pan: s.pan,
-                    draggedPartId: s.draggedPartId,
-                    ghostPosition: s.ghostPosition,
-                };
-            },
-            setSelectedPart: (partId) =>
-                useEditorStore.getState().setSelectedPart(partId),
-            setSelectedSystem: (system) =>
-                useEditorStore.getState().setSelectedSystem(system),
-            setSelectedEdge: (edgeId) =>
-                useEditorStore.getState().setSelectedEdge(edgeId),
-            resetView: () =>
-                useEditorStore.getState().resetView(),
-            setZoom: (zoom) =>
-                useEditorStore.getState().setZoom(zoom),
-            setPan: (x, y) =>
-                useEditorStore.getState().setPan(x, y),
-        },
-        logic: {
-            getState: () => {
-                const s = useLogicStore.getState();
-                return {
-                    sensors: s.sensors,
-                    signals: s.signals,
-                    wires: s.wires,
-                    stations: s.stations,
-                };
-            },
-            addSensor: (...args) => useLogicStore.getState().addSensor(...args),
-            addStation: (...args) => useLogicStore.getState().addStation(...args),
-            removeStation: (...args) => useLogicStore.getState().removeStation(...args),
-            addSignal: (...args) => useLogicStore.getState().addSignal(...args),
-            setSignalState: (...args) => useLogicStore.getState().setSignalState(...args),
-            toggleSignal: (...args) => useLogicStore.getState().toggleSignal(...args),
-            addWire: (...args) => useLogicStore.getState().addWire(...args),
-            clearLogic: () => useLogicStore.getState().clearLogic(),
-        },
-        effects: {
-            getState: () => {
-                const s = useEffectsStore.getState();
-                return {
-                    ripples: s.ripples,
-                    flashes: s.flashes,
-                    screenShake: s.screenShake,
-                };
-            },
-            clearAllEffects: () =>
-                useEffectsStore.getState().clearAllEffects(),
-        },
-        collection: {
-            getState: () => {
-                const s = useCollectionStore.getState();
-                return {
-                    mode: s.mode,
-                    wallet: s.wallet,
-                    lifetimeEarned: s.lifetimeEarned,
-                    ownedSets: s.ownedSets,
-                    looseParts: s.looseParts,
-                };
-            },
-            setMode: (mode: CollectionMode) => useCollectionStore.getState().setMode(mode),
-            earn: (cents: number) => useCollectionStore.getState().earn(cents),
-            buySet: (setId: string) => useCollectionStore.getState().buySet(setId),
-            buyPart: (partId: string, qty?: number) => useCollectionStore.getState().buyPart(partId, qty),
-            resetCollection: () => useCollectionStore.getState().resetCollection(),
-        },
-        history: {
-            getState: () => {
-                const s = useHistoryStore.getState();
-                return {
-                    canUndo: s.past.length > 0,
-                    canRedo: s.future.length > 0,
-                    pastCount: s.past.length,
-                    futureCount: s.future.length,
-                };
-            },
-            record: () => useHistoryStore.getState().record(),
-            undo: () => useHistoryStore.getState().undo(),
-            redo: () => useHistoryStore.getState().redo(),
-            clear: () => useHistoryStore.getState().clear(),
-        },
-    };
-
+    const bridge = createBridge();
     window.__PANIC_STORES__ = bridge;
     window.__PANIC_SIM__ = simHarness;
     window.__PANIC_QA__ = { look };
