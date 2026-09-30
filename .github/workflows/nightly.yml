@@ -1,0 +1,61 @@
+name: Nightly agent specs
+
+# The agent specs (e2e/specs) don't run on pull requests: they're long, and
+# written for agents working against a dev server. Nightly they run against
+# the production preview, so they can't rot unnoticed.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agent-specs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        # version is read from the "packageManager" field in package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Builds the app and serves the preview; screenshot baselines are
+      # macOS-only so far, so their comparisons are skipped (--ignore-snapshots)
+      - name: Run the agent specs against the preview
+        run: pnpm run e2e:specs
+
+      - name: Upload report
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: agent-specs-report
+          path: e2e-report/
+          retention-days: 14

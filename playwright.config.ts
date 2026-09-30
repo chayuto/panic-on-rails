@@ -9,6 +9,8 @@ import { defineConfig, devices } from '@playwright/test';
  * - dev: Live dev server tests (agentic mid-session workflow)
  *   Expects `pnpm dev` to be running already on port 5173.
  *   Set PLAYWRIGHT_DEV=1 to skip the webServer build.
+ * - specs: the agent specs (e2e/specs) against the production preview, as
+ *   the nightly workflow runs them (`pnpm e2e:specs`).
  *
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -48,6 +50,15 @@ export default defineConfig({
         {
             name: 'chromium',
             testIgnore: /specs\//,
+            use: {
+                ...devices['Desktop Chrome'],
+                baseURL: 'http://localhost:4173',
+                screenshot: 'only-on-failure',
+            },
+        },
+        {
+            name: 'specs',
+            testMatch: /specs\//,
             use: {
                 ...devices['Desktop Chrome'],
                 baseURL: 'http://localhost:4173',
