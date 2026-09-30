@@ -43,6 +43,9 @@ jobs:
       - name: Type check
         run: pnpm run typecheck
 
+      - name: Dead code (knip)
+        run: pnpm run knip
+
       - name: Test (with coverage floors)
         run: pnpm run test:coverage
 

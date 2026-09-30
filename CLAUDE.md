@@ -32,6 +32,7 @@ pnpm test --run   # Single run
 pnpm test:coverage # Single run with coverage floors per area (what CI runs)
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript strict check (tsc -b; covers src, e2e, configs)
+pnpm knip         # Dead code: unused files and dependencies (CI runs it)
 ```
 
 Run a single test file:
