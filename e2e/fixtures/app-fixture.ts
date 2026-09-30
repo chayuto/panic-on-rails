@@ -9,6 +9,8 @@ import { ScreenshotManager } from '../helpers/screenshot-manager';
  * - `app`: Navigates to app, clears localStorage, waits for render
  * - `stores`: Typed access to all Zustand stores via debug bridge
  * - `snap`: Screenshot + state capture helper (saves .png + .state.json)
+ * - `consoleGate` (automatic): fails the test on any page error or console
+ *   error. A test that means to cause one lists it in `allowedConsoleErrors`.
  */
 export const test = base.extend<{
     app: void;
@@ -18,7 +20,24 @@ export const test = base.extend<{
         statePath: string;
         state: import('../helpers/types').AllStoresSnapshot;
     }>;
+    allowedConsoleErrors: RegExp[];
+    consoleGate: void;
 }>({
+    allowedConsoleErrors: [[], { option: true }],
+
+    consoleGate: [async ({ page, allowedConsoleErrors }, use) => {
+        const problems: string[] = [];
+        const record = (text: string) => {
+            if (!allowedConsoleErrors.some(pattern => pattern.test(text))) problems.push(text);
+        };
+        page.on('pageerror', err => record(`page error: ${err.message}`));
+        page.on('console', msg => {
+            if (msg.type() === 'error') record(`console error: ${msg.text()}`);
+        });
+        await use();
+        expect(problems, 'the page logged errors').toEqual([]);
+    }, { auto: true }],
+
     app: [async ({ page }, use) => {
         // Navigate to the app. The `?e2e` param activates the debug bridge in
         // production/preview builds (it is always on in dev mode) — required so
