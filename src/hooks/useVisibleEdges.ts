@@ -10,7 +10,9 @@ import { useTrackStore, type BoundingBox } from '../stores/useTrackStore';
  */
 export function useVisibleEdges(viewport: BoundingBox | null): string[] {
     const getVisibleEdges = useTrackStore((s) => s.getVisibleEdges);
-    const edgeCount = useTrackStore((s) => Object.keys(s.edges).length);
+    // Any change to the edges, not just how many: a new layout of as many
+    // pieces has none of the old ids
+    const edges = useTrackStore((s) => s.edges);
 
     return useMemo(() => {
         if (!viewport) {
@@ -27,7 +29,7 @@ export function useVisibleEdges(viewport: BoundingBox | null): string[] {
         viewport?.y,
         viewport?.width,
         viewport?.height,
-        edgeCount, // Re-run when edges change
+        edges,
     ]);
 }
 
@@ -40,7 +42,7 @@ export function useVisibleEdges(viewport: BoundingBox | null): string[] {
  */
 export function useVisibleNodes(viewport: BoundingBox | null): string[] {
     const getVisibleNodes = useTrackStore((s) => s.getVisibleNodes);
-    const nodeCount = useTrackStore((s) => Object.keys(s.nodes).length);
+    const nodes = useTrackStore((s) => s.nodes);
 
     return useMemo(() => {
         if (!viewport) {
@@ -57,6 +59,6 @@ export function useVisibleNodes(viewport: BoundingBox | null): string[] {
         viewport?.y,
         viewport?.width,
         viewport?.height,
-        nodeCount, // Re-run when nodes change
+        nodes,
     ]);
 }

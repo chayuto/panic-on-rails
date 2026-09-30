@@ -10,17 +10,60 @@
 
 import type { EdgeId, NodeId, TrackEdge, TrackGeometry, TrackNode, Train, Vector2 } from '../types';
 import { deriveWorldGeometry } from './geometry';
-import { BOGIE_SPACING, CAR_PITCH, ROLLING_STOCK } from '../config/rollingStock';
+import { BOGIE_INSET_RATIO, BOGIE_SPACING, CAR_PITCH, ROLLING_STOCK } from '../config/rollingStock';
 import { sizeOf } from '../config/scales';
 
 export interface CarPose {
-    /** Car index: 0 is the locomotive */
+    /** Place in the train as it runs: 0 leads */
     index: number;
     /** Centre of the car body */
     x: number;
     y: number;
     /** Heading of the car body, front to back reversed (degrees, 0 = east) */
     rotation: number;
+    /** Body length, end to end (mm) */
+    length: number;
+}
+
+/** One car of a train, where it rides behind the leading car's front bogie (mm). */
+interface CarSpan {
+    /** Its front bogie, behind the leading car's */
+    offset: number;
+    /** From its front bogie to its rear one */
+    bogies: number;
+    /** Its body, end to end */
+    length: number;
+}
+
+/**
+ * A train's cars front to back as it runs: its model's own lengths,
+ * reversed while the locomotive pushes, or the short uniform car.
+ */
+function carSpans(train: Train): CarSpan[] {
+    const size = sizeOf(train.scale);
+    if (train.carLengths?.length) {
+        const gap = ROLLING_STOCK.GAP * size;
+        const lengths = train.locoLeading === false ? [...train.carLengths].reverse() : train.carLengths;
+        const inset = (body: number) => body * BOGIE_INSET_RATIO;
+        const leadInset = inset(lengths[0] - gap);
+        // Each car's front coupler, behind the leading car's
+        let coupler = 0;
+        return lengths.map(overCouplers => {
+            const body = overCouplers - gap;
+            const span = { offset: coupler + inset(body) - leadInset, bogies: body - 2 * inset(body), length: body };
+            coupler += overCouplers;
+            return span;
+        });
+    }
+    const count = Math.max(1, train.carriageCount ?? 1);
+    const pitch = train.carriageSpacing ?? CAR_PITCH * size;
+    const span = { bogies: BOGIE_SPACING * size, length: ROLLING_STOCK.CAR_LENGTH * size };
+    return Array.from({ length: count }, (_, i) => ({ ...span, offset: i * pitch }));
+}
+
+/** How many cars a train has, locomotive included. */
+export function carCount(train: Pick<Train, 'carLengths' | 'carriageCount'>): number {
+    return train.carLengths?.length || Math.max(1, train.carriageCount ?? 1);
 }
 
 /** A point on the track: an edge and a distance along it. */
@@ -121,9 +164,9 @@ function walkBack(
 
 /** From the leading car's front bogie to the last car's rear bogie (mm). */
 export function consistLength(train: Train): number {
-    const count = Math.max(1, train.carriageCount ?? 1);
-    const size = sizeOf(train.scale);
-    return (count - 1) * (train.carriageSpacing ?? CAR_PITCH * size) + BOGIE_SPACING * size;
+    const spans = carSpans(train);
+    const last = spans[spans.length - 1];
+    return last.offset + last.bogies;
 }
 
 /**
@@ -151,8 +194,8 @@ export function reverseConsist(
 }
 
 /**
- * Poses of every car in a train (index 0 = locomotive), or [] if the train
- * isn't on the track.
+ * Poses of every car in a train, front to back as it runs (the locomotive
+ * leads, or pushes from the back), or [] if the train isn't on the track.
  */
 export function getCarPoses(
     train: Train,
@@ -160,10 +203,6 @@ export function getCarPoses(
     nodes: Record<NodeId, TrackNode>,
     geometryOf: GeometryLookup = frameGeometry(edges, nodes)
 ): CarPose[] {
-    const count = Math.max(1, train.carriageCount ?? 1);
-    const size = sizeOf(train.scale);
-    const pitch = train.carriageSpacing ?? CAR_PITCH * size;
-    const bogies = BOGIE_SPACING * size;
     const place = (behind: number): Vector2 | null => {
         const p = walkBack(train, behind, edges, nodes);
         if (!p) return null;
@@ -172,19 +211,17 @@ export function getCarPoses(
     };
 
     const poses: CarPose[] = [];
-    for (let i = 0; i < count; i++) {
-        const front = place(i * pitch);
-        const rear = place(i * pitch + bogies);
+    for (const [i, span] of carSpans(train).entries()) {
+        const front = place(span.offset);
+        const rear = place(span.offset + span.bogies);
         if (!front || !rear) break;
         poses.push({
             index: i,
             x: (front.x + rear.x) / 2,
             y: (front.y + rear.y) / 2,
             rotation: (Math.atan2(front.y - rear.y, front.x - rear.x) * 180) / Math.PI,
+            length: span.length,
         });
     }
     return poses;
 }
-
-/** Half the car length ahead of its centre: where the nose is. */
-export const CAR_HALF_LENGTH = ROLLING_STOCK.CAR_LENGTH / 2;

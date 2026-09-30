@@ -8,10 +8,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getRollingStock, ROLLING_STOCK, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
-import { getCarSprite } from '../../canvas/trains/carSprites';
+import { carKindAt, getRollingStock, ROLLING_STOCK, trainLength, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
+import { getCarSprite, SPRITE_MARGIN } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
-import { SCALES } from '../../../config/scales';
+import { SCALES, sizeOf } from '../../../config/scales';
+import { ROLLING_STOCK as CAR } from '../../../config/rollingStock';
 import { BRAND_NAMES, trackSystemName } from '../../../data/brands';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
@@ -110,7 +111,7 @@ function SetBox({ set, inCollection, owned, wallet, inventory, onBuild, onBuy }:
                         const train = getRollingStock(id);
                         return train && (
                             <li key={id} className="train">
-                                <span className="qty">1×</span> {train.name}, {train.cars} cars
+                                <span className="qty">1×</span> {train.name}, {train.carLengths.length} cars
                             </li>
                         );
                     })}
@@ -173,23 +174,31 @@ function PartForSale({ part, owned, wallet, onBuy }: { part: PartDefinition; own
     );
 }
 
-/** The train drawn from the same sprites the layout uses: locomotive and up to three cars. */
+/**
+ * The train drawn from the same sprites the layout uses, to one scale:
+ * the locomotive and up to two cars, at their real lengths.
+ */
 function TrainPreview({ stock }: { stock: RollingStock }) {
     const ref = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
         const canvas = ref.current;
         const ctx = canvas?.getContext('2d');
-        const loco = getCarSprite('loco', stock.color);
-        const coach = getCarSprite('coach', stock.color);
-        if (!canvas || !ctx || !loco || !coach) return;
-        const shown = Math.min(stock.cars, 4);
-        const w = canvas.width / shown;
-        const h = (loco.height / loco.width) * w;
+        if (!canvas || !ctx) return;
+        // Over couplers at N size, as the sprites are drawn
+        const cars = stock.carLengths.slice(0, 3).map(length => length / sizeOf(stock.scale));
+        const px = canvas.width / (cars.reduce((sum, length) => sum + length, 0) + 2 * SPRITE_MARGIN);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < shown; i++) {
-            // Locomotive at the front (right), facing the way it drives
-            ctx.drawImage(i === 0 ? loco : coach, canvas.width - (i + 1) * w, (canvas.height - h) / 2, w, h);
-        }
+        // Locomotive at the front (right), facing the way it drives
+        let front = canvas.width - SPRITE_MARGIN * px;
+        cars.forEach((overCouplers, i) => {
+            const body = overCouplers - CAR.GAP;
+            const sprite = getCarSprite(carKindAt({ stockId: stock.id }, i), stock.color, false, body);
+            if (!sprite) return;
+            const w = (body + 2 * SPRITE_MARGIN) * px;
+            const h = (sprite.height / sprite.width) * w;
+            ctx.drawImage(sprite, front - (CAR.GAP / 2 + body + SPRITE_MARGIN) * px, (canvas.height - h) / 2, w, h);
+            front -= overCouplers * px;
+        });
     }, [stock]);
     return <canvas ref={ref} className="train-preview" width={320} height={48} aria-hidden="true" />;
 }
@@ -226,7 +235,7 @@ function TrainsForSale({ wallet }: { wallet: number }) {
                                 <div className="shop-train-text">
                                     <span className="shop-part-name">{stock.name}</span>
                                     <span className="shop-part-code">
-                                        {SCALES[stock.scale].label} · {stock.cars} cars · top speed {Math.round(scaleKmh(stock.topSpeed, SCALES[stock.scale].ratio))} km/h · you have {ownedTrains[stock.id] ?? 0}
+                                        {SCALES[stock.scale].label} · {stock.carLengths.length} cars, {Math.round(trainLength(stock) / 10)} cm long · top speed {Math.round(scaleKmh(stock.topSpeed, SCALES[stock.scale].ratio))} km/h · you have {ownedTrains[stock.id] ?? 0}
                                     </span>
                                     <span className="shop-train-description">{stock.description}</span>
                                 </div>

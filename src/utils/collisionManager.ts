@@ -52,11 +52,10 @@ function bodiesOf(
     nodes: Record<NodeId, TrackNode>,
     geometryOf: ReturnType<typeof frameGeometry>
 ): CarBody[] {
-    const size = sizeOf(train.scale);
-    const halfLength = (ROLLING_STOCK.CAR_LENGTH * size * CONTACT_LENGTH) / 2;
-    const halfWidth = (ROLLING_STOCK.CAR_WIDTH * size * CONTACT_WIDTH) / 2;
+    const halfWidth = (ROLLING_STOCK.CAR_WIDTH * sizeOf(train.scale) * CONTACT_WIDTH) / 2;
     return getCarPoses(train, edges, nodes, geometryOf).map(pose => {
         const r = (pose.rotation * Math.PI) / 180;
+        const halfLength = (pose.length * CONTACT_LENGTH) / 2;
         return {
             train,
             cx: pose.x,

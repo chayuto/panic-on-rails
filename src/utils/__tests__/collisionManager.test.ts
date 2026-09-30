@@ -12,10 +12,14 @@ import type { Train } from '../../types';
 
 const state = () => useTrackStore.getState();
 
-/** A train of `cars` cars with its front at `distance` along `edgeId`, heading `direction`. */
+/** Short cars, 48 mm over couplers (a 44 mm body), so the distances below are easy to follow. */
+const SHORT_CAR = 48;
+
+/** A train of `cars` short cars with its front at `distance` along `edgeId`, heading `direction`. */
 function trainAt(edgeId: string, distance: number, direction: 1 | -1 = 1, cars = 1): string {
     const id = useSimulationStore.getState().spawnTrain(edgeId, undefined, cars, distance);
-    useSimulationStore.setState(s => ({ trains: { ...s.trains, [id]: { ...s.trains[id], direction } } }));
+    const carLengths = Array<number>(cars).fill(SHORT_CAR);
+    useSimulationStore.setState(s => ({ trains: { ...s.trains, [id]: { ...s.trains[id], direction, carLengths } } }));
     return id;
 }
 

@@ -201,8 +201,8 @@ run trains ──▶ earn hobby money ──▶ buy a box / parts / a train in t
 | Part | `src/data/catalog/parts/<brand>.json` | A real product and its geometry |
 | Set (box) | `src/data/sets/<brand>/*.json` | Contents, accessories, `extends`, footprint, plans |
 | Layout plan | inside a set | A chain of parts; `resolvePlan()` places them from catalog geometry |
-| Collection | Phase 3 | The owned sets and parts |
-| Rolling stock | Phase 4 | Real-ish locomotives and cars with lengths and top speeds |
+| Collection | `useCollectionStore` (saved in the browser) | The owned sets, loose parts and trains, and the wallet |
+| Rolling stock | `src/data/rollingStock.ts` | Real trains from real train sets, and generic ones: each car at its model's length over couplers, and a top speed |
 
 The plan format and its rules are in [`src/data/sets/README.md`](../../src/data/sets/README.md).
 
@@ -221,3 +221,17 @@ The plan format and its rules are in [`src/data/sets/README.md`](../../src/data/
 - Hornby Track Extension Pack A: https://uk.hornby.com/products/extension-pack-a-r8221
 - Märklin C1 extension set 24900: https://www.marklin.com/products/details/article/24900
 - Earlier project research: `docs/research/20260104_Kato N Scale Parts and Sets.md`
+
+Car lengths of the real trains (`src/data/rollingStock.ts`):
+
+- Contents of Kato's starter sets: https://katousa.com/n-starter-sets/
+- Kato's Super Chief sleepers, "approximately 6-1/2" long": https://www.trainz.com/products/kato-106-6003-n-scale-santa-fe-super-chief-4-car-set-c
+- F7A, 50 ft 8 in: https://en.wikipedia.org/wiki/EMD_F7
+- Santa Fe's 85 ft Pullman-Standard diners of 1950: https://www.walthers.com/85-pullman-standard-36-seat-diner-santa-fe-600-real-metal-finish
+- Vista Canyon, 82 ft 9 in over end sills: https://www.azrymuseum.org/roster/17/17.htm. Vista Valley is its sister car, from P-S Lot 6757: https://sfrhms.org/wp-content/uploads/2019/03/walthers_plastic_pass_cars.pdf
+- ES44AC, 73 ft 2 in: https://en.wikipedia.org/wiki/GE_Evolution_Series
+- Kato's mixed freight cars are models of Japanese wagons (1:150) in American liveries: https://katousa.com/n-mixed-freight-train-set/ and https://www.trovestar.com/catalog/item/237780. Newhall Station lists their lengths coupler to coupler: Hoki 2200 hopper 93 mm (Kato 8016), Toki 25000 gondola 103 mm (8017), Taki 3000 tank car 103 mm (8008). The hopper and gondola are matched by photo.
+- ALC-42, 71.5 ft: https://assets.new.siemens.com/siemens/assets/api/uuid:b2e899ce-b43e-448b-91a2-dea1784f01b2/Amtrak-ALC-42-Data-Sheet_original.pdf
+- Kato's Viewliner II, 84 ft 4 in diaphragm to diaphragm: https://www.trains.com/mrr/news-reviews/reviews/staff-reviews/kato-n-scale-viewliner-ii-baggage-car/
+- Hornby's R1296M contents: https://railwaymodels.uk/news-hornby-smokey-joe-train-set-returns-for-oo-gauge-12508. Its lengths: Smokey Joe 10.8 cm (https://uk.hornby.com/products/br-class-264-pug-0-4-0st-56025-smokey-joe-era-45-r3064), the four-wheel coach 10 cm (https://uk.hornby.com/products/lms-four-wheel-coach-era-3-r4671), and Crimson King's GWR 101 Class body 10.8 cm (https://uk.hornby.com/products/gwr-101-class-101-era-3-r30053).
+- Hornby doesn't publish the set wagon's length. It matches the long-wheelbase open wagon of Hornby's 2007 Local Freight set, which is 88 mm: https://www.hornbyguide.com/item_details.asp?itemid=4046

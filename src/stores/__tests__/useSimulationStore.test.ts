@@ -4,7 +4,7 @@ import { useSimulationStore } from '../useSimulationStore';
 import { useTrackStore } from '../useTrackStore';
 import { resetWorld } from '../../simulation/harness';
 import { DRIVING } from '../../simulation/driving';
-import { CAR_PITCH } from '../../config/rollingStock';
+import { getRollingStock } from '../../data/rollingStock';
 import { sizeOf } from '../../config/scales';
 
 describe('useSimulationStore', () => {
@@ -40,7 +40,8 @@ describe('useSimulationStore', () => {
             expect(useSimulationStore.getState().trains[id]).toMatchObject({
                 scale: 'ho-scale',
                 throttle: DRIVING.DEFAULT_THROTTLE * k,
-                carriageSpacing: CAR_PITCH * k,
+                // Free build's generic diesel, grown to H0
+                carLengths: [getRollingStock('diesel-passenger')!.carLengths[0] * k],
             });
         });
 

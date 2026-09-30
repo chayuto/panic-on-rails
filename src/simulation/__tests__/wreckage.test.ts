@@ -48,8 +48,8 @@ describe('rerail', () => {
         // A long train with its front at x=150, heading west: its cars fill the track east of it
         const long: Train = { ...train('c', 'e1', 50, -1), carriageCount: 7, carriageSpacing: 50, speed: 0, stopped: true };
         const a = wreck('a', 'e0', 20);
-        // The spot farthest from its front is under its cars
-        expect(spawnCandidates(edges, { c: long }, nodes)[0].edgeId).toBe('e4');
+        // The clearest spot counts every car, not only the front: it isn't under them
+        expect(spawnCandidates(edges, { c: long }, nodes)[0].edgeId).toBe('e0');
         const placed = rerail(a, { a, c: long }, edges, nodes)!;
         expect(placed.currentEdgeId).toBe('e0');
         expect(detectCollisions({ a: placed, c: long }, edges, nodes)).toEqual([]);

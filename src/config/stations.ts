@@ -10,11 +10,9 @@
  * Sizes are N scale's (mm); a bigger scale multiplies them by its `size`.
  */
 
-import { CAR_PITCH } from './rollingStock';
-
 export const STATIONS = {
-    /** Platform length: five cars, as long as Kato's 248 mm straight nearly */
-    PLATFORM_LENGTH: 5 * CAR_PITCH,
+    /** Platform length: nearly a Kato 248 mm straight. A long train overhangs it, as on a real layout */
+    PLATFORM_LENGTH: 240,
     /** Platform width */
     PLATFORM_WIDTH: 14,
     /** From the track's centre line to the platform's edge, clear of the cars */

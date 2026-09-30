@@ -15,13 +15,14 @@ import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
 import type { BoundingBox } from '../../types';
-import { frameGeometry, getCarPoses } from '../../utils/trainCars';
+import { carCount, frameGeometry, getCarPoses } from '../../utils/trainCars';
 import { ROLLING_STOCK } from '../../config/rollingStock';
 import { sizeOf } from '../../config/scales';
+import { carKindAt } from '../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from './trains/carSprites';
 
-/** Trains this far outside the viewport (mm) still draw, to avoid pop-in. */
-const CULL_MARGIN = 400;
+/** Cars this far outside the viewport (mm, N scale) still draw, to avoid pop-in. */
+const CULL_MARGIN = 200;
 
 export interface TrainLayerProps {
     viewport: BoundingBox | null;
@@ -75,24 +76,27 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
             if (poses.length === 0) continue;
             // Sprites are drawn at N size; bigger scales stamp them bigger
             const size = sizeOf(train.scale);
-            const L = ROLLING_STOCK.CAR_LENGTH * size;
             const W = ROLLING_STOCK.CAR_WIDTH * size;
             const m = SPRITE_MARGIN * size;
-            const lead = poses[0];
-            if (view && (
-                lead.x < view.x - CULL_MARGIN || lead.x > view.x + view.width + CULL_MARGIN ||
-                lead.y < view.y - CULL_MARGIN || lead.y > view.y + view.height + CULL_MARGIN
+            const cull = CULL_MARGIN * size;
+            if (view && !poses.some(p =>
+                p.x > view.x - cull && p.x < view.x + view.width + cull &&
+                p.y > view.y - cull && p.y < view.y + view.height + cull
             )) continue;
 
             // The locomotive leads, or pushes from the back after turning back
-            const locoIndex = train.locoLeading === false ? poses.length - 1 : 0;
             const pushing = train.locoLeading === false;
+            const count = carCount(train);
+            // Each car's place in the train counting from the locomotive
+            const fromLoco = (i: number) => (pushing ? count - 1 - i : i);
             // Draw from the back so the leading car sits on top at couplings
             for (let i = poses.length - 1; i >= 0; i--) {
                 const pose = poses[i];
-                const isLoco = i === locoIndex;
-                const sprite = getCarSprite(isLoco ? 'loco' : 'coach', train.color, train.crashed);
+                const kind = carKindAt(train, fromLoco(i));
+                const isLoco = kind === 'loco';
+                const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size);
                 if (!sprite) continue;
+                const L = pose.length;
                 ctx.save();
                 ctx.translate(pose.x, pose.y);
                 // A pushing locomotive still faces the way it was going
@@ -100,7 +104,8 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
                 ctx.drawImage(sprite, -L / 2 - m, -W / 2 - m, L + 2 * m, W + 2 * m);
                 ctx.restore();
             }
-            if (train.crashed) drawCrashMark(ctx, poses[locoIndex].x, poses[locoIndex].y);
+            const loco = poses[fromLoco(0)] ?? poses[0];
+            if (train.crashed) drawCrashMark(ctx, loco.x, loco.y);
         }
     }, []);
 

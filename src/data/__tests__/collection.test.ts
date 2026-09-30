@@ -147,7 +147,7 @@ describe('owned trains', () => {
         expect(first).not.toBeNull();
         const train = useSimulationStore.getState().trains[first!];
         expect(train.stockId).toBe('diesel-passenger');
-        expect(train.carriageCount).toBe(getRollingStock('diesel-passenger')!.cars);
+        expect(train.carriageCount).toBe(getRollingStock('diesel-passenger')!.carLengths.length);
         expect(nextAvailableStock()).toBeNull();
         expect(spawnTrainAtClearestSpot()).toBeNull();
     });

@@ -20,6 +20,9 @@ import type { Train } from '../types';
 
 export type TrainBrand = 'kato' | 'marklin' | 'hornby';
 
+/** What a car is, for drawing it: the locomotive, a coach, or a freight car. */
+export type CarKind = 'loco' | 'coach' | 'wagon';
+
 export interface RollingStock {
     id: string;
     name: string;
@@ -36,8 +39,17 @@ export interface RollingStock {
     scale: PartScale;
     /** Livery colour */
     color: string;
-    /** Cars including the locomotive */
-    cars: number;
+    /**
+     * Each car's length over its couplers (mm, at the model's scale),
+     * locomotive first: the real model's, or for a generic one, typical
+     * of its kind
+     */
+    carLengths: number[];
+    /**
+     * Each car's kind, for a train of both coaches and wagons. Otherwise the
+     * locomotive leads coaches, or a freight train's wagons.
+     */
+    carKinds?: CarKind[];
     /** Fastest the model runs, mm/s: the throttle's top */
     topSpeed: number;
     /** Hobby-shop price, US cents, when it's sold on its own; a train that only comes in a box has none */
@@ -52,7 +64,10 @@ const OO = sizeOf('oo-scale');
 
 export const ROLLING_STOCK: RollingStock[] = [
     // Real trains, each in its train set: Kato USA's N starter sets (the M1
-    // oval, a power pack and a train) and Hornby's OO train sets
+    // oval, a power pack and a train) and Hornby's OO train sets. Car
+    // lengths are the model's own where the maker or a review measures it,
+    // else the prototype's at the model's scale; the sources are in
+    // docs/design/virtual-model-railway.md.
     {
         id: 'kato-super-chief',
         name: 'Santa Fe Super Chief',
@@ -60,7 +75,9 @@ export const ROLLING_STOCK: RollingStock[] = [
         brand: 'kato',
         scale: 'n-scale',
         color: '#C0C4C8',
-        cars: 4,
+        // F7A 50 ft 8 in; Kato's Regal sleepers about 6½ in; an 85 ft
+        // Pullman-Standard diner; Vista Valley 82 ft 9 in over its end sills
+        carLengths: [96.5, 165, 162, 158],
         topSpeed: 220,
         comesIn: ['kato-106-0018'],
         referenceUrl: 'https://www.trainz.com/products/kato-106-0018-n-santa-fe-starter-set',
@@ -68,11 +85,13 @@ export const ROLLING_STOCK: RollingStock[] = [
     {
         id: 'kato-up-gevo-freight',
         name: 'Union Pacific ES44AC mixed freight',
-        description: 'A GE ES44AC "Gevo" in Union Pacific yellow with six freight cars: two tank cars, two hoppers and two gondolas.',
+        description: 'A GE ES44AC "Gevo" in Union Pacific yellow with six freight cars: two covered hoppers, two gondolas and two tank cars. The cars are Kato\'s models of Japanese wagons, in American liveries.',
         brand: 'kato',
         scale: 'n-scale',
         color: '#F5B120',
-        cars: 7,
+        // ES44AC 73 ft 2 in; Kato's Hoki 2200 hopper 93 mm and Toki 25000
+        // gondola and Taki 3000 tank car 103 mm over couplers (1:150 models)
+        carLengths: [139, 93, 93, 103, 103, 103, 103],
         topSpeed: 160,
         freight: true,
         comesIn: ['kato-106-0023'],
@@ -85,7 +104,8 @@ export const ROLLING_STOCK: RollingStock[] = [
         brand: 'kato',
         scale: 'n-scale',
         color: '#1F2B4D',
-        cars: 5,
+        // ALC-42 71.5 ft; Kato's Viewliner II 84 ft 4 in diaphragm to diaphragm
+        carLengths: [136, 161, 161, 161, 161],
         topSpeed: 220,
         comesIn: ['kato-106-0047'],
         referenceUrl: 'https://tonystrains.com/product/kato-106-0047-n-scale-amtrak-starter-set-includes-siemens-alc-42-locomotive-in-phase-vii-paint-4-viewliner-ii-cars-unitrack-oval-power-pack',
@@ -93,11 +113,14 @@ export const ROLLING_STOCK: RollingStock[] = [
     {
         id: 'hornby-smokey-joe',
         name: 'Smokey Joe',
-        description: 'Hornby\'s 0-4-0 saddle tank "Smokey Joe" in BR black, with a coach and a wagon.',
+        description: 'Hornby\'s 0-4-0 saddle tank "Smokey Joe" in BR black, with a teak four-wheel coach and a J. Fowler Mining Company open wagon.',
         brand: 'hornby',
         scale: 'oo-scale',
         color: '#333333',
-        cars: 3,
+        // Hornby's lengths: the locomotive 108 mm (R3064), the coach 100 mm
+        // (R4671); the long-wheelbase open wagon 88 mm
+        carLengths: [108, 100, 88],
+        carKinds: ['loco', 'coach', 'wagon'],
         topSpeed: Math.round(150 * OO),
         comesIn: ['hornby-R1296M'],
         referenceUrl: 'https://uk.hornby.com/products/smokey-joe-train-set-r1296m',
@@ -105,11 +128,13 @@ export const ROLLING_STOCK: RollingStock[] = [
     {
         id: 'hornby-valley-drifter',
         name: 'Valley Drifter',
-        description: 'A little 0-4-0 tank engine in crimson, with a coach and a wagon.',
+        description: 'Hornby\'s 0-4-0 tank engine "Crimson King", No. 537, with the same coach and wagon as Smokey Joe\'s.',
         brand: 'hornby',
         scale: 'oo-scale',
         color: '#B2182B',
-        cars: 3,
+        // The GWR 101 Class body, 108 mm (R30053); coach and wagon as Smokey Joe's
+        carLengths: [108, 100, 88],
+        carKinds: ['loco', 'coach', 'wagon'],
         topSpeed: Math.round(150 * OO),
         comesIn: ['hornby-R1270M'],
         referenceUrl: 'https://uk.hornby.com/products/valley-drifter-train-set-r1270m',
@@ -122,7 +147,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'n-scale',
         color: '#C0392B',
-        cars: 3,
+        carLengths: [112, 150, 150],
         topSpeed: 200,
         price: 9000,
     },
@@ -133,7 +158,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'n-scale',
         color: '#2471A3',
-        cars: 4,
+        carLengths: [125, 125, 125, 125],
         topSpeed: 220,
         price: 11000,
     },
@@ -144,7 +169,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'n-scale',
         color: '#7D5A3C',
-        cars: 5,
+        carLengths: [130, 100, 100, 100, 100],
         topSpeed: 160,
         price: 12000,
         freight: true,
@@ -156,7 +181,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'n-scale',
         color: '#1F7A4D',
-        cars: 6,
+        carLengths: [125, 150, 150, 150, 150, 150],
         topSpeed: DRIVING.MAX_THROTTLE,
         price: 18000,
     },
@@ -167,7 +192,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'ho-scale',
         color: '#B03A2E',
-        cars: 4,
+        carLengths: [120, 130, 130, 130],
         topSpeed: Math.round(160 * H0),
         price: 22000,
         freight: true,
@@ -179,7 +204,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'ho-scale',
         color: '#1B4F72',
-        cars: 4,
+        carLengths: [216, 240, 240, 240],
         topSpeed: Math.round(260 * H0),
         price: 32000,
     },
@@ -190,7 +215,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'oo-scale',
         color: '#2E5E3E',
-        cars: 3,
+        carLengths: [125, 150, 150],
         topSpeed: Math.round(150 * OO),
         price: 18000,
     },
@@ -201,13 +226,28 @@ export const ROLLING_STOCK: RollingStock[] = [
         generic: true,
         scale: 'oo-scale',
         color: '#6B1D28',
-        cars: 4,
+        carLengths: [283, 257, 257, 257],
         topSpeed: Math.round(260 * OO),
         price: 26000,
     },
 ];
 
 const BY_ID = new Map(ROLLING_STOCK.map(s => [s.id, s]));
+
+/**
+ * A train with no model (free build's): the generic diesel and as many of
+ * its coaches as asked for, grown to the scale of the track it's on.
+ */
+export function genericCarLengths(count: number, scale: PartScale | undefined): number[] {
+    const [loco, coach] = BY_ID.get('diesel-passenger')!.carLengths;
+    const size = sizeOf(scale);
+    return Array.from({ length: Math.max(1, count) }, (_, i) => (i === 0 ? loco : coach) * size);
+}
+
+/** A train's length over its couplers, end to end (mm). */
+export function trainLength(stock: Pick<RollingStock, 'carLengths'>): number {
+    return stock.carLengths.reduce((sum, length) => sum + length, 0);
+}
 
 export function getRollingStock(id: string | undefined): RollingStock | undefined {
     return id ? BY_ID.get(id) : undefined;
@@ -216,6 +256,13 @@ export function getRollingStock(id: string | undefined): RollingStock | undefine
 /** Passenger trains call at stations; freight trains pass through. A free-build train carries passengers. */
 export function carriesPassengers(train: Pick<Train, 'stockId'>): boolean {
     return !getRollingStock(train.stockId)?.freight;
+}
+
+/** What the `index`th car of a train is, counting from the locomotive. */
+export function carKindAt(train: Pick<Train, 'stockId'>, index: number): CarKind {
+    if (index === 0) return 'loco';
+    const stock = getRollingStock(train.stockId);
+    return stock?.carKinds?.[index] ?? (stock?.freight ? 'wagon' : 'coach');
 }
 
 /** Fastest a train will go: its model's top speed, or a full throttle for its scale. */

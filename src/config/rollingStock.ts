@@ -1,11 +1,12 @@
 /**
- * Rolling stock dimensions at game scale (mm).
+ * Rolling stock dimensions, N scale (mm; a bigger scale grows them).
  *
- * Real N-scale cars are 100–150mm long; these are shortened so a train fits
- * a starter-set oval, and kept in proportion to the 9mm gauge and the 25mm
- * roadbed. Rendering and physics both read them.
+ * A train runs its model's own cars, each as long as the real model over
+ * its couplers (`carLengths` in data/rollingStock.ts). The car here is the
+ * short uniform one a train without lengths gets (a test's). Widths are the
+ * same for every car. Rendering and physics both read these.
  *
- * A train's position (edge + distance) is its locomotive's front bogie;
+ * A train's position (edge + distance) is its leading car's front bogie;
  * every other bogie trails behind it along the route it took.
  */
 export const ROLLING_STOCK = {
@@ -16,6 +17,9 @@ export const ROLLING_STOCK = {
     /** Coupler gap between cars */
     GAP: 4,
 } as const;
+
+/** Where a car's bogies sit: this far in from each end, as a share of its body. */
+export const BOGIE_INSET_RATIO = ROLLING_STOCK.BOGIE_INSET / ROLLING_STOCK.CAR_LENGTH;
 
 /** Distance between the front bogies of consecutive cars. */
 export const CAR_PITCH = ROLLING_STOCK.CAR_LENGTH + ROLLING_STOCK.GAP;
