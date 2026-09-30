@@ -26,6 +26,17 @@ test.describe('Keyboard', () => {
         expect(await openEnds(page)).toBe(2);
     });
 
+    test('a turnout laid on a straight: the QA lens names its points after the turnout', async ({ page, app }) => {
+        void app;
+        await page.getByTestId('mode-free').click();
+        await page.getByTestId('part-card-kato-20-000').focus();
+        await page.keyboard.press('Enter');
+        await page.getByTestId('part-card-kato-20-202').focus();
+        await page.keyboard.press('Enter');
+        await expect.poll(() => page.evaluate(() => window.__PANIC_QA__!.look().points.map(p => p.part)))
+            .toEqual(['#6 Turnout Left']);
+    });
+
     test('the shop gives the focus back to the button that opened it', async ({ page, app }) => {
         void app;
         const shopButton = page.getByTestId('open-set-shelf');

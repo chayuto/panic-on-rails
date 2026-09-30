@@ -127,9 +127,12 @@ test.describe('Simulation controls', () => {
         void app;
         await loadTemplate(page, 'switch-showdown');
         await page.getByTestId('sim-play-pause').click();
-        const points = await page.evaluate(() => window.__PANIC_QA__!.look().points[0].at);
-        await page.mouse.move(points.x, points.y);
+        const points = await page.evaluate(() => window.__PANIC_QA__!.look().points[0]);
+        await page.mouse.move(points.at.x, points.at.y);
         const tooltip = page.getByTestId('simulation-tooltip');
+        // The QA lens and the tooltip name the same piece: the turnout, not the track joined at it
+        await expect(tooltip).toContainText(points.part);
+        expect(points.part).toMatch(/turnout|point|switch/i);
         await expect(tooltip).toContainText('Set for:');
         await expect(tooltip).toContainText(/Click to throw them|once the train is off them/);
     });
