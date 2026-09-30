@@ -9,7 +9,9 @@ import { useConnectMode } from '../../hooks/useConnectMode';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
-import type { EdgeId, NodeId, Vector2 } from '../../types';
+import type { EdgeId, NodeId, TrackEdge, TrackNode, Vector2 } from '../../types';
+import { HEIGHT_TOLERANCE, heightOf } from '../../utils/elevation';
+import { supportName, supportsAt } from '../../utils/piers';
 import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
 import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
@@ -27,6 +29,13 @@ import { useNodeInteraction } from './hooks/useNodeInteraction';
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
     viewport: BoundingBox | null;
+}
+
+/** What a raised joint stands on, for the Pier tool's labels. */
+function pierLabel(node: TrackNode, edges: Record<EdgeId, TrackEdge>): string | undefined {
+    if (heightOf(node) <= HEIGHT_TOLERANCE) return undefined;
+    const supports = supportsAt(node, edges);
+    return supports ? supportName(supports, node) : `${Math.round(heightOf(node))} mm`;
 }
 
 /**
@@ -165,6 +174,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                         isConnectMode={isConnectMode}
                         isOpenEndpoint={isOpenEndpoint}
                         onClick={handleNodeClick}
+                        label={editSubMode === 'pier' ? pierLabel(node, edges) : undefined}
                     />
                 );
             })}

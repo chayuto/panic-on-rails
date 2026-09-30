@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { MousePointer, Link, Trash2, Radio, TrafficCone, Cable, Landmark, type LucideIcon } from 'lucide-react';
+import { MousePointer, Link, Trash2, Radio, TrafficCone, Cable, Landmark, ArrowUpFromLine, type LucideIcon } from 'lucide-react';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
@@ -55,6 +55,12 @@ const EDIT_TOOLS: ToolButton[] = [
         icon: Landmark,
         label: 'Station',
         title: 'Station (7) - Click track to put a platform there: passenger trains stop and their passengers pay fares',
+    },
+    {
+        mode: 'pier',
+        icon: ArrowUpFromLine,
+        label: 'Pier',
+        title: "Pier (8) - Click a joint to raise it onto Kato's next pier, Shift-click to lower it: the track either side becomes a grade",
     },
     {
         mode: 'sensor',

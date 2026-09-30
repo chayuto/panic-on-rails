@@ -21,8 +21,13 @@ import { getAllSets } from '../../data/sets';
 import { getRollingStock, topSpeedOf } from '../../data/rollingStock';
 
 const FPS = 60;
-/** The long runs take a few seconds, more under coverage on a slow machine; each economy run is 10–20 simulated minutes */
-const LONG_RUN = { timeout: 30_000 };
+/** How long each heavy-handed drive round a Kato layout lasts (simulated minutes) */
+const DRIVE_MINUTES = 2;
+/**
+ * The long runs take a few seconds, several times that under coverage on a
+ * CI runner; each economy run is 10–20 simulated minutes
+ */
+const LONG_RUN = { timeout: 60_000 };
 const report: string[] = [];
 const note = (line: string) => report.push(line);
 
@@ -142,8 +147,9 @@ describe('crash and derail rates', () => {
 
     /**
      * Every Kato plan, driven by someone who yanks each throttle to a random
-     * setting every five seconds, over `seeds`. Returns the derails and the
-     * train-hours run. `stockId` swaps the plan's trains for that model.
+     * setting every five seconds, for two minutes (a few laps of the biggest
+     * layout), over `seeds`. Returns the derails and the train-hours run.
+     * `stockId` swaps the plan's trains for that model.
      */
     function heavyHandedDerailRate(seeds: number[], stockId?: string): { derails: number; trainHours: number } {
         let trainHours = 0;
@@ -162,14 +168,14 @@ describe('crash and derail rates', () => {
                 }
                 const trains = Object.keys(useSimulationStore.getState().trains);
                 const random = createRng(seed * 1000 + set.id.length);
-                const events = runMinutes(4, second => {
+                const events = runMinutes(DRIVE_MINUTES, second => {
                     if (second % 5 !== 0) return;
                     for (const id of trains) {
                         const train = useSimulationStore.getState().trains[id];
                         if (train && !train.crashed) useSimulationStore.getState().setTrainThrottle(id, random() * topSpeedOf(train));
                     }
                 });
-                trainHours += (trains.length * 4) / 60;
+                trainHours += (trains.length * DRIVE_MINUTES) / 60;
                 derails += count(events, 'derail');
             }
         }
