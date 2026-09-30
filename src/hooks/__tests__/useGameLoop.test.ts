@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useGameLoop } from '../useGameLoop';
+import { useGameLoop, browserEffectsSink } from '../useGameLoop';
+import type { SimWorld } from '../../simulation/step';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useLogicStore } from '../../stores/useLogicStore';
+import { useEffectsStore } from '../../stores/useEffectsStore';
+import { TIMING } from '../../config/timing';
 import type { Train } from '../../types';
 
 // Mock subsystems
@@ -22,7 +25,9 @@ import { checkCollisions } from '../../simulation/collision';
 vi.mock('../../utils/audioManager', () => ({
     playSound: vi.fn(),
     playSwitchSound: vi.fn(),
+    playNearMissSound: vi.fn(),
 }));
+import { playNearMissSound } from '../../utils/audioManager';
 
 describe('useGameLoop', () => {
     beforeEach(() => {
@@ -138,5 +143,47 @@ describe('useGameLoop', () => {
         expect(s.trains[t1].crashed).toBe(true);
         expect(s.trains[t2].crashed).toBe(true);
     });
+
+    it('runs in slow motion for a moment after a crash', () => {
+        vi.mocked(checkCollisions).mockReturnValue([]);
+        // Earlier tests' crashes started slow motion of their own
+        useEffectsStore.getState().clearAllEffects();
+        useModeStore.getState().enterSimulateMode();
+        useSimulationStore.getState().setRunning(true);
+        renderHook(() => useGameLoop());
+        const loop = vi.mocked(window.requestAnimationFrame).mock.calls[0][0] as FrameRequestCallback;
+        const elapsed = () => useSimulationStore.getState().simElapsed;
+
+        // A normal frame of 50 ms advances the railway 50 ms
+        act(() => loop(1000));
+        let before = elapsed();
+        act(() => loop(1050));
+        expect(elapsed() - before).toBeCloseTo(0.05, 6);
+
+        // Just after a crash, the same frame advances it less
+        useEffectsStore.setState({ slowMotionUntil: 5000 });
+        before = elapsed();
+        act(() => loop(1100));
+        expect(elapsed() - before).toBeCloseTo(0.05 * TIMING.CRASH_SLOW_MOTION_SCALE, 6);
+        useEffectsStore.getState().clearAllEffects();
+    });
 });
 
+describe('browserEffectsSink', () => {
+    const world = {} as SimWorld;
+    beforeEach(() => useEffectsStore.getState().clearAllEffects());
+
+    it('a near miss plays its sting and flashes yellow where it happened', () => {
+        browserEffectsSink({ type: 'near-miss', trainIds: ['a', 'b'], location: { x: 5, y: 6 } }, world);
+        expect(playNearMissSound).toHaveBeenCalled();
+        expect(useEffectsStore.getState().flashes).toEqual([expect.objectContaining({ position: { x: 5, y: 6 }, color: '#FFD93D' })]);
+    });
+
+    it('a crash or a derailment plays out in slow motion', () => {
+        browserEffectsSink({ type: 'collision', trainId: 'a', otherTrainIds: ['b'], edgeId: 'e', location: { x: 0, y: 0 }, severity: 1 }, world);
+        expect(useEffectsStore.getState().slowMotionUntil).toBeGreaterThan(performance.now());
+        useEffectsStore.getState().clearAllEffects();
+        browserEffectsSink({ type: 'derail', trainId: 'a', edgeId: 'e', location: { x: 0, y: 0 }, speed: 300 }, world);
+        expect(useEffectsStore.getState().slowMotionUntil).toBeGreaterThan(performance.now());
+    });
+});

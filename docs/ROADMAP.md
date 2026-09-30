@@ -338,8 +338,10 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - The Trains tab groups trains by maker. A train that only comes in a box says which one,
     and the game's generic models are listed last, flagged.
 - [ ] More real train sets:
-  - Märklin's Start up sets (29133 and others): their oval has an IR base-station track whose
-    length Märklin doesn't publish.
+  - Märklin's Start up sets (29133 and others): their oval has an IR base-station track (spare
+    part 194548) whose length Märklin doesn't publish. With one 24188 opposite it, the oval can
+    only close at 188.3 mm, the length of the 24088 connecting track too. That's a deduction,
+    not a published figure.
   - Hornby's sets with Track Pack 1: its contents need checking piece by piece.
 - [ ] Car lengths per model: every car is the same shortened length for now.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
@@ -402,7 +404,15 @@ Order, biggest win per millisecond first:
 - [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
       92 ms with software rendering. Reconsider only for lighting or particles.
 - [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.
-- [ ] Crash slow-motion and near-miss detection.
+- [x] **Crash slow motion and near misses.**
+  - A crash or a derailment plays out at 0.3× for 1.2 s in the live game. The headless
+    harness is untouched.
+  - A near miss is two trains whose cars come within a car's nose of each other (25 mm in N)
+    without touching, one of them moving. Trains passing on tracks at standard spacing don't
+    count. It plays the near-miss sting with a yellow flash, once per encounter, and the sim
+    log records it.
+  - Collision and near-miss detection share each tick's car bodies: 8 trains on V7 cost about
+    40 µs a tick.
 
 ### Phase 6: More systems and complex parts
 

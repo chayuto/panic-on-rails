@@ -65,11 +65,16 @@ interface EffectsState {
     // Screen shake
     screenShake: ScreenShake | null;
 
+    /** Until when (performance.now(), ms) the game loop runs in slow motion after a crash */
+    slowMotionUntil: number;
+
     // Actions
     triggerRipple: (position: Vector2, options?: Partial<RippleEffect>) => void;
     triggerFlash: (position: Vector2, options?: Partial<FlashEffect>) => void;
     setHoveredSwitch: (nodeId: string | null, position?: Vector2 | null) => void;
     triggerScreenShake: (intensity: number, duration: number, decay?: boolean) => void;
+    /** Slow the game loop down for `duration` ms from now */
+    triggerSlowMotion: (duration: number) => void;
     getScreenShakeOffset: () => Vector2;
     cleanupExpiredEffects: () => void;
     clearAllEffects: () => void;
@@ -109,6 +114,7 @@ export const useEffectsStore = create<EffectsState>()(
         hoveredSwitchId: null,
         hoveredSwitchPosition: null,
         screenShake: null,
+        slowMotionUntil: 0,
 
         triggerRipple: (position, options = {}) => {
             const ripple: RippleEffect = {
@@ -229,6 +235,12 @@ export const useEffectsStore = create<EffectsState>()(
             };
         },
 
+        triggerSlowMotion: (duration) => {
+            set((state) => {
+                state.slowMotionUntil = performance.now() + duration;
+            });
+        },
+
         clearAllEffects: () => {
             flashStarts = [];
             set((state) => {
@@ -237,6 +249,7 @@ export const useEffectsStore = create<EffectsState>()(
                 state.hoveredSwitchId = null;
                 state.hoveredSwitchPosition = null;
                 state.screenShake = null;
+                state.slowMotionUntil = 0;
             });
         },
     }))

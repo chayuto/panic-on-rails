@@ -70,6 +70,16 @@ function bodiesOf(
     });
 }
 
+/**
+ * How close counts as a near miss, N scale (mm; a bigger scale grows them):
+ * a car's nose this near another car, but only this near sideways, so
+ * trains passing on tracks at standard spacing (33 mm) don't count.
+ */
+const NEAR_AHEAD = 25;
+const NEAR_BESIDE = 3;
+/** And at least one of the two trains going this fast (mm/s, N scale) */
+const NEAR_SPEED = 40;
+
 /** Half the extent of `b` projected onto the unit axis (ax, ay). */
 function extentAlong(b: CarBody, ax: number, ay: number): number {
     const along = Math.abs(b.ux * ax + b.uy * ay);
@@ -89,20 +99,88 @@ export function bodiesOverlap(a: CarBody, b: CarBody): boolean {
     return true;
 }
 
+/** The body grown by `ahead` at each end and `beside` at each side. */
+function grown(b: CarBody, ahead: number, beside: number): CarBody {
+    const halfLength = b.halfLength + ahead;
+    const halfWidth = b.halfWidth + beside;
+    return { ...b, halfLength, halfWidth, reach: Math.hypot(halfLength, halfWidth) };
+}
+
+export interface NearMiss {
+    /** The pair, as `${idA}|${idB}` with the ids in order */
+    key: string;
+    trainIds: [string, string];
+    /** Between the two cars that came closest */
+    location: Vector2;
+}
+
+/**
+ * Pairs of trains whose cars came within a car's nose of each other without
+ * touching, one of them moving: a near miss, once per pair. A train is near
+ * a wreck, too. Pairs whose cars touch are collisions, not near misses.
+ */
+export function detectNearMisses(
+    trains: Record<string, Train>,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>,
+    bodies?: CarBody[]
+): NearMiss[] {
+    const moving = (t: Train) => !t.crashed && !t.stopped && t.speed >= NEAR_SPEED * sizeOf(t.scale);
+    if (!Object.values(trains).some(moving)) return [];
+    bodies ??= carBodies(trains, edges, nodes);
+
+    const touching = new Set<string>();
+    const near = new Map<string, NearMiss>();
+    for (let i = 0; i < bodies.length; i++) {
+        for (let j = i + 1; j < bodies.length; j++) {
+            const [a, b] = bodies[i].train.id < bodies[j].train.id ? [bodies[i], bodies[j]] : [bodies[j], bodies[i]];
+            if (a.train.id === b.train.id || (a.train.crashed && b.train.crashed)) continue;
+            // Too far apart to touch or come near: most pairs, most of the time
+            const size = Math.max(sizeOf(a.train.scale), sizeOf(b.train.scale));
+            const margin = Math.hypot(NEAR_AHEAD, NEAR_BESIDE) * size;
+            if (Math.hypot(b.cx - a.cx, b.cy - a.cy) > a.reach + b.reach + 2 * margin) continue;
+            if (!moving(a.train) && !moving(b.train)) continue;
+            const key = `${a.train.id}|${b.train.id}`;
+            if (touching.has(key)) continue;
+            if (bodiesOverlap(a, b)) {
+                touching.add(key);
+                near.delete(key);
+                continue;
+            }
+            if (!near.has(key) && bodiesOverlap(grown(a, NEAR_AHEAD * size, NEAR_BESIDE * size), grown(b, NEAR_AHEAD * size, NEAR_BESIDE * size))) {
+                near.set(key, { key, trainIds: [a.train.id, b.train.id], location: { x: (a.cx + b.cx) / 2, y: (a.cy + b.cy) / 2 } });
+            }
+        }
+    }
+    return [...near.values()];
+}
+
+/**
+ * Every car of every train, wrecks included, as a body. Collision and
+ * near-miss detection can share them within a tick.
+ */
+export function carBodies(
+    trains: Record<string, Train>,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): CarBody[] {
+    const geometryOf = frameGeometry(edges, nodes);
+    return Object.values(trains).flatMap(t => bodiesOf(t, edges, nodes, geometryOf));
+}
+
 /**
  * Every pair of trains with overlapping cars, once per pair: two trains, or
  * a train and a wreck. Wrecks lying against each other are the crash that
- * made them, not a new one.
+ * made them, not a new one. Pass `bodies` (from `carBodies`) to reuse them.
  */
 export function detectCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>,
-    nodes: Record<NodeId, TrackNode>
+    nodes: Record<NodeId, TrackNode>,
+    bodies?: CarBody[]
 ): CollisionResult[] {
-    const all = Object.values(trains);
-    if (!all.some(t => !t.crashed)) return [];
-    const geometryOf = frameGeometry(edges, nodes);
-    const bodies = all.flatMap(t => bodiesOf(t, edges, nodes, geometryOf));
+    if (!Object.values(trains).some(t => !t.crashed)) return [];
+    bodies ??= carBodies(trains, edges, nodes);
     if (bodies.length < 2) return [];
 
     // Broad phase: a grid of cells as wide as the biggest car

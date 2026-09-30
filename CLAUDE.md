@@ -121,11 +121,11 @@ Complex pieces (curved turnouts, double slips, scissors crossovers) are **topolo
 
 The simulation is a pure function plus thin adapters — keep it that way:
 
-- **`src/simulation/step.ts`** — `stepSimulation(world, dt, ctx) → { world, events }`. Pure: no stores, audio, DOM, `performance.now()` or `Math.random()`. Order per tick: movement → collisions → debris → sensors/wires. Clock and RNG come in via `ctx` (`createRng(seed)` for determinism); side effects go out as typed `SimEvent`s (`traverse`, `bounce`, `collision`, `sensor`, `switch`, `signal`).
+- **`src/simulation/step.ts`** — `stepSimulation(world, dt, ctx) → { world, events }`. Pure: no stores, audio, DOM, `performance.now()` or `Math.random()`. Order per tick: movement → collisions → debris → sensors/wires. Clock and RNG come in via `ctx` (`createRng(seed)` for determinism); side effects go out as typed `SimEvent`s (`traverse`, `bounce`, `collision`, `derail`, `near-miss`, `station-stop`, `sensor`, `switch`, `signal`).
 - Subsystems it calls:
   - `driving.ts`: the power pack. Speed follows `train.throttle` with momentum, brakes in time for a red signal's stop line or the end of the line (`stopAhead`, `stoppingLimit`), and derails above a curve's limit (`derailSpeed(radius)`). The direction lever (`reverseRequested`) stops the train, then reverses it.
   - `movement.ts`: edge traversal, switch routing and dead-end bounce, with a hard stop at red stop lines as a safety net.
-  - `collision.ts`, plus `utils/collisionManager.ts`: two trains collide when any car of one overlaps any car of the other, each car a rectangle at its drawn pose (`getCarPoses`), so diamonds and fouled turnouts count. A crashed train stays as wreckage that blocks the line: a train that runs into it crashes too.
+  - `collision.ts`, plus `utils/collisionManager.ts`: two trains collide when any car of one overlaps any car of the other, each car a rectangle at its drawn pose (`getCarPoses`), so diamonds and fouled turnouts count. A near miss is cars within a car's nose of each other without touching (`detectNearMisses`); the step emits it once per encounter (`world.nearPairs`). Both detectors share the tick's `carBodies`. A crashed train stays as wreckage that blocks the line: a train that runs into it crashes too.
   - `wreckage.ts`: `rerail()` puts a wreck back on its own scale's track, standing, at the clearest spot where all its cars fit. Play doesn't clear wrecks; the player re-rails them or takes them off.
   - `signals.ts`: sensor zones → wire actions.
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.

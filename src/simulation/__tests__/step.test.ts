@@ -61,6 +61,23 @@ describe('stepSimulation', () => {
         expect(collisions[0]).toMatchObject({ trainId: 't', otherTrainIds: ['a', 'b'] });
     });
 
+    it('counts a near miss once as two trains come close, and again only after they part', () => {
+        const near = (w: SimWorld) => stepSimulation(w, 0.001, ctx());
+        // Two trains a car's nose apart on e1, heading the same way
+        let w = world({ ...graph, trains: { a: train('a', 'e1', 20, 1), b: train('b', 'e1', 80, 1) } });
+        let r = near(w);
+        expect(r.events.filter(e => e.type === 'near-miss')).toEqual([expect.objectContaining({ trainIds: ['a', 'b'] })]);
+        // Still close: not again
+        r = near(r.world);
+        expect(r.events.filter(e => e.type === 'near-miss')).toEqual([]);
+        // Apart, then close again: a new near miss
+        w = { ...r.world, trains: { ...r.world.trains, b: { ...r.world.trains.b, currentEdgeId: 'e2', distanceAlongEdge: 90 } } };
+        r = near(w);
+        expect(r.world.nearPairs).toEqual([]);
+        w = { ...r.world, trains: { ...r.world.trains, b: { ...r.world.trains.b, currentEdgeId: 'e1', distanceAlongEdge: 80 } } };
+        expect(near(w).events.filter(e => e.type === 'near-miss')).toHaveLength(1);
+    });
+
     it('crashed trains stay put', () => {
         const w = world({ ...graph, trains: { a: { ...train('a', 'e1', 40), crashed: true, speed: 0 } } });
         const { world: next } = stepSimulation(w, 1, ctx());

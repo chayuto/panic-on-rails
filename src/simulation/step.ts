@@ -20,6 +20,7 @@ import type { CrashedPart } from '../utils/crashPhysics';
 import { updateCrashedParts } from '../utils/crashPhysics';
 import { calculateTrainMovement } from './movement';
 import { checkCollisions } from './collision';
+import { carBodies, detectNearMisses } from '../utils/collisionManager';
 import { updateSensors } from './signals';
 import { TRAIL_LENGTH } from '../config/rollingStock';
 import { AT_STOP_LINE, approachSpeed, derailSpeed, lookaheadFor, stopAhead, stoppingLimit, targetSpeed, throttleOf } from './driving';
@@ -45,6 +46,8 @@ export interface SimWorld {
     wires: Record<WireId, Wire>;
     stations: Record<StationId, Station>;
     crashedParts: CrashedPart[];
+    /** Pairs of trains close enough for a near miss last tick (`idA|idB`), so each encounter counts once */
+    nearPairs: string[];
 }
 
 /** Injected clock and randomness — the only sources of nondeterminism. */
@@ -67,6 +70,8 @@ export type SimEvent =
     | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
     /** A passenger train stood at a platform; its passengers paid `fare` (US cents) */
     | { type: 'station-stop'; trainId: TrainId; stationId: StationId; edgeId: EdgeId; fare: number }
+    /** Two trains came within a car's nose of each other without touching */
+    | { type: 'near-miss'; trainIds: [TrainId, TrainId]; location: Vector2 }
     | { type: 'signal'; signalId: SignalId; state: SignalState };
 
 export interface StepResult {
@@ -77,7 +82,7 @@ export interface StepResult {
 /**
  * Advance the world by `dt` simulated seconds.
  *
- * Order: movement → collisions → debris → sensors/wires. Inputs are never
+ * Order: movement → collisions and near misses → debris → sensors/wires. Inputs are never
  * mutated; changed collections are copied.
  *
  * Trains stopped by the player don't move, and nor do wrecks: a train that
@@ -195,9 +200,12 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         trains[train.id] = next;
     }
 
-    // 2. Collisions: trains into each other, or into a wreck
-    for (const crash of checkCollisions(trains, edges, ctx.random, nodes)) {
+    // 2. Collisions: trains into each other, or into a wreck. Every car's
+    // body is worked out once, for collisions and near misses both
+    const bodies = Object.values(trains).some(t => !t.crashed) ? carBodies(trains, edges, nodes) : [];
+    for (const crash of checkCollisions(trains, edges, ctx.random, nodes, bodies)) {
         const train = trains[crash.trainId];
+        if (!train) continue;
         crashedParts = [...crashedParts, ...crash.debris];
         trains[train.id] = { ...train, crashed: true, crashTime: ctx.now, speed: 0 };
         events.push({
@@ -209,6 +217,18 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             severity: crash.severity,
         });
     }
+
+    // Near misses: a pair counts once as it comes close, not every tick it stays close.
+    // (The bodies' trains, updated for any that just crashed.)
+    const near = detectNearMisses(trains, edges, nodes, bodies.map(b => ({ ...b, train: trains[b.train.id] ?? b.train })));
+    const wasNear = new Set(world.nearPairs);
+    for (const miss of near) {
+        if (!wasNear.has(miss.key)) events.push({ type: 'near-miss', trainIds: miss.trainIds, location: miss.location });
+    }
+    const nearKeys = near.map(m => m.key).sort();
+    const nearPairs = nearKeys.length === world.nearPairs.length && nearKeys.every((k, i) => k === world.nearPairs[i])
+        ? world.nearPairs
+        : nearKeys;
 
     // 3. Debris physics
     if (crashedParts.length > 0) {
@@ -258,7 +278,7 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
     }
 
     return {
-        world: { ...world, trains, nodes, sensors, signals, crashedParts },
+        world: { ...world, trains, nodes, sensors, signals, crashedParts, nearPairs },
         events,
     };
 }

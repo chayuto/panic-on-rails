@@ -182,6 +182,14 @@ describe('useEffectsStore', () => {
             expect(screenShake!.decay).toBe(false);
         });
 
+        it('slows the game down for a moment after a crash, until cleared', () => {
+            const now = performance.now();
+            useEffectsStore.getState().triggerSlowMotion(1200);
+            expect(useEffectsStore.getState().slowMotionUntil).toBeGreaterThanOrEqual(now + 1200);
+            useEffectsStore.getState().clearAllEffects();
+            expect(useEffectsStore.getState().slowMotionUntil).toBe(0);
+        });
+
         it('doesn\'t shake at all for a player who asked their system for less motion', () => {
             // Unit tests run in Node: a window that answers the media query
             vi.stubGlobal('window', { matchMedia: (query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)' }) });

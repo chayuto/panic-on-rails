@@ -182,5 +182,6 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set, get) =
     clearTrains: () => set((state) => {
         state.trains = {};
         state.crashedParts = [];
+        state.nearPairs = [];
     }),
 });

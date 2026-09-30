@@ -12,6 +12,8 @@ import type { OperatingSession, SessionResult } from '../../../simulation/sessio
 export interface SimulationStateData {
     trains: Record<TrainId, Train>;
     crashedParts: CrashedPart[];
+    /** Pairs of trains close enough for a near miss (see SimWorld.nearPairs) */
+    nearPairs: string[];
     isRunning: boolean;
     speedMultiplier: number;
     error: string | null;
