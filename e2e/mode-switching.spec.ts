@@ -51,6 +51,18 @@ test.describe('Mode Switching', () => {
         await expect(page.getByTestId('parts-bin')).toBeVisible();
     });
 
+    test('Shift+M shows the measurements, and leaves the mode alone', async ({ page }) => {
+        const measuring = () => page.evaluate(() => window.__PANIC_STORES__!.editor.getState().showMeasurements);
+        await expect(page.getByTestId('mode-edit-btn')).toHaveAttribute('aria-pressed', 'true');
+
+        await page.keyboard.press('Shift+m');
+        await expect.poll(measuring).toBe(true);
+        await expect(page.getByTestId('mode-edit-btn')).toHaveAttribute('aria-pressed', 'true');
+
+        await page.keyboard.press('Shift+m');
+        await expect.poll(measuring).toBe(false);
+    });
+
     test('should show simulate toolbar controls in Simulate mode', async ({ page }) => {
         // Switch to simulate mode
         await page.getByTestId('mode-simulate-btn').click();
