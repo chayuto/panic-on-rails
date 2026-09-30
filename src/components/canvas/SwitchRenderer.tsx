@@ -29,10 +29,8 @@ export interface SwitchRendererProps {
     branchSide: 1 | -1;
     /** Button radius on the layout (mm): grows when zoomed out, to stay clickable */
     radius: number;
-    /** Returns true if the click toggled the switch */
+    /** A click on the button: throws the points (with their own ripple) or uses the edit tool */
     onSwitchClick: (nodeId: string) => boolean;
-    /** Callback to trigger ripple effect */
-    onRipple: (position: Vector2, options?: { color?: string }) => void;
     /** Callback when mouse enters switch */
     onHoverEnter: (nodeId: string, position: Vector2) => void;
     /** Callback when mouse leaves switch */
@@ -48,7 +46,6 @@ export const SwitchRenderer = memo(function SwitchRenderer({
     branchSide,
     radius,
     onSwitchClick,
-    onRipple,
     onHoverEnter,
     onHoverLeave,
 }: SwitchRendererProps) {
@@ -81,9 +78,7 @@ export const SwitchRenderer = memo(function SwitchRenderer({
     const scale = radius / POINTS_BUTTON.RADIUS;
 
     const handleClick = () => {
-        if (onSwitchClick(node.id)) {
-            onRipple(node.position, { color: '#FFD93D' });
-        }
+        onSwitchClick(node.id);
     };
 
     const handleMouseEnter = () => {

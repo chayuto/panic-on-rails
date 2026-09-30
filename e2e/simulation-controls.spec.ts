@@ -123,6 +123,17 @@ test.describe('Simulation controls', () => {
         expect(await page.evaluate(() => Object.keys(window.__PANIC_STORES__!.simulation.getState().trains))).toEqual([]);
     });
 
+    test('hovering a set of points names them, says which way they are set and what a click does', async ({ page, app }) => {
+        void app;
+        await loadTemplate(page, 'switch-showdown');
+        await page.getByTestId('sim-play-pause').click();
+        const points = await page.evaluate(() => window.__PANIC_QA__!.look().points[0].at);
+        await page.mouse.move(points.x, points.y);
+        const tooltip = page.getByTestId('simulation-tooltip');
+        await expect(tooltip).toContainText('Set for:');
+        await expect(tooltip).toContainText(/Click to throw them|once the train is off them/);
+    });
+
     test('pausing from the toolbar stays in Simulate mode', async ({ page, app }) => {
         void app;
         await loadTemplate(page, 'simple-oval');

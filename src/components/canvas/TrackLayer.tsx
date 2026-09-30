@@ -56,7 +56,6 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     const {
         handleSwitchClick,
         handleNodeClick,
-        triggerRipple,
         setHoveredSwitch,
     } = useNodeInteraction();
 
@@ -148,7 +147,6 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
                             branchSide={look?.side ?? 1}
                             radius={pointsRadius}
                             onSwitchClick={handleSwitchClick}
-                            onRipple={triggerRipple}
                             onHoverEnter={onSwitchHoverEnter}
                             onHoverLeave={onSwitchHoverLeave}
                         />

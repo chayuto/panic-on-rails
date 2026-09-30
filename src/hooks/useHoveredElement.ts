@@ -130,6 +130,10 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
             }
         }
 
+        // Each kind in turn, the nearest of it: the track under a set of points
+        // or a signal must not hide it for being a hair nearer the pointer
+        if (closestElement) return closestElement;
+
         // Check nodes (including switches)
         for (const node of Object.values(nodes)) {
             const distance = Math.hypot(worldPos.x - node.position.x, worldPos.y - node.position.y);
@@ -143,6 +147,8 @@ export function useHoveredElement(worldPos: Vector2 | null): HoveredElement {
                 }
             }
         }
+
+        if (closestElement) return closestElement;
 
         // Check edges (lowest priority)
         for (const edge of Object.values(edges)) {

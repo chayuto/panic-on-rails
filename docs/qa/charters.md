@@ -43,6 +43,7 @@ has written a test for yet.
    - Setup: M2 built, two trains.
    - Charter: run a ten-minute session on the passing siding without a wreck, using only the
      points and signals.
+   - Played 2026-10-01, in part: [the session](sessions/2026-10-01-the-operator.md).
 4. **The keyboard-only player who prefers reduced motion.**
    - Setup: reduced motion emulated (`set-reduced-motion reduce`).
    - Charter: build and run the M1 oval with the keyboard alone. Nothing may flash or shake.
