@@ -9,10 +9,10 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { Group, Circle, Wedge } from 'react-konva';
 import type { TrackNode, Vector2 } from '../../types';
+import { POINTS_BUTTON } from '../../config/interactions';
 
 // Visual constants
 const SWITCH_NODE_COLOR = '#FFD93D';
-const SWITCH_NODE_RADIUS = 7;
 /** How far the wedge swings toward the branch (degrees): readable, not to scale */
 const SWING = 25;
 const WEDGE_ANGLE = 30;
@@ -27,6 +27,8 @@ export interface SwitchRendererProps {
     heading: number;
     /** The side the branch goes: +1 right (clockwise on screen), -1 left */
     branchSide: 1 | -1;
+    /** Button radius on the layout (mm): grows when zoomed out, to stay clickable */
+    radius: number;
     /** Returns true if the click toggled the switch */
     onSwitchClick: (nodeId: string) => boolean;
     /** Callback to trigger ripple effect */
@@ -44,6 +46,7 @@ export const SwitchRenderer = memo(function SwitchRenderer({
     node,
     heading,
     branchSide,
+    radius,
     onSwitchClick,
     onRipple,
     onHoverEnter,
@@ -75,6 +78,7 @@ export const SwitchRenderer = memo(function SwitchRenderer({
 
     // Konva draws a wedge clockwise from its rotation: centre it on the route
     const wedgeRotation = heading + animatedAngle - WEDGE_ANGLE / 2;
+    const scale = radius / POINTS_BUTTON.RADIUS;
 
     const handleClick = () => {
         if (onSwitchClick(node.id)) {
@@ -93,10 +97,10 @@ export const SwitchRenderer = memo(function SwitchRenderer({
             <Circle
                 x={node.position.x}
                 y={node.position.y}
-                radius={SWITCH_NODE_RADIUS}
+                radius={radius}
                 fill={SWITCH_NODE_COLOR}
                 stroke="#1A1A1A"
-                strokeWidth={1.5}
+                strokeWidth={1.5 * scale}
                 onClick={handleClick}
                 onTap={handleClick}
                 onMouseEnter={handleMouseEnter}
@@ -108,7 +112,7 @@ export const SwitchRenderer = memo(function SwitchRenderer({
             <Wedge
                 x={node.position.x}
                 y={node.position.y}
-                radius={5}
+                radius={5 * scale}
                 angle={WEDGE_ANGLE}
                 rotation={wedgeRotation}
                 fill="#1A1A1A"
