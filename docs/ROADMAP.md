@@ -13,7 +13,8 @@ run your trains, and keep expanding the railway with no end point.
 
 - **Done:**
   - **The engine (Phases 0–1):** a headless, deterministic simulation. Snapping closes loops,
-    signals stop trains, switches can be thrown mid-run, and trains have controls.
+    signals stop trains, switches can be thrown mid-run, and trains have controls. Wrecks
+    block the line until they're re-railed.
   - **The Box (Phase 2):** real boxed sets with their exact contents and the layouts from their
     manuals, proved to close. That's Kato Unitrack M1–V7, Märklin C-track (start oval, C1–C5)
     and Hornby Setrack (train-set oval, Track Packs A–F).
@@ -27,7 +28,6 @@ run your trains, and keep expanding the railway with no end point.
   - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
-  - wreckage that blocks the track until cleared;
   - more ways to earn (station stops, on-time runs);
   - real train sets with product numbers;
   - elevation;
@@ -177,7 +177,17 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
       - Left-hand turnout branches rendered mirrored, because Konva got a negative arc sweep.
       - The track bitmap cache used an edge/node *count* key, so loading a template with the
         same counts kept showing the old layout.
-- [ ] Crash counter, and wreckage that blocks the track until cleared (moved to Phase 3).
+- [x] **Wreckage blocks the line** until the player clears it, and the train panel counts
+      wrecks.
+  - A crashed train stays where it came to rest. A train that runs into it crashes too, and
+    pays its own repair bill.
+  - Re-rail puts a wreck back on track of its own scale, standing, at the clearest spot where
+    all its cars fit. × takes it off the track instead. Either way its debris is swept up.
+    Play no longer clears wrecks.
+  - The panel keeps the dispatcher's record: trains wrecked this session, and railway time
+    since the last wreck.
+  - The train panel has a fixed width, so the canvas no longer shifts as trains come, go
+    and crash.
 - [ ] Clicking a train on the canvas to stop it (the panel buttons cover this for now).
 
 ### Phase 2: The Box, real starter sets
@@ -359,7 +369,7 @@ Order, biggest win per millisecond first:
 - [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
       92 ms with software rendering. Reconsider only for lighting or particles.
 - [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.
-- [ ] Crash slow-motion, near-miss detection, and wreckage that blocks the track until cleared.
+- [ ] Crash slow-motion and near-miss detection.
 
 ### Phase 6: More systems and complex parts
 
