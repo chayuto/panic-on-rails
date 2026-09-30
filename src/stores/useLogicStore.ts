@@ -38,9 +38,3 @@ export const useLogicStore = create<LogicStore>()(
         }
     )
 );
-
-// Named Selectors
-export const selectSensors = (state: LogicStore) => state.sensors;
-export const selectSignals = (state: LogicStore) => state.signals;
-export const selectWires = (state: LogicStore) => state.wires;
-export const selectStations = (state: LogicStore) => state.stations;

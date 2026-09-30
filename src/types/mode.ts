@@ -96,37 +96,3 @@ export const DEFAULT_MODE_STATE: ModeState = {
     editSubMode: 'select',
     simulateSubMode: 'observe',
 };
-
-// ===========================
-// Type Guards
-// ===========================
-
-/**
- * Check if a string is a valid PrimaryMode.
- */
-export function isPrimaryMode(value: unknown): value is PrimaryMode {
-    return value === 'edit' || value === 'simulate';
-}
-
-/**
- * Check if a string is a valid EditSubMode.
- */
-export function isEditSubMode(value: unknown): value is EditSubMode {
-    return (
-        value === 'select' ||
-        value === 'place' ||
-        value === 'delete' ||
-        value === 'sensor' ||
-        value === 'signal' ||
-        value === 'wire' ||
-        value === 'connect' ||
-        value === 'station'
-    );
-}
-
-/**
- * Check if a string is a valid SimulateSubMode.
- */
-export function isSimulateSubMode(value: unknown): value is SimulateSubMode {
-    return value === 'observe' || value === 'interact';
-}

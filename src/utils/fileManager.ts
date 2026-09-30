@@ -30,19 +30,3 @@ export async function importLayout(file: File): Promise<LayoutData> {
     const validated: ValidatedLayoutData = result.data;
     return validated as LayoutData;
 }
-
-/**
- * Create a file input element and trigger file selection
- */
-export function openFileDialog(onFileSelected: (file: File) => void): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-            onFileSelected(file);
-        }
-    };
-    input.click();
-}

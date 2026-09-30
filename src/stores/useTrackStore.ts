@@ -19,8 +19,6 @@ import {
     createConnectionSlice,
     createViewSlice,
     rebuildSpatialIndices,
-    getEdgeBounds,
-    getNodeBounds,
 } from './slices';
 import { logger } from '../utils/logger';
 
@@ -112,11 +110,4 @@ export const useTrackStore = create<TrackStore>()(
     )
 );
 
-// ===========================
-// Re-exports for Backward Compatibility
-// ===========================
-
-// These were previously exported from this file
-// Keep them for consumers that import from here
-export { getEdgeBounds, getNodeBounds };
 export type { BoundingBox } from './slices';

@@ -163,9 +163,4 @@ function autoConnectEndpoints(
 }
 
 // Re-export types
-export type {
-    TrackTemplate,
-    TemplateMetadata,
-    TemplateDifficulty,
-    TemplateSystem
-} from './types';
+export type { TrackTemplate, TemplateMetadata } from './types';

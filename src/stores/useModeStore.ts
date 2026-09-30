@@ -128,24 +128,6 @@ export const selectIsEditing = (state: ModeStoreState): boolean =>
 export const selectIsSimulating = (state: ModeStoreState): boolean =>
     state.primaryMode === 'simulate';
 
-/**
- * Selector: Get the current primary mode.
- */
-export const selectPrimaryMode = (state: ModeStoreState): PrimaryMode =>
-    state.primaryMode;
-
-/**
- * Selector: Get the current edit sub-mode.
- */
-export const selectEditSubMode = (state: ModeStoreState): EditSubMode =>
-    state.editSubMode;
-
-/**
- * Selector: Get the current simulate sub-mode.
- */
-export const selectSimulateSubMode = (state: ModeStoreState): SimulateSubMode =>
-    state.simulateSubMode;
-
 // ===========================
 // Store Implementation
 // ===========================
@@ -256,25 +238,6 @@ export const useIsEditing = (): boolean =>
  */
 export const useIsSimulating = (): boolean =>
     useModeStore(selectIsSimulating);
-
-/**
- * Hook: Get the current primary mode.
- * 
- * @example
- * const mode = usePrimaryMode();
- */
-export const usePrimaryMode = (): PrimaryMode =>
-    useModeStore(selectPrimaryMode);
-
-/**
- * Hook: Get the current edit sub-mode.
- * 
- * @example
- * const subMode = useEditSubMode();
- * if (subMode === 'delete') { ... }
- */
-export const useEditSubMode = (): EditSubMode =>
-    useModeStore(selectEditSubMode);
 
 // ===========================
 // Type Exports

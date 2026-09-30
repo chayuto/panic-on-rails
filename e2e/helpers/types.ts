@@ -16,11 +16,8 @@ export interface Vector2 {
 type StateOf<K extends keyof PanicStoreBridge> = ReturnType<PanicStoreBridge[K]['getState']>;
 
 export type TrackStateSnapshot = StateOf<'track'>;
-export type TrackNodeSnapshot = TrackStateSnapshot['nodes'][string];
-export type TrackEdgeSnapshot = TrackStateSnapshot['edges'][string];
 export type ModeStateSnapshot = StateOf<'mode'>;
 export type SimulationStateSnapshot = StateOf<'simulation'>;
-export type TrainSnapshot = SimulationStateSnapshot['trains'][string];
 export type EditorStateSnapshot = StateOf<'editor'>;
 
 export interface AllStoresSnapshot {

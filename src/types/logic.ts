@@ -92,13 +92,3 @@ export interface Station {
      */
     interval?: number;
 }
-
-// ===========================
-// Logic Layout (for persistence)
-// ===========================
-
-export interface LogicLayoutData {
-    sensors: Record<SensorId, Sensor>;
-    signals: Record<SignalId, Signal>;
-    wires: Record<WireId, Wire>;
-}

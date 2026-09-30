@@ -5,7 +5,7 @@
  * to optimize rendering performance.
  */
 
-import type { Vector2, TrackEdge } from '../types';
+import type { TrackEdge } from '../types';
 
 export interface Viewport {
     x: number;      // Scroll X (pixels)
@@ -90,22 +90,4 @@ export function getEdgeBounds(edge: TrackEdge): { minX: number; minY: number; ma
             maxY: center.y + radius + PADDING
         };
     }
-}
-
-/**
- * Check if a simple point is in viewport
- */
-export function isPointInViewport(
-    point: Vector2,
-    viewport: Viewport,
-    margin: number = 50
-): boolean {
-    const world = getWorldViewport(viewport, margin);
-
-    return (
-        point.x >= world.minX &&
-        point.x <= world.maxX &&
-        point.y >= world.minY &&
-        point.y <= world.maxY
-    );
 }

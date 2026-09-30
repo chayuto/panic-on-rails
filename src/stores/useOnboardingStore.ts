@@ -177,15 +177,3 @@ export const useOnboardingStore = create<OnboardingStore>()(
         }
     )
 );
-
-// Selector for checking if in a specific stage
-export const selectIsStage = (stage: OnboardingStage) =>
-    (state: OnboardingStore) => state.stage === stage;
-
-// Selector for checking if advanced features are unlocked
-export const selectAdvancedUnlocked = (state: OnboardingStore) =>
-    state.advancedFeaturesUnlocked;
-
-// Selector for checking if onboarding is active
-export const selectOnboardingActive = (state: OnboardingStore) =>
-    state.stage !== 'complete';

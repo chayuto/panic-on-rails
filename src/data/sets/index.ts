@@ -57,6 +57,5 @@ export function getAvailableParts(set: TrackSet): Record<string, number> {
     return totals;
 }
 
-export type { TrackSet, LayoutPlan, PlanStep, PlanAnchor, PlanAlongside, PlanTrain, SetKind, SetContentItem } from './types';
-export { resolvePlan, planToTemplate, throughExit, PlanError } from './plan';
-export type { ResolvedPlan, PlacedPiece, PlacedConnector, PlanJoint } from './plan';
+export type { TrackSet, LayoutPlan } from './types';
+export { resolvePlan, planToTemplate } from './plan';

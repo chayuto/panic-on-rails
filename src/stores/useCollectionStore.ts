@@ -128,9 +128,3 @@ export const useCollectionStore = create<CollectionStore>()(
         { name: 'panic-on-rails-collection-v1' }
     )
 );
-
-export const selectMode = (s: CollectionStore) => s.mode;
-export const selectWallet = (s: CollectionStore) => s.wallet;
-export const selectOwnedSets = (s: CollectionStore) => s.ownedSets;
-export const selectLooseParts = (s: CollectionStore) => s.looseParts;
-export const selectOwnedTrains = (s: CollectionStore) => s.ownedTrains;

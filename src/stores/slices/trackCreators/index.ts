@@ -1,14 +1,11 @@
 /**
- * Track Creators - Barrel Export
+ * Track Creators
  *
- * Exports all track creation functions for use by createTrackSlice.
- * Each creator is a pure function that returns nodes and edges without side effects.
+ * Each creator is a pure function that returns nodes and edges without side
+ * effects. `createPartTrack` is the single entry point: it dispatches to the
+ * creator for the part's geometry.
  *
  * @module trackCreators
  */
 
-export { createSwitchTrack, type SwitchTrackResult } from './switchTrack';
-export { createCrossingTrack, type CrossingTrackResult } from './crossingTrack';
-export { createStraightTrack, createCurveTrack, type StandardTrackResult } from './standardTrack';
-export { createCompoundTrack, type CompoundTrackResult } from './compoundTrack';
-export { createPartTrack, type PartTrackResult } from './createPartTrack';
+export { createPartTrack } from './createPartTrack';

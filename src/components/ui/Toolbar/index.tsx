@@ -82,11 +82,3 @@ export function Toolbar() {
     );
 }
 
-// Re-export sub-components for direct usage if needed
-export { ModeToggle } from './ModeToggle';
-export { FileActions } from './FileActions';
-export { ViewActions } from './ViewActions';
-export { EditToolbar } from './EditToolbar';
-export { HistoryActions } from './HistoryActions';
-export { SimulateToolbar } from './SimulateToolbar';
-

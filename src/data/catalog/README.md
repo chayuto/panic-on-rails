@@ -180,9 +180,3 @@ the worked example.
     const MY_BRAND_PARTS = parsePartsCatalog(myBrandJson);
     registerParts(MY_BRAND_PARTS);
     ```
-
----
-
-## Legacy Helpers (Deprecated)
-
-TypeScript helper functions (`straight()`, `curve()`, etc.) in `helpers.ts` are deprecated for defining catalogs but may still be used internally by the loader. Please prefer defining parts in JSON.

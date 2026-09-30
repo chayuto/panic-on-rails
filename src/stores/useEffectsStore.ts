@@ -41,11 +41,6 @@ export interface FlashEffect {
     radius: number;
 }
 
-export interface HoverState {
-    nodeId: string | null;
-    position: Vector2 | null;
-}
-
 export interface ScreenShake {
     intensity: number;
     duration: number;
@@ -256,8 +251,4 @@ export const useEffectsStore = create<EffectsState>()(
 );
 
 // Named Selectors
-export const selectRipples = (state: EffectsState) => state.ripples;
-export const selectFlashes = (state: EffectsState) => state.flashes;
-export const selectHoveredSwitchId = (state: EffectsState) => state.hoveredSwitchId;
-export const selectHoveredSwitchPosition = (state: EffectsState) => state.hoveredSwitchPosition;
 export const selectScreenShake = (state: EffectsState) => state.screenShake;

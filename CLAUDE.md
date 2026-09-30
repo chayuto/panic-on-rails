@@ -85,7 +85,7 @@ Non-persisted stores (reset on refresh):
 - **useShopStore** — Whether the hobby shop dialog is open, and on which tab.
 - **useHistoryStore** — Undo/redo stacks. Undoable gestures call `record()` *before* mutating; snapshots cover track + logic (not the collection: purchases aren't undoable).
 
-Always use atomic selectors: `useTrackStore(s => s.nodes)` not `useTrackStore()`. Use named selectors for derived reads (e.g., `selectTrains`, `selectError`).
+Always use atomic selectors: `useTrackStore(s => s.nodes)` not `useTrackStore()`. Use named selectors for derived reads (e.g., `selectIsSimulating`, `selectCanUndo`).
 
 ### Graph Data Model
 

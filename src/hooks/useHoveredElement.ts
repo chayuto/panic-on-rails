@@ -23,8 +23,6 @@ const SENSOR_HIT_RADIUS = 15;
 const SIGNAL_HIT_RADIUS = 15;
 
 // Types for hovered elements
-export type HoveredElementType = 'train' | 'edge' | 'node' | 'switch' | 'sensor' | 'signal';
-
 export interface HoveredTrain {
     type: 'train';
     train: Train;
