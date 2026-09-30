@@ -451,8 +451,16 @@ Order, biggest win per millisecond first:
   - Its first runs found a bug: deleting a turnout whose points had moved onto a track end
     left that end claiming two missing routes. Fixed.
   - With #137's join bug put back, it fails in two runs and shrinks the case to two drops.
-- [ ] fast-check geometry properties (mating, `normalizeAngle`, plan closure). Port the monkey
-      playtest to `fc.commands`.
+- [x] **fast-check geometry properties** (`geometryProperties.test.ts`):
+  - `normalizeAngle` lands in [0, 360), a whole number of turns from its input, and is
+    idempotent.
+  - Any catalog piece attached to any connector of any piece, by any of its own connectors,
+    meets it within 0.01 mm, face to face.
+  - Every boxed set's layout, built anywhere on the table at any angle, joins up exactly as at
+    the origin: same edges, nodes, open ends and points.
+  - The first run found that `normalizeAngle` wasn't idempotent. Re-normalizing an angle in
+    range could move it one unit in the last place, and 359.99999999999994 became 0. Fixed.
+- [ ] Port the monkey playtest to `fc.commands`.
 - [x] **Play metrics in Vitest** (`playMetrics.test.ts`; `PLAY_METRICS=1` prints them). The
       numbers are budgets:
   - Pacing: the starter train on the M1 oval earns $8–10 a minute just running. One station
