@@ -189,6 +189,52 @@ export const ROLLING_STOCK: RollingStock[] = [
         comesIn: ['hornby-R1282M'],
         referenceUrl: 'https://uk.hornby.com/products/mallard-record-breaker-train-set-era-3-r1282m',
     },
+    {
+        id: 'hornby-gwr-hst',
+        name: 'GWR High Speed Train',
+        description: 'Hornby\'s High Speed Train in GWR green: a Class 43 power car at each end, one of them a dummy, and a Mk3 coach.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#0E5A45',
+        // Hornby gives no length for the set's Class 43; the real one's
+        // 17.79 m is 233 mm. RailRoad's Mk3 coaches are 30 cm (R40552)
+        carLengths: [233, 300, 233],
+        carKinds: ['loco', 'coach', 'loco'],
+        topSpeed: Math.round(195 * OO),
+        comesIn: ['hornby-R1230M'],
+        referenceUrl: 'https://uk.hornby.com/products/high-speed-train-set-r1230m',
+    },
+    {
+        id: 'hornby-br-hst',
+        name: 'InterCity 125',
+        description: 'Hornby\'s British Rail High Speed Train in InterCity 125 blue and grey, after its 1970s R.685 set: a Class 43 power car at each end, one of them a dummy, and a Mk3 coach.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#2A4B7C',
+        carColors: ['#2A4B7C', '#6D7C93', '#2A4B7C'],
+        // The Class 43 as the GWR set's; RailRoad's BR Mk3 coaches are 30 cm (R40487)
+        carLengths: [233, 300, 233],
+        carKinds: ['loco', 'coach', 'loco'],
+        topSpeed: Math.round(195 * OO),
+        comesIn: ['hornby-R1289M'],
+        referenceUrl: 'https://uk.hornby.com/products/hornby-railways-br-high-speed-retro-train-set-r1289m',
+    },
+    {
+        id: 'hornby-lner-azuma',
+        name: 'LNER Azuma',
+        description: 'Hornby\'s RailRoad LNER Class 800 Azuma, unit 800201: a driving car at each end, one of them a dummy, and an MS coach.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#E4E6EA',
+        // Hornby's lengths: the two driving cars 68.2 cm together (R30449,
+        // the same unit), the MS coach 34.1 cm (R40488)
+        carLengths: [341, 341, 341],
+        carKinds: ['loco', 'coach', 'loco'],
+        traction: 'electric',
+        topSpeed: Math.round(195 * OO),
+        comesIn: ['hornby-R1288M'],
+        referenceUrl: 'https://uk.hornby.com/products/lner-azuma-high-speed-train-set-r1288m',
+    },
     // The game's own generic models, sold on their own
     {
         id: 'diesel-passenger',

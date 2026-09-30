@@ -107,13 +107,15 @@ describe('cars', () => {
         expect(facesBack('loco', 0, false)).toBe(false);
         // An HST's second power car faces away from the train
         expect(facesBack('loco', 2, false)).toBe(true);
+        expect(carKindAt({ stockId: 'hornby-gwr-hst' }, 2)).toBe('loco');
         // Turned back, the first locomotive pushes, facing back, and the far one leads
         expect(facesBack('loco', 0, true)).toBe(true);
         expect(facesBack('loco', 2, true)).toBe(false);
         expect(facesBack('coach', 1, true)).toBe(false);
     });
 
-    it('carry passengers in their coaches', () => {
+    it('carry passengers in their coaches, not in a power car at the far end', () => {
+        expect(coachesOf({ stockId: 'hornby-gwr-hst', carLengths: [233, 300, 233] })).toBe(1);
         expect(coachesOf({ stockId: 'hornby-flying-scotsman', carLengths: [293, 247, 247, 247] })).toBe(3);
     });
 
