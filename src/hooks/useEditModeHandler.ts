@@ -19,11 +19,10 @@ import { countPlacedPieces, inventoryOf } from '../data/collection';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { useIsEditing } from '../stores/useModeStore';
 import { findBestSnap } from '../utils/snapManager';
-import { angleDifference } from '../utils/angle';
 import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
-import { canJoin, isOpenEnd } from '../utils/graphAnalysis';
+import { joinPlacedPiece } from '../utils/joinPiece';
 
 interface UseEditModeHandlerOptions {
     /** Function to convert screen coordinates to world coordinates */
@@ -56,7 +55,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         rotateGhostCCW,
     } = useEditorStore();
 
-    const { addTrack, getOpenEndpoints, connectNodes } = useTrackStore();
+    const { addTrack, getOpenEndpoints } = useTrackStore();
 
     // ========================================
     // Keyboard: Rotation during drag
@@ -206,82 +205,14 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         // three, a double crossover's four) to open ends it now touches. This
         // catches both snap-assisted placements AND near-misses where user
         // dropped close to an existing endpoint but snap detection didn't trigger
-        if (newEdgeId) {
-            const { edges } = useTrackStore.getState();
-            const newEdge = edges[newEdgeId];
-
-            if (newEdge) {
-                const MERGE_THRESHOLD = 10; // pixels - slightly larger than snap tolerance to catch near-misses
-                let mergedAny = false;
-                const pieceEdges = Object.values(edges).filter(e =>
-                    e.id === newEdgeId || (!!newEdge.placementId && e.placementId === newEdge.placementId));
-                const pieceNodes = new Set(pieceEdges.flatMap(e => [e.startNodeId, e.endNodeId]));
-
-                for (const newNodeId of pieceNodes) {
-                    // Re-fetch state each iteration as previous merge may have changed it
-                    const currentState = useTrackStore.getState();
-                    const newNode = currentState.nodes[newNodeId];
-
-                    // Skip if this node was already merged (deleted), or is inside the piece
-                    if (!newNode || !isOpenEnd(newNode)) continue;
-
-                    // Find open endpoints excluding our own new nodes
-                    const openEndpoints = currentState.getOpenEndpoints().filter(
-                        ep => !pieceNodes.has(ep.id) && canJoin(ep, newNode)
-                    );
-
-                    // Find nearest endpoint within threshold
-                    let nearestEndpoint: typeof openEndpoints[0] | null = null;
-                    let nearestDist = Infinity;
-
-                    for (const ep of openEndpoints) {
-                        const dist = Math.hypot(
-                            ep.position.x - newNode.position.x,
-                            ep.position.y - newNode.position.y
-                        );
-                        if (dist < MERGE_THRESHOLD && dist < nearestDist) {
-                            // Merge requires facades to face each other (180° apart)
-                            // Always check angle — even very close placements can be misaligned
-                            const rotDiff = angleDifference(ep.rotation, newNode.rotation);
-                            const facingError = Math.abs(rotDiff - 180);
-                            const angleOk = facingError < 20; // 20° tolerance matches constitution
-
-                            if (angleOk) {
-                                nearestEndpoint = ep;
-                                nearestDist = dist;
-                            }
-                        }
-                    }
-
-                    if (nearestEndpoint) {
-                        console.log('[useEditModeHandler] Auto-merging nearby node:', {
-                            survivorNodeId: nearestEndpoint.id.slice(0, 8),
-                            nodeToRemove: newNodeId.slice(0, 8),
-                            distance: nearestDist.toFixed(1),
-                        });
-                        connectNodes(nearestEndpoint.id, newNodeId);
-                        mergedAny = true;
-                    }
-                }
-
-                if (mergedAny) {
-                    // Play snap sound based on track system
-                    const { selectedSystem: currentSystem } = useEditorStore.getState();
-                    playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
-
-                    // Log final state
-                    const finalState = useTrackStore.getState();
-                    console.log('[useEditModeHandler] Final state after auto-merge:', {
-                        nodeCount: Object.keys(finalState.nodes).length,
-                        edgeCount: Object.keys(finalState.edges).length,
-                    });
-                }
-            }
+        if (newEdgeId && joinPlacedPiece(newEdgeId) > 0) {
+            const { selectedSystem: currentSystem } = useEditorStore.getState();
+            playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
         }
 
         // Clean up drag state
         endDrag();
-    }, [isEditing, screenToWorld, userRotation, addTrack, connectNodes, endDrag]);
+    }, [isEditing, screenToWorld, userRotation, addTrack, endDrag]);
 
     return {
         handleDragOver,
