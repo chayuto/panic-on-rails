@@ -453,8 +453,16 @@ Order, biggest win per millisecond first:
   - With #137's join bug put back, it fails in two runs and shrinks the case to two drops.
 - [ ] fast-check geometry properties (mating, `normalizeAngle`, plan closure). Port the monkey
       playtest to `fc.commands`.
-- [ ] Headless Monte Carlo play metrics in Vitest: crash and derail rates per train-hour, and
-      economy pacing (minutes to afford each box).
+- [x] **Play metrics in Vitest** (`playMetrics.test.ts`; `PLAY_METRICS=1` prints them). The
+      numbers are budgets:
+  - Pacing: the starter train on the M1 oval earns $8–10 a minute just running. One station
+    adds 10–50%, and a station on every straight earns less than one. Each V-set takes under 12
+    minutes to save up for, and the dearest over 4.
+  - Every boxed set's plan runs 5 minutes at the default throttle without incident.
+  - Flat out on M1, the starter diesel and the commuter hold the R315 curves and the express
+    doesn't. Driven heavy-handed (a random throttle every 5 s), the starter diesel never
+    derails on a Kato layout; a free-build train at full power derails about 15 times per
+    train-hour.
 - [ ] Accessibility: axe on the page's DOM, aria snapshots of the dialogs, and reduced-motion
       and flash tests.
 - [ ] A nightly frame-time budget: milliseconds per environment, not FPS; warn-only at first.
