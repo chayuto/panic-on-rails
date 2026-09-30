@@ -52,6 +52,26 @@ export function fitPlatform(edge: TrackEdge, position: number): { position: numb
     return { position: middle, length };
 }
 
+/**
+ * A timetabled station's first departure due at or after railway time
+ * `time` (seconds). Undefined for a station without a timetable.
+ */
+export function nextDeparture(station: Pick<Station, 'interval'>, time: number): number | undefined {
+    if (!station.interval) return undefined;
+    // A hair's grace, so a train ready right on the minute takes that
+    // departure (and at 0, not -0)
+    return (Math.ceil(time / station.interval - 1e-6) || 0) * station.interval;
+}
+
+/** The timetabled departures that fall due in (from, to]: the ones a tick passes. */
+export function departuresDue(stations: Record<StationId, Station>, from: number, to: number): number {
+    let due = 0;
+    for (const { interval } of Object.values(stations)) {
+        if (interval) due += Math.floor(to / interval + 1e-9) - Math.floor(from / interval + 1e-9);
+    }
+    return due;
+}
+
 /** The first "Station n" name not taken yet. */
 export function nextStationName(stations: Record<StationId, Station>): string {
     const taken = new Set(Object.values(stations).map(s => s.name));

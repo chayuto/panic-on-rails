@@ -30,7 +30,7 @@ import { reverseConsist } from '../utils/trainCars';
 import { linkedPoints } from '../utils/switchRouting';
 import { sizeOf } from '../config/scales';
 import { STATIONS } from '../config/stations';
-import { fareFor, stationsByEdge } from './stations';
+import { fareFor, nextDeparture, stationsByEdge } from './stations';
 import { carriesPassengers } from '../data/rollingStock';
 
 /** World Y that debris falls onto (historical game-loop value). */
@@ -56,6 +56,8 @@ export interface StepContext {
     now: number;
     /** Uniform random in [0, 1). Use `createRng(seed)` for determinism. */
     random: () => number;
+    /** Railway time when the tick starts (seconds): stations' timetables run by it. Default 0. */
+    clock?: number;
 }
 
 /** Something that happened during a tick. Consumers map these to audio, FX and logs. */
@@ -69,7 +71,11 @@ export type SimEvent =
     | { type: 'sensor'; sensorId: SensorId; edgeId: EdgeId; state: 'on' | 'off' }
     | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
     /** A passenger train stood at a platform; its passengers paid `fare` (US cents) */
-    | { type: 'station-stop'; trainId: TrainId; stationId: StationId; edgeId: EdgeId; fare: number }
+    | {
+        type: 'station-stop'; trainId: TrainId; stationId: StationId; edgeId: EdgeId; fare: number;
+        /** With a timetable: the departure it waits for (railway seconds) */
+        departs?: number;
+    }
     /** Two trains came within a car's nose of each other without touching */
     | { type: 'near-miss'; trainIds: [TrainId, TrainId]; location: Vector2 }
     | { type: 'signal'; signalId: SignalId; state: SignalState };
@@ -177,8 +183,16 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         }
         next.speed = speed;
         if (arriving) {
-            events.push({ type: 'station-stop', trainId: train.id, stationId: stop.stationId!, edgeId: next.currentEdgeId, fare: fareFor(next) });
-            next = { ...next, speed: 0, dwell: STATIONS.DWELL_SECONDS, calledAt: stop.stationId, ride: 0 };
+            // It stands while the passengers get on and off; with a
+            // timetable, until the first departure due after that
+            const arrivedAt = (ctx.clock ?? 0) + dt;
+            const departs = nextDeparture(world.stations[stop.stationId!] ?? {}, arrivedAt + STATIONS.DWELL_SECONDS);
+            events.push({
+                type: 'station-stop', trainId: train.id, stationId: stop.stationId!, edgeId: next.currentEdgeId, fare: fareFor(next),
+                ...(departs !== undefined && { departs }),
+            });
+            const dwell = departs !== undefined ? departs - arrivedAt : STATIONS.DWELL_SECONDS;
+            next = { ...next, speed: 0, dwell, calledAt: stop.stationId, ride: 0 };
         }
 
         // Too fast for the curve: off the rails

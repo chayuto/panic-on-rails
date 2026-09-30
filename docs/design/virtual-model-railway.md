@@ -186,7 +186,13 @@ run trains ──▶ earn hobby money ──▶ buy a box / parts / a train in t
     station calls and wrecks. Getting through without a wreck pays a 25% bonus on what the
     session took. It's a reason to set the points and signals with care, and a goal for a
     short sitting.
-  - Later: on-time runs to timetables.
+  - **Timetables.** A station can keep a clock-face timetable, as real regular-interval
+    services do: a departure every 30 s to 3 min of railway time. A passenger train calling
+    there waits for the next departure due, and leaves on it. A session in which a train was
+    there for nine departures in ten pays another 50%. That's enough that the tightest
+    timetable the trains can keep beats running without one, though every wait costs running
+    money. A looser timetable doesn't. So the puzzle is to match the timetable to the trains:
+    their speed, how many there are, and the signals that keep them apart while they wait.
 - **Prices** follow real 2025 US street prices, so the virtual shelf feels like the real one:
   - M1 $95, V1 $75, V5 $45;
   - a #6 turnout $33, a 248 mm straight about $2.

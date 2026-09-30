@@ -15,6 +15,8 @@ import { useCollectionStore } from '../stores/useCollectionStore';
 import { stepSimulation, createRng, type SimEvent, type SimWorld, type StepContext } from './step';
 import { earningsFor } from './economy';
 import { finishSession, tallySession } from './session';
+import { departuresDue } from './stations';
+import { formatClock } from '../utils/railwayClock';
 import type { TrainId } from '../types';
 
 export type SimEventSink = (event: SimEvent, world: SimWorld) => void;
@@ -78,6 +80,7 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
     const { world, events } = stepSimulation(before, dt, {
         now: options.ctx?.now ?? performance.now(),
         random: options.ctx?.random ?? sharedRandom,
+        clock: sim.simElapsed,
     });
 
     // Write back only what changed, so unrelated subscribers don't re-render
@@ -101,7 +104,7 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
         options.sink?.(event, world);
     }
     if (events.length > 0) settleEarnings(events, before);
-    keepSessionTally(events, before);
+    keepSessionTally(events, before, dt);
     return events;
 }
 
@@ -109,10 +112,11 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
  * Count the tick into the operating session, and end it when its time is
  * up: a clean session's bonus is paid into the wallet in collection mode.
  */
-function keepSessionTally(events: SimEvent[], before: SimWorld): void {
+function keepSessionTally(events: SimEvent[], before: SimWorld, dt: number): void {
     const { session, simElapsed } = useSimulationStore.getState();
     if (!session) return;
-    const tally = tallySession(session, events, before.edges);
+    const due = departuresDue(before.stations, simElapsed - dt, simElapsed);
+    const tally = tallySession(session, events, before.edges, due);
     if (simElapsed < tally.endsAt) {
         if (tally !== session) useSimulationStore.setState({ session: tally });
         return;
@@ -166,7 +170,7 @@ function logEvent(event: SimEvent, before: SimWorld): void {
             break;
         }
         case 'station-stop':
-            log('station', event.trainId, event.edgeId, `called at ${before.stations[event.stationId]?.name ?? 'a station'}: fares $${(event.fare / 100).toFixed(2)}`);
+            log('station', event.trainId, event.edgeId, `called at ${before.stations[event.stationId]?.name ?? 'a station'}: fares $${(event.fare / 100).toFixed(2)}${event.departs !== undefined ? `, for the ${formatClock(event.departs)} departure` : ''}`);
             break;
         case 'sensor':
             if (event.state === 'on') {

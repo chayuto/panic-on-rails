@@ -20,7 +20,8 @@ run your trains, and keep expanding the railway with no end point.
     and Hornby Setrack (train-set oval, Track Packs A–F).
   - **The Hobby (Phase 3):** a collection grown with hobby money earned by running trains and
     from passengers' fares at stations, a shop for boxes, loose parts and trains, and a
-    shopping list for planners.
+    shopping list for planners. Operating sessions pay bonuses for running without a wreck and
+    for keeping to the stations' timetables.
   - **The Power Pack (Phase 4):** throttle with momentum, curve limits and derailments.
   - **Looks (Phase 5):** track painted like the real product and sprite trains, at 120 fps on a
     big layout. Trains collide by their cars' real extent.
@@ -29,7 +30,6 @@ run your trains, and keep expanding the railway with no end point.
   - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
-  - on-time runs, to timetables;
   - elevation;
   - the rest of Kato's double-track sets (V12 and V13 need elevation, V15 the widening
     sections).
@@ -286,8 +286,8 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - Templates load in free build: they're demo layouts, not your collection, so they earn
     nothing.
   - The generic trains are flagged as such. Real train sets now sell alongside them (Phase 4).
-- [x] **Station stops.** The Station tool (7) puts a platform on the track. Its length is five
-      cars for the scale, or the piece's length if that's shorter.
+- [x] **Station stops.** The Station tool (7) puts a platform on the track. It's 240 mm long,
+      grown to the scale, or the piece's length if that's shorter.
   - A passenger train brakes for the platform's far end, stands for six seconds, and its
     passengers pay for their ride. The rate is per metre since its last stop, per coach, up
     to 3 m (`config/stations.ts`). Freight trains pass through.
@@ -302,7 +302,18 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - A wreck or ending early forfeits the bonus.
   - The tally is a pure function of step events (`simulation/session.ts`), kept by
     `tickSimulation`.
-- [ ] On-time runs: timetables at stations, and a bonus for keeping to them.
+- [x] **On-time runs.** A station can keep a clock-face timetable, set in the train panel: a
+      departure every 30 s to 3 min of railway time (`Station.interval`).
+  - A passenger train calling there waits for the first departure due after its six seconds,
+    and leaves on it. The step reads the railway clock from its context (`ctx.clock`).
+  - A session counts the departures that fell due and those a train was there for. A train at
+    nine in ten earns another 50% of what the session took, on top of the crash-free 25%.
+  - On the M1 oval the starter train keeps a 45 s timetable, which pays about a fifth more
+    than running without one. At 60 s the waiting costs more than the bonus pays. Every 30 s
+    is too often for one train: it makes every other departure.
+  - The panel shows the railway clock and each station's next departure. A train waiting at a
+    platform says which departure it's waiting for, and the QA lens reports each station's
+    timetable.
 - [x] **Shopping list:** the layout on the table as real products, for planners.
   - It gives product numbers, quantities and prices, and in collection mode what's owned and
     what's left to buy.

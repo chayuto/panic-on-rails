@@ -28,6 +28,16 @@ export const createStationSlice: LogicSliceCreator<StationSlice> = (set, get) =>
         });
     },
 
+    /** Give a station a timetable: a departure every `interval` railway seconds, or none. */
+    setStationInterval: (stationId, interval) => {
+        set((state) => {
+            const station = state.stations[stationId];
+            if (!station) return;
+            if (interval && interval > 0) station.interval = interval;
+            else delete station.interval;
+        });
+    },
+
     /** Stations with their platform on an edge. */
     getStationsOnEdge: (edgeId) => Object.values(get().stations).filter(s => s.edgeId === edgeId),
 });

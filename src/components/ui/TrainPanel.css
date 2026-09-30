@@ -378,6 +378,51 @@
     font-size: 13px;
 }
 
+/* Stations' timetables */
+.timetable-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--fg-primary);
+}
+
+.timetable-clock,
+.timetable-next {
+    color: var(--fg-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.timetable-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.timetable-station {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timetable-row select {
+    background: var(--button-bg);
+    color: var(--fg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 12px;
+}
+
+.timetable-next {
+    grid-column: 1 / -1;
+    font-size: 12px;
+}
+
 .session-start:disabled {
     opacity: 0.5;
     cursor: not-allowed;

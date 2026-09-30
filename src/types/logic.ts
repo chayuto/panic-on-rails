@@ -85,6 +85,12 @@ export interface Station {
     /** The platform's length along the track (mm) */
     length: number;
     name: string;
+    /**
+     * A clock-face timetable: a departure due every `interval` railway
+     * seconds, on the clock (0, interval, 2 × interval…). A passenger train
+     * calling here waits for the next one. None: trains call and go.
+     */
+    interval?: number;
 }
 
 // ===========================

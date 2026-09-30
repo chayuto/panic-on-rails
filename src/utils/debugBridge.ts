@@ -90,7 +90,7 @@ function createBridge() {
         ], ['setSelectedPart', 'setSelectedSystem', 'setSelectedEdge', 'resetView', 'setZoom', 'setPan']),
         logic: expose(useLogicStore, ['sensors', 'signals', 'wires', 'stations'], [
             'addSensor', 'removeSensor', 'addSignal', 'removeSignal', 'setSignalState', 'toggleSignal',
-            'addWire', 'removeWire', 'addStation', 'removeStation', 'clearLogic',
+            'addWire', 'removeWire', 'addStation', 'removeStation', 'setStationInterval', 'clearLogic',
         ]),
         effects: expose(useEffectsStore, ['ripples', 'flashes', 'screenShake'], ['clearAllEffects']),
         collection: expose(useCollectionStore, ['mode', 'wallet', 'lifetimeEarned', 'ownedSets', 'looseParts', 'ownedTrains'], [

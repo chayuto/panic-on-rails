@@ -57,6 +57,16 @@ test.describe('Accessibility', () => {
         await expect.poll(() => running(page)).toBe(true);
         await expectAccessible(page, 'Simulate, M1 running');
 
+        // A station on a timetable
+        await page.evaluate(() => {
+            const { edges } = window.__PANIC_STORES__!.track.getState();
+            const straight = Object.values(edges).find(e => e.partId === 'kato-20-000')!;
+            const logic = window.__PANIC_STORES__!.logic;
+            logic.setStationInterval(logic.addStation(straight.id, straight.length / 2, 240), 60);
+        });
+        await expect(page.getByTestId('timetable')).toBeVisible();
+        await expectAccessible(page, 'Simulate, a station on a timetable');
+
         // An operating session, running and over
         await page.getByTestId('session-start').click();
         await expect(page.getByTestId('session')).toBeVisible();

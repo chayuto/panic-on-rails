@@ -34,6 +34,9 @@ describe('the tally', () => {
             repairs: ECONOMY.REPAIR_CENTS,
             calls: 1,
             wrecks: 1,
+            due: 0,
+            ran: 0,
+            taken: {},
         });
     });
 
@@ -45,9 +48,36 @@ describe('the tally', () => {
     it('pays a quarter on top for a full session without a wreck, and nothing otherwise', () => {
         const session = { ...startSession(0), income: 4000 };
         const end = session.endsAt;
-        expect(finishSession(session, end)).toMatchObject({ bonus: 1000, endedEarly: false });
+        expect(finishSession(session, end)).toMatchObject({ bonus: 1000, endedEarly: false, clean: true, punctual: false });
         expect(finishSession({ ...session, wrecks: 1 }, end).bonus).toBe(0);
         expect(finishSession(session, end - 1)).toMatchObject({ bonus: 0, endedEarly: true });
+    });
+
+    it('counts the timetabled departures that fell due, and each a train was there for, once', () => {
+        const stop = (stationId: string, departs?: number): SimEvent =>
+            ({ type: 'station-stop', trainId: 't', stationId, edgeId: 'e1', fare: 0, ...(departs !== undefined && { departs }) });
+        let session = tallySession(startSession(0), [stop('s', 60), stop('u')], edges, 2);
+        expect(session).toMatchObject({ due: 2, ran: 1, calls: 2, taken: { s: 60 } });
+        // The same departure again doesn't count twice; the next one does
+        session = tallySession(session, [stop('s', 60)], edges);
+        expect(session.ran).toBe(1);
+        session = tallySession(session, [stop('s', 120)], edges, 1);
+        expect(session).toMatchObject({ due: 3, ran: 2 });
+        // Nor one after the session ends
+        expect(tallySession(session, [stop('s', session.endsAt + 30)], edges).ran).toBe(2);
+    });
+
+    it('pays half again for keeping to the timetables: a train there for nine departures in ten', () => {
+        const session = { ...startSession(0), income: 4000, due: 10 };
+        const end = session.endsAt;
+        expect(finishSession({ ...session, ran: 9 }, end)).toMatchObject({ bonus: 3000, clean: true, punctual: true });
+        expect(finishSession({ ...session, ran: 8 }, end)).toMatchObject({ bonus: 1000, punctual: false });
+        // On time without a wreck, or a wreck on time
+        expect(finishSession({ ...session, ran: 10, wrecks: 1 }, end)).toMatchObject({ bonus: 2000, clean: false, punctual: true });
+        // No timetable, no timetable bonus
+        expect(finishSession({ ...session, due: 0 }, end)).toMatchObject({ bonus: 1000, punctual: false });
+        // Cut short: nothing
+        expect(finishSession({ ...session, ran: 10 }, end - 1).bonus).toBe(0);
     });
 });
 
@@ -89,6 +119,26 @@ describe('a session on the M1 oval', () => {
         expect(session).toBeNull();
         expect(sessionResult).toMatchObject({ endedEarly: true, bonus: 0 });
         expect(sessionResult!.income).toBeGreaterThan(0);
+    });
+
+    it('keeps a timetable the starter train can make, and pays for it; one it can\'t make, it misses', () => {
+        const station = Object.values(useLogicStore.getState().stations)[0];
+        const result = (interval: number) => {
+            useLogicStore.getState().setStationInterval(station.id, interval);
+            beginSession();
+            runSimulation(SESSION.MINUTES * 60 * 60 + 60);
+            return useSimulationStore.getState().sessionResult!;
+        };
+        // A lap and the call take it about 46 s
+        const kept = result(45);
+        expect(kept.due).toBeGreaterThanOrEqual(12);
+        expect(kept).toMatchObject({ clean: true, punctual: true });
+        expect(kept.ran).toBe(kept.due);
+        expect(kept.bonus).toBe(Math.round(kept.income * (SESSION.CLEAN_BONUS + SESSION.PUNCTUAL_BONUS)));
+        // Every 30 s is too often for one train: it's there for every other departure
+        const missed = result(30);
+        expect(missed.punctual).toBe(false);
+        expect(missed.ran / missed.due).toBeLessThan(0.6);
     });
 
     it('a wreck costs the bonus', () => {

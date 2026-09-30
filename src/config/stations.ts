@@ -19,6 +19,8 @@ export const STATIONS = {
     PLATFORM_CLEARANCE: 10,
     /** Railway seconds a train stands at the platform */
     DWELL_SECONDS: 6,
+    /** The timetables a station can keep: a departure every so many railway seconds */
+    INTERVALS: [30, 45, 60, 90, 120, 180],
     /** US cents per metre ridden, per coach */
     FARE_CENTS_PER_METRE: 50,
     /** The longest ride a fare pays for (m) */

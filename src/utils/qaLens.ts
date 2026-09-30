@@ -20,6 +20,7 @@ import { getPartById } from '../data/catalog';
 import { getRollingStock } from '../data/rollingStock';
 import { SCALES } from '../config/scales';
 import { scaleKmh } from '../simulation/driving';
+import { nextDeparture } from '../simulation/stations';
 import { isOpenEnd } from './graphAnalysis';
 import { getPositionOnEdge } from './trainGeometry';
 import { pointsButtonRadius } from '../config/interactions';
@@ -58,8 +59,11 @@ export interface QaLook {
     /** Sets of points, with the size of their button on screen (px across) */
     points: { part: string; at: PagePoint; set: 'normal' | 'reverse'; size: number }[];
     trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean; atStation: string | null }[];
-    /** Station platforms, at the middle of the track beside them */
-    stations: { name: string; at: PagePoint }[];
+    /**
+     * Station platforms, at the middle of the track beside them, with their
+     * timetable: a departure every `interval` railway seconds, the next at `next`
+     */
+    stations: { name: string; at: PagePoint; interval: number | null; next: number | null }[];
     /** Trains wrecked this session (re-railed ones included) */
     wrecks: number;
 }
@@ -141,7 +145,9 @@ export function look(): QaLook {
 
     const stations = Object.values(useLogicStore.getState().stations).flatMap(station => {
         const edge = edges[station.edgeId];
-        return edge ? [{ name: station.name, at: toPage(getPositionOnEdge(edge, station.position, nodes)) }] : [];
+        if (!edge) return [];
+        const next = nextDeparture(station, useSimulationStore.getState().simElapsed);
+        return [{ name: station.name, at: toPage(getPositionOnEdge(edge, station.position, nodes)), interval: station.interval ?? null, next: next ?? null }];
     });
 
     const collection = useCollectionStore.getState();
