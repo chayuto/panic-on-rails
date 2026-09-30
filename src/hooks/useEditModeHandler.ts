@@ -6,25 +6,19 @@
  * - Drag-and-drop from Parts Bin
  * - Ghost preview positioning
  * - Snap detection
- * - Track placement, limited to the pieces left in the player's collection
- * - Node connection logic
+ * - Track placement (utils/placePiece: the collection's limit, snapping, joining)
  * - Keyboard rotation (R key)
  */
 
 import { useCallback, useEffect } from 'react';
 import { useEditorStore } from '../stores/useEditorStore';
 import { useTrackStore } from '../stores/useTrackStore';
-import { useCollectionStore } from '../stores/useCollectionStore';
-import { countPlacedPieces, inventoryOf } from '../data/collection';
-import { useHistoryStore } from '../stores/useHistoryStore';
 import { useIsEditing } from '../stores/useModeStore';
 import { findBestSnap } from '../utils/snapManager';
-import { playSound } from '../utils/audioManager';
 import { getPartById } from '../data/catalog';
 import type { Vector2 } from '../types';
-import { joinPlacedPiece, openEndsOfPiece } from '../utils/joinPiece';
-import { keepInView } from '../utils/viewFit';
 import { logger } from '../utils/logger';
+import { placePart } from '../utils/placePiece';
 
 interface UseEditModeHandlerOptions {
     /** Function to convert screen coordinates to world coordinates */
@@ -46,18 +40,15 @@ interface EditModeHandlers {
 export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions): EditModeHandlers {
     const isEditing = useIsEditing();
 
-    const {
-        draggedPartId,
-        userRotation,
-        selectedSystem,
-        updateGhost,
-        setSnapTarget,
-        endDrag,
-        rotateGhostCW,
-        rotateGhostCCW,
-    } = useEditorStore();
-
-    const { addTrack, getOpenEndpoints } = useTrackStore();
+    // Atomic selectors: this hook runs in StageWrapper, which a whole-store read re-renders
+    const draggedPartId = useEditorStore(s => s.draggedPartId);
+    const userRotation = useEditorStore(s => s.userRotation);
+    const selectedSystem = useEditorStore(s => s.selectedSystem);
+    const updateGhost = useEditorStore(s => s.updateGhost);
+    const setSnapTarget = useEditorStore(s => s.setSnapTarget);
+    const endDrag = useEditorStore(s => s.endDrag);
+    const rotateGhostCW = useEditorStore(s => s.rotateGhostCW);
+    const rotateGhostCCW = useEditorStore(s => s.rotateGhostCCW);
 
     // ========================================
     // Keyboard: Rotation during drag
@@ -98,7 +89,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
         if (!part) return;
 
         // Find snap target using new multi-node snap manager
-        const openEndpoints = getOpenEndpoints();
+        const openEndpoints = useTrackStore.getState().getOpenEndpoints();
         const bestSnap = findBestSnap(
             part,
             worldPos,
@@ -122,7 +113,7 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             updateGhost(worldPos, userRotation, true);
             setSnapTarget(null);
         }
-    }, [isEditing, draggedPartId, userRotation, screenToWorld, getOpenEndpoints, selectedSystem, updateGhost, setSnapTarget]);
+    }, [isEditing, draggedPartId, userRotation, screenToWorld, selectedSystem, updateGhost, setSnapTarget]);
 
     // ========================================
     // Drag Leave: Clear ghost
@@ -137,88 +128,15 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
     // ========================================
     const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-
-        if (!isEditing) {
-            endDrag();
-            return;
-        }
-
         const partId = e.dataTransfer.getData('application/x-part-id');
-        if (!partId) {
-            endDrag();
-            return;
+        if (isEditing && partId) {
+            const at = screenToWorld(e.clientX, e.clientY);
+            logger.debug('useEditModeHandler', 'Drop:', { partId, at });
+            // Snapped where the ghost showed it, joined, one undo step (utils/placePiece)
+            placePart(partId, at, useEditorStore.getState().userRotation);
         }
-
-        // Get part to check cost
-        const part = getPartById(partId);
-        if (!part) {
-            console.error('[useEditModeHandler] Part not found:', partId);
-            endDrag();
-            return;
-        }
-
-        // In collection mode, only pieces still in the box can be placed
-        const collection = useCollectionStore.getState();
-        if (collection.mode === 'collection') {
-            const owned = inventoryOf(collection.ownedSets, collection.looseParts)[partId] ?? 0;
-            const onTable = countPlacedPieces(useTrackStore.getState().edges)[partId] ?? 0;
-            if (onTable >= owned) {
-                playSound('bounce'); // Rejection sound
-                endDrag();
-                return;
-            }
-        }
-
-        const worldPos = screenToWorld(e.clientX, e.clientY);
-
-        // Get current snap state
-        const { snapTarget, ghostRotation, ghostPosition } = useEditorStore.getState();
-
-        logger.debug('useEditModeHandler', 'Drop initiated:', {
-            partId,
-            worldPos,
-            hasSnapTarget: !!snapTarget,
-            ghostRotation,
-        });
-
-        // Determine final position and rotation
-        let finalPosition = worldPos;
-        let finalRotation = userRotation;
-
-        if (snapTarget && ghostPosition) {
-            finalPosition = ghostPosition;
-            finalRotation = ghostRotation;
-
-            logger.debug('useEditModeHandler', 'Snapping using ghost transform:', {
-                targetNodeId: snapTarget.targetNodeId.slice(0, 8),
-                finalPosition,
-                finalRotation,
-            });
-        }
-
-        // Snapshot state before the placement so this gesture (add +
-        // auto-merge) can be undone as a single step.
-        useHistoryStore.getState().record();
-
-        // Add the track
-        const newEdgeId = addTrack(partId, finalPosition, finalRotation);
-        logger.debug('useEditModeHandler', 'Track added:', { newEdgeId: newEdgeId?.slice(0, 8) || 'failed' });
-
-        // Post-placement: join every open end of the new piece (a turnout's
-        // three, a double crossover's four) to open ends it now touches. This
-        // catches both snap-assisted placements AND near-misses where user
-        // dropped close to an existing endpoint but snap detection didn't trigger
-        if (newEdgeId && joinPlacedPiece(newEdgeId) > 0) {
-            const { selectedSystem: currentSystem } = useEditorStore.getState();
-            playSound(currentSystem === 'wooden' ? 'snap-wooden' : 'snap-nscale');
-        }
-        // Follow the build: keep the new piece's open ends, where the player
-        // carries on from, in view
-        if (newEdgeId) keepInView(openEndsOfPiece(newEdgeId));
-
-        // Clean up drag state
         endDrag();
-    }, [isEditing, screenToWorld, userRotation, addTrack, endDrag]);
+    }, [isEditing, screenToWorld, endDrag]);
 
     return {
         handleDragOver,

@@ -30,6 +30,17 @@ Active when building and modifying tracks.
 | `Ctrl+Y` / `Cmd+Y` | Redo |
 | `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo (alternate) |
 
+### Building from the keyboard
+
+Tab to a card in the parts bin, then:
+
+| Key | Action |
+|-----|--------|
+| `Enter` or `Space` | Lay the piece at the end of your track, straight on (in the middle of the view on a bare baseboard) |
+| `←` / `→` | Lay it turning left or right: a curve turns that way |
+
+Each piece carries on from the one laid before it.
+
 ## Simulate Mode
 
 Active when running trains.

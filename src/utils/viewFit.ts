@@ -44,12 +44,24 @@ export function fitViewToPoints(
     return { zoom, pan: { x: width / 2 - cx * zoom, y: height / 2 - cy * zoom } };
 }
 
+/** The canvas on the page; none outside a browser, as in a test. */
+function canvasContainer(): Element | null {
+    return typeof document === 'undefined' ? null : document.querySelector('[data-testid="canvas-container"]');
+}
+
+/** The layout point in the middle of the canvas (the origin with no canvas, as in a test). */
+export function viewCentre(): Vector2 {
+    const { width, height } = canvasContainer()?.getBoundingClientRect() ?? { width: 0, height: 0 };
+    const { zoom, pan } = useEditorStore.getState();
+    return { x: (width / 2 - pan.x) / zoom, y: (height / 2 - pan.y) / zoom };
+}
+
 /**
  * Frame the whole current layout in the canvas (browser only).
  * Reads node positions from the track store and the canvas container's size.
  */
 export function fitViewToLayout(): void {
-    const container = document.querySelector('[data-testid="canvas-container"]');
+    const container = canvasContainer();
     if (!container) return;
     const { width, height } = container.getBoundingClientRect();
     const points = Object.values(useTrackStore.getState().nodes).map(n => n.position);
@@ -105,7 +117,7 @@ export function panToInclude(
  * piece's open end lands off screen or near the edge (browser only).
  */
 export function keepInView(points: Vector2[]): void {
-    const container = document.querySelector('[data-testid="canvas-container"]');
+    const container = canvasContainer();
     if (!container) return;
     const { width, height } = container.getBoundingClientRect();
     const editor = useEditorStore.getState();

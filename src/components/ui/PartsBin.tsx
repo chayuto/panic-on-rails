@@ -9,10 +9,15 @@ import type { PartDefinition } from '../../types';
 import { PartPreview } from './TrackPreview';
 import { SCALES, SCALE_ORDER } from '../../config/scales';
 import { trackSystemName } from '../../data/brands';
+import { layPart, type LaySide } from '../../utils/placePiece';
+
+/** The keys that lay a focused part from the keyboard, and which way it goes on. */
+const LAY_KEYS: Record<string, LaySide> = { Enter: 'ahead', ' ': 'ahead', ArrowLeft: 'left', ArrowRight: 'right' };
 
 /**
  * Renders a single draggable part card. `left` (collection mode) is how
  * many pieces are still in the box; at zero the card can't be dragged.
+ * Focused, it lays its part from the keyboard (see `#part-keys-help`).
  */
 function PartCard({ part, left }: { part: PartDefinition; left?: number }) {
     const startDrag = useEditorStore(s => s.startDrag);
@@ -44,11 +49,23 @@ function PartCard({ part, left }: { part: PartDefinition; left?: number }) {
         setTimeout(() => document.body.removeChild(dragImage), 0);
     }, [part.id, startDrag]);
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+        const side = LAY_KEYS[e.key];
+        if (!side || empty) return;
+        e.preventDefault();
+        layPart(part.id, side);
+    }, [part.id, empty]);
+
     return (
         <div
             className={`part-card${empty ? ' empty' : ''}`}
             draggable={!empty}
             onDragStart={empty ? undefined : handleDragStart}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={left === undefined ? part.name : `${part.name}, ${left} left`}
+            aria-describedby="part-keys-help"
             title={part.description ? `${part.name} — ${part.description}` : part.name}
             data-testid={`part-card-${part.id}`}
             aria-disabled={empty}
@@ -159,6 +176,11 @@ export function PartsBin() {
 
             <ModeSwitch />
             <SystemTabs />
+
+            <p id="part-keys-help" className="visually-hidden">
+                Enter lays the piece at the end of your track, or in the middle of the view on a bare
+                baseboard. Left or Right arrow lays it turning that way.
+            </p>
 
             {/* Focusable, so the parts can be scrolled from the keyboard */}
             <div className="parts-bin-content" tabIndex={0} role="region" aria-label="Parts">

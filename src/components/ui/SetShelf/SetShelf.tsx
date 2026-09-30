@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from '../../../hooks/useDialogFocus';
 import { carColorAt, carKindAt, facesBack, getRollingStock, ROLLING_STOCK, trainLength, tractionOf, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
@@ -315,8 +316,8 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
     const [pending, setPending] = useState<{ set: TrackSet; plan: LayoutPlan } | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
 
+    useDialogFocus(dialogRef);
     useEffect(() => {
-        dialogRef.current?.focus();
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };

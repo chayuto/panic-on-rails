@@ -46,6 +46,7 @@ has written a test for yet.
 4. **The keyboard-only player who prefers reduced motion.**
    - Setup: reduced motion emulated (`set-reduced-motion reduce`).
    - Charter: build and run the M1 oval with the keyboard alone. Nothing may flash or shake.
+   - Played 2026-10-01: [the session](sessions/2026-10-01-keyboard.md).
 5. **The phone-size player.**
    - Setup: 390 × 844.
    - Charter: open the shop, build M1, run the train, stop it.
