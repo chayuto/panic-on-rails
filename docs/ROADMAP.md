@@ -763,6 +763,13 @@ Order, biggest win per millisecond first:
     - A focused part card now lays its piece: Enter at the end of the track, or Left or
       Right arrow turning a curve that way (`utils/placePiece.ts`, shared with the drop).
     - The shop and the shopping list give the focus back to what opened them.
+  - The operator session (`docs/qa/sessions/2026-10-01-the-operator.md`) found that a click
+    threw points under a train where a key refused, and the Simulate tooltip was a debugging
+    aid.
+    - Points lock while any car of a train is on them, for click and key alike
+      (`utils/points.ts`), with a thud and a red ripple.
+    - The tooltip speaks to the player: names, sizes in mm, which way points are set, what a
+      click does.
   - The phone-size session (`docs/qa/sessions/2026-10-01-the-phone.md`) found the canvas
     squeezed to 90 px beside the train panel, its train off screen. Under 700 px the canvas
     now takes the whole width, with the parts bin or train panel under it. The small-screen

@@ -56,8 +56,9 @@
 .simulation-tooltip-value {
     font-weight: bold;
     text-align: right;
-    word-break: break-all;
-    max-width: 120px;
+    /* Break between words ("Kato Unitrack" / "20-120"), not inside them */
+    overflow-wrap: anywhere;
+    max-width: 150px;
 }
 
 /* What a click does */

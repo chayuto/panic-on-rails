@@ -3,40 +3,16 @@
  * 
  * Provides:
  * - Keyboard shortcuts for toggling switches
- * - Safety check to prevent toggling while train is on switch
+ * - The points' lock: refused while a train is on them (utils/points)
  * - Hover state tracking for switch nodes
  */
 
 import { useEffect, useCallback } from 'react';
 import { useTrackStore } from '../stores/useTrackStore';
-import { useSimulationStore } from '../stores/useSimulationStore';
 import { useIsSimulating } from '../stores/useModeStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
-import { playSwitchSound, playSound } from '../utils/audioManager';
 import type { NodeId } from '../types';
-import { logger } from '../utils/logger';
-
-/**
- * Check if any train is currently on or near a switch node.
- * Returns true if a train is on any edge connected to the switch.
- */
-function isTrainOnSwitch(
-    switchNodeId: NodeId,
-    trains: Record<string, { currentEdgeId: string; crashed?: boolean }>,
-    edges: Record<string, { startNodeId: string; endNodeId: string }>
-): boolean {
-    // Find all edges connected to this switch
-    const connectedEdgeIds = Object.entries(edges)
-        .filter(([, edge]) =>
-            edge.startNodeId === switchNodeId || edge.endNodeId === switchNodeId
-        )
-        .map(([id]) => id);
-
-    // Check if any non-crashed train is on a connected edge
-    return Object.values(trains).some(train =>
-        !train.crashed && connectedEdgeIds.includes(train.currentEdgeId)
-    );
-}
+import { throwPoints } from '../utils/points';
 
 interface UseSwitchInteractionOptions {
     /** Whether to enable keyboard shortcuts */
@@ -61,39 +37,8 @@ export function useSwitchInteraction(
     const isSimulating = useIsSimulating();
     const hoveredSwitchId = useEffectsStore(s => s.hoveredSwitchId);
 
-    /**
-     * Safely toggle a switch, checking if a train is on it first.
-     * Returns true if toggle succeeded, false if blocked.
-     */
-    // Reads the stores when called: subscribing to trains here would re-render
-    // the whole canvas on every simulation tick
-    const safeToggleSwitch = useCallback((nodeId: NodeId): boolean => {
-        const { nodes, edges, toggleSwitch } = useTrackStore.getState();
-        const { trains } = useSimulationStore.getState();
-        const node = nodes[nodeId];
-        if (!node || node.type !== 'switch') {
-            console.warn('[useSwitchInteraction] Not a switch node:', nodeId);
-            return false;
-        }
-
-        // Safety check: don't toggle if train is on switch
-        if (isTrainOnSwitch(nodeId, trains, edges)) {
-            logger.debug('useSwitchInteraction', 'Blocked: train on switch', nodeId.slice(0, 8));
-            playSound('bounce');  // Error/blocked sound
-            return false;
-        }
-
-        // Perform toggle
-        toggleSwitch(nodeId);
-        playSwitchSound('n-scale');
-
-        // Trigger visual effect
-        if (node.position) {
-            useEffectsStore.getState().triggerRipple(node.position, { color: '#FFD93D' });
-        }
-
-        return true;
-    }, []);
+    /** Throw the points, unless a train is on them. Returns whether they moved. */
+    const safeToggleSwitch = useCallback((nodeId: NodeId): boolean => throwPoints(nodeId), []);
 
     // Keyboard shortcuts for switch control
     useEffect(() => {

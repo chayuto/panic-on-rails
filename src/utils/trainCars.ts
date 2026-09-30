@@ -188,6 +188,15 @@ export function trainReach(train: Train): { ahead: number; behind: number } {
     };
 }
 
+/** The pieces of track under a train, its own first, back to the one under its last car. */
+export function edgesUnder(
+    train: Train,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>
+): EdgeId[] {
+    return walkBack(train, trainReach(train).behind, edges, nodes)?.path ?? [];
+}
+
 /**
  * Whether the whole train stands on the track: there's track under every
  * car, from the front of the first to the back of the last, before the
