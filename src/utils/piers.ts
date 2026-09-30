@@ -6,6 +6,7 @@
  */
 
 import { getPartById } from '../data/catalog';
+import { isDoubleTrack } from '../data/catalog/helpers';
 import type { PartBrand } from '../data/catalog/types';
 import type { EdgeId, NodeId, TrackEdge, TrackNode } from '../types';
 import { useTrackStore } from '../stores/useTrackStore';
@@ -60,10 +61,34 @@ export function supportName(supports: readonly Support[], node: TrackNode): stri
     return supports.find(s => Math.abs(s.height - height) <= HEIGHT_TOLERANCE)?.name ?? `${Math.round(height)} mm`;
 }
 
+/** Across a double-track piece, from one track's joint to the other's (mm) */
+const DOUBLE_TRACK_SPACING = 33;
+
 /**
- * Put a joint on the next support up (or down, `direction` -1), undoably.
- * Returns the support it stands on now, or null if nothing changed: no
- * piers for its track system, or already at the top or bottom.
+ * On double track, the joint beside this one on the other track: one pier
+ * carries both. Undefined for single track.
+ */
+export function besideJoint(node: TrackNode, nodes: Record<NodeId, TrackNode>, edges: Record<EdgeId, TrackEdge>): TrackNode | undefined {
+    for (const id of node.connections) {
+        const edge = edges[id];
+        const part = getPartById(edge?.partId ?? '');
+        if (!edge?.placementId || !part || !isDoubleTrack(part)) continue;
+        const other = Object.values(edges).find(e => e.placementId === edge.placementId && e.id !== edge.id);
+        if (!other) continue;
+        for (const candidate of [nodes[other.startNodeId], nodes[other.endNodeId]]) {
+            if (!candidate) continue;
+            const apart = Math.hypot(candidate.position.x - node.position.x, candidate.position.y - node.position.y);
+            if (Math.abs(apart - DOUBLE_TRACK_SPACING) < 1) return candidate;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Put a joint on the next support up (or down, `direction` -1), undoably:
+ * on double track, the other track's joint beside it too. Returns the
+ * support it stands on now, or null if nothing changed: no piers for its
+ * track system, or already at the top or bottom.
  */
 export function raiseJoint(nodeId: NodeId, direction: 1 | -1): Support | null {
     const { nodes, edges, setNodeHeights } = useTrackStore.getState();
@@ -74,7 +99,8 @@ export function raiseJoint(nodeId: NodeId, direction: 1 | -1): Support | null {
     const next = nextSupport(supports, heightOf(node), direction);
     if (Math.abs(next.height - heightOf(node)) <= HEIGHT_TOLERANCE) return null;
     useHistoryStore.getState().record();
-    setNodeHeights({ [nodeId]: next.height });
+    const beside = besideJoint(node, nodes, edges);
+    setNodeHeights({ [nodeId]: next.height, ...(beside && { [beside.id]: next.height }) });
     return next;
 }
 

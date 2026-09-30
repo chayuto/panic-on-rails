@@ -8,6 +8,7 @@ import { KATO_SUPPORTS, nextSupport, raiseJoint, supportName, supportsAt } from 
 import { gradeOf, heightOf } from '../elevation';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useHistoryStore } from '../../stores/useHistoryStore';
+import { joinPlacedPiece } from '../joinPiece';
 import { resetWorld } from '../../simulation/harness';
 
 const state = () => useTrackStore.getState();
@@ -64,5 +65,17 @@ describe('the Pier tool', () => {
         const end = state().nodes[state().edges[marklin].endNodeId];
         expect(supportsAt(end, state().edges)).toBeNull();
         expect(raiseJoint(end.id, 1)).toBeNull();
+    });
+
+    it('raises both tracks of double track together: one pier carries both', () => {
+        state().addTrack('kato-20-004', { x: 0, y: 0 }, 0);
+        joinPlacedPiece(state().addTrack('kato-20-004', { x: 248, y: 0 }, 0)!);
+        // Track A's joint between the two pieces, and track B's beside it
+        const joints = Object.values(state().nodes).filter(n => n.connections.length === 2);
+        expect(joints).toHaveLength(2);
+        expect(raiseJoint(joints[0].id, 1)?.name).toBe('Spacer');
+        expect(joints.map(n => heightOf(state().nodes[n.id]))).toEqual([5, 5]);
+        // The pieces' other ends stay on the baseboard
+        expect(Object.values(state().nodes).filter(n => heightOf(n) === 0)).toHaveLength(4);
     });
 });

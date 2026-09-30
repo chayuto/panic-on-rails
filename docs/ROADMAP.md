@@ -523,6 +523,8 @@ Order, biggest win per millisecond first:
       side becomes a grade, and each raised joint is labelled with what it stands on.
   - Only Kato publishes its supports' heights (`utils/piers.ts`). Other systems' track has no
     piers in the game yet.
+  - On double track, one pier carries both tracks: raising a joint raises the other track's joint
+    beside it too.
   - A new tool made the toolbar wrap just past 1440px. The templates menu is now narrower up to
     1500px, and the one-line check covers 1501px too.
 - [x] **Kato's double-track viaduct and V13** (20-872, $240). The double-track viaduct straights
@@ -539,7 +541,8 @@ Order, biggest win per millisecond first:
   - V12: the double-track climb, with the WS186PCINC ramp and the double-track incline piers.
     Kato prints neither those piers' heights nor V12's own size.
   - V2 with M1 as one loop, M1's ground track passing under the truss (Kato's "Master1 + V2").
-  - Raise a double-track piece's two tracks together with the Pier tool.
+    The guide's drawing shows the loop, but not which piers carry the climb at its right end:
+    four viaduct curves can't reach No.5 from the ground at Kato's standard heights.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
   - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin
