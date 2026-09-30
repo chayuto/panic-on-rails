@@ -20,7 +20,15 @@
  * normalizeAngle(450)  // Returns 90
  */
 export function normalizeAngle(angle: number): number {
-    return ((angle % 360) + 360) % 360;
+    // The remainder is exact. Adding 360 only to a negative one keeps an
+    // angle already in range exactly as it is, so normalizing is idempotent;
+    // a tiny negative angle can round up to 360, which is 0.
+    const turned = angle % 360;
+    if (turned < 0) {
+        const positive = turned + 360;
+        return positive >= 360 ? 0 : positive;
+    }
+    return turned === 0 ? 0 : turned; // never -0
 }
 
 /**

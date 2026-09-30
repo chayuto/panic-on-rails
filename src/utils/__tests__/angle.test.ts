@@ -39,6 +39,21 @@ describe('normalizeAngle', () => {
         expect(normalizeAngle(-0.5)).toBeCloseTo(359.5);
     });
 
+    // Found by the fast-check property in geometryProperties.test.ts
+    it('leaves an angle already in range exactly as it is, however close to 360', () => {
+        for (const angle of [-2.8421709430404014e-14, -1.847411112976261e-12, -4.0293457459483767e-10]) {
+            const normal = normalizeAngle(angle);
+            expect(normalizeAngle(normal)).toBe(normal);
+        }
+        expect(normalizeAngle(359.99999999999994)).toBe(359.99999999999994);
+    });
+
+    it('rounds a hair below zero up to 0, never 360, and never gives -0', () => {
+        expect(normalizeAngle(-1e-15)).toBe(0);
+        expect(Object.is(normalizeAngle(-0), 0)).toBe(true);
+        expect(Object.is(normalizeAngle(-360), 0)).toBe(true);
+    });
+
     it('should handle very large angles', () => {
         expect(normalizeAngle(3600)).toBe(0);
         expect(normalizeAngle(3645)).toBe(45);
