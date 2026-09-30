@@ -43,6 +43,11 @@ export interface RollingStock {
     /** Livery colour */
     color: string;
     /**
+     * Each car's livery, locomotive first, where they differ (a green engine
+     * pulling teak coaches). Otherwise every car is `color`.
+     */
+    carColors?: string[];
+    /**
      * Each car's length over its couplers (mm, at the model's scale),
      * locomotive first: the real model's, or for a generic one, typical
      * of its kind
@@ -274,6 +279,11 @@ export function carKindAt(train: Pick<Train, 'stockId'>, index: number): CarKind
     if (index === 0) return 'loco';
     const stock = getRollingStock(train.stockId);
     return stock?.carKinds?.[index] ?? (stock?.freight ? 'wagon' : 'coach');
+}
+
+/** The livery of the `index`th car, counting from the locomotive: its model's, or the train's colour. */
+export function carColorAt(train: Pick<Train, 'stockId' | 'color'>, index: number): string {
+    return getRollingStock(train.stockId)?.carColors?.[index] ?? train.color;
 }
 
 /** A train's locomotive: its model's, or a free-build train's diesel. */
