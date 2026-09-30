@@ -110,6 +110,8 @@ test.describe('Train sets shelf', () => {
         // 36 plain pieces, and the WX310's two straights and two five-step diagonals
         await expect.poll(() => edgeCount(page)).toBe(48);
         expect(await openEnds(page)).toBe(0);
+        // The layout starts its trains a moment after building: let it, before stopping them
+        await expect.poll(() => page.evaluate(() => window.__PANIC_STORES__!.simulation.getState().isRunning)).toBe(true);
 
         // Stop the trains, then throw the points at one end of the crossover
         await page.evaluate(() => {

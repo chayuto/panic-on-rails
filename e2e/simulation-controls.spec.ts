@@ -7,10 +7,17 @@ import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
 import { clickWorld } from './helpers/canvas.js';
 
+/**
+ * Load a template and wait until its trains are running. A template spawns
+ * its trains at once but starts them a moment later, and the view refits
+ * then: acting before that races the start.
+ */
 async function loadTemplate(page: Page, id: string) {
     await page.getByTestId('file-template-selector').selectOption(id);
-    await expect.poll(() => page.evaluate(() =>
-        Object.keys(window.__PANIC_STORES__!.simulation.getState().trains).length)).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => {
+        const sim = window.__PANIC_STORES__!.simulation.getState();
+        return Object.keys(sim.trains).length > 0 && sim.isRunning;
+    })).toBe(true);
 }
 
 test.describe('Simulation controls', () => {
