@@ -31,7 +31,8 @@ run your trains, and keep expanding the railway with no end point.
 - **Next:**
   - on-time runs, to timetables;
   - elevation;
-  - Kato's double-track sets.
+  - the rest of Kato's double-track sets (V12, V13 and V15 need elevation or the widening
+    sections; V17 needs the slab-track pieces).
 
 ## Vision
 
@@ -429,6 +430,24 @@ Order, biggest win per millisecond first:
       the model scale, so an H0 train drives like an N one, and track shows its brand's look.
 - [x] Brands: Märklin C-track (start oval plus C1–C5), Hornby Setrack (oval plus Track Packs
       A–F).
+- [x] **Kato double track:** V11 (20-870), V14 (20-873) and V16 (20-876). Each is a loop of
+      two tracks at 33 mm centres on superelevated curves, with approach curves easing in.
+  - The pieces are topology parts: two independent routes, tracks A and B, sharing no
+    connector. There's a double straight in 248, 124 and 62 mm and a double feeder. Each
+    radius pair (R315/282, R414/381, R480/447) has a 45° curve and 22.5° approaches, left and
+    right. An approach turns its own way from its flat end into the bank.
+  - Box contents, prices and pieces come from Kato's 2025 US catalog and the box backs.
+  - Each plan measures Kato's printed size to within 0.5 mm: V11 2334.5 × 1261.2 against
+    2335 × 1261. The set test now holds every set that stands alone to its printed size, not
+    only starters. Its footprint sweeps a topology part track by track, each on its own
+    roadbed.
+  - Each plan runs a train on each track, in opposite directions.
+- [ ] More double track:
+  - V17's concrete-slab pieces.
+  - V15's widening sections (20-051/052), whose inner S-curve Kato doesn't publish.
+  - V12 and V13 (elevation).
+  - V11 with V14 or V16 as four tracks, placed side by side.
+  - Draw a double piece as one slab: each track has its own roadbed for now.
 - [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
 - [ ] Real H0 rolling stock (Märklin's Start up trains; see Phase 4). OO has Hornby's train-set
       trains.
@@ -512,8 +531,9 @@ Order, biggest win per millisecond first:
 - [x] **Play metrics in Vitest** (`playMetrics.test.ts`; `PLAY_METRICS=1` prints them). The
       numbers are budgets:
   - Pacing: the starter train on the M1 oval earns $8–10 a minute just running. One station
-    adds 10–50%, and a station on every straight earns less than one. Each V-set takes under 12
-    minutes to save up for, and the dearest over 4.
+    adds 10–50%, and a station on every straight earns less than one. Each single-track V-set
+    takes under 12 minutes to save up for, each double-track one under 20, and the dearest of
+    each over 4.
   - Every boxed set's plan runs 5 minutes at the default throttle without incident.
   - Flat out on M1, the starter diesel and the commuter hold the R315 curves and the express
     doesn't. Driven heavy-handed (a random throttle every 5 s), the starter diesel never
