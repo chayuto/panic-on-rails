@@ -34,6 +34,7 @@ const LayoutPlanSchema = z.object({
     })).optional(),
     openEnds: z.number().int().nonnegative().optional(),
     tolerance: z.number().positive().max(3).optional(),
+    height: z.number().nonnegative().optional(),
 });
 
 export const TrackSetSchema = z.object({

@@ -13,7 +13,7 @@ import { getPartById } from '../../../data/catalog';
 import { deriveWorldGeometry } from '../../../utils/geometry';
 import {
     infillBetween, C_TRACK_LOOK, KATO_BRIDGE_LOOK, KATO_LOOK, KATO_SLAB_LOOK, KATO_VIADUCT_LOOK, SETRACK_LOOK,
-    type ModelLook, type PaintedEdge, type PaintedPier,
+    type ModelLook, type PaintedDeck, type PaintedEdge, type PaintedPier,
 } from './trackPainter';
 
 /** Roadbed width (mm) for parts that don't say. */
@@ -55,6 +55,11 @@ export function piersUnder(placed: readonly PlacedEdge[], nodes: Record<NodeId, 
     return piers;
 }
 
+/** The structure a piece's track is carried on, as wide as the piece. */
+function deckOf(part: PartDefinition): PaintedDeck {
+    return { kind: part.deck!, width: part.width ?? DEFAULT_ROADBED, ...(part.deckColor && { color: part.deckColor }) };
+}
+
 function lookOf(part: PartDefinition | undefined): ModelLook {
     if (part?.slab) return KATO_SLAB_LOOK;
     if (part?.deck === 'viaduct') return KATO_VIADUCT_LOOK;
@@ -77,7 +82,8 @@ export function paintedEdges(placed: readonly PlacedEdge[], selectedEdgeId: Edge
             selected: edge.id === selectedEdgeId,
             inactive: inactive.has(edge.id),
             ...(height > 0 && { height }),
-            ...(part?.deck && { deck: { kind: part.deck, width: part.width ?? DEFAULT_ROADBED, ...(part.deckColor && { color: part.deckColor }) } }),
+            // A double-track piece's deck is one, under both tracks: it goes on the infill
+            ...(part?.deck && !isDoubleTrack(part) && { deck: deckOf(part) }),
         });
         if (part && edge.placementId && isDoubleTrack(part)) {
             const pair = pairs.get(edge.placementId);
@@ -91,6 +97,7 @@ export function paintedEdges(placed: readonly PlacedEdge[], selectedEdgeId: Edge
             painted.push({
                 geometry: infill.geometry, style: 'model', look: lookOf(a.part), width: infill.width, infill: true,
                 ...(a.height > 0 && { height: a.height }),
+                ...(a.part?.deck && { deck: deckOf(a.part) }),
             });
         }
     }

@@ -98,6 +98,8 @@ export interface LayoutPlan {
      * At most 3.
      */
     tolerance?: number;
+    /** How high the first piece starts (mm above the baseboard), for a layout raised all round. Default 0 */
+    height?: number;
 }
 
 /** A real boxed product. */

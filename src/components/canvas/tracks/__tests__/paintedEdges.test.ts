@@ -122,3 +122,18 @@ describe('the V2 viaduct set', () => {
     });
 });
 
+describe('the V13 elevated loop', () => {
+    beforeEach(() => resetWorld());
+
+    it('stands 60 mm up all round, each piece one viaduct deck under both its slab tracks', () => {
+        const { painted, doublePieces } = paintSet('kato-20-872');
+        const { nodes } = useTrackStore.getState();
+        expect(Object.values(nodes).every(n => n.height === 60)).toBe(true);
+        // The deck goes on the infill between the tracks: one per piece, 77 mm across
+        const decks = painted.filter(p => p.deck);
+        expect(decks).toHaveLength(doublePieces);
+        expect(decks.every(p => p.infill && p.deck!.width === 77 && p.deck!.kind === 'viaduct')).toBe(true);
+        expect(painted.filter(p => !p.infill).every(p => p.look === KATO_SLAB_LOOK)).toBe(true);
+    });
+});
+
