@@ -1,190 +1,96 @@
 /**
- * Tests for Collision Manager with multi-car train support
+ * Collisions by the cars' real extent: any car of one train overlapping any
+ * car of another, wherever the tracks run.
  */
 
-import { describe, it, expect } from 'vitest';
-import { detectCollisions, getTrainLength } from '../collisionManager';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { detectCollisions, bodiesOverlap, type CarBody } from '../collisionManager';
+import { useTrackStore } from '../../stores/useTrackStore';
+import { useSimulationStore } from '../../stores/useSimulationStore';
+import { resetWorld } from '../../simulation/harness';
 import type { Train } from '../../types';
 
-describe('collisionManager', () => {
-    describe('getTrainLength', () => {
-        it('should return 0 for single carriage train', () => {
-            const train: Train = {
-                id: 'train-1',
-                currentEdgeId: 'edge-1',
-                distanceAlongEdge: 50,
-                direction: 1,
-                speed: 100,
-                color: '#FF0000',
-                carriageCount: 1,
-                carriageSpacing: 30,
-            };
+const state = () => useTrackStore.getState();
 
-            expect(getTrainLength(train)).toBe(0);
-        });
+/** A train of `cars` cars with its front at `distance` along `edgeId`, heading `direction`. */
+function trainAt(edgeId: string, distance: number, direction: 1 | -1 = 1, cars = 1): string {
+    const id = useSimulationStore.getState().spawnTrain(edgeId, undefined, cars, distance);
+    useSimulationStore.setState(s => ({ trains: { ...s.trains, [id]: { ...s.trains[id], direction } } }));
+    return id;
+}
 
-        it('should return correct length for multi-carriage train', () => {
-            const train: Train = {
-                id: 'train-1',
-                currentEdgeId: 'edge-1',
-                distanceAlongEdge: 50,
-                direction: 1,
-                speed: 100,
-                color: '#FF0000',
-                carriageCount: 3,
-                carriageSpacing: 30,
-            };
+function collisions() {
+    const { edges, nodes } = state();
+    return detectCollisions(useSimulationStore.getState().trains, edges, nodes);
+}
 
-            // (3 - 1) * 30 = 60
-            expect(getTrainLength(train)).toBe(60);
-        });
-
-        it('should use default values when properties are undefined', () => {
-            const train: Train = {
-                id: 'train-1',
-                currentEdgeId: 'edge-1',
-                distanceAlongEdge: 50,
-                direction: 1,
-                speed: 100,
-                color: '#FF0000',
-            };
-
-            // Default carriageCount is 1, so length is 0
-            expect(getTrainLength(train)).toBe(0);
-        });
+describe('detectCollisions', () => {
+    beforeEach(() => {
+        resetWorld();
+        useSimulationStore.getState().clearTrains();
     });
 
-    describe('detectCollisions', () => {
-        it('should detect collision between single-car trains on same edge', () => {
-            const trains: Record<string, Train> = {
-                'train-1': {
-                    id: 'train-1',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 50,
-                    direction: 1,
-                    speed: 100,
-                    color: '#FF0000',
-                    carriageCount: 1,
-                },
-                'train-2': {
-                    id: 'train-2',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 55,
-                    direction: -1,
-                    speed: 100,
-                    color: '#00FF00',
-                    carriageCount: 1,
-                },
-            };
+    it('two trains on the same track collide when their cars touch, not before', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!; // 248mm
+        trainAt(edge, 60, 1);   // car from ~16 to ~60
+        const far = trainAt(edge, 180, 1);
+        expect(collisions()).toEqual([]);
+        // Bring the second train's car back over the first's
+        useSimulationStore.setState(s => ({ trains: { ...s.trains, [far]: { ...s.trains[far], distanceAlongEdge: 80 } } }));
+        expect(collisions()).toHaveLength(1);
+    });
 
-            const collisions = detectCollisions(trains);
-            expect(collisions).toHaveLength(1);
-            expect(collisions[0].edgeId).toBe('edge-1');
-        });
+    it('trains meeting on a crossing\'s diamond collide, though their tracks share no node', () => {
+        state().addTrack('kato-20-320', { x: 0, y: 0 }, 0); // 90° crossing, 124mm each way
+        const [a, b] = Object.values(state().edges);
+        // Both fronts just past the middle of their track: the cars straddle the diamond
+        trainAt(a.id, 75, 1);
+        trainAt(b.id, 75, 1);
+        const hits = collisions();
+        expect(hits).toHaveLength(1);
+        // Where they met: the middle of the crossing
+        const middle = { x: (state().nodes[a.startNodeId].position.x + state().nodes[a.endNodeId].position.x) / 2 };
+        expect(Math.abs(hits[0].location.x - middle.x)).toBeLessThan(30);
+    });
 
-        it('should not detect collision between trains on different edges', () => {
-            const trains: Record<string, Train> = {
-                'train-1': {
-                    id: 'train-1',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 50,
-                    direction: 1,
-                    speed: 100,
-                    color: '#FF0000',
-                },
-                'train-2': {
-                    id: 'train-2',
-                    currentEdgeId: 'edge-2',
-                    distanceAlongEdge: 50,
-                    direction: 1,
-                    speed: 100,
-                    color: '#00FF00',
-                },
-            };
+    it('trains passing side by side on tracks at standard spacing don\'t touch', () => {
+        const a = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const b = state().addTrack('kato-20-000', { x: 0, y: 33 }, 0)!; // Kato's double-track spacing
+        trainAt(a, 200, 1, 3);
+        trainAt(b, 200, -1, 3);
+        expect(collisions()).toEqual([]);
+    });
 
-            const collisions = detectCollisions(trains);
-            expect(collisions).toHaveLength(0);
-        });
+    it('leaves crashed trains to the wreckage', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        trainAt(edge, 60, 1);
+        const other = trainAt(edge, 70, -1);
+        expect(collisions()).toHaveLength(1);
+        useSimulationStore.setState(s => ({ trains: { ...s.trains, [other]: { ...s.trains[other], crashed: true } } }));
+        expect(collisions()).toEqual([]);
+    });
 
-        it('should not detect collision between trains far apart on same edge', () => {
-            const trains: Record<string, Train> = {
-                'train-1': {
-                    id: 'train-1',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 10,
-                    direction: 1,
-                    speed: 100,
-                    color: '#FF0000',
-                    carriageCount: 1,
-                },
-                'train-2': {
-                    id: 'train-2',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 100,
-                    direction: 1,
-                    speed: 100,
-                    color: '#00FF00',
-                    carriageCount: 1,
-                },
-            };
+    it('reports each pair of trains once, however many of their cars touch', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        trainAt(edge, 240, 1, 4);
+        trainAt(edge, 240, 1, 4); // the same place: every car overlaps
+        expect(collisions()).toHaveLength(1);
+    });
+});
 
-            const collisions = detectCollisions(trains);
-            expect(collisions).toHaveLength(0);
-        });
+describe('bodiesOverlap', () => {
+    const body = (cx: number, cy: number, degrees: number): CarBody => {
+        const r = (degrees * Math.PI) / 180;
+        return { train: {} as Train, cx, cy, ux: Math.cos(r), uy: Math.sin(r), halfLength: 20, halfWidth: 6, reach: Math.hypot(20, 6) };
+    };
 
-        it('should detect collision between multi-car trains at longer distance', () => {
-            // Two 5-car trains with 30px spacing each have length of 4 * 30 = 120px each
-            // Effective threshold = 15 + 60 + 60 = 135px
-            const trains: Record<string, Train> = {
-                'train-1': {
-                    id: 'train-1',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 0,
-                    direction: 1,
-                    speed: 100,
-                    color: '#FF0000',
-                    carriageCount: 5,
-                    carriageSpacing: 30,
-                },
-                'train-2': {
-                    id: 'train-2',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 100, // Within 135px threshold
-                    direction: -1,
-                    speed: 100,
-                    color: '#00FF00',
-                    carriageCount: 5,
-                    carriageSpacing: 30,
-                },
-            };
-
-            const collisions = detectCollisions(trains);
-            expect(collisions).toHaveLength(1);
-        });
-
-        it('should skip crashed trains in collision detection', () => {
-            const trains: Record<string, Train> = {
-                'train-1': {
-                    id: 'train-1',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 50,
-                    direction: 1,
-                    speed: 100,
-                    color: '#FF0000',
-                    crashed: true,
-                },
-                'train-2': {
-                    id: 'train-2',
-                    currentEdgeId: 'edge-1',
-                    distanceAlongEdge: 55,
-                    direction: -1,
-                    speed: 100,
-                    color: '#00FF00',
-                },
-            };
-
-            const collisions = detectCollisions(trains);
-            expect(collisions).toHaveLength(0);
-        });
+    it('separates rectangles by any of their axes', () => {
+        expect(bodiesOverlap(body(0, 0, 0), body(39, 0, 0))).toBe(true);   // end to end, overlapping by 1
+        expect(bodiesOverlap(body(0, 0, 0), body(41, 0, 0))).toBe(false);
+        expect(bodiesOverlap(body(0, 0, 0), body(0, 13, 0))).toBe(false);  // side by side, 1mm apart
+        // Crossed at 90° through each other's middle
+        expect(bodiesOverlap(body(0, 0, 0), body(0, 0, 90))).toBe(true);
+        // Diagonal, clear of the corner
+        expect(bodiesOverlap(body(0, 0, 0), body(30, 25, 45))).toBe(false);
     });
 });

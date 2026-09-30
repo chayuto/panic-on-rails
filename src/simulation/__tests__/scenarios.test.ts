@@ -8,6 +8,7 @@ import { resetWorld, loadRecipe, loadSetPlan, summarize, simHarness } from '../h
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { loadTemplateJson } from './fixtures';
+import { planToTemplate } from '../../data/sets';
 
 const count = (events: { type: string }[], type: string) => events.filter(e => e.type === type).length;
 
@@ -94,6 +95,51 @@ describe('template scenarios (headless)', () => {
             }
             expect(summarize().crashed).toBe(0);
             expect(count(events, 'bounce')).toBe(0);
+        });
+    });
+
+    describe('a 90° crossing with a straight on each arm', () => {
+        /** Trains at the outer ends of two arms at right angles, heading in. */
+        function meetOnTheDiamond(holdSecondFor = 0) {
+            loadRecipe(planToTemplate({
+                id: 'diamond', name: 'Diamond',
+                steps: [
+                    { part: 'kato-20-320' },
+                    { part: 'kato-20-000', at: { piece: 0, connector: 'A2' } },
+                    { part: 'kato-20-000', at: { piece: 0, connector: 'A1' } },
+                    { part: 'kato-20-000', at: { piece: 0, connector: 'B1' } },
+                    { part: 'kato-20-000', at: { piece: 0, connector: 'B2' } },
+                ],
+                trains: [],
+                openEnds: 4,
+            }));
+            const { edges } = useTrackStore.getState();
+            const arms = Object.values(edges).filter(e => e.partId === 'kato-20-000');
+            const sim = useSimulationStore.getState();
+            const ids = [arms[0], arms[2]].map(arm => {
+                // Each arm runs out from the crossing: start at its far end, heading in
+                const id = sim.spawnTrain(arm.id, undefined, 1, arm.length);
+                useSimulationStore.setState(s => ({ trains: { ...s.trains, [id]: { ...s.trains[id], direction: -1 } } }));
+                return id;
+            });
+            if (holdSecondFor === 0) return simHarness.runSeconds(8);
+            useSimulationStore.getState().setTrainStopped(ids[1], true);
+            const early = simHarness.runSeconds(holdSecondFor);
+            useSimulationStore.getState().setTrainStopped(ids[1], false);
+            return [...early, ...simHarness.runSeconds(8 - holdSecondFor)];
+        }
+
+        it('two trains reaching it together crash on the diamond', () => {
+            const events = meetOnTheDiamond();
+            expect(count(events, 'collision')).toBe(2);
+            expect(summarize().crashed).toBe(2);
+        });
+
+        it('one held back until the other is over passes safely', () => {
+            const events = meetOnTheDiamond(1.6);
+            expect(count(events, 'collision')).toBe(0);
+            // Both still reached the far side
+            expect(count(events, 'traverse')).toBeGreaterThanOrEqual(4);
         });
     });
 

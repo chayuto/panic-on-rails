@@ -124,7 +124,7 @@ The simulation is a pure function plus thin adapters — keep it that way:
 - Subsystems it calls:
   - `driving.ts`: the power pack. Speed follows `train.throttle` with momentum, brakes in time for a red signal's stop line or the end of the line (`stopAhead`, `stoppingLimit`), and derails above a curve's limit (`derailSpeed(radius)`). The direction lever (`reverseRequested`) stops the train, then reverses it.
   - `movement.ts`: edge traversal, switch routing and dead-end bounce, with a hard stop at red stop lines as a safety net.
-  - `collision.ts`, plus `utils/collisionManager.ts`.
+  - `collision.ts`, plus `utils/collisionManager.ts`: two trains collide when any car of one overlaps any car of the other, each car a rectangle at its drawn pose (`getCarPoses`), so diamonds and fouled turnouts count.
   - `signals.ts`: sensor zones → wire actions.
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
   - `economy.ts`: money from events.

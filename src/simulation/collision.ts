@@ -7,7 +7,6 @@
 import type { Train, EdgeId, TrackEdge, Vector2, NodeId, TrackNode } from '../types';
 import { detectCollisions } from '../utils/collisionManager';
 import { explodeTrain, calculateCrashSeverity } from '../utils/crashPhysics';
-import { getPositionOnEdge } from '../utils/trainGeometry';
 import type { CrashedPart } from '../utils/crashPhysics';
 
 export interface CollisionEvent {
@@ -19,17 +18,19 @@ export interface CollisionEvent {
 }
 
 /**
- * Checks for collisions between trains and generates collision events.
+ * Checks for collisions between trains (any car of one overlapping any car
+ * of another) and generates collision events, with debris thrown from where
+ * the cars met.
  */
 export function checkCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>,
-    random: () => number = Math.random,
-    nodes?: Record<NodeId, TrackNode>
+    random: () => number,
+    nodes: Record<NodeId, TrackNode>
 ): CollisionEvent[] {
     const events: CollisionEvent[] = [];
 
-    detectCollisions(trains, edges).forEach(({ trainA, trainB }) => {
+    detectCollisions(trains, edges, nodes).forEach(({ trainA, trainB, location }) => {
         // Severity is shared by both trains: it depends on their relative speed
         const severity = calculateCrashSeverity(
             { x: trainA.speed * trainA.direction, y: 0 },
@@ -37,12 +38,9 @@ export function checkCollisions(
         );
 
         for (const train of [trainA, trainB]) {
-            const edge = edges[train.currentEdgeId];
-            if (!edge || train.crashed) continue;
-
-            const position = getPositionOnEdge(edge, train.distanceAlongEdge, nodes);
+            if (!edges[train.currentEdgeId] || train.crashed) continue;
             const debris = explodeTrain({
-                position,
+                position: location,
                 velocity: { x: train.speed * train.direction * 0.5, y: 0 },
                 trainColor: train.color,
                 severity,
@@ -51,7 +49,7 @@ export function checkCollisions(
             events.push({
                 type: 'collision',
                 trainIds: [train.id],
-                location: position,
+                location,
                 severity,
                 debris,
             });
