@@ -386,11 +386,14 @@ Order, biggest win per millisecond first:
       agents. A mouse-and-keyboard `Player`, and playtests with effort budgets: the oval by
       hand, open M1, save up for V4, every set of points in V7/C5/Pack F, and a seeded monkey.
 - [x] `track-configs` asserts every configuration, in simulated time.
-- [ ] Fix what the playtests found, then lower their budgets:
-  - the view doesn't follow a hand build (7 zoom-outs for the M1 oval);
-  - the Skip tutorial button and the "You did it!" toast lie over the canvas;
-  - a curve dropped beside a track end turns the wrong way at low zoom;
-  - a set of points is a ~6 px target at the zoom that fits a large layout.
+- [x] Fixed what the playtests found, and lowered their budgets to zero:
+  - The view follows a hand build: after a drop it pans (never zooms) to keep the new piece's
+    open ends in view. The M1 oval by hand went from 7 zoom-outs to none.
+  - Hints and toasts let clicks and dropped track through to the layout; only their buttons
+    catch the pointer. Skip tutorial moved from the bottom of the canvas into each hint.
+  - A curve dropped straight ahead of a curved track's end keeps turning the same way, rather
+    than whichever way the snap's rotation tie-break chose.
+  - A set of points keeps a button at least 12 px across however far out the view is zoomed.
 - [x] Playwright 1.63. The test agents have the `browser_mouse_*_xy` tools and are told to see
       the canvas with `look()`. The seed test waits for the lens.
 - [ ] Try `playwright-cli` for agent sessions.

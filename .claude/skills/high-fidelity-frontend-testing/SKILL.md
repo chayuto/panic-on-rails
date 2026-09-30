@@ -253,9 +253,11 @@ bridge, not snapshots.
 - **`mode`, `simulation`, `editor`, `effects` stores are NOT persisted**;
   `track`, `logic`, `collection`, `onboarding` ARE (localStorage). A reload resets
   the former and restores the latter.
-- **Onboarding overlays sit on the canvas.** The "Skip tutorial" button and the
-  toasts cover track; a click there never reaches Konva. `look()` marks such
-  points `clear: false`; `Player.dismissOverlays()` closes hints and toasts.
+- **Onboarding hints and toasts sit over the canvas** but let clicks and drops
+  through (`pointer-events: none`, except their buttons). Their × and the "Skip
+  tutorial" link inside each hint do catch clicks. `look()` marks points under
+  anything that catches the pointer `clear: false`; `Player.dismissOverlays()`
+  closes hints and toasts.
 - **Konva's hit graph lags a frame** behind state changes: before clicking a canvas
   point, wait for `__PANIC_STAGE__.getIntersection(p)` (`Player.click` and
   `helpers/canvas.ts` do).
