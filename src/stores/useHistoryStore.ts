@@ -1,8 +1,8 @@
 /**
  * History Store — Undo/Redo for layout edits.
  *
- * Captures combined snapshots of the three persisted layout stores (track
- * graph, logic elements, budget) and lets the user step backward and forward
+ * Captures combined snapshots of the two persisted layout stores (track
+ * graph, logic elements) and lets the user step backward and forward
  * through edit-mode gestures.
  *
  * Design:
@@ -16,10 +16,8 @@
  * (which build new objects but may share nested references) can never reach
  * back and corrupt a retained snapshot.
  *
- * Budget is included because placing track spends it and deleting track does
- * not refund it — without the budget in the snapshot, undo would desync the
- * balance. Logic elements are included because `removeTrack` cascade-deletes
- * orphaned sensors/signals, which an undo must restore.
+ * Logic elements are included because removing a piece (`removePiece`) takes
+ * the sensors, platforms and signals on it, which an undo must restore.
  */
 
 import { create } from 'zustand';

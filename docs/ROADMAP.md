@@ -592,7 +592,12 @@ Order, biggest win per millisecond first:
       effect is gone. Movement keeps its own walker; merge the two if a third use appears.
 - [x] GhostLayer computes previews through the catalog connector code and track creators
       (`createPartTrack`); crossovers and bumpers now preview their true shape.
-- [ ] Move cross-store cascades into an orchestration layer.
+- [x] **Cross-store cascades moved out of the stores.** Deleting a piece took the sensors,
+      platforms and signals on it from inside the track store, which reached into the logic
+      store to do it. `utils/removePiece.ts` does that now, as `joinPiece.ts` joins, and the
+      track store's `removeTrack` only knows track. The editor and the debug bridge
+      (`track.removePiece`) delete through it. The history store's notes no longer describe
+      a budget it stopped keeping.
 - [x] **Logging goes through `logger`**, which hides debug and info in production. A
       `no-console` lint rule allows only `warn` and `error` in app code. The app's `console.log`
       calls became logger calls, and the clear-layout trace shrank from four lines to one. Only

@@ -6,12 +6,12 @@ import { useLogicStore } from '../../../stores/useLogicStore';
 import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { useModeStore, useIsEditing } from '../../../stores/useModeStore';
 import { playSound } from '../../../utils/audioManager';
+import { removePiece } from '../../../utils/removePiece';
 import { fitPlatform } from '../../../simulation/stations';
 import type { TrackEdge, Vector2 } from '../../../types';
 
 export function useTrackInteraction() {
     const edges = useTrackStore(s => s.edges);
-    const removeTrack = useTrackStore(s => s.removeTrack);
     const selectedEdgeId = useEditorStore(s => s.selectedEdgeId);
     const setSelectedEdge = useEditorStore(s => s.setSelectedEdge);
     const addSensor = useLogicStore(s => s.addSensor);
@@ -41,7 +41,7 @@ export function useTrackInteraction() {
             setSelectedEdge(selectedEdgeId === edgeId ? null : edgeId);
         } else if (editSubMode === 'delete') {
             useHistoryStore.getState().record();
-            removeTrack(edgeId);
+            removePiece(edgeId);
             playSound('switch');
         } else if (editSubMode === 'sensor' || editSubMode === 'station') {
             const stage = e.target.getStage();
@@ -70,7 +70,7 @@ export function useTrackInteraction() {
             }
             playSound('switch');
         }
-    }, [isEditing, editSubMode, selectedEdgeId, edges, removeTrack, setSelectedEdge, addSensor, addStation, getPositionAlongEdge]);
+    }, [isEditing, editSubMode, selectedEdgeId, edges, setSelectedEdge, addSensor, addStation, getPositionAlongEdge]);
 
     return { handleEdgeClick };
 }

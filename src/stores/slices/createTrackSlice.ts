@@ -15,7 +15,6 @@ import type {
     TrackEdge,
 } from '../../types';
 import { getPartById } from '../../data/catalog';
-import { useLogicStore } from '../useLogicStore';
 import {
     spatialIndex,
     nodeIndex,
@@ -89,8 +88,9 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
     },
 
     /**
-     * Remove a track piece by its edge ID.
-     * Also removes connected nodes if they become orphaned.
+     * Remove a track piece by its edge ID: every edge placed with it, and
+     * the nodes it leaves bare. Only track: `utils/removePiece.ts` takes
+     * what stood on it too.
      * 
      * @param edgeId - ID of the edge to remove
      */
@@ -112,18 +112,7 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
             edgeIdsToRemove.push(edgeId);
         }
 
-        // Remove from spatial index and clean up logic for all edges
-        const logicStore = useLogicStore.getState();
-        for (const eid of edgeIdsToRemove) {
-            spatialIndex.remove(eid);
-            const orphanedSensors = logicStore.getSensorsOnEdge(eid);
-            for (const sensor of orphanedSensors) {
-                logicStore.removeSensor(sensor.id);
-            }
-            for (const station of logicStore.getStationsOnEdge(eid)) {
-                logicStore.removeStation(station.id);
-            }
-        }
+        for (const eid of edgeIdsToRemove) spatialIndex.remove(eid);
 
         set((state) => {
             const newNodes = { ...state.nodes };
@@ -153,10 +142,6 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
                     if (filteredConnections.length === 0) {
                         delete newNodes[nodeId];
                         nodeIndex.remove(nodeId);
-                        const orphanedSignals = logicStore.getSignalsAtNode(nodeId);
-                        for (const signal of orphanedSignals) {
-                            logicStore.removeSignal(signal.id);
-                        }
                     } else if (node.switchBranches?.some(id => removedEdgeIds.has(id as EdgeId))) {
                         // The points went with the piece: what's left is a plain joint or end
                         const { switchState: _state, switchBranches: _branches, switchGroup: _group, ...plain } = node;

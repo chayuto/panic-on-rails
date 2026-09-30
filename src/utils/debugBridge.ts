@@ -29,6 +29,7 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
+import { removePiece } from './removePiece';
 import { useOnboardingStore } from '../stores/useOnboardingStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import { look, type QaLook } from './qaLens';
@@ -72,10 +73,14 @@ function expose<S extends object, K extends keyof S, A extends keyof S>(
 
 function createBridge() {
     return {
-        track: expose(useTrackStore, ['nodes', 'edges'], [
-            'addTrack', 'removeTrack', 'loadLayout', 'clearLayout', 'getLayout', 'getOpenEndpoints', 'setNodeHeights',
-            'connectNodes', 'connectNetworks', 'toggleSwitch',
-        ]),
+        track: {
+            ...expose(useTrackStore, ['nodes', 'edges'], [
+                'addTrack', 'removeTrack', 'loadLayout', 'clearLayout', 'getLayout', 'getOpenEndpoints', 'setNodeHeights',
+                'connectNodes', 'connectNetworks', 'toggleSwitch',
+            ]),
+            /** Delete as the editor does: the piece, and the sensors, platforms and signals on it */
+            removePiece,
+        },
         mode: expose(useModeStore, ['primaryMode', 'editSubMode', 'simulateSubMode'], [
             'enterEditMode', 'enterSimulateMode', 'setEditSubMode', 'setSimulateSubMode', 'togglePrimaryMode',
         ]),
