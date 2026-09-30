@@ -238,6 +238,34 @@ Konva canvas** — they cannot perceive tracks or trains. Give them eyes with
 `window.__PANIC_QA__.look()` (see "Play like a player"), and assert through the
 bridge, not snapshots.
 
+## playwright-cli: a browser from the shell
+
+For an agent session that isn't a test (reproduce a bug, check a change by eye),
+`@playwright/cli` drives a browser with one shell command per step and keeps the
+page between them. It costs less context than the MCP tools: no tool schemas, and
+a snapshot of this app is about 4 KB. Tried on this app with 0.1.22 (dev server
+running):
+
+```bash
+pw() { npx @playwright/cli@0.1.22 -s=panic "$@"; }   # one named session
+pw open "http://localhost:5173/?e2e"
+pw resize 1440 900
+pw snapshot                                          # DOM controls, each with a ref
+pw click e85                                         # a control by its ref (the Hobby shop)
+pw eval "() => window.__PANIC_QA__.look().trains"    # the canvas, in page coordinates
+pw mousemove 1375 521; pw mousedown; pw mouseup      # click a train where look() puts it
+pw press Space                                       # keyboard shortcuts
+pw screenshot                                        # saved under .playwright-cli/
+pw close
+```
+
+- The canvas shows only through `look()`: act at its page coordinates with the
+  mouse commands. The mouse position carries over between commands.
+- After building a layout or switching mode, read the coordinates until they hold
+  still: the view re-fits as the train panel replaces the parts bin, and a click
+  read too early misses.
+- Snapshots, console logs and screenshots land in `.playwright-cli/` (gitignored).
+
 ## Writing a new test — checklist
 
 1. CI-gating functional test → `e2e/<name>.spec.ts`; agentic/visual/clock test
