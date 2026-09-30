@@ -153,7 +153,12 @@ Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, p
 - No `any` types — define interfaces for all graph structures
 - `src/config/` holds physics, timing, rendering, and interaction constants
 - Vitest tests live in `__tests__/` directories adjacent to source files
-- `src/setupTests.ts` mocks localStorage for Zustand persist in tests
+- `src/setupTests.ts` mocks localStorage for Zustand persist in tests. Unit tests run in Node, with no `window`.
+- Accessible DOM:
+  - `e2e/accessibility.spec.ts` runs axe (WCAG 2.2 A/AA) on every screen, so new UI must pass it.
+  - Text colours come from the `--fg-*` tokens, which meet AA contrast on the panels' backgrounds; white text goes on `--button-primary-bg`, not the accent.
+  - A scrolling container gets `tabIndex={0}`, and an icon button gets a short `aria-label`.
+  - Motion respects `prefersReducedMotion()` (`utils/motion.ts`), and the effects store starts at most three flashes a second.
 
 ### Agentic Dev-Test Infrastructure
 
