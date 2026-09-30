@@ -170,7 +170,13 @@ run trains ──▶ earn hobby money ──▶ buy a box / parts / a train in t
   - $1.50 per metre of model track run, per train. One train on the M1 oval earns about $9 a
     minute, so a V-set takes roughly ten minutes.
   - Each train in a crash costs a $20 repair.
-  - Later: station stops, on-time runs and an operating-session bonus.
+  - **Station stops.** The player puts a platform on the track, and passenger trains stop
+    there. The passengers pay for their ride: $0.50 per metre since the train's last stop,
+    per coach, for up to 3 m. A station earns most where trains have come a long way to reach
+    it. Every stop costs its six-second dwell, so a station every few pieces pays no more than
+    one would. Freight trains pass through. A platform is an operating point, not a product:
+    real platform kits could come later as scenery.
+  - Later: on-time runs and an operating-session bonus.
 - **Prices** follow real 2025 US street prices, so the virtual shelf feels like the real one:
   - M1 $95, V1 $75, V5 $45;
   - a #6 turnout $33, a 248 mm straight about $2.

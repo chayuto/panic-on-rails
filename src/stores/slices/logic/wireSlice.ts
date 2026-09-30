@@ -62,6 +62,7 @@ export const createWireSlice: LogicSliceCreator<WireSlice> = (set, get) => ({
             state.sensors = {};
             state.signals = {};
             state.wires = {};
+            state.stations = {};
         });
     },
 

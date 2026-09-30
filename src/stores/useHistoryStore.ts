@@ -28,7 +28,7 @@ import { useLogicStore } from './useLogicStore';
 import { rebuildSpatialIndices } from './slices';
 import type {
     NodeId, EdgeId, TrackNode, TrackEdge,
-    SensorId, SignalId, WireId, Sensor, Signal, Wire,
+    SensorId, SignalId, WireId, StationId, Sensor, Signal, Wire, Station,
 } from '../types';
 
 /** Max number of undo steps retained. Older entries are discarded. */
@@ -41,6 +41,7 @@ export interface LayoutSnapshot {
     sensors: Record<SensorId, Sensor>;
     signals: Record<SignalId, Signal>;
     wires: Record<WireId, Wire>;
+    stations: Record<StationId, Station>;
 }
 
 /** Read the current state of all layout stores into one deep-cloned snapshot. */
@@ -53,6 +54,7 @@ function captureSnapshot(): LayoutSnapshot {
         sensors: logic.sensors,
         signals: logic.signals,
         wires: logic.wires,
+        stations: logic.stations,
     });
 }
 
@@ -63,7 +65,7 @@ function applySnapshot(snap: LayoutSnapshot): void {
     const s = structuredClone(snap);
     rebuildSpatialIndices(s.nodes, s.edges);
     useTrackStore.setState({ nodes: s.nodes, edges: s.edges });
-    useLogicStore.setState({ sensors: s.sensors, signals: s.signals, wires: s.wires });
+    useLogicStore.setState({ sensors: s.sensors, signals: s.signals, wires: s.wires, stations: s.stations });
 }
 
 interface HistoryState {

@@ -13,6 +13,7 @@ import type { EdgeId, NodeId, Vector2 } from './index';
 export type SensorId = string;
 export type SignalId = string;
 export type WireId = string;
+export type StationId = string;
 
 export type LogicState = 'off' | 'on';
 
@@ -66,6 +67,24 @@ export interface Wire {
     action: WireAction;
     // Trigger mode
     triggerOn: 'rising' | 'falling' | 'both';
+}
+
+// ===========================
+// Stations
+// ===========================
+
+/**
+ * A station stop: a platform beside the track where passenger trains call.
+ * It's an operating point, not a product: the player says where trains stop.
+ */
+export interface Station {
+    id: StationId;
+    edgeId: EdgeId;
+    /** The platform's middle, as distance along the edge */
+    position: number;
+    /** The platform's length along the track (mm) */
+    length: number;
+    name: string;
 }
 
 // ===========================

@@ -31,10 +31,14 @@ describe('rerail', () => {
 
     it('keeps the driver\'s throttle; the loco leads again, and the trail starts afresh', () => {
         const { edges, nodes } = lineGraph(4, 100);
-        const a = { ...wreck('a', 'e0', 40), throttle: 150, locoLeading: false, reverseRequested: true, heldAtSignal: true, trail: ['e9'] };
+        const a = {
+            ...wreck('a', 'e0', 40), throttle: 150, locoLeading: false, reverseRequested: true, heldAtSignal: true, trail: ['e9'],
+            // Crashed while standing at a platform
+            dwell: 3, calledAt: 's', ride: 900,
+        };
         const placed = rerail(a, { a }, edges, nodes)!;
         expect(placed.throttle).toBe(150);
-        for (const key of ['locoLeading', 'reverseRequested', 'heldAtSignal', 'trail'] as const) {
+        for (const key of ['locoLeading', 'reverseRequested', 'heldAtSignal', 'trail', 'dwell', 'calledAt', 'ride'] as const) {
             expect(placed[key]).toBeUndefined();
         }
     });

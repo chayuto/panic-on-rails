@@ -4,6 +4,7 @@
  * Displays the tool selection buttons when in Edit mode:
  * - Select (default editing)
  * - Delete
+ * - Station
  * - Sensor
  * - Signal
  * - Wire
@@ -13,7 +14,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { MousePointer, Link, Trash2, Radio, TrafficCone, Cable, type LucideIcon } from 'lucide-react';
+import { MousePointer, Link, Trash2, Radio, TrafficCone, Cable, Landmark, type LucideIcon } from 'lucide-react';
 import { useModeStore } from '../../../stores/useModeStore';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
@@ -48,6 +49,12 @@ const EDIT_TOOLS: ToolButton[] = [
         icon: Trash2,
         label: 'Delete',
         title: 'Delete (3) - Click tracks to remove'
+    },
+    {
+        mode: 'station',
+        icon: Landmark,
+        label: 'Station',
+        title: 'Station (7) - Click track to put a platform there: passenger trains stop and their passengers pay fares',
     },
     {
         mode: 'sensor',

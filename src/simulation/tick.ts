@@ -61,8 +61,8 @@ function settleEarnings(events: SimEvent[], before: SimWorld): void {
 export function readWorld(): SimWorld {
     const { edges, nodes } = useTrackStore.getState();
     const { trains, crashedParts } = useSimulationStore.getState();
-    const { sensors, signals, wires } = useLogicStore.getState();
-    return { trains, edges, nodes, sensors, signals, wires, crashedParts };
+    const { sensors, signals, wires, stations } = useLogicStore.getState();
+    return { trains, edges, nodes, sensors, signals, wires, stations, crashedParts };
 }
 
 /**
@@ -136,6 +136,9 @@ function logEvent(event: SimEvent, before: SimWorld): void {
             break;
         case 'derail':
             log('derail', event.trainId, event.edgeId, `derailed at ${Math.round(event.speed)} mm/s on ${partOf(event.edgeId)}`);
+            break;
+        case 'station-stop':
+            log('station', event.trainId, event.edgeId, `called at ${before.stations[event.stationId]?.name ?? 'a station'}: fares $${(event.fare / 100).toFixed(2)}`);
             break;
         case 'sensor':
             if (event.state === 'on') {

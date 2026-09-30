@@ -49,10 +49,14 @@ test.describe('App Smoke Tests', () => {
 
     test('the toolbar stays on one line at laptop width, wallet included', async ({ page, app }) => {
         void app;
-        await page.setViewportSize({ width: 1280, height: 720 });
-        const toolbar = await page.getByTestId('toolbar').boundingBox();
-        const wallet = await page.getByTestId('wallet').boundingBox();
-        expect(toolbar!.height).toBeLessThan(64);
-        expect(wallet!.y + wallet!.height).toBeLessThanOrEqual(toolbar!.y + toolbar!.height);
+        // A laptop, and just past each width where the toolbar loosens up
+        // (the app's name shows from 1361, roomier buttons from 1441)
+        for (const width of [1280, 1361, 1441]) {
+            await page.setViewportSize({ width, height: 720 });
+            const toolbar = await page.getByTestId('toolbar').boundingBox();
+            const wallet = await page.getByTestId('wallet').boundingBox();
+            expect(toolbar!.height, `at ${width}px`).toBeLessThan(64);
+            expect(wallet!.y + wallet!.height, `at ${width}px`).toBeLessThanOrEqual(toolbar!.y + toolbar!.height);
+        }
     });
 });

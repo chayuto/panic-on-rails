@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useLogicStore } from '../useLogicStore';
+import { useTrackStore } from '../useTrackStore';
+import { useHistoryStore } from '../useHistoryStore';
 
 describe('useLogicStore', () => {
     beforeEach(() => {
@@ -112,6 +114,42 @@ describe('useLogicStore', () => {
 
             // Wire should be gone because its target was removed
             expect(useLogicStore.getState().wires[wireId]).toBeUndefined();
+        });
+    });
+
+    describe('Stations', () => {
+        it('adds station stops, named in order, and removes them', () => {
+            const { addStation, removeStation, getStationsOnEdge } = useLogicStore.getState();
+            const a = addStation('edge-1', 124, 240);
+            const b = addStation('edge-2', 60, 120);
+            expect(getStationsOnEdge('edge-1')).toEqual([{ id: a, edgeId: 'edge-1', position: 124, length: 240, name: 'Station 1' }]);
+            expect(useLogicStore.getState().stations[b].name).toBe('Station 2');
+
+            removeStation(a);
+            expect(getStationsOnEdge('edge-1')).toEqual([]);
+            // The first free name is used again
+            const c = addStation('edge-3', 60, 120);
+            expect(useLogicStore.getState().stations[c].name).toBe('Station 1');
+        });
+
+        it('are cleared with the rest of the logic', () => {
+            useLogicStore.getState().addStation('edge-1', 124, 240);
+            useLogicStore.getState().clearLogic();
+            expect(useLogicStore.getState().stations).toEqual({});
+        });
+
+        it('go with the track they stand on, and come back with an undo', () => {
+            const track = useTrackStore.getState();
+            track.clearLayout();
+            const edgeId = track.addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+            useLogicStore.getState().addStation(edgeId, 124, 240);
+
+            useHistoryStore.getState().record();
+            useTrackStore.getState().removeTrack(edgeId);
+            expect(useLogicStore.getState().stations).toEqual({});
+
+            useHistoryStore.getState().undo();
+            expect(Object.values(useLogicStore.getState().stations).map(s => s.edgeId)).toEqual([edgeId]);
         });
     });
 });

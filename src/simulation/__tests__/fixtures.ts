@@ -51,5 +51,5 @@ export function train(id: string, edgeId: EdgeId, distance: number, direction: 1
 }
 
 export function world(partial: Partial<SimWorld>): SimWorld {
-    return { trains: {}, edges: {}, nodes: {}, sensors: {}, signals: {}, wires: {}, crashedParts: [], ...partial };
+    return { trains: {}, edges: {}, nodes: {}, sensors: {}, signals: {}, wires: {}, stations: {}, crashedParts: [], ...partial };
 }

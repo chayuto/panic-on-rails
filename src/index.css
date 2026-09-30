@@ -148,7 +148,7 @@ button:disabled {
 }
 
 /* Tighter spacing so the toolbar stays on one line on laptop widths */
-@media (max-width: 1400px) {
+@media (max-width: 1440px) {
   .toolbar {
     gap: 8px 10px;
     padding: 8px 12px;
@@ -176,6 +176,13 @@ button:disabled {
   min-width: unset;
   font-size: 16px;
   position: relative;
+}
+
+/* Narrower on laptop widths, so the toolbar stays on one line */
+@media (max-width: 1440px) {
+  .toolbar-btn-icon {
+    padding: 6px 8px;
+  }
 }
 
 /* Custom tooltip - appears faster than native title */

@@ -32,7 +32,7 @@ import { useHistoryStore } from '../stores/useHistoryStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import { look, type QaLook } from './qaLens';
 import type { CrashedPart } from './crashPhysics';
-import type { Sensor, Signal, Wire, Train } from '../types';
+import type { Sensor, Signal, Wire, Station, Train } from '../types';
 import type { LogicStore } from '../stores/slices/logic/types';
 import type Konva from 'konva';
 
@@ -126,8 +126,11 @@ export interface PanicStoreBridge {
             sensors: Record<string, Sensor>;
             signals: Record<string, Signal>;
             wires: Record<string, Wire>;
+            stations: Record<string, Station>;
         };
         addSensor: LogicStore['addSensor'];
+        addStation: LogicStore['addStation'];
+        removeStation: LogicStore['removeStation'];
         addSignal: LogicStore['addSignal'];
         setSignalState: LogicStore['setSignalState'];
         toggleSignal: LogicStore['toggleSignal'];
@@ -301,9 +304,12 @@ export function initDebugBridge(): void {
                     sensors: s.sensors,
                     signals: s.signals,
                     wires: s.wires,
+                    stations: s.stations,
                 };
             },
             addSensor: (...args) => useLogicStore.getState().addSensor(...args),
+            addStation: (...args) => useLogicStore.getState().addStation(...args),
+            removeStation: (...args) => useLogicStore.getState().removeStation(...args),
             addSignal: (...args) => useLogicStore.getState().addSignal(...args),
             setSignalState: (...args) => useLogicStore.getState().setSignalState(...args),
             toggleSignal: (...args) => useLogicStore.getState().toggleSignal(...args),

@@ -6,6 +6,7 @@ import { useLogicStore } from '../../../stores/useLogicStore';
 import { useHistoryStore } from '../../../stores/useHistoryStore';
 import { useModeStore, useIsEditing } from '../../../stores/useModeStore';
 import { playSound } from '../../../utils/audioManager';
+import { fitPlatform } from '../../../simulation/stations';
 import type { TrackEdge, Vector2 } from '../../../types';
 
 export function useTrackInteraction() {
@@ -14,6 +15,7 @@ export function useTrackInteraction() {
     const selectedEdgeId = useEditorStore(s => s.selectedEdgeId);
     const setSelectedEdge = useEditorStore(s => s.setSelectedEdge);
     const addSensor = useLogicStore(s => s.addSensor);
+    const addStation = useLogicStore(s => s.addStation);
     const editSubMode = useModeStore(s => s.editSubMode);
     const isEditing = useIsEditing();
 
@@ -41,7 +43,7 @@ export function useTrackInteraction() {
             useHistoryStore.getState().record();
             removeTrack(edgeId);
             playSound('switch');
-        } else if (editSubMode === 'sensor') {
+        } else if (editSubMode === 'sensor' || editSubMode === 'station') {
             const stage = e.target.getStage();
             if (!stage) return;
             const pointerPos = stage.getPointerPosition();
@@ -53,11 +55,22 @@ export function useTrackInteraction() {
             if (!edge) return;
 
             const position = getPositionAlongEdge(edge, worldPos);
-            useHistoryStore.getState().record();
-            addSensor(edgeId, position);
+            if (editSubMode === 'station') {
+                // A platform centred where the track was clicked, kept on the piece,
+                // unless there's one there already
+                const platform = fitPlatform(edge, position);
+                const taken = useLogicStore.getState().getStationsOnEdge(edgeId)
+                    .some(s => Math.abs(s.position - platform.position) < (s.length + platform.length) / 2);
+                if (taken) return;
+                useHistoryStore.getState().record();
+                addStation(edgeId, platform.position, platform.length);
+            } else {
+                useHistoryStore.getState().record();
+                addSensor(edgeId, position);
+            }
             playSound('switch');
         }
-    }, [isEditing, editSubMode, selectedEdgeId, edges, removeTrack, setSelectedEdge, addSensor, getPositionAlongEdge]);
+    }, [isEditing, editSubMode, selectedEdgeId, edges, removeTrack, setSelectedEdge, addSensor, addStation, getPositionAlongEdge]);
 
     return { handleEdgeClick };
 }

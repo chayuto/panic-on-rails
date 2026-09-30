@@ -1,7 +1,8 @@
 /**
  * Logic Store for PanicOnRails
  * 
- * Manages sensors, signals, and wires for the automation system.
+ * Manages sensors, signals, and wires for the automation system, and the
+ * station stops where passenger trains call.
  * Uses slice pattern for modularity.
  */
 
@@ -12,6 +13,7 @@ import type { LogicStore } from './slices/logic';
 import {
     createSensorSlice,
     createSignalSlice,
+    createStationSlice,
     createWireSlice,
 } from './slices/logic';
 
@@ -19,6 +21,7 @@ const initialState = {
     sensors: {},
     signals: {},
     wires: {},
+    stations: {},
 };
 
 export const useLogicStore = create<LogicStore>()(
@@ -27,6 +30,7 @@ export const useLogicStore = create<LogicStore>()(
             ...initialState,
             ...createSensorSlice(...args),
             ...createSignalSlice(...args),
+            ...createStationSlice(...args),
             ...createWireSlice(...args),
         })),
         {
@@ -39,3 +43,4 @@ export const useLogicStore = create<LogicStore>()(
 export const selectSensors = (state: LogicStore) => state.sensors;
 export const selectSignals = (state: LogicStore) => state.signals;
 export const selectWires = (state: LogicStore) => state.wires;
+export const selectStations = (state: LogicStore) => state.stations;

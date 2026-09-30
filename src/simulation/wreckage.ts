@@ -14,7 +14,8 @@ import { spawnCandidates } from './spawn';
  * The wreck put back on the rails: on track of its own scale, at the
  * clearest spot where all its cars stand clear of every other train and
  * wreck, standing still with the loco leading, its throttle where the
- * driver left it. Null if there's no such spot.
+ * driver left it. Whatever it was doing before the crash (standing at a
+ * platform, reversing) is forgotten. Null if there's no such spot.
  */
 export function rerail(
     wreck: Train,
@@ -27,6 +28,7 @@ export function rerail(
     const {
         crashed: _crashed, crashTime: _crashTime, trail: _trail, bounceTime: _bounceTime,
         reverseRequested: _reverse, heldAtSignal: _held, locoLeading: _locoLeading,
+        dwell: _dwell, calledAt: _calledAt, ride: _ride,
         ...train
     } = wreck;
 

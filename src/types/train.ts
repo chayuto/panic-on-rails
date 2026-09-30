@@ -3,6 +3,7 @@
  */
 
 import type { TrainId, EdgeId } from './common';
+import type { StationId } from './logic';
 import type { PartScale } from '../data/catalog/types';
 
 /** A train moving along the track graph */
@@ -36,4 +37,11 @@ export interface Train {
     carriageSpacing?: number;  // Distance between consecutive cars' front bogies (mm, default CAR_PITCH)
     /** Edges the train came through, most recent first, for placing its cars */
     trail?: EdgeId[];
+    // Station stops
+    /** Railway seconds left standing at a platform */
+    dwell?: number;
+    /** The station it's calling at or just called at, so it doesn't stop there again at once */
+    calledAt?: StationId;
+    /** Model mm run since its last station stop: the passengers' ride, for the fare */
+    ride?: number;
 }

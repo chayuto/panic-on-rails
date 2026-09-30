@@ -5,8 +5,8 @@
 import type { StateCreator } from 'zustand';
 import 'zustand/middleware/immer';
 import type {
-    SensorId, SignalId, WireId,
-    Sensor, Signal, Wire,
+    SensorId, SignalId, WireId, StationId,
+    Sensor, Signal, Wire, Station,
     LogicState, SignalState, WireAction,
     EdgeId, NodeId, Vector2
 } from '../../../types';
@@ -15,6 +15,7 @@ export interface LogicStateData {
     sensors: Record<SensorId, Sensor>;
     signals: Record<SignalId, Signal>;
     wires: Record<WireId, Wire>;
+    stations: Record<StationId, Station>;
 }
 
 export interface SensorSlice {
@@ -32,6 +33,12 @@ export interface SignalSlice {
     getSignalsAtNode: (nodeId: NodeId) => Signal[];
 }
 
+export interface StationSlice {
+    addStation: (edgeId: EdgeId, position: number, length: number) => StationId;
+    removeStation: (stationId: StationId) => void;
+    getStationsOnEdge: (edgeId: EdgeId) => Station[];
+}
+
 export interface WireSlice {
     addWire: (
         sourceType: 'sensor' | 'signal',
@@ -46,7 +53,7 @@ export interface WireSlice {
 }
 
 // Combined Store Type
-export type LogicStore = LogicStateData & SensorSlice & SignalSlice & WireSlice;
+export type LogicStore = LogicStateData & SensorSlice & SignalSlice & StationSlice & WireSlice;
 
 // Slice Creator Type
 export type LogicSliceCreator<T> = StateCreator<

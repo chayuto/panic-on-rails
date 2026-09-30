@@ -10,6 +10,7 @@ import { SignalLayer } from './SignalLayer';
 import { WireLayer } from './WireLayer';
 import { EffectsLayer } from './EffectsLayer';
 import { CrashLayer } from './CrashLayer';
+import { StationLayer } from './StationLayer';
 import { SimulationTooltip } from '../ui';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useIsEditing, useIsSimulating } from '../../stores/useModeStore';
@@ -200,6 +201,7 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 {/* Layer 2: Track + Logic (interactive) */}
                 <Layer>
                     <TrackLayer viewport={viewport} />
+                    <StationLayer />
                     <WireLayer />
                     <SensorLayer />
                     <SignalLayer />
