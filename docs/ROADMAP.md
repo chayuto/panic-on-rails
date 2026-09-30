@@ -569,8 +569,14 @@ Order, biggest win per millisecond first:
 - [x] **knip in CI** (`pnpm knip`) for unused files and dependencies. It deleted
       `useSimulateModeHandler`, `useViewport`, two e2e helpers nothing used, and eight barrel
       `index.ts` files nothing imported. (`isHeadOnCollision` had gone already.)
-- [ ] knip's unused exports (119): mostly store selectors and barrel re-exports. Decide which
-      are API worth keeping, delete the rest, then add exports to the CI check.
+- [x] **knip checks exports too.** Its 175 unused exports and types are gone, with the five
+      things only they used, and `pnpm knip` now runs all of knip's checks, so CI fails on a new
+      one. None was worth keeping as API: agents reach the app through the debug bridge.
+  - Barrels re-export only what's imported through them.
+  - Store selectors that only read a field went; derived ones (`selectIsSimulating`) stayed.
+  - Dead code went with them: the catalog's TypeScript part factories (parts are JSON now),
+    loading a catalog from a URL, volume setters, unused easings, and mode type guards that had
+    already missed the pier tool.
 - [x] **Agent specs nightly** (`.github/workflows/nightly.yml`, `pnpm e2e:specs`): `e2e/specs/`
       against the production preview, with screenshot comparisons skipped until there are
       Linux baselines. Its first local run caught the clock spec loading the page without
