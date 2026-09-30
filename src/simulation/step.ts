@@ -23,7 +23,8 @@ import { checkCollisions } from './collision';
 import { carBodies, detectNearMisses } from '../utils/collisionManager';
 import { updateSensors } from './signals';
 import { TRAIL_LENGTH } from '../config/rollingStock';
-import { AT_STOP_LINE, approachSpeed, derailSpeed, lookaheadFor, stopAhead, stoppingLimit, targetSpeed, throttleOf } from './driving';
+import { AT_STOP_LINE, approachSpeed, derailSpeed, gradeFactor, lookaheadFor, stopAhead, stoppingLimit, targetSpeed, throttleOf } from './driving';
+import { gradeOf } from '../utils/elevation';
 import { explodeTrain } from '../utils/crashPhysics';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 import { reverseConsist } from '../utils/trainCars';
@@ -130,7 +131,9 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         // time for red signals, platforms and buffer stops ahead
         const size = sizeOf(train.scale);
         const calls = platforms.size > 0 && carriesPassengers(train);
-        let limit = targetSpeed(train);
+        // A climb holds it back
+        const onEdge = edges[train.currentEdgeId];
+        let limit = targetSpeed(train) * gradeFactor(onEdge ? gradeOf(onEdge, nodes) * train.direction : 0);
         const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed, size), calls ? platforms : undefined);
         if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt, size));
         let speed = approachSpeed(train.speed, limit, dt, size);

@@ -1,7 +1,8 @@
 import type {
     TrackTemplate,
     TemplateMetadata,
-    TemplateManifest
+    TemplateManifest,
+    TemplatePart,
 } from './types';
 import type { TrackNode } from '../../types';
 import { canJoin, isOpenEnd } from '../../utils/graphAnalysis';
@@ -61,7 +62,8 @@ export function applyTemplate(
     connectNodes: (survivorId: string, removedId: string) => void,
     spawnTrain: (edgeId: string, color?: string, stock?: string) => string,
     startSimulation: () => void,
-    autoStart: boolean = true
+    autoStart: boolean = true,
+    setNodeHeights?: (heights: Record<string, number>) => void
 ): void {
     // Clear existing layout
     clearLayout();
@@ -69,10 +71,15 @@ export function applyTemplate(
     // Place each part through the real catalog pipeline
     const edgeIds: (string | null)[] = [];
     for (const part of template.parts) {
+        const before = new Set(Object.keys(getNodes()));
         const edgeId = addTrack(part.partId, part.position, part.rotation);
         edgeIds.push(edgeId);
         if (!edgeId) {
             console.warn(`[Templates] Failed to place part: ${part.partId}`);
+        } else if (part.heights && setNodeHeights) {
+            // Raised: each of the new piece's ends at its height
+            const placed = Object.values(getNodes()).filter(n => !before.has(n.id));
+            setNodeHeights(heightsByNode(placed, part.heights));
         }
     }
 
@@ -95,6 +102,27 @@ export function applyTemplate(
         }, 100);
     }
 }
+
+/** A template part's end heights, given by where the ends are, as heights of its placed nodes. */
+function heightsByNode(nodes: TrackNode[], heights: NonNullable<TemplatePart['heights']>): Record<string, number> {
+    const byNode: Record<string, number> = {};
+    for (const { at, height } of heights) {
+        let nearest: TrackNode | undefined;
+        let distance = HEIGHT_MATCH_MM;
+        for (const node of nodes) {
+            const d = Math.hypot(node.position.x - at.x, node.position.y - at.y);
+            if (d <= distance) {
+                nearest = node;
+                distance = d;
+            }
+        }
+        if (nearest) byNode[nearest.id] = height;
+    }
+    return byNode;
+}
+
+/** An end's height applies to the placed node this close to where the template says it is (mm). */
+const HEIGHT_MATCH_MM = 1;
 
 /**
  * Join open ends that sit within threshold distance of each other.

@@ -63,7 +63,8 @@ export function loadRecipe(template: TrackTemplate): (EdgeId | null)[] {
         (survivor, removed) => useTrackStore.getState().connectNodes(survivor, removed),
         (edgeId, color, stock) => useSimulationStore.getState().spawnTrain(edgeId, color, undefined, undefined, stock),
         () => { /* headless: caller steps explicitly */ },
-        false
+        false,
+        useTrackStore.getState().setNodeHeights
     );
     return edgeIds;
 }

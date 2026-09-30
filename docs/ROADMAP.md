@@ -497,7 +497,20 @@ Order, biggest win per millisecond first:
 - [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
 - [ ] Real H0 rolling stock (Märklin's Start up trains; see Phase 4). OO has Hornby's train-set
       trains.
-- [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
+- [x] **Elevation in the engine.** Track can stand above the baseboard. A node has a height
+      (`TrackNode.height`, mm), and a piece between two heights is a grade.
+  - Ends join only at the same height: dropping a piece, the Connect tool, and templates all
+    check it. A piece set down against raised track is lifted to meet it.
+  - A plan step can give the height its far end rises to (`PlanStep.height`). Plans, templates
+    and share links carry heights; links with raised track are `v2`.
+  - A climb holds a train back: about a quarter slower on Kato's standard 4%, at most by
+    half (`gradeFactor`). Going down, the motor holds it to its throttle's speed.
+  - Trains pass over and under each other: cars collide only at the same level, within a
+    car's height (`VERTICAL_CLEARANCE`, 26 mm in N).
+  - Raised track is painted over the track on the baseboard, lowest first, with its shadow
+    and each pier's cast on what's below. The train layer paints raised track again over the
+    trains passing under it, before the trains on top.
+- [ ] Elevation's products: Kato's viaduct track and piers, and the V2, V12 and V13 sets.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
   - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin

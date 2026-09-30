@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { infillBetween, KATO_LOOK, KATO_SLAB_LOOK } from '../trackPainter';
-import { paintedEdges, type PlacedEdge } from '../paintedEdges';
+import { middleHeight, paintedEdges, piersUnder, type PlacedEdge } from '../paintedEdges';
 import { resetWorld, loadSetPlan } from '../../../../simulation/harness';
 import { useTrackStore } from '../../../../stores/useTrackStore';
 import { getEdgeWorldGeometry } from '../../../../hooks/useEdgeGeometry';
@@ -48,6 +48,7 @@ describe('paintedEdges', () => {
             edge,
             geometry: getEdgeWorldGeometry(edge, nodes)!,
             part: getPartById(edge.partId),
+            height: middleHeight(edge, nodes),
         }));
         const doublePieces = new Set(placed.filter(p => p.part && isDoubleTrack(p.part)).map(p => p.edge.placementId));
         return { placed, painted: paintedEdges(placed, null, new Set()), doublePieces: doublePieces.size };
@@ -75,3 +76,24 @@ describe('paintedEdges', () => {
         expect(paintSet('kato-20-852').painted.some(p => p.infill)).toBe(false);
     });
 });
+
+describe('raised track', () => {
+    beforeEach(() => resetWorld());
+
+    it('paints at its height, with a pier under every raised joint', () => {
+        // Two straights end to end, the second raised 40 mm at its far end: a grade
+        const state = useTrackStore.getState();
+        const flat = state.addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const ramp = state.addTrack('kato-20-000', { x: 248, y: 0 }, 0)!;
+        const { edges } = useTrackStore.getState();
+        state.setNodeHeights({ [edges[ramp].endNodeId]: 40 });
+        const { nodes } = useTrackStore.getState();
+        const placed: PlacedEdge[] = [flat, ramp].map(id => ({
+            edge: edges[id], geometry: getEdgeWorldGeometry(edges[id], nodes)!, part: getPartById(edges[id].partId), height: middleHeight(edges[id], nodes),
+        }));
+        const painted = paintedEdges(placed, null, new Set());
+        expect(painted.map(p => p.height)).toEqual([undefined, 20]);
+        expect(piersUnder(placed, nodes)).toEqual([{ x: 496, y: 0, height: 40 }]);
+    });
+});
+

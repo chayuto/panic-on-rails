@@ -14,8 +14,11 @@ import type Konva from 'konva';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useIsSimulating } from '../../stores/useModeStore';
-import type { BoundingBox } from '../../types';
-import { carCount, frameGeometry, getCarPoses } from '../../utils/trainCars';
+import type { BoundingBox, Train } from '../../types';
+import { carCount, frameGeometry, getCarPoses, type CarPose } from '../../utils/trainCars';
+import { HEIGHT_TOLERANCE } from '../../utils/elevation';
+import { paintRaised } from './tracks/trackPainter';
+import { raisedTrack } from './tracks/paintedEdges';
 import { ROLLING_STOCK } from '../../config/rollingStock';
 import { sizeOf } from '../../config/scales';
 import { carKindAt, tractionOf } from '../../data/rollingStock';
@@ -38,6 +41,37 @@ function drawCrashMark(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.moveTo(x + 7, y - 7);
     ctx.lineTo(x - 7, y + 7);
     ctx.stroke();
+}
+
+/** One train's cars, stamped from their sprites, and a mark on a wreck. */
+function drawTrain(ctx: CanvasRenderingContext2D, train: Train, poses: CarPose[]) {
+    // Sprites are drawn at N size; bigger scales stamp them bigger
+    const size = sizeOf(train.scale);
+    const W = ROLLING_STOCK.CAR_WIDTH * size;
+    const m = SPRITE_MARGIN * size;
+    // The locomotive leads, or pushes from the back after turning back
+    const pushing = train.locoLeading === false;
+    const count = carCount(train);
+    // Each car's place in the train counting from the locomotive
+    const fromLoco = (i: number) => (pushing ? count - 1 - i : i);
+    const traction = tractionOf(train);
+    // Draw from the back so the leading car sits on top at couplings
+    for (let i = poses.length - 1; i >= 0; i--) {
+        const pose = poses[i];
+        const kind = carKindAt(train, fromLoco(i));
+        const isLoco = kind === 'loco';
+        const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size, traction);
+        if (!sprite) continue;
+        const L = pose.length;
+        ctx.save();
+        ctx.translate(pose.x, pose.y);
+        // A pushing locomotive still faces the way it was going
+        ctx.rotate(((pose.rotation + (isLoco && pushing ? 180 : 0)) * Math.PI) / 180);
+        ctx.drawImage(sprite, -L / 2 - m, -W / 2 - m, L + 2 * m, W + 2 * m);
+        ctx.restore();
+    }
+    const loco = poses[fromLoco(0)] ?? poses[0];
+    if (train.crashed) drawCrashMark(ctx, loco.x, loco.y);
 }
 
 export function TrainLayer({ viewport }: TrainLayerProps) {
@@ -65,49 +99,38 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
         });
     }, []);
 
-    const paint = useCallback((context: Konva.Context) => {
+    const paint = useCallback((context: Konva.Context, shape: Konva.Shape) => {
         const ctx = context._context;
         const { trains } = useSimulationStore.getState();
         const { edges, nodes } = useTrackStore.getState();
         const geometryOf = frameGeometry(edges, nodes);
         const view = viewportRef.current;
+        // The trains in view, lowest first
+        const shown: { train: Train; poses: CarPose[]; height: number }[] = [];
         for (const train of Object.values(trains)) {
             const poses = getCarPoses(train, edges, nodes, geometryOf);
             if (poses.length === 0) continue;
-            // Sprites are drawn at N size; bigger scales stamp them bigger
-            const size = sizeOf(train.scale);
-            const W = ROLLING_STOCK.CAR_WIDTH * size;
-            const m = SPRITE_MARGIN * size;
-            const cull = CULL_MARGIN * size;
+            const cull = CULL_MARGIN * sizeOf(train.scale);
             if (view && !poses.some(p =>
                 p.x > view.x - cull && p.x < view.x + view.width + cull &&
                 p.y > view.y - cull && p.y < view.y + view.height + cull
             )) continue;
-
-            // The locomotive leads, or pushes from the back after turning back
-            const pushing = train.locoLeading === false;
-            const count = carCount(train);
-            // Each car's place in the train counting from the locomotive
-            const fromLoco = (i: number) => (pushing ? count - 1 - i : i);
-            const traction = tractionOf(train);
-            // Draw from the back so the leading car sits on top at couplings
-            for (let i = poses.length - 1; i >= 0; i--) {
-                const pose = poses[i];
-                const kind = carKindAt(train, fromLoco(i));
-                const isLoco = kind === 'loco';
-                const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size, traction);
-                if (!sprite) continue;
-                const L = pose.length;
-                ctx.save();
-                ctx.translate(pose.x, pose.y);
-                // A pushing locomotive still faces the way it was going
-                ctx.rotate(((pose.rotation + (isLoco && pushing ? 180 : 0)) * Math.PI) / 180);
-                ctx.drawImage(sprite, -L / 2 - m, -W / 2 - m, L + 2 * m, W + 2 * m);
-                ctx.restore();
-            }
-            const loco = poses[fromLoco(0)] ?? poses[0];
-            if (train.crashed) drawCrashMark(ctx, loco.x, loco.y);
+            shown.push({ train, poses, height: Math.max(...poses.map(p => p.height)) });
         }
+        shown.sort((a, b) => a.height - b.height);
+
+        // Raised track covers the trains passing under it, and carries those on it
+        const raised = raisedTrack(edges, nodes);
+        const zoom = shape.getStage()?.scaleX() ?? 1;
+        let covered = raised.length === 0;
+        for (const { train, poses, height } of shown) {
+            if (!covered && height > HEIGHT_TOLERANCE) {
+                paintRaised(ctx, raised, zoom);
+                covered = true;
+            }
+            drawTrain(ctx, train, poses);
+        }
+        if (!covered) paintRaised(ctx, raised, zoom);
     }, []);
 
     if (!isSimulating) return null;

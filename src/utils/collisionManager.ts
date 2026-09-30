@@ -15,6 +15,7 @@ import type { Train, TrackEdge, EdgeId, NodeId, TrackNode, Vector2 } from '../ty
 import { ROLLING_STOCK } from '../config/rollingStock';
 import { sizeOf } from '../config/scales';
 import { frameGeometry, getCarPoses } from './trainCars';
+import { VERTICAL_CLEARANCE } from './elevation';
 
 /**
  * How much of a car's body counts, lengthwise and across. A little under the
@@ -44,6 +45,9 @@ export interface CarBody {
     halfWidth: number;
     /** Bounding circle radius, for the broad phase */
     reach: number;
+    /** How high its track stands (mm), and how tall it is: cars at other levels pass over or under */
+    height: number;
+    tall: number;
 }
 
 function bodiesOf(
@@ -52,7 +56,9 @@ function bodiesOf(
     nodes: Record<NodeId, TrackNode>,
     geometryOf: ReturnType<typeof frameGeometry>
 ): CarBody[] {
-    const halfWidth = (ROLLING_STOCK.CAR_WIDTH * sizeOf(train.scale) * CONTACT_WIDTH) / 2;
+    const size = sizeOf(train.scale);
+    const halfWidth = (ROLLING_STOCK.CAR_WIDTH * size * CONTACT_WIDTH) / 2;
+    const tall = VERTICAL_CLEARANCE * size;
     return getCarPoses(train, edges, nodes, geometryOf).map(pose => {
         const r = (pose.rotation * Math.PI) / 180;
         const halfLength = (pose.length * CONTACT_LENGTH) / 2;
@@ -65,6 +71,8 @@ function bodiesOf(
             halfLength,
             halfWidth,
             reach: Math.hypot(halfLength, halfWidth),
+            height: pose.height,
+            tall,
         };
     });
 }
@@ -86,8 +94,10 @@ function extentAlong(b: CarBody, ax: number, ay: number): number {
     return b.halfLength * along + b.halfWidth * across;
 }
 
-/** Separating-axis test for two rotated rectangles. */
+/** Separating-axis test for two rotated rectangles, at the same level. */
 export function bodiesOverlap(a: CarBody, b: CarBody): boolean {
+    // One passes over the other: a train on a bridge, one underneath
+    if (Math.abs(a.height - b.height) >= Math.max(a.tall, b.tall)) return false;
     const dx = b.cx - a.cx;
     const dy = b.cy - a.cy;
     if (Math.hypot(dx, dy) > a.reach + b.reach) return false;

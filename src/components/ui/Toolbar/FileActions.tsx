@@ -163,7 +163,8 @@ export function FileActions() {
                 connectNodes,
                 spawnLayoutTrain,
                 () => { useModeStore.getState().enterSimulateMode(); setRunning(true); fitViewWhenSettled(); },
-                true // autoStart
+                true, // autoStart
+                useTrackStore.getState().setNodeHeights
             );
             // Templates are laid out in world coordinates that may not fit the window
             fitViewToLayout();

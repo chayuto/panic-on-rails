@@ -1,17 +1,21 @@
 /**
  * Share a layout by URL: every piece on the table as its part, position and
- * rotation, compressed into the link's fragment (`#layout=v1.…`). Opening
- * the link builds the pieces through the normal template path, which joins
- * them again. The link carries track only, not trains or wiring.
+ * rotation, and a raised piece's heights, compressed into the link's
+ * fragment (`#layout=v1.…`, or `v2` with heights). Opening the link builds
+ * the pieces through the normal template path, which joins them again. The
+ * link carries track only, not trains or wiring.
  */
 
 import { getPartById } from '../data/catalog';
 import { createPartTrack } from '../stores/slices/trackCreators';
 import { deriveWorldGeometry, normalizeAngle } from './geometry';
+import { heightOf } from './elevation';
 import type { EdgeId, NodeId, TrackEdge, TrackGeometry, TrackNode, Vector2 } from '../types';
 import type { TemplatePart, TrackTemplate } from '../data/templates/types';
 
+/** Links without raised track are written as before; `v2` adds heights */
 const FORMAT = 'v1';
+const FORMAT_HEIGHTS = 'v2';
 export const LAYOUT_PARAM = 'layout';
 
 /** The two ends of a piece of track. */
@@ -40,8 +44,18 @@ export function layoutPieces(edges: Record<EdgeId, TrackEdge>, nodes: Record<Nod
         if (!pieces.has(key)) pieces.set(key, edge);
     }
 
+    // Each piece's nodes, for its heights
+    const nodesOfPiece = new Map<string, Set<NodeId>>();
+    for (const edge of Object.values(edges)) {
+        const key = edge.placementId ?? edge.id;
+        const set = nodesOfPiece.get(key) ?? new Set<NodeId>();
+        set.add(edge.startNodeId);
+        set.add(edge.endNodeId);
+        nodesOfPiece.set(key, set);
+    }
+
     const out: TemplatePart[] = [];
-    for (const first of pieces.values()) {
+    for (const [key, first] of pieces) {
         const part = getPartById(first.partId);
         const world = deriveWorldGeometry(first, nodes) ?? first.geometry;
         if (!part || !world) continue;
@@ -53,6 +67,7 @@ export function layoutPieces(edges: Record<EdgeId, TrackEdge>, nodes: Record<Nod
         const turn = Math.atan2(w1.y - w0.y, w1.x - w0.x) - Math.atan2(r1.y - r0.y, r1.x - r0.x);
         const cos = Math.cos(turn);
         const sin = Math.sin(turn);
+        const ends = [...(nodesOfPiece.get(key) ?? [])].map(id => nodes[id]).filter((n): n is TrackNode => !!n);
         out.push({
             partId: part.id,
             position: {
@@ -60,6 +75,9 @@ export function layoutPieces(edges: Record<EdgeId, TrackEdge>, nodes: Record<Nod
                 y: round(w0.y - (r0.x * sin + r0.y * cos), 2),
             },
             rotation: round(normalizeAngle((turn * 180) / Math.PI), 4),
+            ...(ends.some(n => heightOf(n) > 0) && {
+                heights: ends.map(n => ({ at: { x: round(n.position.x, 2), y: round(n.position.y, 2) }, height: round(heightOf(n), 2) })),
+            }),
         });
     }
     return out;
@@ -87,14 +105,22 @@ function fromBase64Url(text: string): Uint8Array {
     return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
 
-/** Pieces as a short code for a link: part ids once, then [part, x, y, rotation] per piece. */
+/**
+ * Pieces as a short code for a link: part ids once, then [part, x, y,
+ * rotation] per piece, and for a raised piece its ends [x, y, height, …].
+ */
 export async function encodeLayout(pieces: TemplatePart[]): Promise<string> {
     const ids = [...new Set(pieces.map(p => p.partId))];
     const payload = {
         p: ids,
-        l: pieces.map(p => [ids.indexOf(p.partId), p.position.x, p.position.y, p.rotation]),
+        l: pieces.map(p => {
+            const row: (number | number[])[] = [ids.indexOf(p.partId), p.position.x, p.position.y, p.rotation];
+            if (p.heights) row.push(p.heights.flatMap(h => [h.at.x, h.at.y, h.height]));
+            return row;
+        }),
     };
-    return `${FORMAT}.${toBase64Url(await deflate(JSON.stringify(payload)))}`;
+    const format = pieces.some(p => p.heights) ? FORMAT_HEIGHTS : FORMAT;
+    return `${format}.${toBase64Url(await deflate(JSON.stringify(payload)))}`;
 }
 
 export class SharedLayoutError extends Error {}
@@ -102,7 +128,9 @@ export class SharedLayoutError extends Error {}
 /** The pieces in a code from `encodeLayout`. Throws `SharedLayoutError` if it can't be read. */
 export async function decodeLayout(code: string): Promise<TemplatePart[]> {
     const [format, data] = code.split('.');
-    if (format !== FORMAT || !data) throw new SharedLayoutError('This link was made by a different version of the game.');
+    if ((format !== FORMAT && format !== FORMAT_HEIGHTS) || !data) {
+        throw new SharedLayoutError('This link was made by a different version of the game.');
+    }
     let payload: { p?: unknown; l?: unknown };
     try {
         payload = JSON.parse(await inflate(fromBase64Url(data)));
@@ -113,15 +141,27 @@ export async function decodeLayout(code: string): Promise<TemplatePart[]> {
     const rows = payload.l;
     if (!Array.isArray(ids) || !Array.isArray(rows)) throw new SharedLayoutError("This link's layout is damaged.");
     const pieces: TemplatePart[] = [];
+    const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
     for (const row of rows) {
-        if (!Array.isArray(row) || row.length !== 4 || !row.every(n => typeof n === 'number' && Number.isFinite(n))) {
+        const heights: unknown = Array.isArray(row) ? row[4] : undefined;
+        const withHeights = format === FORMAT_HEIGHTS && Array.isArray(row) && row.length === 5;
+        if (!Array.isArray(row) || (row.length !== 4 && !withHeights) || !row.slice(0, 4).every(finite)
+            || (withHeights && (!Array.isArray(heights) || heights.length % 3 !== 0 || !heights.every(finite)))) {
             throw new SharedLayoutError("This link's layout is damaged.");
         }
         const partId = ids[row[0]];
         if (typeof partId !== 'string' || !getPartById(partId)) {
             throw new SharedLayoutError(`This link uses a piece this version doesn't have (${String(partId)}).`);
         }
-        pieces.push({ partId, position: { x: row[1], y: row[2] }, rotation: row[3] });
+        const piece: TemplatePart = { partId, position: { x: row[1], y: row[2] }, rotation: row[3] };
+        if (withHeights) {
+            const flat = heights as number[];
+            piece.heights = [];
+            for (let i = 0; i < flat.length; i += 3) {
+                piece.heights.push({ at: { x: flat[i], y: flat[i + 1] }, height: flat[i + 2] });
+            }
+        }
+        pieces.push(piece);
     }
     return pieces;
 }

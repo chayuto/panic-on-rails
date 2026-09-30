@@ -32,6 +32,16 @@ export interface PaintedEdge {
      * piece's two tracks, along its middle, so the pair is one band
      */
     infill?: boolean;
+    /** Raised above the baseboard: its height along the middle (mm) */
+    height?: number;
+}
+
+/** A raised joint: where a pier stands under the track. */
+export interface PaintedPier {
+    x: number;
+    y: number;
+    /** How high the track stands on it (mm) */
+    height: number;
 }
 
 /**
@@ -240,10 +250,68 @@ function strokeAll(ctx: Ctx, edges: PaintedEdge[], width: number, color: string,
 }
 
 /**
- * Paint the track. `zoom` is screen pixels per mm; widths never drop below
- * `minPx` screen pixels so thin rails stay visible when zoomed out.
+ * Paint the track: the track on the baseboard, then the shadows raised
+ * track and its piers cast on it, then the raised track, lowest first.
+ * `zoom` is screen pixels per mm; widths never drop below a few screen
+ * pixels so thin rails stay visible when zoomed out.
  */
-export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
+export function paintTrack(ctx: Ctx, all: PaintedEdge[], zoom: number, piers: PaintedPier[] = []): void {
+    const raised = all.filter(isRaised);
+    if (raised.length === 0 && piers.length === 0) {
+        paintLevel(ctx, all, zoom);
+        return;
+    }
+    paintLevel(ctx, all.filter(e => !isRaised(e)), zoom);
+    paintShadows(ctx, raised, piers);
+    paintRaised(ctx, raised, zoom);
+}
+
+/** Raised track only, lowest first: drawn again over the trains that pass under it. */
+export function paintRaised(ctx: Ctx, raised: PaintedEdge[], zoom: number): void {
+    const byHeight = [...raised].sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
+    // Levels a centimetre apart paint in turn, so an upper deck covers a lower one
+    let start = 0;
+    while (start < byHeight.length) {
+        const level = Math.floor((byHeight[start].height ?? 0) / 10);
+        let end = start + 1;
+        while (end < byHeight.length && Math.floor((byHeight[end].height ?? 0) / 10) === level) end++;
+        paintLevel(ctx, byHeight.slice(start, end), zoom);
+        start = end;
+    }
+}
+
+const isRaised = (e: PaintedEdge) => (e.height ?? 0) > 0.5;
+
+/** Where the light falls: a shadow lies this far out per mm of height, down and to the right. */
+export const SHADOW_SLANT = 0.3;
+
+/** On the baseboard, each pier's shadow and the raised deck's. */
+function paintShadows(ctx: Ctx, raised: PaintedEdge[], piers: PaintedPier[]): void {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    for (const pier of piers) {
+        const d = pier.height * SHADOW_SLANT;
+        ctx.moveTo(pier.x, pier.y);
+        ctx.lineTo(pier.x + d, pier.y + d);
+    }
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+    for (const e of raised) {
+        if (e.infill) continue;
+        const d = (e.height ?? 0) * SHADOW_SLANT;
+        ctx.save();
+        ctx.translate(d, d);
+        strokeAll(ctx, [e], e.width, 'rgba(0, 0, 0, 0.45)');
+        ctx.restore();
+    }
+    ctx.restore();
+}
+
+/** One level of track, in each system's look. */
+function paintLevel(ctx: Ctx, all: PaintedEdge[], zoom: number): void {
     const px = 1 / Math.max(zoom, 0.01);
     ctx.lineCap = 'butt';
     ctx.lineJoin = 'round';

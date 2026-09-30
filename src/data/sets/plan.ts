@@ -11,7 +11,8 @@
  */
 
 import { getPartById } from '../catalog/registry';
-import { getPartConnectors } from '../catalog/helpers';
+import { getPartConnectors, isDoubleTrack } from '../catalog/helpers';
+import { HEIGHT_TOLERANCE } from '../../utils/elevation';
 import type { PartDefinition } from '../catalog/types';
 import type { Vector2 } from '../../types';
 import { localToWorld, normalizeAngle, angleDifference } from '../../utils/geometry';
@@ -28,6 +29,8 @@ export interface PlacedConnector {
     connector: string;
     position: Vector2;
     facade: number;
+    /** How high the track stands there (mm above the baseboard) */
+    height: number;
 }
 
 export interface PlacedPiece {
@@ -104,12 +107,31 @@ function placeAgainst(part: PartDefinition, via: string, target: { position: Vec
     };
 }
 
-function worldConnectors(index: number, part: PartDefinition, position: Vector2, rotation: number): PlacedConnector[] {
+/**
+ * A piece's connectors at its far end from `via`, where a grade on it rises
+ * to: the through exit, and on double track the other track's end beside it.
+ */
+function farEnd(part: PartDefinition, via: string): Set<string> {
+    const exit = throughExit(part, via);
+    if (!exit) return new Set();
+    if (!isDoubleTrack(part)) return new Set([exit]);
+    const end = exit.slice(-1);
+    return new Set(getPartConnectors(part).nodes.map(n => n.localId).filter(id => id.endsWith(end)));
+}
+
+function worldConnectors(
+    index: number,
+    part: PartDefinition,
+    position: Vector2,
+    rotation: number,
+    heights: { near: number; far: number; farEnd: Set<string> }
+): PlacedConnector[] {
     return getPartConnectors(part).nodes.map(n => ({
         piece: index,
         connector: n.localId,
         position: localToWorld(n.localPosition, position, rotation),
         facade: normalizeAngle(n.localFacade + rotation),
+        height: heights.farEnd.has(n.localId) ? heights.far : heights.near,
     }));
 }
 
@@ -124,6 +146,8 @@ export function resolvePlan(plan: LayoutPlan): ResolvedPlan {
 
         let position: Vector2 = { x: 0, y: 0 };
         let rotation = 0;
+        // The height it's attached at: the first piece starts on the baseboard
+        let near = 0;
         if (index > 0 && isAlongside(step.at)) {
             const base = pieces[step.at.alongside];
             if (!base || step.at.alongside >= index) {
@@ -132,6 +156,7 @@ export function resolvePlan(plan: LayoutPlan): ResolvedPlan {
             // Same placement as the base piece, shifted sideways (right of travel = +90°)
             position = localToWorld({ x: 0, y: step.at.offset }, base.position, base.rotation);
             rotation = base.rotation;
+            near = base.connectors.find(c => c.connector === base.via)?.height ?? 0;
         } else if (index > 0) {
             const anchor = resolveAnchor(plan, pieces, index, step.at as number | PlanAnchor | undefined);
             const target = pieces[anchor.piece].connectors.find(c => c.connector === anchor.connector);
@@ -141,9 +166,11 @@ export function resolvePlan(plan: LayoutPlan): ResolvedPlan {
             const placement = placeAgainst(part, via, target);
             if (!placement) throw new PlanError(plan, index, `${part.id} has no connector "${via}"`);
             ({ position, rotation } = placement);
+            near = target.height;
         }
 
-        pieces.push({ index, part, position, rotation, via, connectors: worldConnectors(index, part, position, rotation) });
+        const heights = { near, far: step.height ?? near, farEnd: farEnd(part, via) };
+        pieces.push({ index, part, position, rotation, via, connectors: worldConnectors(index, part, position, rotation, heights) });
     });
 
     const { joints, openEnds } = matchConnectors(
@@ -195,7 +222,7 @@ function resolveAnchor(
     return { piece: pieceIndex, connector };
 }
 
-/** Pair up connectors that meet face to face; the rest are open ends. */
+/** Pair up connectors that meet face to face, at the same height; the rest are open ends. */
 function matchConnectors(
     connectors: PlacedConnector[],
     tolerance: number
@@ -212,6 +239,7 @@ function matchConnectors(
             const gap = Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
             if (gap > tolerance) continue;
             if (Math.abs(angleDifference(a.facade, b.facade) - 180) > JOINT_ANGLE_TOLERANCE) continue;
+            if (Math.abs(a.height - b.height) > HEIGHT_TOLERANCE) continue;
             joints.push({ a, b, gap });
             used.add(i);
             used.add(j);
@@ -249,6 +277,10 @@ export function planToTemplate(plan: LayoutPlan, meta: Partial<TemplateMetadata>
             partId: p.part.id,
             position: { x: p.position.x + dx, y: p.position.y + dy },
             rotation: p.rotation,
+            // Raised track: each end's height, by where it is
+            ...(p.connectors.some(c => c.height > 0) && {
+                heights: p.connectors.map(c => ({ at: { x: c.position.x + dx, y: c.position.y + dy }, height: c.height })),
+            }),
         })),
         trains: (plan.trains ?? []).map(t => ({ partIndex: t.piece, color: t.color ?? '#E74C3C', ...(t.stock && { stock: t.stock }) })),
         // Plan positions are exact; only connectors that truly meet should merge

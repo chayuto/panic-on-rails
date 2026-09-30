@@ -75,6 +75,17 @@ export function targetSpeed(train: Train): number {
     return throttleOf(train);
 }
 
+/**
+ * How a grade holds a train back: on a climb it runs slower for the same
+ * throttle, by about a quarter on Kato's standard 4% and at most by half.
+ * Going down, the motor holds it to the throttle's speed. `grade` is rise
+ * over run in the direction of travel.
+ */
+export function gradeFactor(grade: number): number {
+    if (grade <= 0) return 1;
+    return Math.max(0.5, 1 - 6 * grade);
+}
+
 /** A train's throttle; a train that never had one keeps cruising at its speed. */
 export function throttleOf(train: Train): number {
     return train.throttle ?? train.speed;

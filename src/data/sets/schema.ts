@@ -19,6 +19,7 @@ const PlanStepSchema = z.object({
     part: z.string().min(1),
     at: z.union([z.number().int().nonnegative(), PlanAnchorSchema, PlanAlongsideSchema]).optional(),
     via: z.string().min(1).optional(),
+    height: z.number().nonnegative().optional(),
 });
 
 const LayoutPlanSchema = z.object({
