@@ -116,14 +116,15 @@ describe('useGameLoop', () => {
         const t1 = spawnTrain('e1');
         const t2 = spawnTrain('e1');
 
-        // Mock collision
-        vi.mocked(checkCollisions).mockReturnValue([{
-            type: 'collision',
-            trainIds: [t1, t2],
+        // Mock collision: one event per train crashing
+        vi.mocked(checkCollisions).mockReturnValue([t1, t2].map((trainId, i) => ({
+            type: 'collision' as const,
+            trainId,
+            otherTrainIds: [[t1, t2][1 - i]],
             location: { x: 0, y: 0 },
             debris: [],
-            severity: 1
-        }]);
+            severity: 1,
+        })));
 
         renderHook(() => useGameLoop());
         const loop = vi.mocked(window.requestAnimationFrame).mock.calls[0][0] as FrameRequestCallback;

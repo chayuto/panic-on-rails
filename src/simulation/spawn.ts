@@ -11,18 +11,17 @@ export interface SpawnLocation {
 }
 
 /**
- * Pick the spawn spot farthest from every existing (non-crashed) train: the
- * midpoint of the edge whose midpoint maximises the distance to the nearest
- * train. Ties go to the longer edge (more room before the train meets
- * anything). Returns null when there is no track.
+ * Spots to put a train, best first: the middle of every edge, farthest from
+ * the nearest train on the track (wrecks included) first. Ties go to the
+ * longer edge (more room before the train meets anything).
  */
-export function pickSpawnLocation(
+export function spawnCandidates(
     edges: Record<EdgeId, TrackEdge>,
     trains: Record<TrainId, Train>,
     nodes?: Record<NodeId, TrackNode>
-): SpawnLocation | null {
+): SpawnLocation[] {
     const trainPositions: Vector2[] = Object.values(trains)
-        .filter(t => !t.crashed && edges[t.currentEdgeId])
+        .filter(t => edges[t.currentEdgeId])
         .map(t => getPositionOnEdge(edges[t.currentEdgeId], t.distanceAlongEdge, nodes));
 
     const candidates = Object.values(edges).map(edge => {
@@ -33,13 +32,21 @@ export function pickSpawnLocation(
         return { edge, clearance };
     });
 
-    const better = (a: typeof candidates[number], b: typeof candidates[number]) => {
-        const tie = a.clearance === b.clearance || Math.abs(a.clearance - b.clearance) <= 1e-6;
-        return tie ? a.edge.length > b.edge.length : a.clearance > b.clearance;
-    };
-    const best = candidates.reduce<typeof candidates[number] | null>(
-        (acc, c) => (acc === null || better(c, acc) ? c : acc),
-        null
-    );
-    return best ? { edgeId: best.edge.id, distance: best.edge.length / 2 } : null;
+    const tie = (a: number, b: number) => a === b || Math.abs(a - b) <= 1e-6;
+    return candidates
+        .sort((a, b) => (tie(a.clearance, b.clearance) ? b.edge.length - a.edge.length : b.clearance - a.clearance))
+        .map(({ edge }) => ({ edgeId: edge.id, distance: edge.length / 2 }));
+}
+
+/**
+ * Pick the spawn spot farthest from every train on the track, wrecks
+ * included: the midpoint of the edge whose midpoint maximises the distance
+ * to the nearest train. Returns null when there is no track.
+ */
+export function pickSpawnLocation(
+    edges: Record<EdgeId, TrackEdge>,
+    trains: Record<TrainId, Train>,
+    nodes?: Record<NodeId, TrackNode>
+): SpawnLocation | null {
+    return spawnCandidates(edges, trains, nodes)[0] ?? null;
 }

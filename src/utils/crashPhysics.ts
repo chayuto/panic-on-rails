@@ -27,6 +27,8 @@ export interface CrashedPart {
     maxBounces: number;
     color: string;
     settled: boolean;
+    /** The train it came off, so clearing that wreck sweeps it up */
+    trainId?: string;
 }
 
 export interface CrashEvent {
@@ -34,6 +36,7 @@ export interface CrashEvent {
     velocity: Vector2;
     trainColor: string;
     severity: number;  // 1-3, affects explosion force
+    trainId?: string;
 }
 
 import { PHYSICS } from '../config/physics';
@@ -119,6 +122,9 @@ export function explodeTrain(crash: CrashEvent, random: () => number = Math.rand
         vy: (-40 - randomSpread(30)) * forceMultiplier,
     }, trainColor));
 
+    if (crash.trainId) {
+        for (const part of parts) part.trainId = crash.trainId;
+    }
     return parts;
 }
 
