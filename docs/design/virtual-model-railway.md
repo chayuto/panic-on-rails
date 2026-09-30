@@ -150,7 +150,7 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
 | Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
-| The train in a train set | Partial: generic coloured trains | Rolling stock as data (Phase 4) |
+| The train in a train set | ✅ Kato USA's N starter sets and Hornby's OO train sets, each with its own train | Märklin's Start up sets |
 | Buying the next box | ❌ | Collection, wallet and shop (Phase 3) |
 
 ## 5. The endless loop

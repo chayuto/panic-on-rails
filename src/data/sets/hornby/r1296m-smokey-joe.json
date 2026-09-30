@@ -1,0 +1,41 @@
+{
+    "id": "hornby-R1296M",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R1296M",
+    "name": "Smokey Joe Train Set",
+    "price": 12000,
+    "kind": "starter",
+    "description": "A Hornby train set: the 3rd radius starter oval (eight R609 curves, an R600 straight and the R8206 power track) with Smokey Joe, an 0-4-0 saddle tank, and a coach and a wagon.",
+    "contents": [
+        { "part": "hornby-R609", "qty": 8 },
+        { "part": "hornby-R600", "qty": 1 },
+        { "part": "hornby-R8206", "qty": 1 }
+    ],
+    "accessories": ["R7229 DC train controller", "P9000W wall plug transformer", "Rerailer", "MidiMat (1600 x 1180 mm)", "Accessory pack: figures and vacuum pipes"],
+    "rollingStock": ["hornby-smokey-joe"],
+    "footprint": { "width": 1210, "depth": 1040 },
+    "plans": [
+        {
+            "id": "oval",
+            "name": "Train set oval",
+            "description": "3rd radius curves and one straight on each side: 1210 x 1040 mm.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#333333", "stock": "hornby-smokey-joe" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/smokey-joe-train-set-r1296m"
+}

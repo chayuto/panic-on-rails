@@ -178,4 +178,28 @@ test.describe('Train sets shelf', () => {
         await expect(page.getByTestId('set-shelf')).toBeHidden();
         expect(await edgeCount(page)).toBe(0);
     });
+
+    test('Kato 106-0018: the starter set brings its Super Chief, and its layout runs it', async ({ page, app }) => {
+        void app;
+        await page.evaluate(() => window.__PANIC_STORES__!.collection.earn(40_000));
+        await page.getByTestId('open-set-shelf').click();
+
+        const box = page.getByTestId('set-box-kato-106-0018');
+        await box.getByText(/In the box/).click();
+        await expect(box).toContainText('Santa Fe Super Chief, 4 cars');
+        await box.getByTestId('set-buy-kato-106-0018').click();
+        await expect(page.getByTestId('set-owned-kato-106-0018')).toHaveText('Owned ×1');
+
+        // The trains tab lists it under Kato: it comes with the box, not on its own
+        await page.getByTestId('shop-tab-trains').click();
+        await expect(page.getByTestId('shop-train-kato-super-chief')).toContainText('you have 1');
+        await expect(page.getByTestId('shop-train-box-kato-super-chief')).toHaveText('Comes in 106-0018 N Santa Fe Super Chief Starter Set');
+        await expect(page.getByTestId('shop-buy-train-kato-super-chief')).toHaveCount(0);
+
+        // Building the set's layout runs its own train
+        await page.getByTestId('shop-tab-sets').click();
+        await box.getByTestId('set-build-kato-106-0018').click();
+        await expect.poll(() => page.evaluate(() =>
+            Object.values(window.__PANIC_STORES__!.simulation.getState().trains).map(t => t.stockId))).toEqual(['kato-super-chief']);
+    });
 });
