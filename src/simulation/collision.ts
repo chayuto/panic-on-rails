@@ -5,7 +5,7 @@
  */
 
 import type { Train, EdgeId, TrackEdge, Vector2, NodeId, TrackNode } from '../types';
-import { detectCollisions } from '../utils/collisionManager';
+import { detectCollisions, type CarBody } from '../utils/collisionManager';
 import { explodeTrain, calculateCrashSeverity } from '../utils/crashPhysics';
 import type { CrashedPart } from '../utils/crashPhysics';
 
@@ -32,11 +32,12 @@ export function checkCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>,
     random: () => number,
-    nodes: Record<NodeId, TrackNode>
+    nodes: Record<NodeId, TrackNode>,
+    bodies?: CarBody[]
 ): CollisionEvent[] {
     const crashes = new Map<string, CollisionEvent>();
 
-    for (const { trainA, trainB, location } of detectCollisions(trains, edges, nodes)) {
+    for (const { trainA, trainB, location } of detectCollisions(trains, edges, nodes, bodies)) {
         // Severity is shared by both trains: it depends on their relative speed
         const severity = calculateCrashSeverity(
             { x: trainA.speed * trainA.direction, y: 0 },

@@ -148,7 +148,7 @@ describe('getCarPoses', () => {
             const { edges, nodes } = useTrackStore.getState();
             let w: SimWorld = {
                 trains: { t1: train({ currentEdgeId: secondId, distanceAlongEdge: 150, carriageCount: 3 }) },
-                edges, nodes, sensors: {}, signals: {}, wires: {}, stations: {}, crashedParts: [],
+                edges, nodes, sensors: {}, signals: {}, wires: {}, stations: {}, crashedParts: [], nearPairs: [],
             };
             let previous = getCarPoses(w.trains.t1, edges, nodes);
             let bounced = false;

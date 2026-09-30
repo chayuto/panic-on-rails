@@ -11,4 +11,8 @@ export const TIMING = {
     BOUNCE_DURATION: 200,
     FLASH_DURATION: 100,
     SHAKE_DURATION_BASE: 200,
+
+    // A crash plays in slow motion for a moment: this long (ms, real time), at this speed
+    CRASH_SLOW_MOTION_MS: 1200,
+    CRASH_SLOW_MOTION_SCALE: 0.3,
 } as const;

@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useIsSimulating } from '../stores/useModeStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
-import { playSound, playSwitchSound } from '../utils/audioManager';
+import { playNearMissSound, playSound, playSwitchSound } from '../utils/audioManager';
 import { tickSimulation, type SimEventSink } from '../simulation/tick';
 import { getPositionOnEdge } from '../utils/trainGeometry'; // Re-export for compatibility
 import { TIMING } from '../config/timing';
@@ -23,19 +23,25 @@ export const browserEffectsSink: SimEventSink = (event) => {
             playSound('bounce');
             break;
         case 'collision': {
-            const { triggerScreenShake, triggerFlash } = useEffectsStore.getState();
+            const { triggerScreenShake, triggerFlash, triggerSlowMotion } = useEffectsStore.getState();
             triggerScreenShake(8 + event.severity * 4, 200 + event.severity * 100);
             triggerFlash(event.location, { color: '#FFFFFF', duration: 100 });
+            triggerSlowMotion(TIMING.CRASH_SLOW_MOTION_MS);
             playSound('crash');
             break;
         }
         case 'derail': {
-            const { triggerScreenShake, triggerFlash } = useEffectsStore.getState();
+            const { triggerScreenShake, triggerFlash, triggerSlowMotion } = useEffectsStore.getState();
             triggerScreenShake(10, 300);
             triggerFlash(event.location, { color: '#FFB347', duration: 120 });
+            triggerSlowMotion(TIMING.CRASH_SLOW_MOTION_MS);
             playSound('crash');
             break;
         }
+        case 'near-miss':
+            useEffectsStore.getState().triggerFlash(event.location, { color: '#FFD93D', duration: 120, radius: 18 });
+            playNearMissSound();
+            break;
         case 'switch':
             playSwitchSound('n-scale');
             break;
@@ -67,7 +73,9 @@ export function useGameLoop() {
             lastTimeRef.current = timestamp;
 
             try {
-                tickSimulation(Math.min(deltaTime, TIMING.DELTA_TIME_CAP), {
+                // Just after a crash, the railway runs in slow motion for a moment
+                const slow = timestamp < useEffectsStore.getState().slowMotionUntil ? TIMING.CRASH_SLOW_MOTION_SCALE : 1;
+                tickSimulation(Math.min(deltaTime, TIMING.DELTA_TIME_CAP) * slow, {
                     sink: browserEffectsSink,
                     ctx: { now: timestamp },
                 });

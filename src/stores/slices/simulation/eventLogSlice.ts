@@ -12,7 +12,7 @@ import type { OperatingSession, SessionResult } from '../../../simulation/sessio
 /** Maximum number of events to keep in the log */
 const MAX_LOG_SIZE = 500;
 
-export type SimEventType = 'traverse' | 'bounce' | 'collision' | 'derail' | 'spawn' | 'sensor' | 'station';
+export type SimEventType = 'traverse' | 'bounce' | 'collision' | 'derail' | 'spawn' | 'sensor' | 'station' | 'near-miss';
 
 export interface SimEvent {
     /** Monotonic event index */

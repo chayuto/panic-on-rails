@@ -61,9 +61,9 @@ function settleEarnings(events: SimEvent[], before: SimWorld): void {
 /** Snapshot the stores into a `SimWorld`. */
 export function readWorld(): SimWorld {
     const { edges, nodes } = useTrackStore.getState();
-    const { trains, crashedParts } = useSimulationStore.getState();
+    const { trains, crashedParts, nearPairs } = useSimulationStore.getState();
     const { sensors, signals, wires, stations } = useLogicStore.getState();
-    return { trains, edges, nodes, sensors, signals, wires, stations, crashedParts };
+    return { trains, edges, nodes, sensors, signals, wires, stations, crashedParts, nearPairs };
 }
 
 /**
@@ -85,6 +85,7 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
     useSimulationStore.setState({
         trains: world.trains,
         ...(world.crashedParts !== before.crashedParts && { crashedParts: world.crashedParts }),
+        ...(world.nearPairs !== before.nearPairs && { nearPairs: world.nearPairs }),
     });
     if (world.nodes !== before.nodes) {
         useTrackStore.setState({ nodes: world.nodes });
@@ -159,6 +160,11 @@ function logEvent(event: SimEvent, before: SimWorld): void {
         case 'derail':
             log('derail', event.trainId, event.edgeId, `derailed at ${Math.round(event.speed)} mm/s on ${partOf(event.edgeId)}`);
             break;
+        case 'near-miss': {
+            const [a, b] = event.trainIds;
+            log('near-miss', a, before.trains[a]?.currentEdgeId ?? '', `near miss with ${b}`);
+            break;
+        }
         case 'station-stop':
             log('station', event.trainId, event.edgeId, `called at ${before.stations[event.stationId]?.name ?? 'a station'}: fares $${(event.fare / 100).toFixed(2)}`);
             break;

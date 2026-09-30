@@ -23,6 +23,7 @@ export const useSimulationStore = create<SimulationStore>()(
         // Initial State
         trains: {},
         crashedParts: [],
+        nearPairs: [],
         isRunning: false,
         speedMultiplier: 1.0,
         error: null,

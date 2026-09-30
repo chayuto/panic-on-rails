@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detectCollisions, bodiesOverlap, type CarBody } from '../collisionManager';
+import { detectCollisions, detectNearMisses, bodiesOverlap, type CarBody } from '../collisionManager';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { resetWorld } from '../../simulation/harness';
@@ -84,6 +84,55 @@ describe('detectCollisions', () => {
         trainAt(edge, 240, 1, 4);
         trainAt(edge, 240, 1, 4); // the same place: every car overlaps
         expect(collisions()).toHaveLength(1);
+    });
+});
+
+describe('detectNearMisses', () => {
+    beforeEach(() => {
+        resetWorld();
+        useSimulationStore.getState().clearTrains();
+    });
+
+    const nearMisses = () => {
+        const { edges, nodes } = state();
+        return detectNearMisses(useSimulationStore.getState().trains, edges, nodes);
+    };
+    const moveTo = (id: string, distance: number) =>
+        useSimulationStore.setState(s => ({ trains: { ...s.trains, [id]: { ...s.trains[id], distanceAlongEdge: distance } } }));
+
+    it('a train a car\'s nose from another is a near miss; any nearer and they touch, which is a collision', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const a = trainAt(edge, 60, 1);
+        const b = trainAt(edge, 180, 1);
+        expect(nearMisses()).toEqual([]);
+        moveTo(b, 120);
+        const [miss] = nearMisses();
+        expect(miss.trainIds.sort()).toEqual([a, b].sort());
+        expect(collisions()).toEqual([]);
+        // Touching: a collision, not a near miss
+        moveTo(b, 80);
+        expect(collisions()).toHaveLength(1);
+        expect(nearMisses()).toEqual([]);
+    });
+
+    it('trains passing on tracks at standard spacing are no near miss', () => {
+        const a = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const b = state().addTrack('kato-20-000', { x: 0, y: 33 }, 0)!; // Kato's double-track spacing
+        trainAt(a, 200, 1, 3);
+        trainAt(b, 200, -1, 3);
+        expect(nearMisses()).toEqual([]);
+    });
+
+    it('two trains standing close together are no near miss: one must be moving', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const a = trainAt(edge, 60, 1);
+        const b = trainAt(edge, 120, 1);
+        for (const id of [a, b]) useSimulationStore.getState().setTrainStopped(id, true);
+        expect(nearMisses()).toEqual([]);
+        // One pulls away
+        useSimulationStore.getState().setTrainStopped(a, false);
+        useSimulationStore.setState(s => ({ trains: { ...s.trains, [a]: { ...s.trains[a], speed: 100 } } }));
+        expect(nearMisses()).toHaveLength(1);
     });
 });
 
