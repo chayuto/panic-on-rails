@@ -21,7 +21,7 @@ import { getAllSets } from '../../data/sets';
 import { getRollingStock, topSpeedOf } from '../../data/rollingStock';
 
 const FPS = 60;
-/** The long runs take a few seconds, more under coverage on a slow machine */
+/** The long runs take a few seconds, more under coverage on a slow machine; each economy run is 10–20 simulated minutes */
 const LONG_RUN = { timeout: 30_000 };
 const report: string[] = [];
 const note = (line: string) => report.push(line);
@@ -64,7 +64,7 @@ function earningRate(minutes: number): number {
 
 const dollars = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
-describe('economy pacing: the starter train on the M1 oval', () => {
+describe('economy pacing: the starter train on the M1 oval', LONG_RUN, () => {
     beforeEach(() => resetWorld());
 
     it('earns about $9 a minute just running, as the design has it', () => {
