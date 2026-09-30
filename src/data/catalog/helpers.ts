@@ -251,6 +251,16 @@ export function getPartConnectors(part: PartDefinition): PartConnectors {
 // ===========================
 
 /**
+ * A double-track piece: two tracks side by side, sharing no connector, filed
+ * as a straight or a curve (Kato's WS and WR pieces).
+ */
+export function isDoubleTrack(part: PartDefinition): boolean {
+    const g = part.geometry;
+    return g.type === 'topology' && g.routes.length === 2
+        && (part.category === 'straight' || part.category === 'curve');
+}
+
+/**
  * The parts-bin section a part belongs to: its own `category`, or one
  * worked out from its geometry (a topology part with points is a turnout).
  */

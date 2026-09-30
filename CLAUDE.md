@@ -111,7 +111,7 @@ Complex pieces (curved turnouts, double slips, scissors crossovers, double track
 
 ### Scales
 
-`src/config/scales.ts` holds each scale's model ratio, gauge and `size` relative to N (H0 = 160/87). The game was tuned in N; a bigger scale is N grown by `size`: cars (`trainCars.ts`, `TrainLayer`), speeds, acceleration, braking, curve limits and look-ahead (`driving.ts` functions take `size`), and collision thresholds. A train's `scale` comes from its rolling stock or the track it's put on; collection mode only runs a train on track of its own scale. The track painter draws each brand in its own `ModelLook` (Kato's ballast, Märklin's grey bed and centre studs, Hornby's bare sleepers).
+`src/config/scales.ts` holds each scale's model ratio, gauge and `size` relative to N (H0 = 160/87). The game was tuned in N; a bigger scale is N grown by `size`: cars (`trainCars.ts`, `TrainLayer`), speeds, acceleration, braking, curve limits and look-ahead (`driving.ts` functions take `size`), and collision thresholds. A train's `scale` comes from its rolling stock or the track it's put on; collection mode only runs a train on track of its own scale. The track painter draws each brand in its own `ModelLook` (Kato's ballast, Märklin's grey bed and centre studs, Hornby's bare sleepers), and slab track (`slab: true`) in concrete. `tracks/paintedEdges.ts` picks each edge's look and lays an infill between a double-track piece's two tracks.
 
 ### Boxed Sets & Layout Plans
 

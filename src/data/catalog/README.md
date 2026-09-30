@@ -67,6 +67,10 @@ Parts are validated against `PartCatalogFileSchema` in `src/data/catalog/schemas
 | `productCode` | string? | (Optional) Manufacturer code |
 | `description` | string? | (Optional) |
 | `discontinued` | boolean? | (Optional) |
+| `referenceUrl` | string? | (Optional) The source of the part's geometry: the maker's catalog or product page |
+| `width` | number? | (Optional) Footprint across the track, mm. Default: the file's `trackWidth` (the roadbed) |
+| `roadCrossing` | boolean? | (Optional) The piece carries road-crossing plates as wide as `width` |
+| `slab` | boolean? | (Optional) Concrete slab track, like Kato's slab pieces: drawn as a concrete bed with panels, not ballast |
 
 ### Part-Specific Fields
 

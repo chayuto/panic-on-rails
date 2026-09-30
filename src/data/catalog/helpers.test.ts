@@ -5,8 +5,23 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeConnectors, calculateArcEndpoint, calculateArcLength } from './helpers';
+import { computeConnectors, calculateArcEndpoint, calculateArcLength, isDoubleTrack } from './helpers';
+import { getPartById } from './index';
 import type { PartDefinition } from './types';
+
+describe('isDoubleTrack', () => {
+    it('is two tracks side by side in one piece: Kato double track, ballasted or slab', () => {
+        for (const id of ['kato-20-004', 'kato-20-181', 'kato-20-006', 'kato-20-188l']) {
+            expect(isDoubleTrack(getPartById(id)!), id).toBe(true);
+        }
+    });
+
+    it('is not single track, a curved turnout or a scissors crossover', () => {
+        for (const id of ['kato-20-000', 'marklin-24671', 'kato-20-210']) {
+            expect(isDoubleTrack(getPartById(id)!), id).toBe(false);
+        }
+    });
+});
 
 describe('calculateArcLength', () => {
     it('calculates arc length for 90° curve', () => {

@@ -19,6 +19,7 @@ const OptionalPartFields = {
     cost: z.number().int().positive().optional(),
     width: z.number().positive().optional(),
     roadCrossing: z.boolean().optional(),
+    slab: z.boolean().optional(),
     category: z.enum(['straight', 'curve', 'turnout', 'crossing', 'bumper']).optional(),
     productCode: z.string().optional(),
     description: z.string().optional(),

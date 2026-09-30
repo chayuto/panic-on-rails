@@ -9,7 +9,7 @@ import { useConnectMode } from '../../hooks/useConnectMode';
 import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
-import type { EdgeId, NodeId, PartBrand, Vector2 } from '../../types';
+import type { EdgeId, NodeId, Vector2 } from '../../types';
 import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
 import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
@@ -18,19 +18,11 @@ import { pointsButtonRadius } from '../../config/interactions';
 
 import { NodeRenderer } from './tracks';
 import { EdgeHitTarget } from './tracks/EdgeHitTarget';
-import { paintTrack, C_TRACK_LOOK, KATO_LOOK, SETRACK_LOOK, type ModelLook, type PaintedEdge } from './tracks/trackPainter';
+import { paintTrack } from './tracks/trackPainter';
+import { paintedEdges, type PlacedEdge } from './tracks/paintedEdges';
 import { SwitchRenderer } from './SwitchRenderer';
 import { useTrackInteraction } from './hooks/useTrackInteraction';
 import { useNodeInteraction } from './hooks/useNodeInteraction';
-
-/** Roadbed width (mm) for parts that don't say. */
-const DEFAULT_ROADBED = 25;
-
-/** Each brand's track as it looks out of the box; Kato's for the rest. */
-const BRAND_LOOKS: Partial<Record<PartBrand, ModelLook>> = {
-    marklin: C_TRACK_LOOK,
-    hornby: SETRACK_LOOK,
-};
 
 interface TrackLayerProps {
     /** Viewport bounds for visibility culling. If null, render all edges. */
@@ -100,20 +92,16 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         return looks;
     }, [nodes, edges]);
 
-    const painted = useMemo<PaintedEdge[]>(() => visibleEdges.flatMap(edge => {
+    // Each visible edge where it lies; the painter and click targets share it
+    const placed = useMemo(() => visibleEdges.flatMap((edge): PlacedEdge[] => {
         const geometry = getEdgeWorldGeometry(edge, nodes);
-        if (!geometry) return [];
-        const part = getPartById(edge.partId);
-        return [{
-            geometry,
-            style: part?.scale === 'wooden' ? 'wooden' : 'model',
-            look: (part && BRAND_LOOKS[part.brand]) ?? KATO_LOOK,
-            width: part?.roadbedWidth ?? DEFAULT_ROADBED,
-            roadWidth: part?.roadCrossing ? part.width : undefined,
-            selected: edge.id === selectedEdgeId,
-            inactive: inactiveEdges.has(edge.id),
-        }];
-    }), [visibleEdges, nodes, selectedEdgeId, inactiveEdges]);
+        return geometry ? [{ edge, geometry, part: getPartById(edge.partId) }] : [];
+    }), [visibleEdges, nodes]);
+
+    const painted = useMemo(
+        () => paintedEdges(placed, selectedEdgeId, inactiveEdges),
+        [placed, selectedEdgeId, inactiveEdges]
+    );
 
     const paint = useCallback((ctx: Konva.Context, shape: Konva.Shape) => {
         paintTrack(ctx._context, painted, shape.getStage()?.scaleX() ?? 1);
@@ -130,11 +118,11 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
             <Shape sceneFunc={paint} listening={false} perfectDrawEnabled={false} />
 
             {/* Click targets for selecting and deleting track (editor only) */}
-            {isEditing && painted.map((p, i) => (
+            {isEditing && placed.map(({ edge, geometry }) => (
                 <EdgeHitTarget
-                    key={visibleEdges[i].id}
-                    edgeId={visibleEdges[i].id}
-                    geometry={p.geometry}
+                    key={edge.id}
+                    edgeId={edge.id}
+                    geometry={geometry}
                     onClick={handleEdgeClick}
                 />
             ))}

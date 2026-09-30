@@ -107,6 +107,7 @@ function transformToPart(
         width: jsonPart.width ?? trackWidth,
         roadbedWidth: trackWidth,
         ...(jsonPart.roadCrossing && { roadCrossing: true }),
+        ...(jsonPart.slab && { slab: true }),
         ...(jsonPart.category && { category: jsonPart.category }),
     };
 }
