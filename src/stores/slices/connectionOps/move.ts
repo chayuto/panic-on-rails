@@ -16,6 +16,7 @@ import {
 import { validateLayoutIntegrity } from './validation';
 import { syncGeometryToNodes } from './geometrySync';
 import { transformPosition } from './transform';
+import { logger } from '../../../utils/logger';
 
 /**
  * Moves a part (and its connected network) to a new position and rotation.
@@ -28,7 +29,7 @@ export function movePartOp(
     targetPosition: Vector2,
     rotationDelta: number
 ): { nodes: Record<NodeId, TrackNode>; edges: Record<EdgeId, TrackEdge> } {
-    console.log('[movePartOp] Starting part move:', {
+    logger.debug('movePartOp', 'Starting part move:', {
         edgeId: edgeId.slice(0, 8),
         pivotNodeId: pivotNodeId.slice(0, 8),
         targetPosition,
@@ -161,7 +162,7 @@ export function movePartOp(
         spatialIndex.insert(e.id, getEdgeBounds(newEdges[e.id]), e.id);
     }
 
-    console.log('[movePartOp] Move complete:', {
+    logger.debug('movePartOp', 'Move complete:', {
         nodesTransformed: networkNodeIds.size,
         edgesTransformed: networkEdges.length,
     });

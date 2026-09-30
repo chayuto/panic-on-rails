@@ -30,6 +30,7 @@ import { createPartTrack } from './trackCreators';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
 import { LayoutDataSchema } from '../../schemas/layout';
 import { isOpenEnd } from '../../utils/graphAnalysis';
+import { logger } from '../../utils/logger';
 
 // Declare build-time constant
 declare const __BUILD_TIME__: string;
@@ -207,17 +208,10 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      * Resets store to initial state.
      */
     clearLayout: () => {
-        console.log('[useTrackStore] clearLayout() called');
-
-
-        // Clear spatial indices
-        console.log('[useTrackStore] Clearing spatial indices...');
         spatialIndex.clear();
         nodeIndex.clear();
-
-        console.log('[useTrackStore] Setting initial state...');
         set(initialTrackState);
-        console.log('[useTrackStore] ✅ clearLayout() completed');
+        logger.debug('useTrackStore', 'Layout cleared');
     },
 
     /**

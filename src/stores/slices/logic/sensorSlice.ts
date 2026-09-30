@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Sensor } from '../../../types';
 import type { LogicSliceCreator, SensorSlice } from './types';
+import { logger } from '../../../utils/logger';
 
 export const createSensorSlice: LogicSliceCreator<SensorSlice> = (set, get) => ({
     /**
@@ -29,7 +30,7 @@ export const createSensorSlice: LogicSliceCreator<SensorSlice> = (set, get) => (
             state.sensors[sensorId] = sensor;
         });
 
-        console.log('[LogicStore] Added sensor:', {
+        logger.debug('LogicStore', 'Added sensor:', {
             id: sensorId.slice(0, 8),
             edgeId: edgeId.slice(0, 8),
             position,

@@ -35,6 +35,7 @@ import type { CrashedPart } from './crashPhysics';
 import type { Sensor, Signal, Wire, Station, Train } from '../types';
 import type { LogicStore } from '../stores/slices/logic/types';
 import type Konva from 'konva';
+import { logger } from './logger';
 
 // Extend Window interface for TypeScript
 declare global {
@@ -365,7 +366,7 @@ export function initDebugBridge(): void {
     window.__PANIC_STORES__ = bridge;
     window.__PANIC_SIM__ = simHarness;
     window.__PANIC_QA__ = { look };
-    console.log('[DebugBridge] Stores exposed to window.__PANIC_STORES__, sim harness to window.__PANIC_SIM__, the canvas to window.__PANIC_QA__.look()');
+    logger.info('DebugBridge', 'Stores exposed to window.__PANIC_STORES__, sim harness to window.__PANIC_SIM__, the canvas to window.__PANIC_QA__.look()');
 }
 
 /**
@@ -376,6 +377,6 @@ export function setStageRef(stage: Konva.Stage | null): void {
     if (!shouldActivate()) return;
     window.__PANIC_STAGE__ = stage;
     if (stage) {
-        console.log('[DebugBridge] Konva Stage exposed to window.__PANIC_STAGE__');
+        logger.info('DebugBridge', 'Konva Stage exposed to window.__PANIC_STAGE__');
     }
 }

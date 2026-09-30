@@ -152,6 +152,7 @@ Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, p
 - React functional components + hooks only (no class components)
 - Performance-first: use `React.memo`, `useMemo`, Konva caching; optimize render cycles
 - No `any` types — define interfaces for all graph structures
+- Log through `utils/logger` (`logger.debug('Module', ...)`), never `console.log`: lint allows only `console.warn`/`console.error` in app code
 - `src/config/` holds physics, timing, rendering, and interaction constants
 - Vitest tests live in `__tests__/` directories adjacent to source files
 - `src/setupTests.ts` mocks localStorage for Zustand persist in tests. Unit tests run in Node, with no `window`.

@@ -236,6 +236,8 @@ export function EditToolbar() {
         URL.revokeObjectURL(url);
 
         // Also log to console
+        // The output the developer asked for from the console, in production too
+        // eslint-disable-next-line no-console
         console.log('[DEBUG EXPORT]', debugData);
         if (issues.length > 0) {
             console.warn('[DEBUG EXPORT] Issues found:', issues);

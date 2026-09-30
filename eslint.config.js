@@ -31,7 +31,14 @@ export default tseslint.config(
                     caughtErrorsIgnorePattern: '^_',
                 },
             ],
+            // Log through utils/logger, which hides debug and info in production
+            'no-console': ['error', { allow: ['warn', 'error'] }],
         },
+    },
+    {
+        // The logger itself, and tests, which may print what they measure
+        files: ['src/utils/logger.ts', 'src/**/__tests__/**', 'src/**/*.test.{ts,tsx}'],
+        rules: { 'no-console': 'off' },
     },
     {
         // Node-side files: e2e tests/helpers and root config files.
@@ -48,6 +55,7 @@ export default tseslint.config(
             // Specs read JSON-cloned store snapshots across the browser
             // boundary; `any` is tolerated in tests, still banned in src/.
             '@typescript-eslint/no-explicit-any': 'off',
+            'no-console': 'off',
         },
     },
 )

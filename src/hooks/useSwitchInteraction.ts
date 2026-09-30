@@ -14,6 +14,7 @@ import { useIsSimulating } from '../stores/useModeStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
 import { playSwitchSound, playSound } from '../utils/audioManager';
 import type { NodeId } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Check if any train is currently on or near a switch node.
@@ -77,7 +78,7 @@ export function useSwitchInteraction(
 
         // Safety check: don't toggle if train is on switch
         if (isTrainOnSwitch(nodeId, trains, edges)) {
-            console.log('[useSwitchInteraction] Blocked: train on switch', nodeId.slice(0, 8));
+            logger.debug('useSwitchInteraction', 'Blocked: train on switch', nodeId.slice(0, 8));
             playSound('bounce');  // Error/blocked sound
             return false;
         }

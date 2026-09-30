@@ -14,6 +14,7 @@ import { useHistoryStore } from '../stores/useHistoryStore';
 import { playSound } from '../utils/audioManager';
 import { calculateRotationForConnection, validateConnection, getNodeFacadeFromEdge } from '../utils/connectTransform';
 import type { NodeId } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Hook that provides connect mode functionality
@@ -64,7 +65,7 @@ export function useConnectMode() {
 
         // Node must be an open endpoint
         if (node.connections.length !== 1) {
-            console.log('[useConnectMode] Node is not an open endpoint:', nodeId.slice(0, 8));
+            logger.debug('useConnectMode', 'Node is not an open endpoint:', nodeId.slice(0, 8));
             return;
         }
 
@@ -74,7 +75,7 @@ export function useConnectMode() {
 
         // If no source selected, this is the first click
         if (!connectSource) {
-            console.log('[useConnectMode] Setting source node:', {
+            logger.debug('useConnectMode', 'Setting source node:', {
                 nodeId: nodeId.slice(0, 8),
                 edgeId: edgeId.slice(0, 8),
             });
@@ -100,7 +101,7 @@ export function useConnectMode() {
             return;
         }
 
-        console.log('[useConnectMode] Connecting nodes:', {
+        logger.debug('useConnectMode', 'Connecting nodes:', {
             sourceNodeId: connectSource.nodeId.slice(0, 8),
             targetNodeId: nodeId.slice(0, 8),
         });
@@ -111,7 +112,7 @@ export function useConnectMode() {
         const sourceFacade = getNodeFacadeFromEdge(connectSource.nodeId, sourceEdge);
         const targetFacade = getNodeFacadeFromEdge(nodeId, edge);
 
-        console.log('[useConnectMode] Derived facades:', {
+        logger.debug('useConnectMode', 'Derived facades:', {
             sourceFacade,
             targetFacade,
             storedSourceRotation: sourceNode.rotation,
@@ -123,7 +124,7 @@ export function useConnectMode() {
             targetFacade,   // Source (Part B - moving) - derived from geometry
         );
 
-        console.log('[useConnectMode] Rotation delta:', rotationDelta);
+        logger.debug('useConnectMode', 'Rotation delta:', rotationDelta);
 
         // V2: Use atomic connectNetworks instead of movePart + connectNodes
         // This ensures the entire operation is atomic - no partial state
@@ -141,7 +142,7 @@ export function useConnectMode() {
         // Clear source for next connection
         clearConnectSource();
 
-        console.log('[useConnectMode] Connection complete!');
+        logger.debug('useConnectMode', 'Connection complete!');
     }, [editSubMode, nodes, edges, connectSource, setConnectSource, clearConnectSource, connectNetworks, selectedSystem]);
 
     /**
