@@ -50,8 +50,9 @@ test.describe('App Smoke Tests', () => {
     test('the toolbar stays on one line at laptop width, wallet included', async ({ page, app }) => {
         void app;
         // A laptop, and just past each width where the toolbar loosens up
-        // (the app's name shows from 1361, roomier buttons from 1441)
-        for (const width of [1280, 1361, 1441]) {
+        // (the app's name shows from 1361, roomier buttons from 1441, a
+        // wider templates menu from 1501)
+        for (const width of [1280, 1361, 1441, 1501]) {
             await page.setViewportSize({ width, height: 720 });
             const toolbar = await page.getByTestId('toolbar').boundingBox();
             const wallet = await page.getByTestId('wallet').boundingBox();

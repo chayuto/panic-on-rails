@@ -7,6 +7,7 @@ import { useModeStore, useIsEditing } from '../../../stores/useModeStore';
 import { useConnectMode } from '../../../hooks/useConnectMode';
 import { useEffectsStore } from '../../../stores/useEffectsStore';
 import { playSound, playSwitchSound } from '../../../utils/audioManager';
+import { raiseJoint } from '../../../utils/piers';
 
 export function useNodeInteraction() {
     const toggleSwitch = useTrackStore(s => s.toggleSwitch);
@@ -48,10 +49,13 @@ export function useNodeInteraction() {
         return false;
     }, [isEditing, editSubMode, wireSource, toggleSwitch, addSignal, addWire, clearWireSource]);
 
-    const handleNodeClick = useCallback((nodeId: string) => {
+    /** A click on a joint; `lower` for the Pier tool's Shift-click. */
+    const handleNodeClick = useCallback((nodeId: string, lower = false) => {
         if (!isEditing) return;
 
-        if (editSubMode === 'connect') {
+        if (editSubMode === 'pier') {
+            if (raiseJoint(nodeId, lower ? -1 : 1)) playSound('switch');
+        } else if (editSubMode === 'connect') {
             handleConnectModeNodeClick(nodeId);
         } else if (editSubMode === 'signal') {
             useHistoryStore.getState().record();

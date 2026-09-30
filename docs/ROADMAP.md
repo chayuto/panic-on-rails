@@ -519,10 +519,17 @@ Order, biggest win per millisecond first:
     print (the spacer and the stairs).
   - Viaduct pieces are drawn as a concrete deck between walls. A truss bridge has a steel deck,
     open ties, its chords along both sides and its bracing across the top.
+- [x] **The Pier tool** (8). Click a joint to raise it onto Kato's next support: the spacer, the
+      stairs, then piers No.1 to No.5. Shift-click lowers it, and it's undoable. The track either
+      side becomes a grade, and each raised joint is labelled with what it stands on.
+  - Only Kato publishes its supports' heights (`utils/piers.ts`). Other systems' track has no
+    piers in the game yet.
+  - A new tool made the toolbar wrap just past 1440px. The templates menu is now narrower up to
+    1500px, and the one-line check covers 1501px too.
 - [ ] More elevation:
   - V12 and V13: Kato's double-track viaduct pieces, piers and the incline ramp.
   - V2 with M1 as one loop, M1's ground track passing under the truss (Kato's "Master1 + V2").
-  - Editor controls for heights: raise or lower a piece onto piers.
+  - Raise a double-track piece's two tracks together.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
   - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin

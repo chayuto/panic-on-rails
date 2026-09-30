@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Group, Circle, Ring, Rect } from 'react-konva';
+import { Group, Circle, Ring, Rect, Text } from 'react-konva';
 import { NODE_KEY_COLORS, NODE_RADIUS, CONNECT_HIGHLIGHT_RADIUS, BUMPER } from './constants';
 import type { TrackNode } from '../../../types';
 
@@ -9,7 +9,10 @@ interface NodeRendererProps {
     isValidTarget: boolean;
     isConnectMode: boolean;
     isOpenEndpoint: boolean;
-    onClick: (nodeId: string) => void;
+    /** A click on the joint; `shift` when Shift was held */
+    onClick: (nodeId: string, shift: boolean) => void;
+    /** Written beside the joint: what it stands on, for the Pier tool */
+    label?: string;
 }
 
 export const NodeRenderer = memo(function NodeRenderer({
@@ -19,6 +22,7 @@ export const NodeRenderer = memo(function NodeRenderer({
     isConnectMode,
     isOpenEndpoint,
     onClick,
+    label,
 }: NodeRendererProps) {
 
     // Determine fill color
@@ -74,9 +78,19 @@ export const NodeRenderer = memo(function NodeRenderer({
                 fill={fillColor}
                 stroke="#1A1A1A"
                 strokeWidth={2}
-                onClick={() => onClick(node.id)}
-                onTap={() => onClick(node.id)}
+                onClick={(e) => onClick(node.id, e.evt.shiftKey)}
+                onTap={() => onClick(node.id, false)}
             />
+            {label && (
+                <Text
+                    x={node.position.x + NODE_RADIUS + 3}
+                    y={node.position.y - NODE_RADIUS - 11}
+                    text={label}
+                    fontSize={11}
+                    fill="#EEEEEE"
+                    listening={false}
+                />
+            )}
         </Group>
     );
 });

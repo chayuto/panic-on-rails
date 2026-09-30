@@ -38,6 +38,7 @@ export type PrimaryMode = 'edit' | 'simulate';
  * - 'wire': Click to connect logic components with wires
  * - 'connect': Click two endpoints to connect existing tracks
  * - 'station': Click on track edges to place station platforms
+ * - 'pier': Click a joint to raise it onto a pier (Shift-click to lower it)
  */
 export type EditSubMode =
     | 'select'
@@ -47,7 +48,8 @@ export type EditSubMode =
     | 'signal'
     | 'wire'
     | 'connect'
-    | 'station';
+    | 'station'
+    | 'pier';
 
 // ===========================
 // Simulate Mode Sub-Modes

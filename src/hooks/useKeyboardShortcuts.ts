@@ -30,6 +30,7 @@ const EDIT_MODE_SHORTCUTS: Record<string, EditSubMode> = {
     '5': 'signal',
     '6': 'wire',
     '7': 'station',
+    '8': 'pier',
 };
 
 export function useKeyboardShortcuts() {
