@@ -14,7 +14,7 @@
 
 import type {
     Train, TrainId, TrackEdge, TrackNode, EdgeId, NodeId, Vector2,
-    Sensor, SensorId, Signal, SignalId, Wire, WireId, SignalState,
+    Sensor, SensorId, Signal, SignalId, Wire, WireId, SignalState, Station, StationId,
 } from '../types';
 import type { CrashedPart } from '../utils/crashPhysics';
 import { updateCrashedParts } from '../utils/crashPhysics';
@@ -28,6 +28,9 @@ import { getPositionOnEdge } from '../utils/trainGeometry';
 import { reverseConsist } from '../utils/trainCars';
 import { linkedPoints } from '../utils/switchRouting';
 import { sizeOf } from '../config/scales';
+import { STATIONS } from '../config/stations';
+import { fareFor, stationsByEdge } from './stations';
+import { carriesPassengers } from '../data/rollingStock';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -40,6 +43,7 @@ export interface SimWorld {
     sensors: Record<SensorId, Sensor>;
     signals: Record<SignalId, Signal>;
     wires: Record<WireId, Wire>;
+    stations: Record<StationId, Station>;
     crashedParts: CrashedPart[];
 }
 
@@ -61,6 +65,8 @@ export type SimEvent =
     | { type: 'derail'; trainId: TrainId; edgeId: EdgeId; location: Vector2; speed: number }
     | { type: 'sensor'; sensorId: SensorId; edgeId: EdgeId; state: 'on' | 'off' }
     | { type: 'switch'; nodeId: NodeId; switchState: 0 | 1 }
+    /** A passenger train stood at a platform; its passengers paid `fare` (US cents) */
+    | { type: 'station-stop'; trainId: TrainId; stationId: StationId; edgeId: EdgeId; fare: number }
     | { type: 'signal'; signalId: SignalId; state: SignalState };
 
 export interface StepResult {
@@ -76,7 +82,9 @@ export interface StepResult {
  *
  * Trains stopped by the player don't move, and nor do wrecks: a train that
  * runs into one crashes too. Trains heading into a node with a
- * red signal stop short of it (see `calculateTrainMovement`).
+ * red signal stop short of it (see `calculateTrainMovement`). Passenger
+ * trains stop at the far end of each station's platform, stand there for a
+ * while, and are paid their passengers' fares.
  */
 export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): StepResult {
     const events: SimEvent[] = [];
@@ -89,6 +97,8 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         if (signal.state === 'red') redNodes.add(signal.nodeId);
     }
 
+    const platforms = stationsByEdge(world.stations);
+
     const trains: Record<TrainId, Train> = {};
     let crashedParts = world.crashedParts;
     for (const train of Object.values(world.trains)) {
@@ -97,13 +107,25 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             continue;
         }
 
+        // Standing at a platform while the passengers get on and off
+        if (train.dwell !== undefined) {
+            const { dwell: _dwell, ...ready } = train;
+            const dwell = train.dwell - dt;
+            trains[train.id] = dwell > 0 ? { ...train, dwell } : ready;
+            continue;
+        }
+
         // Power pack: speed follows the throttle with momentum, braking in
-        // time for red signals and buffer stops ahead
+        // time for red signals, platforms and buffer stops ahead
         const size = sizeOf(train.scale);
+        const calls = platforms.size > 0 && carriesPassengers(train);
         let limit = targetSpeed(train);
-        const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed, size));
+        const stop = stopAhead(train, edges, nodes, redNodes, lookaheadFor(train.speed, size), calls ? platforms : undefined);
         if (stop) limit = Math.min(limit, stoppingLimit(stop.distance, dt, size));
         let speed = approachSpeed(train.speed, limit, dt, size);
+        // Pulling up at a platform: run just to its end this tick, and stand
+        const arriving = stop?.kind === 'station' && stop.stationId !== undefined && speed * dt >= stop.distance;
+        if (arriving) speed = dt > 0 ? stop.distance / dt : 0;
         // Stopped: the direction lever takes effect, the consist staying put
         const start = train.reverseRequested && speed === 0 ? reverseConsist(train, edges, nodes) : train;
 
@@ -127,6 +149,11 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             // Remember the route so the cars behind can follow it through turnouts
             next.trail = [moving.currentEdgeId, ...(moving.trail ?? [])].slice(0, TRAIL_LENGTH);
         }
+        if (calls) {
+            // The passengers' ride grows; off the station's piece, it can call there again
+            next.ride = (train.ride ?? 0) + speed * dt;
+            if (update.edgeId !== moving.currentEdgeId) delete next.calledAt;
+        }
         if (update.bounced) {
             // Turned back at the end of the line: the consist stays put and
             // its far end leads (the locomotive now pushes, or leads again)
@@ -144,6 +171,10 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             events.push({ type: update.held ? 'signal-hold' : 'signal-release', trainId: train.id, edgeId: update.edgeId });
         }
         next.speed = speed;
+        if (arriving) {
+            events.push({ type: 'station-stop', trainId: train.id, stationId: stop.stationId!, edgeId: next.currentEdgeId, fare: fareFor(next) });
+            next = { ...next, speed: 0, dwell: STATIONS.DWELL_SECONDS, calledAt: stop.stationId, ride: 0 };
+        }
 
         // Too fast for the curve: off the rails
         const curve = edges[update.edgeId]?.intrinsicGeometry;

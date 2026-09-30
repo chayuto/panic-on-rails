@@ -119,6 +119,9 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
             for (const sensor of orphanedSensors) {
                 logicStore.removeSensor(sensor.id);
             }
+            for (const station of logicStore.getStationsOnEdge(eid)) {
+                logicStore.removeStation(station.id);
+            }
         }
 
         set((state) => {

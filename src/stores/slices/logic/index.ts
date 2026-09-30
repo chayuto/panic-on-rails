@@ -5,4 +5,5 @@
 export * from './types';
 export * from './sensorSlice';
 export * from './signalSlice';
+export * from './stationSlice';
 export * from './wireSlice';

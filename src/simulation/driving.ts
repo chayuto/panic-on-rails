@@ -5,7 +5,8 @@
  * - The throttle sets a target speed; the train accelerates or brakes
  *   toward it with momentum.
  * - Approaching a red signal's stop line or a buffer stop, it brakes so it
- *   arrives at a crawl.
+ *   arrives at a crawl. A passenger train brakes for the end of a station's
+ *   platform, too.
  * - Every curve has a comfortable top speed (from its radius). Take one
  *   much faster than that and the train derails.
  *
@@ -14,8 +15,9 @@
  * config/scales), so an H0 train drives like an N one at 1.84× the mm/s.
  */
 
-import type { EdgeId, NodeId, TrackEdge, TrackNode, Train } from '../types';
+import type { EdgeId, NodeId, Station, StationId, TrackEdge, TrackNode, Train } from '../types';
 import { resolveNextEdge, SIGNAL_STOP_GAP } from './movement';
+import { stopPointOf, type StationsByEdge } from './stations';
 
 export const DRIVING = {
     /** Pick-up under power (mm/s²) */
@@ -84,22 +86,26 @@ export const AT_STOP_LINE = 0.5;
 /** The next place a train must stop, and how far away it is (mm). */
 export interface StopAhead {
     distance: number;
-    /** A red signal's stop line, or the end of the line (a buffer stop or open end) */
-    kind: 'signal' | 'end';
+    /** A red signal's stop line, the far end of a station's platform, or the end of the line (a buffer stop or open end) */
+    kind: 'signal' | 'station' | 'end';
+    /** The station, for a station stop */
+    stationId?: StationId;
 }
 
 /**
  * The next place the train must stop, looking at most `horizon` mm ahead
- * along its route: a red signal's stop line or the end of the line. Null if
- * there's none in range. A stop line the train is already past (it can't
- * stop for it) doesn't count.
+ * along its route: a red signal's stop line, the end of a platform (given
+ * the `stations` it calls at), or the end of the line. Null if there's
+ * none in range. A stop line the train is already past (it can't stop for
+ * it) doesn't count, and nor does the station it has just called at.
  */
 export function stopAhead(
     train: Train,
     edges: Record<EdgeId, TrackEdge>,
     nodes: Record<NodeId, TrackNode>,
     redNodes: ReadonlySet<NodeId>,
-    horizon: number
+    horizon: number,
+    stations?: StationsByEdge
 ): StopAhead | null {
     let edge = edges[train.currentEdgeId];
     if (!edge) return null;
@@ -110,10 +116,16 @@ export function stopAhead(
     for (let guard = 0; guard < 32 && travelled <= horizon; guard++) {
         const toExit = direction === 1 ? edge.length - position : position;
         const exitNodeId = direction === 1 ? edge.endNodeId : edge.startNodeId;
+        let signalLine: number | null = null;
         if (redNodes.has(exitNodeId)) {
             const toLine = toExit - Math.min(SIGNAL_STOP_GAP, edge.length);
-            if (toLine >= -1e-6) return { distance: travelled + Math.max(0, toLine), kind: 'signal' };
+            if (toLine >= -1e-6) signalLine = Math.max(0, toLine);
         }
+        const platform = platformAhead(stations?.get(edge.id), direction, position, train.calledAt);
+        if (platform && (signalLine === null || platform.ahead <= signalLine)) {
+            return { distance: travelled + platform.ahead, kind: 'station', stationId: platform.id };
+        }
+        if (signalLine !== null) return { distance: travelled + signalLine, kind: 'signal' };
         const nextId = resolveNextEdge(edge.id, nodes[exitNodeId]);
         const next = nextId ? edges[nextId] : undefined;
         if (!next) return { distance: travelled + toExit, kind: 'end' };
@@ -123,6 +135,27 @@ export function stopAhead(
         edge = next;
     }
     return null;
+}
+
+/**
+ * The nearest platform end ahead on a piece, heading `direction` from
+ * `position`, skipping the station just called at. A train that ran a
+ * hair past a platform's end still counts as there.
+ */
+function platformAhead(
+    stations: readonly Station[] | undefined,
+    direction: 1 | -1,
+    position: number,
+    calledAt: StationId | undefined
+): { id: StationId; ahead: number } | null {
+    let nearest: { id: StationId; ahead: number } | null = null;
+    for (const station of stations ?? []) {
+        if (station.id === calledAt) continue;
+        const ahead = (stopPointOf(station, direction) - position) * direction;
+        if (ahead < -AT_STOP_LINE) continue;
+        if (!nearest || ahead < nearest.ahead) nearest = { id: station.id, ahead: Math.max(0, ahead) };
+    }
+    return nearest;
 }
 
 /** How far ahead to look for stops: the braking distance from `speed`, plus a margin. */

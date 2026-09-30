@@ -49,6 +49,8 @@ export type {
     SensorId,
     SignalId,
     WireId,
+    StationId,
+    Station,
     LogicState,
     SignalState,
     Sensor,

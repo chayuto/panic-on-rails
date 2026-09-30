@@ -27,6 +27,8 @@ export interface RollingStock {
     topSpeed: number;
     /** Hobby-shop price, US cents, in line with typical train sets of its scale */
     price: number;
+    /** A goods train: it passes through stations, carrying no passengers */
+    freight?: true;
 }
 
 /** H0 trains are 160/87 the size of N ones and run that much faster; OO 160/76.2. */
@@ -66,6 +68,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         cars: 5,
         topSpeed: 160,
         price: 12000,
+        freight: true,
     },
     {
         id: 'express',
@@ -88,6 +91,7 @@ export const ROLLING_STOCK: RollingStock[] = [
         cars: 4,
         topSpeed: Math.round(160 * H0),
         price: 22000,
+        freight: true,
     },
     {
         id: 'h0-passenger',
@@ -128,6 +132,11 @@ const BY_ID = new Map(ROLLING_STOCK.map(s => [s.id, s]));
 
 export function getRollingStock(id: string | undefined): RollingStock | undefined {
     return id ? BY_ID.get(id) : undefined;
+}
+
+/** Passenger trains call at stations; freight trains pass through. A free-build train carries passengers. */
+export function carriesPassengers(train: Pick<Train, 'stockId'>): boolean {
+    return !getRollingStock(train.stockId)?.freight;
 }
 
 /** Fastest a train will go: its model's top speed, or a full throttle for its scale. */
