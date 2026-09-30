@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { infillBetween, KATO_LOOK } from '../trackPainter';
+import { infillBetween, KATO_LOOK, KATO_SLAB_LOOK } from '../trackPainter';
 import { paintedEdges, type PlacedEdge } from '../paintedEdges';
 import { resetWorld, loadSetPlan } from '../../../../simulation/harness';
 import { useTrackStore } from '../../../../stores/useTrackStore';
@@ -63,6 +63,12 @@ describe('paintedEdges', () => {
             expect(infill.width).toBeCloseTo(33, 6);
             expect(infill.look).toBe(KATO_LOOK);
         }
+    });
+
+    it('paints the slab track set (V17) as slab track, infill and all', () => {
+        const { painted, doublePieces } = paintSet('kato-20-877');
+        expect(painted.filter(p => p.infill)).toHaveLength(doublePieces);
+        expect(painted.every(p => p.look === KATO_SLAB_LOOK)).toBe(true);
     });
 
     it('lays no infill beside single track', () => {

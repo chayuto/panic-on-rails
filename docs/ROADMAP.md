@@ -31,8 +31,8 @@ run your trains, and keep expanding the railway with no end point.
 - **Next:**
   - on-time runs, to timetables;
   - elevation;
-  - the rest of Kato's double-track sets (V12, V13 and V15 need elevation or the widening
-    sections; V17 needs the slab-track pieces).
+  - the rest of Kato's double-track sets (V12 and V13 need elevation, V15 the widening
+    sections).
 
 ## Vision
 
@@ -241,8 +241,8 @@ Goal: open a real box, see exactly what's inside, and build the layouts from its
 - [x] **V7 double crossover** (20-866): the WX310 scissors crossover (20-210), built with the
       general part topology (Phase 6). Its plans lay it into M1 with V5's inner oval, or V6's
       outer one.
-- [x] Double-track sets: V11, V14 and V16 (see Phase 6). V12, V13, V15 and V17 still need
-      elevation, the widening sections or the slab pieces.
+- [x] Double-track sets: V11, V14, V16 and V17 (see Phase 6). V12, V13 and V15 still need
+      elevation or the widening sections.
 - [x] **Märklin C-track (H0):** the start oval (S1) and extension sets C1–C5, with every plan
       from Märklin's 2023 track-plan booklet. They include curved turnouts (24671/24672) and the
       24624 double slip with one drive per end. Every plan closes exactly, except S2's passing
@@ -443,10 +443,18 @@ Order, biggest win per millisecond first:
     only starters. Its footprint sweeps a topology part track by track, each on its own
     roadbed.
   - Each plan runs a train on each track, in opposite directions.
+- [x] **V17 slab track** (20-877): double track on a concrete slab, as on a subway or the
+      Shinkansen, in an oval on banked R414/381 curves.
+  - Seven slab pieces: 20-006, 20-025, 20-044, the 20-049 feeder, 20-187, and the 20-188
+    approaches, left and right. Their geometry matches the concrete-tie pieces; the catalog
+    flags them `slab`.
+  - The plan measures exactly 1473 × 853 mm. Kato's 2025 catalog prints the depth as 753 mm,
+    but its own inch figure and the box both give 853.
+  - Slab track has its own look (`KATO_SLAB_LOOK`): a concrete bed, a precast panel under each
+    track with a joint every 31 mm (a 4.93 m slab in N), and no ballast or sleepers.
 - [x] **A double piece is drawn as one band.** The painter lays an infill of ballast or concrete
       between a double piece's two tracks (`tracks/paintedEdges.ts`), so the middle has no gap.
 - [ ] More double track:
-  - V17's concrete-slab pieces.
   - V15's widening sections (20-051/052), whose inner S-curve Kato doesn't publish.
   - V12 and V13 (elevation).
   - V11 with V14 or V16 as four tracks, placed side by side.

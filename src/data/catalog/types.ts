@@ -243,6 +243,9 @@ export interface PartDefinition {
     /** The piece carries road-crossing plates as wide as `width` */
     roadCrossing?: boolean;
 
+    /** Concrete slab track: the rails on precast panels, not ballast (Kato's slab line) */
+    slab?: boolean;
+
     /** Where the part sits in the parts bin. Default: from its geometry. */
     category?: PartCategory;
 }

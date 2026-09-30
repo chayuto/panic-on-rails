@@ -1,0 +1,53 @@
+{
+    "id": "kato-20-877",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-877",
+    "badge": "V17",
+    "name": "Concrete Slab Double Track Oval Set R414/381",
+    "price": 9000,
+    "kind": "expansion",
+    "description": "Double track on a concrete slab, the look of a subway or a high-speed line: an oval of two tracks at 33mm centres on superelevated R414/381 curves.",
+    "contents": [
+        { "part": "kato-20-006", "qty": 4 },
+        { "part": "kato-20-025", "qty": 1 },
+        { "part": "kato-20-044", "qty": 1 },
+        { "part": "kato-20-049", "qty": 1 },
+        { "part": "kato-20-187", "qty": 6 },
+        { "part": "kato-20-188l", "qty": 2 },
+        { "part": "kato-20-188r", "qty": 2 }
+    ],
+    "accessories": ["Feeder cords (2)", "Rerailer"],
+    "footprint": { "width": 1473, "depth": 853 },
+    "plans": [
+        {
+            "id": "slab-oval",
+            "name": "Slab double-track oval",
+            "description": "Each end is Kato's half circle: an approach, three banked curves and an approach. 620mm of straight on each side.",
+            "steps": [
+                { "part": "kato-20-006" },
+                { "part": "kato-20-006" },
+                { "part": "kato-20-025" },
+                { "part": "kato-20-188r" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-188l", "via": "B2" },
+                { "part": "kato-20-006" },
+                { "part": "kato-20-006" },
+                { "part": "kato-20-044" },
+                { "part": "kato-20-049" },
+                { "part": "kato-20-188r" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-187" },
+                { "part": "kato-20-188l", "via": "B2" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" },
+                { "piece": 7, "color": "#2471A3" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

@@ -69,13 +69,19 @@ Measurements"), cross-checked against Kato's set guides and Kato Japan's set pag
 | **V5** 20-864 | M1's straights, R282-45×8 | 1271 × 611 | ✅ Inner oval, 33 mm inside M1 |
 | **V6** 20-865 | M1's straights, R348-45×8 | 1403 × 743 | ✅ Outer oval, 33 mm outside M1 |
 | **V7** 20-866 | WX310 double crossover, S248×2, S62×2 | 310 × 58 | ✅ Scissors crossover laid into M1 with V5's or V6's oval |
-| **V11–V15** 20-870… | Double-track pieces, some superelevated or elevated | — | ❌ Needs double-track pieces |
+| **V11** 20-870 | WS248PC×7, WS124PC, WS62PC, WS62FPC, WR414/381-45PC×8, approaches L×4 + R×4 | 2335 × 1261 | ✅ 2334.5 × 1261.2: double track on concrete ties, banked curves |
+| **V14** 20-873 | As V11, on WR315/282 curves | 1997 × 1005 | ✅ 1996.5 × 1005.2 |
+| **V16** 20-876 | As V11, on WR480/447 curves | 2560 × 1432 | ✅ 2559.9 × 1431.9 |
+| **V17** 20-877 | WS248S×4, WS124S, WS62S, WS62FS, WR414/381-45S×6, approaches L×2 + R×2 | 1473 × 853 | ✅ Measures 1473 × 853 exactly: double track on a concrete slab |
+| **V12, V13, V15** | Elevated double track; widening sections | — | ❌ Needs elevation, or the widening sections' unpublished S-curve |
 
 What the measurements taught us:
 
 - **Box dimensions are outer sizes.** They include the 25 mm roadbed and the S124C road
   crossing's 69 mm road plates. With part widths in the catalog, M1 measures exactly what the
   box says.
+- **Kato's 2025 catalog misprints V17 as 1473 × 753 mm.** Its own inch figure and the box give
+  853, and the plan measures 1473.0 × 853.0.
 - **Some Kato plans are 1–2 mm off on paper.** The #6 passing siding is 1 mm short and the #4
   siding 2 mm long. The real UniJoiners absorb it, so those plans declare a small `tolerance`.
 - **The real products corrected our catalog:**
@@ -146,12 +152,12 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | Bumpers | ✅ Buffer-stop ends: not connectable, trains turn back | — |
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
-| Double-track pieces (V11–V17) | ✅ V11, V14 and V16: straights, superelevated curves and approaches, as two-track topology parts | V12/V13 (elevation), V15 (widening sections), V17 (slab track) |
+| Double-track pieces (V11–V17) | ✅ V11, V14, V16 (concrete ties) and V17 (slab): straights, banked curves and approaches, as two-track topology parts drawn as one band | V12/V13 (elevation), V15 (widening sections) |
 | Viaducts and elevation (V2, V12, V13) | ❌ | Elevation (Phase 6) |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
-| Power pack | ❌ Trains run at a fixed speed | Throttle with momentum (Phase 4) |
+| Power pack | ✅ A throttle with momentum, braking for red signals and buffer stops, and a direction lever | — |
 | The train in a train set | ✅ Kato USA's N starter sets and Hornby's OO train sets, each with its own train | Märklin's Start up sets |
-| Buying the next box | ❌ | Collection, wallet and shop (Phase 3) |
+| Buying the next box | ✅ The hobby shop: boxes, loose parts and trains, paid for by running trains | — |
 
 ## 5. The endless loop
 

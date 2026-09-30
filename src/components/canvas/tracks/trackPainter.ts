@@ -75,6 +75,11 @@ export interface ModelLook {
     railInactive: string;
     /** Märklin's centre studs, the third rail of its AC system: one per sleeper */
     studs?: string;
+    /**
+     * Slab track: a precast concrete panel under each track, this wide. The
+     * sleepers are then the joints between panels.
+     */
+    panel?: { color: string; width: number };
 }
 
 /** Kato Unitrack (N): real 9mm gauge; the rest is tuned to read well on screen. */
@@ -91,6 +96,21 @@ export const KATO_LOOK: ModelLook = {
     railHead: '#d7dbe0',
     railHeadWidth: 0.8,
     railInactive: '#9a9ea4',
+};
+
+/**
+ * Kato's slab track (N), after the Shinkansen's: rails on precast panels
+ * 4.93 m long (31 mm in N) on a concrete bed, no ballast or sleepers.
+ */
+export const KATO_SLAB_LOOK: ModelLook = {
+    ...KATO_LOOK,
+    ballast: '#a3a29c',
+    ballastEdge: '#84837e',
+    panel: { color: '#b9b8b2', width: 15 },
+    sleeper: '#7a7974',
+    sleeperLength: 15,
+    sleeperWidth: 0.7,
+    sleeperSpacing: 31,
 };
 
 /** Märklin C-track (H0): grey moulded roadbed, and studs down the middle. */
@@ -288,7 +308,9 @@ function paintModel(ctx: Ctx, all: PaintedEdge[], L: ModelLook, zoom: number, px
         if (e.selected) strokeAll(ctx, [e], e.width + 4, TRACK_LOOK.SELECTED);
     }
 
-    // 4. Sleepers, one batched path, once they're far enough apart to see
+    // 4. Slab track's panels, then sleepers (or the panels' joints), one
+    // batched path, once they're far enough apart to see
+    if (L.panel) strokeAll(ctx, edges, L.panel.width, L.panel.color);
     if (zoom * L.sleeperSpacing >= TRACK_LOOK.SLEEPER_MIN_PX) {
         const half = L.sleeperLength / 2;
         ctx.beginPath();

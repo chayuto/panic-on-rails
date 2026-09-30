@@ -7,7 +7,7 @@
 import type { EdgeId, PartBrand, TrackEdge, TrackGeometry } from '../../../types';
 import type { PartDefinition } from '../../../data/catalog/types';
 import { isDoubleTrack } from '../../../data/catalog/helpers';
-import { infillBetween, C_TRACK_LOOK, KATO_LOOK, SETRACK_LOOK, type ModelLook, type PaintedEdge } from './trackPainter';
+import { infillBetween, C_TRACK_LOOK, KATO_LOOK, KATO_SLAB_LOOK, SETRACK_LOOK, type ModelLook, type PaintedEdge } from './trackPainter';
 
 /** Roadbed width (mm) for parts that don't say. */
 const DEFAULT_ROADBED = 25;
@@ -26,6 +26,7 @@ export interface PlacedEdge {
 }
 
 function lookOf(part: PartDefinition | undefined): ModelLook {
+    if (part?.slab) return KATO_SLAB_LOOK;
     return (part && BRAND_LOOKS[part.brand]) ?? KATO_LOOK;
 }
 

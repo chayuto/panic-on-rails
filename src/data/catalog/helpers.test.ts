@@ -10,8 +10,8 @@ import { getPartById } from './index';
 import type { PartDefinition } from './types';
 
 describe('isDoubleTrack', () => {
-    it('is two tracks side by side in one piece: Kato double track', () => {
-        for (const id of ['kato-20-004', 'kato-20-181', 'kato-20-182l']) {
+    it('is two tracks side by side in one piece: Kato double track, ballasted or slab', () => {
+        for (const id of ['kato-20-004', 'kato-20-181', 'kato-20-006', 'kato-20-188l']) {
             expect(isDoubleTrack(getPartById(id)!), id).toBe(true);
         }
     });
