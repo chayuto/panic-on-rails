@@ -14,6 +14,9 @@
  * pause the rAF loop, then `__PANIC_SIM__.seed(1); __PANIC_SIM__.runSeconds(5)`
  * steps the exact same simulation code deterministically, no clock mocking.
  *
+ * And `window.__PANIC_QA__.look()` (see `qaLens.ts`): what is on the canvas
+ * and where on the page, so tests and agents can play with real input.
+ *
  * The bridge module ships in production bundles but stays inert unless one
  * of the activation conditions above holds.
  */
@@ -27,6 +30,7 @@ import { useEffectsStore } from '../stores/useEffectsStore';
 import { useCollectionStore, type CollectionMode } from '../stores/useCollectionStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
+import { look, type QaLook } from './qaLens';
 import type { CrashedPart } from './crashPhysics';
 import type { Sensor, Signal, Wire, Train } from '../types';
 import type { LogicStore } from '../stores/slices/logic/types';
@@ -39,6 +43,8 @@ declare global {
         __PANIC_STAGE__?: Konva.Stage | null;
         /** Headless simulation harness: step, seed, load recipes, summarize. */
         __PANIC_SIM__?: SimHarness;
+        /** What's on the canvas, where, in page coordinates: see `utils/qaLens.ts`. */
+        __PANIC_QA__?: { look: () => QaLook };
     }
 }
 
@@ -342,7 +348,8 @@ export function initDebugBridge(): void {
 
     window.__PANIC_STORES__ = bridge;
     window.__PANIC_SIM__ = simHarness;
-    console.log('[DebugBridge] Stores exposed to window.__PANIC_STORES__, sim harness to window.__PANIC_SIM__');
+    window.__PANIC_QA__ = { look };
+    console.log('[DebugBridge] Stores exposed to window.__PANIC_STORES__, sim harness to window.__PANIC_SIM__, the canvas to window.__PANIC_QA__.look()');
 }
 
 /**
