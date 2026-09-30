@@ -35,7 +35,7 @@ const EDIT_TOOLS: ToolButton[] = [
     {
         mode: 'select',
         icon: MousePointer,
-        label: 'Edit',
+        label: 'Select',
         title: 'Select (1) - Click to select, drag to move'
     },
     {
@@ -259,6 +259,8 @@ export function EditToolbar() {
                         onClick={() => !isLocked && setEditSubMode(tool.mode)}
                         className={`toolbar-btn-icon ${editSubMode === tool.mode ? 'active' : ''} ${isLocked ? 'tool-locked' : ''}`}
                         title={isLocked ? `${tool.title} (Complete tutorial to unlock)` : tool.title}
+                        aria-label={tool.label}
+                        aria-pressed={editSubMode === tool.mode}
                         aria-disabled={isLocked}
                         data-testid={`edit-tool-${tool.mode}`}
                     >

@@ -327,7 +327,8 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
                     </div>
                 )}
 
-                <div className="set-shelf-body">
+                {/* Focusable, so the shelf scrolls from the keyboard even when nothing on it can be bought */}
+                <div className="set-shelf-body" tabIndex={0}>
                     {showTrains ? (
                         <TrainsForSale wallet={wallet} />
                     ) : showParts ? (
