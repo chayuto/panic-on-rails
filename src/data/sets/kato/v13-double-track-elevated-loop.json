@@ -1,0 +1,52 @@
+{
+    "id": "kato-20-872",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "20-872",
+    "badge": "V13",
+    "name": "Double Track Elevated Loop Set R414/381",
+    "price": 24000,
+    "kind": "expansion",
+    "description": "Double track on a viaduct 60mm up, all the way round: an oval of slab track at 33mm centres on superelevated R414/381 curves, a double-track pier under every joint.",
+    "contents": [
+        { "part": "kato-20-401", "qty": 8 },
+        { "part": "kato-20-544", "qty": 6 },
+        { "part": "kato-20-545l", "qty": 2 },
+        { "part": "kato-20-545r", "qty": 2 }
+    ],
+    "accessories": ["Double-track viaduct piers (18)", "Double-track viaduct power cords (2)"],
+    "footprint": { "width": 1864, "depth": 872 },
+    "plans": [
+        {
+            "id": "elevated-loop",
+            "name": "Elevated double-track loop",
+            "description": "Each end is Kato's half circle: an approach, three banked curves and an approach. Every joint on a pier, the track 60mm up.",
+            "height": 60,
+            "steps": [
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-545r" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-545l", "via": "B2" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-401" },
+                { "part": "kato-20-545r" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-544" },
+                { "part": "kato-20-545l", "via": "B2" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#E74C3C" },
+                { "piece": 9, "color": "#2471A3" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+}

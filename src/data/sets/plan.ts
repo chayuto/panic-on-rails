@@ -146,8 +146,8 @@ export function resolvePlan(plan: LayoutPlan): ResolvedPlan {
 
         let position: Vector2 = { x: 0, y: 0 };
         let rotation = 0;
-        // The height it's attached at: the first piece starts on the baseboard
-        let near = 0;
+        // The height it's attached at: the first piece starts at the plan's height
+        let near = plan.height ?? 0;
         if (index > 0 && isAlongside(step.at)) {
             const base = pieces[step.at.alongside];
             if (!base || step.at.alongside >= index) {

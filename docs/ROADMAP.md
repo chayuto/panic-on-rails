@@ -30,9 +30,8 @@ run your trains, and keep expanding the railway with no end point.
   - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
-  - elevation;
-  - the rest of Kato's double-track sets (V12 and V13 need elevation, V15 the widening
-    sections).
+  - the rest of elevation: V12's double-track climb, and the V2 + M1 up-and-over;
+  - V15's widening sections, whose inner S-curve Kato doesn't publish.
 
 ## Vision
 
@@ -526,10 +525,21 @@ Order, biggest win per millisecond first:
     piers in the game yet.
   - A new tool made the toolbar wrap just past 1440px. The templates menu is now narrower up to
     1500px, and the one-line check covers 1501px too.
+- [x] **Kato's double-track viaduct and V13** (20-872, $240). The double-track viaduct straights
+      (WS248VS, WS186VS, WS124VS), the superelevated curve WR414/381-45VS and its approaches,
+      left and right: slab track at 33 mm centres on a viaduct deck.
+  - V13 is an oval raised 60 mm all round, with a double-track pier under every joint. It
+    measures its printed 1864 × 872 mm exactly.
+  - The deck is 77 mm wide: V13's printed size is its outer track's centre line plus 22 mm each
+    side. It's painted once, on the infill between the two tracks.
+  - A plan can start raised (`LayoutPlan.height`).
+  - The set test's footprint sweeps each track of a double-track piece as far out as the piece
+    reaches. For the ground double track that's 12.5 mm, as before.
 - [ ] More elevation:
-  - V12 and V13: Kato's double-track viaduct pieces, piers and the incline ramp.
+  - V12: the double-track climb, with the WS186PCINC ramp and the double-track incline piers.
+    Kato prints neither those piers' heights nor V12's own size.
   - V2 with M1 as one loop, M1's ground track passing under the truss (Kato's "Master1 + V2").
-  - Raise a double-track piece's two tracks together.
+  - Raise a double-track piece's two tracks together with the Pier tool.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
   - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin

@@ -9,20 +9,27 @@ import { getAllSets, getAvailableParts, getSetById, resolvePlan, planToTemplate 
 import type { PlacedConnector } from '../plan';
 import type { LayoutPlan } from '../types';
 import { getPartById } from '../../catalog/registry';
+import { isDoubleTrack } from '../../catalog/helpers';
+
+/** Between a double-track piece's two tracks (mm) */
+const DOUBLE_TRACK_SPACING = 33;
 import { createPartTrack } from '../../../stores/slices/trackCreators';
 import { resetWorld, loadRecipe, summarize, simHarness } from '../../../simulation/harness';
 
 /**
  * Outer size of a plan as a manufacturer measures it: every edge swept by
- * its part's footprint width (roadbed, road-crossing plates, ...). A
- * topology part's edges are its tracks, each on its own roadbed: a
- * double-track piece is two of them, 33mm apart.
+ * its part's footprint width (roadbed, road-crossing plates, a viaduct's
+ * deck...). A topology part's edges are its tracks, each on its own
+ * roadbed: a double-track piece is two of them, 33mm apart, each reaching
+ * as far out as the piece (half its width beyond the 33mm between them).
  */
 function footprint(plan: LayoutPlan): { long: number; short: number } {
     const xs: number[] = [];
     const ys: number[] = [];
     for (const piece of resolvePlan(plan).pieces) {
-        const half = ((piece.part.geometry.type === 'topology' ? piece.part.roadbedWidth : piece.part.width) ?? 25) / 2;
+        const half = isDoubleTrack(piece.part)
+            ? ((piece.part.width ?? 58) - DOUBLE_TRACK_SPACING) / 2
+            : ((piece.part.geometry.type === 'topology' ? piece.part.roadbedWidth : piece.part.width) ?? 25) / 2;
         for (const { geometry: g } of createPartTrack(piece.part, piece.position, piece.rotation).edges) {
             for (let i = 0; i <= 64; i++) {
                 const t = i / 64;

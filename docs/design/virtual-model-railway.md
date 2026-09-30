@@ -73,7 +73,8 @@ Measurements"), cross-checked against Kato's set guides and Kato Japan's set pag
 | **V14** 20-873 | As V11, on WR315/282 curves | 1997 × 1005 | ✅ 1996.5 × 1005.2 |
 | **V16** 20-876 | As V11, on WR480/447 curves | 2560 × 1432 | ✅ 2559.9 × 1431.9 |
 | **V17** 20-877 | WS248S×4, WS124S, WS62S, WS62FS, WR414/381-45S×6, approaches L×2 + R×2 | 1473 × 853 | ✅ Measures 1473 × 853 exactly: double track on a concrete slab |
-| **V12, V13, V15** | Elevated double track; widening sections | — | ❌ Needs elevation, or the widening sections' unpublished S-curve |
+| **V13** 20-872 | WS248VS×8, WR414/381-45VS×6, approaches L×2 + R×2, 18 double-track piers | 1864 × 872 | ✅ Measures 1864 × 872 exactly: a double-track oval on a viaduct 60 mm up |
+| **V12, V15** | The double-track climb; widening sections | — | ❌ V12: Kato prints neither its piers' heights nor its size. V15: the widening sections' S-curve is unpublished |
 
 What the measurements taught us:
 
@@ -157,7 +158,7 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | The manual's layout plans | ✅ Plans as part chains, proved to close | — |
 | Double crossover (V7) | ✅ WX310 as a topology part: four routes, points at all four ends | — |
 | Double-track pieces (V11–V17) | ✅ V11, V14, V16 (concrete ties) and V17 (slab): straights, banked curves and approaches, as two-track topology parts drawn as one band | V12/V13 (elevation), V15 (widening sections) |
-| Viaducts and elevation (V2, V12, V13) | ✅ V2: viaduct track and truss bridges, raised on piers at Kato's standard heights | V12/V13 need the double-track viaduct pieces and piers |
+| Viaducts and elevation (V2, V12, V13) | ✅ V2 and V13: single- and double-track viaducts and truss bridges, on piers at Kato's standard heights; the Pier tool raises any Kato track | V12's double-track climb |
 | Curved turnouts, double slip (Märklin C3–C5, Hornby) | ✅ As topology parts | — |
 | Power pack | ✅ A throttle with momentum, braking for red signals and buffer stops, and a direction lever | — |
 | The train in a train set | ✅ Kato USA's N starter sets and Hornby's OO train sets, each with its own train | Märklin's Start up sets |
@@ -247,6 +248,8 @@ Viaducts and piers (the V2 set):
   viaduct piece climbs about 6%, as a modeler measured it:
   https://kureport.livedoor.blog/archives/18495912.html
 - The viaduct's deck is 33 mm wide: V2's printed size is its track's centre line plus 33 mm.
+- V13's contents and size, and the double-track viaduct pieces: the catalog's p.7 and p.21. Its
+  deck is 77 mm wide, 22 mm beyond each outer track's centre line, from its printed size.
 
 Car lengths of the real trains (`src/data/rollingStock.ts`):
 

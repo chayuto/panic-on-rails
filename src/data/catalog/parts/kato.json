@@ -1080,6 +1080,288 @@
             "deck": "truss",
             "deckColor": "#2b2b2b",
             "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-401",
+            "cost": 1100,
+            "name": "Double Viaduct Straight 248mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-401",
+            "description": "WS248VS: two slab tracks at 33mm centres on a viaduct deck 77mm wide, carried on double-track piers. Sold in pairs.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 248
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 248
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-411",
+            "cost": 1050,
+            "name": "Double Viaduct Straight 186mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-411",
+            "description": "WS186VS: two slab tracks at 33mm centres on a viaduct deck 77mm wide, carried on double-track piers. Sold in pairs.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 186
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 186
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-422",
+            "cost": 1000,
+            "name": "Double Viaduct Straight 124mm",
+            "type": "topology",
+            "category": "straight",
+            "productCode": "20-422",
+            "description": "WS124VS: two slab tracks at 33mm centres on a viaduct deck 77mm wide, carried on double-track piers. Sold in pairs.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "straight": 124
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "straight": 124
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-544",
+            "cost": 1200,
+            "name": "Double Viaduct Curve R414/381-45°",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-544",
+            "description": "WR414/381-45VS: two superelevated slab curves on a viaduct, R414 outside and R381 inside, 45°, at 33mm centres. Sold in pairs.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "arc": 414,
+                            "angle": 45,
+                            "turn": "right"
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "arc": 381,
+                            "angle": 45,
+                            "turn": "right"
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-545r",
+            "cost": 800,
+            "name": "Double Viaduct Approach R414/381-22.5° Right",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-545",
+            "description": "WR414/381-22.5VSAR: 22.5° of the viaduct R414/381 pair, easing from level track into the bank. Turns right going from its flat end into the bank. Sold as a left and right pair, 20-545.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "arc": 414,
+                            "angle": 22.5,
+                            "turn": "right"
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "arc": 381,
+                            "angle": 22.5,
+                            "turn": "right"
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
+        },
+        {
+            "id": "kato-20-545l",
+            "cost": 800,
+            "name": "Double Viaduct Approach R414/381-22.5° Left",
+            "type": "topology",
+            "category": "curve",
+            "productCode": "20-545",
+            "description": "WR414/381-22.5VSAL: 22.5° of the viaduct R414/381 pair, easing from level track into the bank. Turns left going from its flat end into the bank. Sold as a left and right pair, 20-545.",
+            "width": 77,
+            "slab": true,
+            "deck": "viaduct",
+            "connectors": {
+                "A1": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                },
+                "B1": {
+                    "x": 0,
+                    "y": 33,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "A1",
+                    "to": "A2",
+                    "path": [
+                        {
+                            "arc": 381,
+                            "angle": 22.5,
+                            "turn": "left"
+                        }
+                    ]
+                },
+                {
+                    "from": "B1",
+                    "to": "B2",
+                    "path": [
+                        {
+                            "arc": 414,
+                            "angle": 22.5,
+                            "turn": "left"
+                        }
+                    ]
+                }
+            ],
+            "referenceUrl": "https://katousa.com/wp-content/uploads/2026/03/us_unitrack_1-40_20251028-%E8%BB%BD.pdf"
         }
     ]
 }
