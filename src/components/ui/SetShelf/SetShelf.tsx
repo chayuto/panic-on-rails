@@ -12,11 +12,11 @@ import { ROLLING_STOCK, type RollingStock } from '../../../data/rollingStock';
 import { getCarSprite } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
 import { SCALES } from '../../../config/scales';
-import type { PartBrand } from '../../../data/catalog/types';
+import { BRAND_NAMES, trackSystemName } from '../../../data/brands';
 import { createPortal } from 'react-dom';
 import { Package, X } from 'lucide-react';
 import { getAllSets, resolvePlan, type LayoutPlan, type TrackSet } from '../../../data/sets';
-import { getPartById, getPartsByScale } from '../../../data/catalog';
+import { getAllParts, getPartById, getPartsByBrand } from '../../../data/catalog';
 import type { PartDefinition } from '../../../types';
 import { useTrackStore } from '../../../stores/useTrackStore';
 import { useCollectionStore } from '../../../stores/useCollectionStore';
@@ -27,15 +27,6 @@ import { PlanPreview, PartPreview } from '../TrackPreview';
 import { buildSetPlan } from './buildSetPlan';
 import './SetShelf.css';
 
-/** How each maker and its track system are named on the shelf. */
-const BRAND_NAMES: Partial<Record<PartBrand, { maker: string; track: string }>> = {
-    kato: { maker: 'Kato', track: 'Unitrack' },
-    marklin: { maker: 'Märklin', track: 'C-track' },
-    hornby: { maker: 'Hornby', track: 'Setrack' },
-    tomix: { maker: 'Tomix', track: 'Fine Track' },
-    brio: { maker: 'Brio', track: 'wooden railway' },
-    ikea: { maker: 'IKEA', track: 'Lillabo' },
-};
 
 function partLabel(partId: string): { name: string; code?: string } {
     const part = getPartById(partId);
@@ -222,20 +213,30 @@ function TrainsForSale({ wallet }: { wallet: number }) {
 
 function PartsForSale({ wallet, inventory }: { wallet: number; inventory: PartCounts }) {
     const buyPart = useCollectionStore(s => s.buyPart);
-    // Pieces without a product number of their own only come in boxes
-    const parts = getPartsByScale('n-scale').filter(p => p.productCode);
+    // Every model track system, each under its own heading. Pieces without a
+    // product number of their own only come in boxes.
+    const systems = [...new Set(getAllParts().filter(p => p.scale !== 'wooden').map(p => p.brand))]
+        .map(brand => ({ brand, parts: getPartsByBrand(brand).filter(p => p.productCode) }))
+        .filter(system => system.parts.length > 0);
     return (
-        <div className="shop-parts">
-            {parts.map(part => (
-                <PartForSale
-                    key={part.id}
-                    part={part}
-                    owned={inventory[part.id] ?? 0}
-                    wallet={wallet}
-                    onBuy={() => buyPart(part.id)}
-                />
+        <>
+            {systems.map(({ brand, parts }) => (
+                <section key={brand}>
+                    <h3 className="set-shelf-section">{trackSystemName(brand)} · {SCALES[parts[0].scale].label}</h3>
+                    <div className="shop-parts">
+                        {parts.map(part => (
+                            <PartForSale
+                                key={part.id}
+                                part={part}
+                                owned={inventory[part.id] ?? 0}
+                                wallet={wallet}
+                                onBuy={() => buyPart(part.id)}
+                            />
+                        ))}
+                    </div>
+                </section>
             ))}
-        </div>
+        </>
     );
 }
 
@@ -270,11 +271,7 @@ export function SetShelf({ onClose }: { onClose: () => void }) {
     // One shelf per track system, starter sets first on each
     const sections = [...new Set(sets.map(s => s.brand))].map(brand => {
         const onShelf = sets.filter(s => s.brand === brand);
-        const name = BRAND_NAMES[brand];
-        return {
-            title: `${name ? `${name.maker} ${name.track}` : brand} · ${SCALES[onShelf[0].scale].label}`,
-            sets: onShelf,
-        };
+        return { title: `${trackSystemName(brand)} · ${SCALES[onShelf[0].scale].label}`, sets: onShelf };
     });
 
     const showParts = inCollection && tab === 'parts';
