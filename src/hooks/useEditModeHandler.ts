@@ -103,7 +103,8 @@ export function useEditModeHandler({ screenToWorld }: UseEditModeHandlerOptions)
             worldPos,
             userRotation,
             openEndpoints,
-            selectedSystem
+            selectedSystem,
+            useTrackStore.getState().edges
         );
 
         // Update ghost position and snap state

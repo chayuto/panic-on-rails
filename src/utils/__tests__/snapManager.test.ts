@@ -12,7 +12,7 @@ import {
     rotateGhostAroundConnector,
 } from '../snapManager';
 import { computeConnectors } from '../../data/catalog/helpers';
-import type { PartDefinition, TrackNode } from '../../types';
+import type { PartDefinition, TrackEdge, TrackNode } from '../../types';
 
 // ===========================
 // Mock Parts
@@ -404,6 +404,25 @@ describe('findBestSnap — chaining curves', () => {
         const towardRight = snapAt({ x: forward.x * 8 - left.x * 12, y: forward.y * 8 - left.y * 12 });
         expect(sideOf(towardLeft.far.worldPosition)).toBeGreaterThan(0);
         expect(sideOf(towardRight.far.worldPosition)).toBeLessThan(0);
+    });
+
+    it('with the cursor straight ahead, keeps turning the way the track it joins turns', () => {
+        const sideOf = (p: { x: number; y: number }) => p.x * left.x + p.y * left.y;
+        // The piece ending at curve-end, turning right (increasing angles) or left into it
+        const arcInto = (startAngle: number, endAngle: number): Record<string, TrackEdge> => ({
+            'edge-1': {
+                id: 'edge-1', partId: 'test-curve', startNodeId: 'before', endNodeId: 'curve-end', length: 247,
+                geometry: { type: 'arc', center: { x: 0, y: 0 }, radius: 315, startAngle, endAngle },
+            },
+        });
+        const ahead = { x: forward.x * 8, y: forward.y * 8 };
+        const far = (edges: Record<string, TrackEdge>) => {
+            const result = findBestSnap(curvePart, ahead, 0, [curveEnd], 'n-scale', edges)!;
+            const placed = getWorldConnectors(curvePart, result.ghostTransform.position, result.ghostTransform.rotation);
+            return placed.find(c => Math.hypot(c.worldPosition.x, c.worldPosition.y) > 1)!.worldPosition;
+        };
+        expect(sideOf(far(arcInto(-90, -45)))).toBeLessThan(0);   // right turn continues right
+        expect(sideOf(far(arcInto(180, 135)))).toBeGreaterThan(0); // left turn continues left
     });
 });
 

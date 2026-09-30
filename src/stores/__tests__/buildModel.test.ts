@@ -65,7 +65,7 @@ function dropPiece(s: Extract<Step, { kind: 'drop' }>): void {
             x: target.position.x + Math.cos(r) * 8 - Math.sin(r) * 6 * s.side,
             y: target.position.y + Math.sin(r) * 8 + Math.cos(r) * 6 * s.side,
         };
-        const snap = findBestSnap(part, cursor, rotation, open, 'n-scale');
+        const snap = findBestSnap(part, cursor, rotation, open, 'n-scale', track.edges);
         position = snap ? snap.ghostTransform.position : cursor;
         rotation = snap ? snap.ghostTransform.rotation : rotation;
     }
