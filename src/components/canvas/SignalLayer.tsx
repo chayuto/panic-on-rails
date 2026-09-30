@@ -48,14 +48,15 @@ function SignalEntity({ signal }: { signal: Signal }) {
     }
 
     const handleClick = () => {
-        if (editSubMode === 'signal') {
+        // The edit tool stays chosen in Simulate mode; it acts only while editing
+        if (isSimulating || editSubMode === 'select') {
+            // In simulate mode or select mode, clicking toggles the signal
+            toggleSignal(signal.id);
+            playSound('switch');
+        } else if (editSubMode === 'signal') {
             // In signal mode, clicking removes the signal
             useHistoryStore.getState().record();
             removeSignal(signal.id);
-        } else if (editSubMode === 'select' || isSimulating) {
-            // In select mode or simulate mode, clicking toggles the signal
-            toggleSignal(signal.id);
-            playSound('switch');
         } else if (editSubMode === 'wire') {
             if (wireSource) {
                 // If we have a source, create wire to this signal

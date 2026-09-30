@@ -189,6 +189,9 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
   - The train panel has a fixed width, so the canvas no longer shifts as trains come, go
     and crash.
 - [ ] Clicking a train on the canvas to stop it (the panel buttons cover this for now).
+- [x] **Fixed:** in Simulate mode a click on a signal deleted it if the signal tool was the last
+      one used, and sensors and wires answered their edit tools too. The edit tool stays chosen
+      while simulating; now it acts only while editing.
 
 ### Phase 2: The Box, real starter sets
 

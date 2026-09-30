@@ -9,7 +9,7 @@ import { Group, Rect, Text } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
-import { useModeStore } from '../../stores/useModeStore';
+import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useHistoryStore } from '../../stores/useHistoryStore';
 import { deriveWorldGeometry } from '../../utils/geometry';
 import type { Sensor, TrackEdge, TrackNode, Vector2, NodeId, TrackGeometry } from '../../types';
@@ -68,6 +68,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     const wireSource = useEditorStore(s => s.wireSource);
     const setWireSource = useEditorStore(s => s.setWireSource);
     const editSubMode = useModeStore(s => s.editSubMode);
+    const isEditing = useIsEditing();
 
     const edge = edges[sensor.edgeId];
     if (!edge) return null;
@@ -84,6 +85,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
     }
 
     const handleClick = () => {
+        if (!isEditing) return;
         if (editSubMode === 'sensor') {
             // In sensor mode, clicking removes the sensor
             useHistoryStore.getState().record();
@@ -99,6 +101,8 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
             x={pos.x}
             y={pos.y}
             rotation={rotation}
+            // Only the edit tools click sensors: while simulating a click goes through to the trains
+            listening={isEditing}
             onClick={handleClick}
             onTap={handleClick}
         >
@@ -116,7 +120,7 @@ function SensorEntity({ sensor, isSelected }: { sensor: Sensor; isSelected?: boo
                 perfectDrawEnabled={false}
             />
             {/* Sensor label (only in sensor mode) */}
-            {editSubMode === 'sensor' && (
+            {isEditing && editSubMode === 'sensor' && (
                 <Text
                     x={-sensor.length / 2}
                     y={-SENSOR_HEIGHT / 2 - 14}

@@ -79,6 +79,25 @@ test.describe('Simulation controls', () => {
         await expect.poll(position).not.toBe(held);
     });
 
+    test('in Simulate mode a click on a signal changes it, whatever tool was last used', async ({ page, app }) => {
+        void app;
+        await loadTemplate(page, 'simple-oval');
+        await page.getByTestId('mode-edit-btn').click();
+        await page.getByTestId('edit-tool-signal').click();
+        const signal = await page.evaluate(() => {
+            const s = window.__PANIC_STORES__!;
+            const node = Object.values(s.track.getState().nodes)[0];
+            const id = s.logic.addSignal(node.id);
+            const { offset } = s.logic.getState().signals[id];
+            return { id, at: { x: node.position.x + offset.x, y: node.position.y + offset.y } };
+        });
+        await page.getByTestId('mode-simulate-btn').click();
+
+        await clickWorld(page, signal.at);
+        await expect.poll(() => page.evaluate((id) => window.__PANIC_STORES__!.logic.getState().signals[id]?.state ?? 'removed', signal.id))
+            .toBe('green');
+    });
+
     test('pausing from the toolbar stays in Simulate mode', async ({ page, app }) => {
         void app;
         await loadTemplate(page, 'simple-oval');

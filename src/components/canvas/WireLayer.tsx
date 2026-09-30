@@ -7,7 +7,7 @@
 import { Group, Line } from 'react-konva';
 import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
-import { useModeStore } from '../../stores/useModeStore';
+import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useHistoryStore } from '../../stores/useHistoryStore';
 import { deriveWorldGeometry } from '../../utils/geometry';
 import type { Wire, Sensor, Signal, Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../../types';
@@ -116,6 +116,7 @@ function WireEntity({ wire }: { wire: Wire }) {
     const edges = useTrackStore(s => s.edges);
     const nodes = useTrackStore(s => s.nodes);
     const editSubMode = useModeStore(s => s.editSubMode);
+    const isEditing = useIsEditing();
 
     const sourcePos = getSourcePosition(wire, sensors, signals, edges, nodes);
     const targetPos = getTargetPosition(wire, signals, nodes);
@@ -140,7 +141,7 @@ function WireEntity({ wire }: { wire: Wire }) {
 
     const handleClick = () => {
         // Only allow wire removal in wire mode
-        if (editSubMode === 'wire') {
+        if (isEditing && editSubMode === 'wire') {
             useHistoryStore.getState().record();
             removeWire(wire.id);
         }
@@ -165,6 +166,8 @@ function WireEntity({ wire }: { wire: Wire }) {
             lineCap="round"
             dash={isActive ? undefined : [5, 5]}
             opacity={isActive ? 1 : 0.5}
+            // Only the wire tool clicks wires: while simulating a click goes through to the trains
+            listening={isEditing}
             onClick={handleClick}
             onTap={handleClick}
             hitStrokeWidth={10}
