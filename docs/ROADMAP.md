@@ -370,8 +370,8 @@ Order, biggest win per millisecond first:
       (`createPartTrack`); crossovers and bumpers now preview their true shape.
 - [ ] Move cross-store cascades into an orchestration layer. Replace `console.log` with
       `logger` and add a `no-console` lint rule.
-- [ ] `@vitest/coverage-v8` with thresholds on `src/simulation/**`, `src/stores/**` and
-      `src/utils/geometry*`, ratcheted with `autoUpdate`.
+- [x] `@vitest/coverage-v8` with floors per area (simulation, stores, data, utils) a little
+      under today's numbers. CI runs `pnpm test:coverage`.
 - [ ] knip in CI. Delete the remaining dead code (`useSimulateModeHandler` or wire it up,
       `isHeadOnCollision`, `cleanupOldParts`).
 - [ ] Run `e2e/specs/` nightly against preview. Replace `waitForTimeout` with
@@ -391,12 +391,18 @@ Order, biggest win per millisecond first:
   - the Skip tutorial button and the "You did it!" toast lie over the canvas;
   - a curve dropped beside a track end turns the wrong way at low zoom;
   - a set of points is a ~6 px target at the zoom that fits a large layout.
-- [ ] Upgrade Playwright to 1.63. Use `playwright-cli` for agent sessions. Give the test agents
-      the `browser_mouse_*_xy` tools, and have generated tests call `look()` instead of fixed
-      coordinates.
-- [ ] A console/page-error gate in the app fixture: every spec fails on a new error.
-- [ ] fast-check: geometry properties, and model-based tests of place/delete/undo/join with
-      shrinking. Port the monkey to `fc.commands`.
+- [x] Playwright 1.63. The test agents have the `browser_mouse_*_xy` tools and are told to see
+      the canvas with `look()`. The seed test waits for the lens.
+- [ ] Try `playwright-cli` for agent sessions.
+- [x] A console/page-error gate in the app fixture: every spec fails on a new error.
+- [x] fast-check model-based tests of building: random drops at open ends, deletes, undo, redo
+      and points, against the real stores, snap manager and join. The graph must stay
+      consistent after every step.
+  - Its first runs found a bug: deleting a turnout whose points had moved onto a track end
+    left that end claiming two missing routes. Fixed.
+  - With #137's join bug put back, it fails in two runs and shrinks the case to two drops.
+- [ ] fast-check geometry properties (mating, `normalizeAngle`, plan closure). Port the monkey
+      playtest to `fc.commands`.
 - [ ] Headless Monte Carlo play metrics in Vitest: crash and derail rates per train-hour, and
       economy pacing (minutes to afford each box).
 - [ ] Accessibility: axe on the page's DOM, aria snapshots of the dialogs, and reduced-motion
