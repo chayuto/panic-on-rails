@@ -207,9 +207,14 @@ await expect(page.getByTestId('canvas-container'))
 ```
 
 - First run writes the baseline (test "fails" once) — rerun to compare.
-- Baselines are **platform-specific** (`*-dev-darwin.png` vs linux). Keep
-  visual-regression specs in the `dev` project (not CI) unless you commit a
-  linux baseline generated on CI.
+- Baselines are **platform-specific** (`*-dev-darwin.png`, `*-specs-linux.png`).
+  The nightly compares the `specs` project's Linux baselines, made in its
+  pinned Playwright image; elsewhere the `specs` project skips screenshot
+  comparisons. To add or remake them, run the nightly by hand with "update
+  snapshots" (`gh workflow run nightly.yml -f update-snapshots=true`) and
+  commit its `screenshot-baselines` artifact into `e2e/specs/`.
+- `e2e/specs/looks.spec.ts` holds each brand's look: a set per painter style,
+  its trains standing, compared pixel for pixel.
 - For a **running** simulation, a screenshot is only ±1-frame stable — use
   `maxDiffPixels` tolerance, or freeze with `page.clock` first, or screenshot
   in edit mode.

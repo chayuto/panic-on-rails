@@ -29,6 +29,7 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useEffectsStore } from '../stores/useEffectsStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { useHistoryStore } from '../stores/useHistoryStore';
+import { useOnboardingStore } from '../stores/useOnboardingStore';
 import { simHarness, type SimHarness } from '../simulation/harness';
 import { look, type QaLook } from './qaLens';
 import type Konva from 'konva';
@@ -93,6 +94,7 @@ function createBridge() {
             'addWire', 'removeWire', 'addStation', 'removeStation', 'setStationInterval', 'clearLogic',
         ]),
         effects: expose(useEffectsStore, ['ripples', 'flashes', 'screenShake'], ['clearAllEffects']),
+        onboarding: expose(useOnboardingStore, ['stage'], ['skipOnboarding', 'resetOnboarding']),
         collection: expose(useCollectionStore, ['mode', 'wallet', 'lifetimeEarned', 'ownedSets', 'looseParts', 'ownedTrains'], [
             'setMode', 'earn', 'buySet', 'buyPart', 'resetCollection',
         ]),
