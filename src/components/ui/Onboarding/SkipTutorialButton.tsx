@@ -1,8 +1,9 @@
 /**
  * SkipTutorialButton - Allows experienced users to bypass onboarding
- * 
- * Shown during active onboarding. Clicking it immediately
- * completes onboarding and unlocks all features.
+ *
+ * A link at the foot of each onboarding hint, rather than a button floating
+ * over the canvas, where it covered track. Clicking it immediately completes
+ * onboarding and unlocks all features.
  */
 
 import { useCallback } from 'react';
@@ -26,7 +27,7 @@ export function SkipTutorialButton() {
             onClick={handleSkip}
             title="Skip tutorial and unlock all features"
         >
-            Skip tutorial — I know what I'm doing
+            Skip tutorial
         </button>
     );
 }

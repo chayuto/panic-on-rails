@@ -1,8 +1,8 @@
 /**
  * OnboardingHints - Orchestrates which hints to show based on current stage
  * 
- * Renders the appropriate hint component for the current onboarding stage.
- * Also handles the skip tutorial button and completion toast.
+ * Renders the appropriate hint component for the current onboarding stage,
+ * and the completion toast. Each hint carries the Skip tutorial link.
  */
 
 import { ArrowLeft, RefreshCw, TrainFront, Plus, Play, PartyPopper } from 'lucide-react';
@@ -10,7 +10,6 @@ import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import { useModeStore } from '../../../stores/useModeStore';
 import { Hint } from './Hint';
 import { Toast } from './Toast';
-import { SkipTutorialButton } from './SkipTutorialButton';
 import { COMPLETION_TOAST_MS } from './OnboardingProvider';
 import './Onboarding.css';
 
@@ -25,9 +24,6 @@ export function OnboardingHints() {
 
     return (
         <>
-            {/* Skip button available until the final celebration */}
-            {stage !== 'simulation_run' && <SkipTutorialButton />}
-
             {/* Stage-specific hints */}
             {stage === 'new_user' && <FirstTrackHint />}
             {stage === 'first_track' && <LoopCreationHint />}
