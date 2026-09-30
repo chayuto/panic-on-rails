@@ -9,7 +9,7 @@ import { useLogicStore } from '../../stores/useLogicStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useHistoryStore } from '../../stores/useHistoryStore';
-import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import { deriveWorldGeometry } from '../../utils/geometry';
 import type { Wire, Sensor, Signal, Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../../types';
 
 const WIRE_COLOR_ACTIVE = '#FFD93D';
@@ -32,7 +32,7 @@ function getSensorPosition(
 
     // V2: Use derived geometry if nodes available
     const geometry: TrackGeometry = nodes
-        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        ? (deriveWorldGeometry(edge, nodes) ?? edge.geometry)
         : edge.geometry;
 
     if (geometry.type === 'straight') {

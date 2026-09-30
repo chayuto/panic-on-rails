@@ -321,19 +321,3 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         getGhostTransient: () => ghostRef.current,
     }))
 );
-
-// Named Selectors
-export const selectSelectedEdgeId = (state: EditorState) => state.selectedEdgeId;
-export const selectSelectedPartId = (state: EditorState) => state.selectedPartId;
-export const selectSelectedSystem = (state: EditorState) => state.selectedSystem;
-export const selectShowGrid = (state: EditorState) => state.showGrid;
-export const selectShowMeasurements = (state: EditorState) => state.showMeasurements;
-export const selectZoom = (state: EditorState) => state.zoom;
-export const selectPan = (state: EditorState) => state.pan;
-export const selectDraggedPartId = (state: EditorState) => state.draggedPartId;
-export const selectGhostPosition = (state: EditorState) => state.ghostPosition;
-export const selectGhostRotation = (state: EditorState) => state.ghostRotation;
-export const selectGhostValid = (state: EditorState) => state.ghostValid;
-export const selectSnapTarget = (state: EditorState) => state.snapTarget;
-export const selectWireSource = (state: EditorState) => state.wireSource;
-export const selectConnectSource = (state: EditorState) => state.connectSource;

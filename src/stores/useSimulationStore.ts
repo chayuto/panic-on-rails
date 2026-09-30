@@ -33,9 +33,5 @@ export const useSimulationStore = create<SimulationStore>()(
 );
 
 // Named Selectors
-export const selectTrains = (state: SimulationStore) => state.trains;
-export const selectIsRunning = (state: SimulationStore) => state.isRunning;
-export const selectCrashedParts = (state: SimulationStore) => state.crashedParts;
-export const selectSpeedMultiplier = (state: SimulationStore) => state.speedMultiplier;
 export const selectError = (state: SimulationStore) => state.error;
 

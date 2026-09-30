@@ -11,7 +11,7 @@ import { useTrackStore } from '../../stores/useTrackStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore } from '../../stores/useModeStore';
 import { useHistoryStore } from '../../stores/useHistoryStore';
-import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
+import { deriveWorldGeometry } from '../../utils/geometry';
 import type { Sensor, TrackEdge, TrackNode, Vector2, NodeId, TrackGeometry } from '../../types';
 
 const SENSOR_HEIGHT = 12;
@@ -32,7 +32,7 @@ function getSensorTransform(
 
     // V2: Use derived geometry if nodes available
     const geometry: TrackGeometry = nodes
-        ? (getEdgeWorldGeometry(edge, nodes) ?? edge.geometry)
+        ? (deriveWorldGeometry(edge, nodes) ?? edge.geometry)
         : edge.geometry;
 
     if (geometry.type === 'straight') {

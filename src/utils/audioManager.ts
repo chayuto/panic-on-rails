@@ -290,30 +290,9 @@ export function playNearMissSound(): void {
     playSound('switch-near-miss', { volume: 0.9, pitch: 1.0 });
 }
 
-/**
- * Reset the switch sound streak (e.g., when switching modes).
- */
-export function resetSwitchStreak(): void {
-    switchState.clickStreak = 0;
-}
-
 // ===========================
 // Volume Controls
 // ===========================
-
-/**
- * Set the master volume (0-1).
- */
-export function setVolume(volume: number): void {
-    state.volume = Math.max(0, Math.min(1, volume));
-}
-
-/**
- * Get the current volume.
- */
-export function getVolume(): number {
-    return state.volume;
-}
 
 /**
  * Check if audio is muted.
@@ -329,12 +308,4 @@ export function toggleMute(): boolean {
     state.muted = !state.muted;
     localStorage.setItem('panic-audio-muted', String(state.muted));
     return state.muted;
-}
-
-/**
- * Set mute state explicitly.
- */
-export function setMuted(muted: boolean): void {
-    state.muted = muted;
-    localStorage.setItem('panic-audio-muted', String(state.muted));
 }

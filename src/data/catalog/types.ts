@@ -261,10 +261,3 @@ export interface PartDefinition {
 
 /** Parts-bin section a part belongs to. */
 export type PartCategory = 'straight' | 'curve' | 'turnout' | 'crossing' | 'bumper';
-
-// ===========================
-// Re-exports for convenience
-// ===========================
-
-// These match the original types/index.ts for compatibility
-export type { PartDefinition as Part };

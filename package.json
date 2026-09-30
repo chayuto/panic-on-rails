@@ -13,7 +13,7 @@
         "build": "tsc -b && vite build",
         "lint": "eslint . --max-warnings 0",
         "typecheck": "tsc -b",
-        "knip": "knip --include files,dependencies,unlisted,unresolved,binaries",
+        "knip": "knip",
         "preview": "vite preview",
         "test": "vitest",
         "test:coverage": "vitest run --coverage",

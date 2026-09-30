@@ -27,41 +27,6 @@ export function easeOutCubic(t: number): number {
 }
 
 /**
- * Ease out quad - simpler ease out.
- */
-export function easeOutQuad(t: number): number {
-    return 1 - Math.pow(1 - t, 2);
-}
-
-/**
- * Ease out back - overshoots then settles.
- * Perfect for satisfying "snap" animations.
- * 
- * @param overshoot - Amount of overshoot (default 1.70158)
- */
-export function easeOutBack(t: number, overshoot: number = 1.70158): number {
-    const c3 = overshoot + 1;
-    return 1 + c3 * Math.pow(t - 1, 3) + overshoot * Math.pow(t - 1, 2);
-}
-
-/**
- * Ease in out cubic - smooth start and end.
- */
-export function easeInOutCubic(t: number): number {
-    return t < 0.5
-        ? 4 * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-/**
- * Pulse animation (0 -> 1 -> 0).
- * Good for hover glow effects.
- */
-export function pulse(t: number): number {
-    return Math.sin(t * Math.PI);
-}
-
-/**
  * Infinite pulse that oscillates between min and max.
  * 
  * @param time - Current time in milliseconds
@@ -87,21 +52,4 @@ export function getProgress(startTime: number, duration: number, currentTime?: n
     const now = currentTime ?? Date.now();
     const elapsed = now - startTime;
     return clamp(elapsed / duration, 0, 1);
-}
-
-/**
- * Check if an animation has completed.
- */
-export function isAnimationComplete(startTime: number, duration: number, currentTime?: number): boolean {
-    return getProgress(startTime, duration, currentTime) >= 1;
-}
-
-/**
- * Color utilities for effects.
- */
-export function hexToRgba(hex: string, alpha: number): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

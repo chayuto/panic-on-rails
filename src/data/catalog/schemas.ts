@@ -77,11 +77,6 @@ const SwitchPartBaseSchema = z.object({
     ...OptionalPartFields,
 });
 
-export const SwitchPartSchema = SwitchPartBaseSchema.refine(
-    (data) => data.branchRadius !== undefined || data.branchLength !== undefined,
-    { message: 'At least one of branchRadius or branchLength must be provided' }
-);
-
 /**
  * Crossing/Diamond track piece schema
  */
@@ -218,21 +213,3 @@ export const PartCatalogFileSchema = z.object({
 
 /** Inferred type for a single part from JSON */
 export type JsonPart = z.infer<typeof PartSchema>;
-
-/** Inferred type for straight part from JSON */
-export type JsonStraightPart = z.infer<typeof StraightPartSchema>;
-
-/** Inferred type for curve part from JSON */
-export type JsonCurvePart = z.infer<typeof CurvePartSchema>;
-
-/** Inferred type for switch part from JSON */
-export type JsonSwitchPart = z.infer<typeof SwitchPartSchema>;
-
-/** Inferred type for crossing part from JSON */
-export type JsonCrossingPart = z.infer<typeof CrossingPartSchema>;
-
-/** Inferred type for compound part from JSON */
-export type JsonCompoundPart = z.infer<typeof CompoundPartBaseSchema>;
-
-/** Inferred type for complete catalog file */
-export type PartCatalogFile = z.infer<typeof PartCatalogFileSchema>;

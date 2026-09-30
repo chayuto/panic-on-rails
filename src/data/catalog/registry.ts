@@ -30,13 +30,6 @@ export function registerParts(parts: PartDefinition[]): void {
     }
 }
 
-/**
- * Clear all registered parts (useful for testing)
- */
-export function clearRegistry(): void {
-    registry.clear();
-}
-
 // ===========================
 // Lookup Functions
 // ===========================
@@ -76,25 +69,9 @@ export function getAllParts(): PartDefinition[] {
     return Array.from(registry.values());
 }
 
-/**
- * Get count of registered parts
- */
-export function getPartCount(): number {
-    return registry.size;
-}
-
 // ===========================
 // Query Helpers
 // ===========================
-
-/**
- * Get parts filtered by geometry type
- * 
- * @param type - 'straight', 'curve', 'switch', or 'crossing'
- */
-export function getPartsByType(type: PartDefinition['geometry']['type']): PartDefinition[] {
-    return Array.from(registry.values()).filter(p => p.geometry.type === type);
-}
 
 /**
  * Check if a part ID exists

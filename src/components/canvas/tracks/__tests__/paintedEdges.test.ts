@@ -3,7 +3,7 @@ import { infillBetween, KATO_LOOK, KATO_SLAB_LOOK } from '../trackPainter';
 import { middleHeight, paintedEdges, piersUnder, type PlacedEdge } from '../paintedEdges';
 import { resetWorld, loadSetPlan } from '../../../../simulation/harness';
 import { useTrackStore } from '../../../../stores/useTrackStore';
-import { getEdgeWorldGeometry } from '../../../../hooks/useEdgeGeometry';
+import { deriveWorldGeometry } from '../../../../utils/geometry';
 import { getPartById } from '../../../../data/catalog';
 import { isDoubleTrack } from '../../../../data/catalog/helpers';
 import type { TrackGeometry } from '../../../../types';
@@ -43,7 +43,7 @@ function paintSet(setId: string) {
     const { edges, nodes } = useTrackStore.getState();
     const placed: PlacedEdge[] = Object.values(edges).map(edge => ({
         edge,
-        geometry: getEdgeWorldGeometry(edge, nodes)!,
+        geometry: deriveWorldGeometry(edge, nodes)!,
         part: getPartById(edge.partId),
         height: middleHeight(edge, nodes),
     }));
@@ -90,7 +90,7 @@ describe('raised track', () => {
         state.setNodeHeights({ [edges[ramp].endNodeId]: 40 });
         const { nodes } = useTrackStore.getState();
         const placed: PlacedEdge[] = [flat, ramp].map(id => ({
-            edge: edges[id], geometry: getEdgeWorldGeometry(edges[id], nodes)!, part: getPartById(edges[id].partId), height: middleHeight(edges[id], nodes),
+            edge: edges[id], geometry: deriveWorldGeometry(edges[id], nodes)!, part: getPartById(edges[id].partId), height: middleHeight(edges[id], nodes),
         }));
         const painted = paintedEdges(placed, null, new Set());
         expect(painted.map(p => p.height)).toEqual([undefined, 20]);

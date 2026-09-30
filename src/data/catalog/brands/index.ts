@@ -3,9 +3,6 @@
  * 
  * This file imports JSON catalog files and registers their parts.
  * When adding a new brand, add a JSON file to ../parts/ and import here.
- * 
- * Migration Note: TypeScript brand files (kato.ts, brio.ts) are now
- * deprecated. Use JSON files in ../parts/ instead.
  */
 
 import { registerParts } from '../registry';
@@ -30,11 +27,3 @@ registerParts(BRIO_PARTS);
 registerParts(IKEA_PARTS);
 registerParts(MARKLIN_PARTS);
 registerParts(HORNBY_PARTS);
-
-// Re-export for backward compatibility
-// @deprecated Use getPartsByBrand('kato') instead
-export { KATO_PARTS };
-// @deprecated Use getPartsByBrand('brio') instead
-export { BRIO_PARTS };
-// @deprecated Use getPartsByBrand('ikea') instead
-export { IKEA_PARTS };

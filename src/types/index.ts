@@ -15,30 +15,10 @@ export * from './serialization';
 
 // Re-export from catalog for single source of truth
 export type {
-    PartGeometry,
     PartBrand,
     PartScale,
     PartDefinition,
 } from '../data/catalog/types';
-
-// ===========================
-// Mode System (New)
-// ===========================
-
-// Re-export from mode types for single source of truth
-export type {
-    PrimaryMode,
-    EditSubMode,
-    SimulateSubMode,
-    ModeState,
-} from './mode';
-
-export {
-    DEFAULT_MODE_STATE,
-    isPrimaryMode,
-    isEditSubMode,
-    isSimulateSubMode,
-} from './mode';
 
 // ===========================
 // Logic Components
@@ -56,10 +36,7 @@ export type {
     Sensor,
     Signal,
     Wire,
-    WireSourceType,
-    WireTargetType,
     WireAction,
-    LogicLayoutData,
 } from './logic';
 
 // ===========================
@@ -69,10 +46,8 @@ export type {
 // Re-export from connector types
 export type {
     ConnectorNode,
-    PartConnectors,
     WorldConnector,
     SnapMatchResult,
-    SnapConfig,
 } from './connector';
 
 export { DEFAULT_SNAP_CONFIG } from './connector';

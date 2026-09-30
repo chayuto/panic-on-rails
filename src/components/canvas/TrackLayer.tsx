@@ -6,7 +6,6 @@ import { useEditorStore } from '../../stores/useEditorStore';
 import { useModeStore, useIsEditing } from '../../stores/useModeStore';
 import { useVisibleEdges } from '../../hooks/useVisibleEdges';
 import { useConnectMode } from '../../hooks/useConnectMode';
-import { getEdgeWorldGeometry } from '../../hooks/useEdgeGeometry';
 import { getPartById } from '../../data/catalog';
 import { playHoverSound } from '../../utils/audioManager';
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Vector2 } from '../../types';
@@ -15,7 +14,7 @@ import { supportName, supportsAt } from '../../utils/piers';
 import { isInsidePiece, isOpenEnd } from '../../utils/graphAnalysis';
 import { branchSide, routeThroughPiece } from '../../utils/switchRouting';
 import { getNodeFacadeFromEdge } from '../../utils/connectTransform';
-import { normalizeAngle } from '../../utils/geometry';
+import { deriveWorldGeometry, normalizeAngle } from '../../utils/geometry';
 import { pointsButtonRadius } from '../../config/interactions';
 
 import { NodeRenderer } from './tracks';
@@ -104,7 +103,7 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
     // Each visible edge where it lies, lowest first so raised track's click
     // targets sit on top; the painter and click targets share it
     const placed = useMemo(() => visibleEdges.flatMap((edge): PlacedEdge[] => {
-        const geometry = getEdgeWorldGeometry(edge, nodes);
+        const geometry = deriveWorldGeometry(edge, nodes);
         return geometry ? [{ edge, geometry, part: getPartById(edge.partId), height: middleHeight(edge, nodes) }] : [];
     }).sort((a, b) => a.height - b.height), [visibleEdges, nodes]);
 

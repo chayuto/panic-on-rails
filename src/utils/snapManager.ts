@@ -18,7 +18,6 @@ import type {
     ConnectorNode,
     WorldConnector,
     SnapMatchResult,
-    SnapConfig,
     PartScale,
     EdgeId,
     TrackEdge,
@@ -35,7 +34,6 @@ import {
     rotateAroundPivot,
 } from './geometry';
 
-import { INTERACTIONS } from '../config/interactions';
 import { isOpenEnd } from './graphAnalysis';
 
 // Re-export for backward compatibility
@@ -376,29 +374,8 @@ export function rotateGhostAroundConnector(
 }
 
 // ===========================
-// Collision Detection (Simple)
-// ===========================
-
-/**
- * Check if a track placement would collide with existing nodes.
- * Simple distance-based check.
- */
-export function checkCollision(
-    position: Vector2,
-    allNodes: Record<NodeId, TrackNode>,
-    minDistance: number = INTERACTIONS.MIN_COLLISION_DISTANCE
-): boolean {
-    for (const node of Object.values(allNodes)) {
-        if (distance(position, node.position) < minDistance) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// ===========================
 // Backward Compatibility Exports
 // ===========================
 
 // Re-export types for consumers
-export type { WorldConnector, SnapMatchResult, SnapConfig };
+export type { WorldConnector, SnapMatchResult };

@@ -291,6 +291,3 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
         return Object.values(get().nodes).filter(isOpenEnd);
     },
 });
-
-// Re-export initial state for use in store setup
-export { initialTrackState };
