@@ -3,13 +3,12 @@
  * 
  * Features:
  * - Two-button design for clear mode indication
- * - Keyboard shortcut (M key) support
+ * - The M key toggles it too, through useKeyboardShortcuts (the only key handler for it)
  * - Visual distinction with colored backgrounds
  * - Subtle pulse animation in Simulate mode
  * - Accessibility: aria-pressed, focus states
  */
 
-import { useEffect } from 'react';
 import { Wrench, TrainFront } from 'lucide-react';
 import { useModeStore } from '../../../stores/useModeStore';
 import './ModeToggle.css';
@@ -17,29 +16,6 @@ import './ModeToggle.css';
 export function ModeToggle() {
     const { primaryMode, togglePrimaryMode } = useModeStore();
     const isEditing = primaryMode === 'edit';
-
-    // Keyboard shortcut handler (M key toggles mode)
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            // Don't trigger if user is typing in an input
-            if (
-                e.target instanceof HTMLInputElement ||
-                e.target instanceof HTMLTextAreaElement ||
-                e.target instanceof HTMLSelectElement
-            ) {
-                return;
-            }
-
-            // M key toggles mode
-            if (e.key === 'm' || e.key === 'M') {
-                e.preventDefault();
-                togglePrimaryMode();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [togglePrimaryMode]);
 
     return (
         <div className="mode-toggle-container" data-testid="mode-toggle">

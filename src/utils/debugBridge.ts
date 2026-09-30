@@ -86,7 +86,7 @@ function createBridge() {
             'setTrainThrottle', 'setRunning', 'toggleRunning', 'clearTrains', 'setSpeedMultiplier', 'clearLog',
         ]),
         editor: expose(useEditorStore, [
-            'selectedEdgeId', 'selectedPartId', 'selectedSystem', 'showGrid', 'zoom', 'pan', 'draggedPartId', 'ghostPosition',
+            'selectedEdgeId', 'selectedPartId', 'selectedSystem', 'showGrid', 'showMeasurements', 'zoom', 'pan', 'draggedPartId', 'ghostPosition',
         ], ['setSelectedPart', 'setSelectedSystem', 'setSelectedEdge', 'resetView', 'setZoom', 'setPan']),
         logic: expose(useLogicStore, ['sensors', 'signals', 'wires', 'stations'], [
             'addSensor', 'removeSensor', 'addSignal', 'removeSignal', 'setSignalState', 'toggleSignal',

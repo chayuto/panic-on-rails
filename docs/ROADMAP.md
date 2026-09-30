@@ -575,7 +575,17 @@ Order, biggest win per millisecond first:
       against the production preview, with screenshot comparisons skipped until there are
       Linux baselines. Its first local run caught the clock spec loading the page without
       `?e2e`, which works only against the dev server.
-- [ ] Replace the agent specs' 150 `waitForTimeout`s with `expect.poll` or `__PANIC_SIM__`.
+- [x] **The agent specs sleep no more.** Their 140 `waitForTimeout`s are gone, and the nightly
+      runs in 25 s where it took two minutes.
+  - Waits after store calls went: those are synchronous.
+  - Screenshots wait for a painted frame themselves (`nextFrame`).
+  - Key presses and clicks wait for what they change (`expect.poll`).
+  - Runs step the simulation exactly (`__PANIC_SIM__.runSeconds`) instead of watching the clock.
+  - Templates load through `helpers/templates.ts`: it waits for the track, and for a template's
+    own train to start, then pauses the loop.
+  - Replacing them found a bug: Shift+M never showed the measurements. The mode toggle had
+    its own key handler for M, which flipped the mode first; the shortcut hook's handler was
+    swapped out by the re-render before it ran. M now has one handler.
 - [ ] Add Linux screenshot baselines, generated in the pinned Playwright Docker image with the
       headless mode pinned (GPU rasterization changes pixels).
 - [x] **The debug bridge is typed from the stores.** Each store section is `expose(store,

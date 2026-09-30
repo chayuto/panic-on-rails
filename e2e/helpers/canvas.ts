@@ -29,3 +29,8 @@ export async function clickWorld(page: Page, world: { x: number; y: number }) {
     const box = (await page.getByTestId('canvas-container').boundingBox())!;
     await page.mouse.click(box.x + p.x, box.y + p.y);
 }
+
+/** Wait until the page has painted twice: React has committed and Konva has drawn. */
+export async function nextFrame(page: Page): Promise<void> {
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+}

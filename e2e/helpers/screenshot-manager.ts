@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { Page } from '@playwright/test';
 import { StoreBridge } from './store-bridge';
+import { nextFrame } from './canvas';
 import type { AllStoresSnapshot } from './types';
 
 const SCREENSHOT_ROOT = path.resolve(process.cwd(), 'e2e-screenshots');
@@ -53,7 +54,8 @@ export class ScreenshotManager {
         const screenshotPath = path.join(this.testDir, `${prefix}-${safeLabel}.png`);
         const statePath = path.join(this.testDir, `${prefix}-${safeLabel}.state.json`);
 
-        // Capture screenshot and state in parallel
+        // Capture screenshot and state in parallel, once what changed is on screen
+        await nextFrame(this.page);
         const [, state] = await Promise.all([
             this.page.screenshot({ path: screenshotPath, fullPage: false }),
             this.stores.getFullState(),
@@ -111,6 +113,7 @@ export class ScreenshotManager {
 
         const canvas = this.page.getByTestId('canvas-container');
 
+        await nextFrame(this.page);
         const [, state] = await Promise.all([
             canvas.screenshot({ path: screenshotPath }),
             this.stores.getFullState(),

@@ -9,6 +9,7 @@
 
 import { test, expect } from '../fixtures/app-fixture';
 import { StoreBridge } from '../helpers/store-bridge';
+import { loadTemplateByName } from '../helpers/templates';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
 import type { Page } from '@playwright/test';
 
@@ -104,10 +105,9 @@ async function runTrainTest(
 // Helper: clean slate
 // =============================================
 
-async function cleanSlate(stores: StoreBridge, page: Page) {
+async function cleanSlate(stores: StoreBridge) {
     await stores.clearLayout();
     await stores.enterEditMode();
-    await page.waitForTimeout(100);
 }
 
 // =============================================
@@ -144,16 +144,15 @@ test.describe('Track Configuration Matrix', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // ==============================================
         // CONFIG 1: Single Straight
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-000', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -175,11 +174,10 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 2: Three Straights Connected
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-000', { x: 200, y: 400 }, 0);
             await stores.addTrack('kato-20-000', { x: 448, y: 400 }, 0);
             await stores.addTrack('kato-20-000', { x: 696, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -202,12 +200,11 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 3: Mixed Length Straights
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-000', { x: 200, y: 400 }, 0);   // 248mm
             await stores.addTrack('kato-20-010', { x: 448, y: 400 }, 0);   // 186mm
             await stores.addTrack('kato-20-020', { x: 634, y: 400 }, 0);   // 124mm
             await stores.addTrack('kato-20-030', { x: 758, y: 400 }, 0);   // 64mm
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -230,10 +227,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 4: Simple Oval (Template)
         // ==============================================
         {
-            await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Simple Oval');
-            await page.waitForTimeout(500);
+            await cleanSlate(stores);
+            await loadTemplateByName(page, stores, 'Simple Oval');
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -255,10 +250,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 5: Wooden Oval (Template)
         // ==============================================
         {
-            await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Wooden Starter');
-            await page.waitForTimeout(500);
+            await cleanSlate(stores);
+            await loadTemplateByName(page, stores, 'Wooden Starter');
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -280,10 +273,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 6: Switch Showdown (Template)
         // ==============================================
         {
-            await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Switch Showdown');
-            await page.waitForTimeout(500);
+            await cleanSlate(stores);
+            await loadTemplateByName(page, stores, 'Switch Showdown');
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -305,12 +296,11 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 7: Long Straight Run (6 pieces)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             const len = 248;
             for (let i = 0; i < 6; i++) {
                 await stores.addTrack('kato-20-000', { x: 100 + len * i, y: 400 }, 0);
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -333,12 +323,11 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 8: Vertical Straight Run
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             const len = 248;
             for (let i = 0; i < 4; i++) {
                 await stores.addTrack('kato-20-000', { x: 500, y: 100 + len * i }, 90);
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -361,7 +350,7 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 9: Diagonal Straight Run
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             const len = 248;
             const angle = 45;
             const rad = (angle * Math.PI) / 180;
@@ -371,7 +360,6 @@ test.describe('Track Configuration Matrix', () => {
                     y: 200 + len * Math.sin(rad) * i,
                 }, angle);
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -394,9 +382,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 10: Single Curve
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-100', { x: 500, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -418,7 +405,7 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 11: Tight Circle (8 × R216-45°)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             // Use Simple Oval as base but it uses R249. Let's place R216 manually
             // For a proper circle test, let's place 8 tight curves
             // Actually use the template approach - modify: place R216 curves
@@ -436,7 +423,6 @@ test.describe('Track Configuration Matrix', () => {
                     y: cy + R * Math.sin(rad),
                 }, angle);
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page, 15);
             const state = await stores.getTrackState();
@@ -459,9 +445,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 12: Crossing Track (90°)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-320', { x: 500, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -483,9 +468,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 13: Left Turnout Switch
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-220', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -507,9 +491,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 14: Right Turnout Switch
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-221', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -531,9 +514,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 15: Wye Turnout
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-222', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const openEps = (await stores.getOpenEndpoints()) as any[];
@@ -555,10 +537,9 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 16: Straight + Left Turn (with switch)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-000', { x: 200, y: 400 }, 0);  // straight
             await stores.addTrack('kato-20-220', { x: 448, y: 400 }, 0);  // left turnout
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -581,12 +562,11 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 17: Wooden Long Straights
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             const len = 216;
             for (let i = 0; i < 4; i++) {
                 await stores.addTrack('wooden-straight-long', { x: 200 + len * i, y: 400 }, 0);
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -609,10 +589,9 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 18: Wooden Mixed (straight + curve)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('wooden-straight-long', { x: 300, y: 400 }, 0);
             await stores.addTrack('wooden-curve-large', { x: 516, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -634,11 +613,10 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 19: IKEA Straights
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('ikea-straight-long', { x: 300, y: 400 }, 0);
             await stores.addTrack('ikea-straight-medium', { x: 516, y: 400 }, 0);
             await stores.addTrack('ikea-straight-short', { x: 660, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page);
             const state = await stores.getTrackState();
@@ -660,10 +638,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 20: Two Trains on Oval (multi-train)
         // ==============================================
         {
-            await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Simple Oval');
-            await page.waitForTimeout(500);
+            await cleanSlate(stores);
+            await loadTemplateByName(page, stores, 'Simple Oval');
 
             const state = await stores.getTrackState();
             const edgeIds = Object.keys(state.edges);
@@ -672,8 +648,7 @@ test.describe('Track Configuration Matrix', () => {
             await stores.clearTrains();
             await stores.spawnTrain(edgeIds[0], '#ff0000');
             await stores.spawnTrain(edgeIds[4], '#0000ff');
-            await stores.setRunning(true);
-            await page.waitForTimeout(3000);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(3));
 
             const simState = await stores.getSimulationState();
             const trains = Object.values(simState.trains) as any[];
@@ -702,9 +677,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 21: 15° Crossing
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-300', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const trainResult = await runTrainTest(stores, page, 2000);
@@ -725,9 +699,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 22: #6 Turnout (longer switch)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('kato-20-202', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const trainResult = await runTrainTest(stores, page, 2000);
@@ -748,7 +721,7 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 23: Short Straights Chain
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             const parts = ['kato-20-091', 'kato-20-092', 'kato-20-030', 'kato-20-040'];
             const lengths = [29, 45.5, 64, 62];
             let x = 300;
@@ -756,7 +729,6 @@ test.describe('Track Configuration Matrix', () => {
                 await stores.addTrack(parts[i], { x, y: 400 }, 0);
                 x += lengths[i];
             }
-            await page.waitForTimeout(100);
 
             const conns = await autoConnect(stores, page, 3);
             const state = await stores.getTrackState();
@@ -778,10 +750,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 24: Multi-carriage on Oval
         // ==============================================
         {
-            await cleanSlate(stores, page);
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Simple Oval');
-            await page.waitForTimeout(500);
+            await cleanSlate(stores);
+            await loadTemplateByName(page, stores, 'Simple Oval');
 
             const state = await stores.getTrackState();
             const edgeIds = Object.keys(state.edges);
@@ -789,8 +759,7 @@ test.describe('Track Configuration Matrix', () => {
             await stores.enterSimulateMode();
             await stores.clearTrains();
             await stores.spawnTrain(edgeIds[0], '#8B0000', 8); // 8 carriages!
-            await stores.setRunning(true);
-            await page.waitForTimeout(4000);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(4));
 
             const simState = await stores.getSimulationState();
             const train = Object.values(simState.trains)[0] as any;
@@ -818,9 +787,8 @@ test.describe('Track Configuration Matrix', () => {
         // CONFIG 25: Wooden Switch (Y-Splitter)
         // ==============================================
         {
-            await cleanSlate(stores, page);
+            await cleanSlate(stores);
             await stores.addTrack('wooden-switch-y', { x: 400, y: 400 }, 0);
-            await page.waitForTimeout(100);
 
             const state = await stores.getTrackState();
             const trainResult = await runTrainTest(stores, page, 2000);

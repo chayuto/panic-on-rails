@@ -21,6 +21,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { nextFrame } from '../helpers/canvas';
 
 const PART = 'kato-20-000'; // standard 248mm straight
 
@@ -138,7 +139,7 @@ test('static track layout canvas is pixel-stable (visual regression viable)', as
     }
     s.editor.resetView();
   }, PART);
-  await page.waitForTimeout(200); // let Konva paint
+  await nextFrame(page); // let Konva paint
   // First run writes the baseline (test fails once); subsequent runs compare.
   await expect(page.getByTestId('canvas-container')).toHaveScreenshot('static-5-straights.png', {
     maxDiffPixels: 0,

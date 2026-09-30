@@ -8,6 +8,7 @@
 import { test, expect } from '../fixtures/app-fixture';
 import { AgentActions } from '../helpers/agent-actions';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
+import { nextFrame } from '../helpers/canvas';
 
 test.describe('Data-Visual Consistency', () => {
     test.beforeEach(async ({ app }) => {
@@ -56,7 +57,7 @@ test.describe('Data-Visual Consistency', () => {
         await agent.placeTrack('kato-20-000', { x: 500, y: 300 }, 0);
 
         // Wait for render
-        await page.waitForTimeout(200);
+        await nextFrame(page);
 
         const report = await agent.verify('after-placement');
 

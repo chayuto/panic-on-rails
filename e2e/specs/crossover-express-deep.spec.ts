@@ -173,8 +173,9 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
 
     // Speed up simulation for faster coverage
     await stores.setSpeedMultiplier(3.0);
-
-    await page.waitForTimeout(8000); // 8s at 3x = 24s equivalent
+    // Stepped exactly: the rAF loop paused, 8 s at 3x is 24 s of railway time
+    await stores.setRunning(false);
+    await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(8));
 
     await snap('03-mid-simulation');
 
@@ -298,9 +299,9 @@ test('Crossover Express: deep template validation', async ({ page, stores, snap 
     });
 
     await stores.setSpeedMultiplier(3.0);
-    await stores.setRunning(true);
-
-    await page.waitForTimeout(6000); // 6s at 3x = 18s equivalent
+    // Stepped exactly: 6 s at 3x is 18 s of railway time
+    await stores.setRunning(false);
+    await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(6));
 
     await snap('05-switch-toggled');
 
