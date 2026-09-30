@@ -20,6 +20,7 @@ import { getTemplateList, loadTemplate, applyTemplate } from '../../../data/temp
 import { spawnLayoutTrain } from '../../../simulation/controls';
 import { useCollectionStore } from '../../../stores/useCollectionStore';
 import type { TemplateMetadata } from '../../../data/templates';
+import { ShareLayoutButton } from '../ShareLayout/ShareLayout';
 
 // Custom confirmation modal component
 function ConfirmModal({
@@ -264,6 +265,7 @@ export function FileActions() {
             <button onClick={handleLoad} title="Load from File" className="toolbar-btn-icon" data-testid="file-load">
                 <FolderOpen size={16} />
             </button>
+            <ShareLayoutButton />
 
             {/* Hidden file input */}
             <input

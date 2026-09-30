@@ -1,0 +1,38 @@
+/* Share dialogs reuse the shop's dialog frame (SetShelf.css) */
+
+.share-dialog {
+  max-width: 560px;
+}
+
+.share-dialog-body {
+  display: flex;
+  gap: 8px;
+  padding: 4px 20px 20px;
+}
+
+.share-dialog-body input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  color: var(--fg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.share-dialog-body button,
+.share-dialog-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.share-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 4px 20px 20px;
+}

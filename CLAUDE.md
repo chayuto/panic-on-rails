@@ -142,6 +142,8 @@ New simulation behavior goes in `step.ts` or a subsystem, emits an event if it n
 
 `src/utils/fileManager.ts` exports/imports layouts as JSON with Zod validation (`src/schemas/layout.ts`). Uses `file-saver` for downloads. Validates with `LayoutDataSchema.safeParse()` on import.
 
+Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, position and rotation from the graph (`layoutPieces`), and compresses them into the URL fragment (`#layout=v1.…`, deflate + base64url). `components/ui/ShareLayout/` has the Share dialog, and opens incoming links (on load and on `hashchange`) through the template path, in free build and undoably.
+
 ## Key Conventions
 
 - React functional components + hooks only (no class components)

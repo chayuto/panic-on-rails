@@ -27,7 +27,6 @@ run your trains, and keep expanding the railway with no end point.
   - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
-  - share a layout by URL;
   - wreckage that blocks the track until cleared;
   - more ways to earn (station stops, on-time runs);
   - real train sets with product numbers;
@@ -380,7 +379,14 @@ Order, biggest win per millisecond first:
 - [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
 - [ ] Rolling stock per scale beyond the generic H0 and OO trains.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
-- [ ] Share a layout by URL.
+- [x] **Share a layout by URL.** Share copies a link with the track in its fragment
+      (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.
+  - The graph doesn't keep where a piece was placed, so each piece is rebuilt at the origin
+    and its first edge matched to find its turn and shift.
+  - A 55-piece layout (Hornby Pack F) makes a link of about 650 characters.
+  - Opening a link builds the layout exactly as it was shared, in free build and undoably.
+    It asks first if something is on the table. It works on load and when a link is pasted
+    into an open tab. Trains and wiring aren't included.
 
 ### Phase 7: Long-term maintainability (continuous; pick items alongside feature work)
 
