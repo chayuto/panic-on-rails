@@ -97,7 +97,8 @@ function ShoppingListDialog({ onClose }: { onClose: () => void }) {
                     </button>
                 </header>
 
-                <div className="set-shelf-body">
+                {/* Focusable, so a long list scrolls from the keyboard */}
+                <div className="set-shelf-body" tabIndex={0}>
                     {list.lines.length === 0 ? (
                         <p className="shopping-list-empty">Nothing on the table yet: build something first.</p>
                     ) : (

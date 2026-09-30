@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { useEffectsStore } from '../useEffectsStore';
+import { useEffectsStore, MAX_FLASHES_PER_SECOND } from '../useEffectsStore';
 
 describe('useEffectsStore', () => {
     beforeEach(() => {
@@ -115,6 +115,17 @@ describe('useEffectsStore', () => {
 
             expect(useEffectsStore.getState().flashes).toHaveLength(0);
         });
+
+        it('starts no more than three flashes a second, however many crashes happen at once (WCAG 2.3.1)', () => {
+            const { triggerFlash } = useEffectsStore.getState();
+            for (let i = 0; i < 5; i++) triggerFlash({ x: i, y: 0 });
+            expect(useEffectsStore.getState().flashes).toHaveLength(MAX_FLASHES_PER_SECOND);
+
+            // A second on, the next crash flashes again
+            vi.advanceTimersByTime(1000);
+            triggerFlash({ x: 9, y: 0 });
+            expect(useEffectsStore.getState().flashes.map(f => f.position.x)).toEqual([9]);
+        });
     });
 
     describe('setHoveredSwitch', () => {
@@ -169,6 +180,17 @@ describe('useEffectsStore', () => {
 
             const { screenShake } = useEffectsStore.getState();
             expect(screenShake!.decay).toBe(false);
+        });
+
+        it('doesn\'t shake at all for a player who asked their system for less motion', () => {
+            // Unit tests run in Node: a window that answers the media query
+            vi.stubGlobal('window', { matchMedia: (query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)' }) });
+            try {
+                useEffectsStore.getState().triggerScreenShake(10, 500);
+                expect(useEffectsStore.getState().screenShake).toBeNull();
+            } finally {
+                vi.unstubAllGlobals();
+            }
         });
     });
 

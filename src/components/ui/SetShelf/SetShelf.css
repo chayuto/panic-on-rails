@@ -318,7 +318,7 @@
 .set-box-buy,
 .shop-part button {
   margin-left: auto;
-  background: var(--mode-edit-accent);
+  background: var(--button-primary-bg);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -426,7 +426,7 @@
 
 .shop-train button {
   grid-area: buy;
-  background: var(--mode-edit-accent);
+  background: var(--button-primary-bg);
   color: #fff;
   border: none;
   border-radius: 6px;

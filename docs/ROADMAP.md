@@ -463,8 +463,15 @@ Order, biggest win per millisecond first:
     doesn't. Driven heavy-handed (a random throttle every 5 s), the starter diesel never
     derails on a Kato layout; a free-build train at full power derails about 15 times per
     train-hour.
-- [ ] Accessibility: axe on the page's DOM, aria snapshots of the dialogs, and reduced-motion
-      and flash tests.
+- [x] **Accessibility** (`e2e/accessibility.spec.ts`): axe against WCAG 2.2 A/AA on every
+      screen, aria snapshots of the edit tools and the share dialog, and a real crash with and
+      without reduced motion. The first scan found, and this fixed:
+  - text below AA contrast: the parts bin's headings (2.4:1) and product numbers (1.9:1), the
+    shop's Buy buttons (3.3:1), the train panel's carriage count and the wreck banner;
+  - scrolling lists the keyboard couldn't reach (the parts bin, the shop, the shopping list);
+  - edit tools named by their whole tooltip, with no pressed state.
+  - A crash no longer shakes the view for players who ask for reduced motion, and the effects
+    store starts at most three flashes a second (WCAG 2.3.1), however many trains pile up.
 - [ ] A nightly frame-time budget: milliseconds per environment, not FPS; warn-only at first.
 - [ ] Vitest browser mode, narrowly, for the track painter and car sprites.
 - [ ] Agent playtest charters: persona, setup, budget, oracles, evidence. Each finding becomes a

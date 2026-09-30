@@ -155,7 +155,8 @@ export function PartsBin() {
             <ModeSwitch />
             <SystemTabs />
 
-            <div className="parts-bin-content">
+            {/* Focusable, so the parts can be scrolled from the keyboard */}
+            <div className="parts-bin-content" tabIndex={0} role="region" aria-label="Parts">
                 {inCollection && sections.length === 0 && (
                     <div className="parts-bin-empty" data-testid="parts-bin-empty">
                         <p>No {SCALES[selectedSystem].label} track in your collection yet.</p>

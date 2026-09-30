@@ -162,7 +162,7 @@
 
 .train-name .carriage-info {
     font-size: 11px;
-    color: var(--fg-muted);
+    color: var(--fg-secondary);
 }
 
 .train-status {
@@ -291,7 +291,8 @@
     border-radius: 8px;
     text-align: center;
     font-size: 14px;
-    color: #ff6b6b;
+    /* Light enough to read on its red-tinted background (WCAG AA) */
+    color: #ff8f8f;
 }
 
 .crash-warning p {

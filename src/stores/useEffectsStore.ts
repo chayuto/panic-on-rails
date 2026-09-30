@@ -8,6 +8,15 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Vector2 } from '../types';
+import { prefersReducedMotion } from '../utils/motion';
+
+/**
+ * At most this many flashes start in any second, however many crashes
+ * happen at once: WCAG 2.3.1 (three flashes or below).
+ */
+export const MAX_FLASHES_PER_SECOND = 3;
+/** When recent flashes started (ms) */
+let flashStarts: number[] = [];
 
 // ===========================
 // Types
@@ -128,10 +137,16 @@ export const useEffectsStore = create<EffectsState>()(
         },
 
         triggerFlash: (position, options = {}) => {
+            // A pile-up mustn't strobe
+            const now = Date.now();
+            flashStarts = flashStarts.filter(t => now - t < 1000);
+            if (flashStarts.length >= MAX_FLASHES_PER_SECOND) return;
+            flashStarts.push(now);
+
             const flash: FlashEffect = {
                 id: generateEffectId(),
                 position,
-                startTime: Date.now(),
+                startTime: now,
                 duration: options.duration ?? DEFAULT_FLASH.duration,
                 color: options.color ?? DEFAULT_FLASH.color,
                 radius: options.radius ?? DEFAULT_FLASH.radius,
@@ -171,6 +186,8 @@ export const useEffectsStore = create<EffectsState>()(
         },
 
         triggerScreenShake: (intensity, duration, decay = true) => {
+            // The player asked for less motion: a crash doesn't shake the view
+            if (prefersReducedMotion()) return;
             set((state) => {
                 state.screenShake = {
                     intensity,
@@ -213,6 +230,7 @@ export const useEffectsStore = create<EffectsState>()(
         },
 
         clearAllEffects: () => {
+            flashStarts = [];
             set((state) => {
                 state.ripples = [];
                 state.flashes = [];

@@ -9,8 +9,9 @@
 
   /* Text Colors */
   --fg-primary: #EEEEEE;
-  --fg-secondary: #AAAAAA;
-  --fg-muted: #666666;
+  --fg-secondary: #B3B3B3;
+  /* Light enough for small text to meet WCAG AA (4.5:1) on the panels' backgrounds */
+  --fg-muted: #999999;
 
   /* Track Colors */
   --track-rail: #888888;
@@ -36,6 +37,8 @@
   /* Mode Colors - Edit (Blue) / Simulate (Green) */
   --mode-edit-accent: #4A90D9;
   --mode-edit-bg: #2a3f5f;
+  /* Filled buttons with white text: the accent's blue, dark enough for AA contrast */
+  --button-primary-bg: #2F6DB5;
   --mode-simulate-accent: #4CAF50;
   --mode-simulate-bg: #2f4f2f;
 
@@ -547,9 +550,10 @@ button.active {
   cursor: pointer;
 }
 
+/* The product number: on a card's lighter background, so a step brighter than muted */
 .part-code {
-  font-size: 9px;
-  color: var(--fg-muted);
+  font-size: 10px;
+  color: var(--fg-secondary);
   font-variant-numeric: tabular-nums;
 }
 
