@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { removePiece } from '../../utils/removePiece';
 import { useLogicStore } from '../useLogicStore';
 import { useTrackStore } from '../useTrackStore';
 import { useHistoryStore } from '../useHistoryStore';
@@ -145,7 +146,7 @@ describe('useLogicStore', () => {
             useLogicStore.getState().addStation(edgeId, 124, 240);
 
             useHistoryStore.getState().record();
-            useTrackStore.getState().removeTrack(edgeId);
+            removePiece(edgeId);
             expect(useLogicStore.getState().stations).toEqual({});
 
             useHistoryStore.getState().undo();
