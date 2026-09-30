@@ -1,0 +1,51 @@
+{
+    "id": "hornby-R1289M",
+    "brand": "hornby",
+    "scale": "oo-scale",
+    "productCode": "R1289M",
+    "name": "B.R. High Speed Retro Train Set",
+    "price": 20400,
+    "kind": "starter",
+    "description": "A Hornby train set after its 1970s R.685: the 3rd radius starter oval with Track Pack 1, a point and a siding (the pieces of Extension Pack A), and an InterCity 125 in British Rail blue and grey: two Class 43 power cars, one a dummy, and a Mk3 coach.",
+    "contents": [
+        { "part": "hornby-R609", "qty": 8 },
+        { "part": "hornby-R600", "qty": 2 },
+        { "part": "hornby-R8206", "qty": 1 },
+        { "part": "hornby-R601", "qty": 2 },
+        { "part": "hornby-R606", "qty": 1 },
+        { "part": "hornby-R8072", "qty": 1 },
+        { "part": "hornby-R083", "qty": 1 }
+    ],
+    "accessories": ["R7229 DC train controller", "P9000W wall plug transformer", "Rerailer"],
+    "rollingStock": ["hornby-br-hst"],
+    "footprint": { "width": 1550, "depth": 1130, "space": true },
+    "plans": [
+        {
+            "id": "siding",
+            "name": "Oval with siding",
+            "description": "Three straights a side, and a point on the back straight to a siding 67 mm outside it: Track Pack 1's layout. Hornby gives it 155 x 113 cm of table; the track is 111 cm deep.",
+            "steps": [
+                { "part": "hornby-R600" },
+                { "part": "hornby-R8206" },
+                { "part": "hornby-R600" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R8072", "via": "main" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R609", "via": "B" },
+                { "part": "hornby-R606", "at": { "piece": 8, "connector": "branch" } },
+                { "part": "hornby-R601" },
+                { "part": "hornby-R083" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#2A4B7C", "stock": "hornby-br-hst" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://uk.hornby.com/products/hornby-railways-br-high-speed-retro-train-set-r1289m"
+}

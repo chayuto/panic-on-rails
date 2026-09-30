@@ -8,7 +8,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { stepSimulation, type SimWorld, type SimEvent } from '../step';
 import { stopAhead } from '../driving';
 import { earningsFor } from '../economy';
-import { coachesOf, departuresDue, fareFor, fitPlatform, nextDeparture, nextStationName, stationsByEdge, stopPointOf } from '../stations';
+import { departuresDue, fareFor, fitPlatform, nextDeparture, nextStationName, stationsByEdge, stopPointOf } from '../stations';
+import { coachesOf } from '../../data/rollingStock';
 import { SIGNAL_STOP_GAP } from '../movement';
 import { lineGraph, straightEdge, train, world } from './fixtures';
 import { STATIONS } from '../../config/stations';
@@ -52,11 +53,13 @@ describe('platforms and fares', () => {
     it('fares pay for the ride, per coach, up to the longest ride', () => {
         const passenger = { ...train('t', 'e0', 0), carriageCount: 3 }; // a loco and two coaches
         expect(coachesOf(passenger)).toBe(2);
-        expect(fareFor({ ...passenger, ride: 2000 })).toBe(2 * STATIONS.FARE_CENTS_PER_METRE * 2);
-        expect(fareFor({ ...passenger, ride: 50_000 })).toBe(STATIONS.MAX_RIDE_METRES * STATIONS.FARE_CENTS_PER_METRE * 2);
-        expect(fareFor(passenger)).toBe(0);
+        expect(fareFor({ ...passenger, ride: 2000 }, 2)).toBe(2 * STATIONS.FARE_CENTS_PER_METRE * 2);
+        expect(fareFor({ ...passenger, ride: 50_000 }, 2)).toBe(STATIONS.MAX_RIDE_METRES * STATIONS.FARE_CENTS_PER_METRE * 2);
+        expect(fareFor(passenger, 2)).toBe(0);
         // A lone locomotive still takes a passenger or two
         expect(coachesOf({ ...passenger, carriageCount: 1 })).toBe(1);
+        // A wagon carries no one
+        expect(coachesOf({ stockId: 'hornby-smokey-joe', carLengths: [108, 100, 88] })).toBe(1);
     });
 
     it('a platform is the scale\'s length, or the whole piece if that\'s shorter, and stays on the piece', () => {
@@ -138,7 +141,7 @@ describe('calling at a station (stepSimulation)', () => {
         expect(t).toMatchObject({ currentEdgeId: 'e2', speed: 0, calledAt: 'a', ride: 0, dwell: STATIONS.DWELL_SECONDS });
         expect(t.distanceAlongEdge).toBeCloseTo(244, 6);
         // The passengers paid for the ride from the start of e0 to the platform's end
-        expect(stop.fare).toBe(fareFor({ ...t, ride: 2 * 248 + 244 }));
+        expect(stop.fare).toBe(fareFor({ ...t, ride: 2 * 248 + 244 }, coachesOf(t)));
 
         // It stands for the dwell...
         const standing = run(w, STATIONS.DWELL_SECONDS - 0.5).world.trains.t;

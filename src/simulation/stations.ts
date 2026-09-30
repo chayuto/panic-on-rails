@@ -9,7 +9,6 @@ import type { EdgeId, Station, StationId, TrackEdge, Train } from '../types';
 import { STATIONS } from '../config/stations';
 import { sizeOf } from '../config/scales';
 import { getPartById } from '../data/catalog';
-import { carCount } from '../utils/trainCars';
 
 export type StationsByEdge = ReadonlyMap<EdgeId, readonly Station[]>;
 
@@ -29,15 +28,13 @@ export function stopPointOf(station: Station, direction: 1 | -1): number {
     return station.position + (direction * station.length) / 2;
 }
 
-/** Cars carrying passengers: every car but the locomotive. */
-export function coachesOf(train: Train): number {
-    return Math.max(1, carCount(train) - 1);
-}
-
-/** What a stop's passengers pay, US cents: their ride so far, per coach, up to the longest ride. */
-export function fareFor(train: Train): number {
+/**
+ * What a stop's passengers pay, US cents: their ride so far, per coach
+ * (`coachesOf` in `data/rollingStock.ts`), up to the longest ride.
+ */
+export function fareFor(train: Train, coaches: number): number {
     const metres = Math.min((train.ride ?? 0) / 1000, STATIONS.MAX_RIDE_METRES);
-    return Math.round(metres * STATIONS.FARE_CENTS_PER_METRE * coachesOf(train));
+    return Math.round(metres * STATIONS.FARE_CENTS_PER_METRE * coaches);
 }
 
 /**

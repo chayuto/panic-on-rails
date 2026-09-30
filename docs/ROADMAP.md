@@ -364,13 +364,9 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     part 194548) whose length Märklin doesn't publish. With one 24188 opposite it, the oval can
     only close at 188.3 mm, the length of the 24088 connecting track too. That's a deduction,
     not a published figure.
-  - Hornby's other sets with Track Pack 1, the same track as R1255M's:
-    - R1230M GWR and R1289M BR High Speed Train: a power car at each end, so the rear one
-      needs a sprite that faces backwards. Hornby publishes no length for its Class 43; the real
-      one's 17.79 m would be 233 mm.
-    - R1288M LNER Azuma: driving cars at both ends too, 341 mm each (Hornby's R30449 pack).
-    - R1292M Diesel Mixed Freight and R1294M Branch Line Mixed Traffic: their shunters and
-      wagons aren't sold on their own, and Hornby gives no lengths for them.
+  - Hornby's R1292M Diesel Mixed Freight and R1294M Branch Line Mixed Traffic, the same track as
+    R1255M's: their shunters and wagons aren't sold on their own, and Hornby gives no lengths
+    for them.
   - Hornby's R1295TXSSM Sovereign Pullman: a 3rd and 2nd radius double loop with a crossover
     and a siding. Hornby lists no part numbers for it, only a drawing, and it's on pre-order.
 - [x] **Hornby's Flying Scotsman and Mallard train sets** (R1255M, $300; R1282M, $330): the oval
@@ -382,6 +378,16 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - A train set's own train holds its own oval's curves flat out, as Kato's starter trains
     hold M1's (`playMetrics.test.ts`). These two top out at 409 mm/s, under the 413 mm/s at
     which R609 derails.
+- [x] **Hornby's High Speed Train and Azuma sets** (R1230M GWR and R1289M British Rail, $204;
+      R1288M LNER Azuma, $216): the same track, and a power car at each end with a coach between.
+  - A power car at the far end faces away from the train (`facesBack`), on the layout and in
+    the shop.
+  - The HSTs' Class 43s are the real one's 17.79 m at 1:76.2, 233 mm: Hornby gives no length.
+    Their Mk3s are RailRoad's 30 cm. The Azuma's three cars are 341 mm, Hornby's for unit
+    800201.
+  - Fares count coaches only (`coachesOf`), so a dummy power car or a wagon carries no one.
+    Smokey Joe and Valley Drifter now earn for one coach, not two. The Azuma's driving cars do
+    carry passengers in reality; here they count as power cars.
 - [x] **Car lengths per model.** Every car is as long as its real model over the couplers
       (`carLengths` in `data/rollingStock.ts`), where before every car was 44 mm.
   - The Super Chief's F7A is 96.5 mm and its cars 158–165 mm. The UP freight's ES44AC is

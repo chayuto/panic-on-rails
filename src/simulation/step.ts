@@ -32,7 +32,7 @@ import { linkedPoints } from '../utils/switchRouting';
 import { sizeOf } from '../config/scales';
 import { STATIONS } from '../config/stations';
 import { fareFor, nextDeparture, stationsByEdge } from './stations';
-import { carriesPassengers } from '../data/rollingStock';
+import { carriesPassengers, coachesOf } from '../data/rollingStock';
 
 /** World Y that debris falls onto (historical game-loop value). */
 const DEBRIS_GROUND_Y = 500;
@@ -191,7 +191,7 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
             const arrivedAt = (ctx.clock ?? 0) + dt;
             const departs = nextDeparture(world.stations[stop.stationId!] ?? {}, arrivedAt + STATIONS.DWELL_SECONDS);
             events.push({
-                type: 'station-stop', trainId: train.id, stationId: stop.stationId!, edgeId: next.currentEdgeId, fare: fareFor(next),
+                type: 'station-stop', trainId: train.id, stationId: stop.stationId!, edgeId: next.currentEdgeId, fare: fareFor(next, coachesOf(next)),
                 ...(departs !== undefined && { departs }),
             });
             const dwell = departs !== undefined ? departs - arrivedAt : STATIONS.DWELL_SECONDS;

@@ -21,7 +21,7 @@ import { paintRaised } from './tracks/trackPainter';
 import { raisedTrack } from './tracks/paintedEdges';
 import { ROLLING_STOCK } from '../../config/rollingStock';
 import { sizeOf } from '../../config/scales';
-import { carColorAt, carKindAt, tractionOf } from '../../data/rollingStock';
+import { carColorAt, carKindAt, facesBack, tractionOf } from '../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from './trains/carSprites';
 
 /** Cars this far outside the viewport (mm, N scale) still draw, to avoid pop-in. */
@@ -59,14 +59,14 @@ function drawTrain(ctx: CanvasRenderingContext2D, train: Train, poses: CarPose[]
     for (let i = poses.length - 1; i >= 0; i--) {
         const pose = poses[i];
         const kind = carKindAt(train, fromLoco(i));
-        const isLoco = kind === 'loco';
         const sprite = getCarSprite(kind, carColorAt(train, fromLoco(i)), train.crashed === true, pose.length / size, traction);
         if (!sprite) continue;
         const L = pose.length;
         ctx.save();
         ctx.translate(pose.x, pose.y);
-        // A pushing locomotive still faces the way it was going
-        ctx.rotate(((pose.rotation + (isLoco && pushing ? 180 : 0)) * Math.PI) / 180);
+        // A pushing locomotive still faces the way it was going; a power car
+        // at the far end faces away from the train
+        ctx.rotate(((pose.rotation + (facesBack(kind, fromLoco(i), pushing) ? 180 : 0)) * Math.PI) / 180);
         ctx.drawImage(sprite, -L / 2 - m, -W / 2 - m, L + 2 * m, W + 2 * m);
         ctx.restore();
     }
