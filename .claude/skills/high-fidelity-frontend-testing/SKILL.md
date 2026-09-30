@@ -265,6 +265,9 @@ pw close
 - After building a layout or switching mode, read the coordinates until they hold
   still: the view re-fits as the train panel replaces the parts bin, and a click
   read too early misses.
+- A drag from the parts bin: `mousedown` on the card, a few `mousemove`s, then a second
+  `mousemove` at the target before `mouseup`. Chromium dispatches `dragover` lazily, and
+  without the settle move the piece lands at the last waypoint.
 - Snapshots, console logs and screenshots land in `.playwright-cli/` (gitignored).
 
 ## Writing a new test — checklist

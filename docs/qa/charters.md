@@ -39,6 +39,7 @@ has written a test for yet.
    - Setup: free build.
    - Charter: build V1 by hand from the manual. Do the pieces behave like Unitrack: the snap,
      which way a turnout goes, the feeder and rerailer where the manual puts them?
+   - Played 2026-10-01: [the session](sessions/2026-10-01-the-hobbyist.md).
 3. **The operator.** Keeps trains apart for a living.
    - Setup: M2 built, two trains.
    - Charter: run a ten-minute session on the passing siding without a wreck, using only the

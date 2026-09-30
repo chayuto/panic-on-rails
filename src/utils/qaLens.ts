@@ -121,7 +121,8 @@ export function look(): QaLook {
     });
 
     const points = Object.values(nodes).filter(n => n.type === 'switch').map(node => {
-        const part = edges[node.connections[0]]?.partId ?? '';
+        // Named after the turnout's own route, not the track joined at its points
+        const part = edges[node.switchBranches?.[0] ?? node.connections[0]]?.partId ?? '';
         return {
             part: getPartById(part)?.name ?? part,
             at: toPage(node.position),
