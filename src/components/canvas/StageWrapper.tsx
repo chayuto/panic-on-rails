@@ -46,6 +46,8 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
     } | null>(null);
     // Whether the pointer is over a train, which a click stops or starts
     const [overTrain, setOverTrain] = useState(false);
+    // The small-screen warning, until the player has read it
+    const [warned, setWarned] = useState(false);
 
     // ========================================
     // Viewport management (extracted hook)
@@ -255,10 +257,11 @@ export function StageWrapper({ width, height }: StageWrapperProps) {
                 </Layer>
             </Stage>
 
-            {/* Viewport warning for small screens */}
-            {dimensions.width < 768 && (
-                <div className="viewport-warning">
+            {/* Viewport warning for small screens, until dismissed */}
+            {dimensions.width < 768 && !warned && (
+                <div className="viewport-warning" role="status">
                     <p>PanicOnRails works best on desktop or tablet.</p>
+                    <button onClick={() => setWarned(true)} aria-label="Dismiss" title="Dismiss">×</button>
                 </div>
             )}
 

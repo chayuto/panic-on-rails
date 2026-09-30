@@ -369,3 +369,18 @@
         opacity: 1;
     }
 }
+
+/* A phone: the parts bin is under the canvas (index.css), so a hint spans
+   the top of the canvas rather than pointing sideways at a sidebar */
+@media (max-width: 700px) {
+    .onboarding-hint {
+        left: 16px !important;
+        right: 16px;
+        top: 200px !important;
+        max-width: none;
+    }
+
+    .onboarding-hint::before {
+        display: none;
+    }
+}

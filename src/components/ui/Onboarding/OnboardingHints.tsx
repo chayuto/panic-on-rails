@@ -52,7 +52,7 @@ function FirstTrackHint() {
                 left: '240px',
             }}
         >
-            Drag a track from the left to start building! Or open the shop{' '}
+            Drag a track from the parts bin to start building! Or open the shop{' '}
             <Package size={14} style={{ verticalAlign: 'middle' }} /> above and build
             {collection ? ' your box\'s' : ' a set\'s'} layout.
         </Hint>
