@@ -1,0 +1,45 @@
+{
+    "id": "bachmann-00691",
+    "brand": "bachmann",
+    "scale": "ho-scale",
+    "productCode": "00691",
+    "name": "Thoroughbred",
+    "price": 20900,
+    "kind": "starter",
+    "description": "A Bachmann HO train set: a 47\" x 38\" oval of steel E-Z Track (twelve 18\" radius curves, a 9\" straight and a 9\" terminal rerailer), and a Norfolk Southern F7-A with a gondola, a hopper and a caboose.",
+    "contents": [
+        { "part": "bachmann-44401", "qty": 12 },
+        { "part": "bachmann-44411", "qty": 1 },
+        { "part": "bachmann-44410", "qty": 1 }
+    ],
+    "accessories": ["Power pack and speed controller", "Illustrated instruction manual"],
+    "rollingStock": ["bachmann-thoroughbred"],
+    "footprint": { "width": 1194, "depth": 965 },
+    "plans": [
+        {
+            "id": "oval",
+            "name": "Train set oval",
+            "description": "Twelve 18\" curves, with the straight and the terminal rerailer on opposite sides: 47\" x 38\", as the box says.",
+            "steps": [
+                { "part": "bachmann-44410" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44411" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" },
+                { "part": "bachmann-44401", "via": "B" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#1E1E1E", "stock": "bachmann-thoroughbred" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=1804"
+}

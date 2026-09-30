@@ -166,6 +166,7 @@ export type PartBrand =
     | 'kato'      // Kato Unitrack
     | 'marklin'   // Märklin C-track
     | 'hornby'    // Hornby Setrack
+    | 'bachmann'  // Bachmann E-Z Track
     | 'tomix'     // Tomix Fine Track
     | 'brio'      // Brio Wooden Railway
     | 'ikea'      // IKEA Lillabo

@@ -130,7 +130,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    /* Tight enough for a one-word name (Thoroughbred) to keep its buttons on its line */
+    gap: 6px;
     padding: 10px 12px;
     background: var(--bg-tertiary);
     border-radius: 8px;

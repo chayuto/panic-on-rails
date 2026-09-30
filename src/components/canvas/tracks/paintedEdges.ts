@@ -12,7 +12,7 @@ import { isDoubleTrack } from '../../../data/catalog/helpers';
 import { getPartById } from '../../../data/catalog';
 import { deriveWorldGeometry } from '../../../utils/geometry';
 import {
-    infillBetween, C_TRACK_LOOK, KATO_BRIDGE_LOOK, KATO_LOOK, KATO_SLAB_LOOK, KATO_VIADUCT_LOOK, SETRACK_LOOK,
+    infillBetween, C_TRACK_LOOK, EZ_TRACK_STEEL_LOOK, KATO_BRIDGE_LOOK, KATO_LOOK, KATO_SLAB_LOOK, KATO_VIADUCT_LOOK, SETRACK_LOOK,
     type ModelLook, type PaintedDeck, type PaintedEdge, type PaintedPier,
 } from './trackPainter';
 
@@ -23,6 +23,7 @@ const DEFAULT_ROADBED = 25;
 const BRAND_LOOKS: Partial<Record<PartBrand, ModelLook>> = {
     marklin: C_TRACK_LOOK,
     hornby: SETRACK_LOOK,
+    bachmann: EZ_TRACK_STEEL_LOOK,
 };
 
 /** An edge on the layout, with where it lies and the part it belongs to. */

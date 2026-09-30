@@ -8,6 +8,7 @@ import type { PartCategory } from '../../data/catalog/types';
 import type { PartDefinition } from '../../types';
 import { PartPreview } from './TrackPreview';
 import { SCALES, SCALE_ORDER } from '../../config/scales';
+import { trackSystemName } from '../../data/brands';
 
 /**
  * Renders a single draggable part card. `left` (collection mode) is how
@@ -142,9 +143,13 @@ export function PartsBin() {
     // In collection mode the bin shows what you own
     const parts = getPartsByScale(selectedSystem).filter(p => !inCollection || (inventory[p.id] ?? 0) > 0);
 
-    const sections = PART_SECTIONS
-        .map(section => ({ ...section, parts: parts.filter(p => partCategory(p) === section.category) }))
-        .filter(section => section.parts.length > 0);
+    // Two makers' track of one scale (Märklin's and Bachmann's H0) is kept apart, each named
+    const brands = [...new Set(parts.map(p => p.brand))];
+    const sections = brands.flatMap(brand => PART_SECTIONS.map(section => ({
+        ...section,
+        title: brands.length > 1 ? `${trackSystemName(brand)}: ${section.title}` : section.title,
+        parts: parts.filter(p => p.brand === brand && partCategory(p) === section.category),
+    }))).filter(section => section.parts.length > 0);
 
     return (
         <aside className="parts-bin" data-testid="parts-bin">

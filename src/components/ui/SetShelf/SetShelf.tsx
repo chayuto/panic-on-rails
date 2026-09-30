@@ -215,7 +215,7 @@ function TrainPreview({ stock }: { stock: RollingStock }) {
     return <canvas ref={ref} className="train-preview" width={320} height={48} aria-hidden="true" />;
 }
 
-const TRAIN_BRANDS: TrainBrand[] = ['kato', 'marklin', 'hornby'];
+const TRAIN_BRANDS: TrainBrand[] = ['kato', 'marklin', 'hornby', 'bachmann'];
 
 /** "the 106-0018 starter set", naming the boxes a train comes in. */
 function boxesNamed(setIds: string[]): string {

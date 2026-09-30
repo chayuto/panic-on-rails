@@ -535,7 +535,21 @@ Order, biggest win per millisecond first:
   - V15's widening sections (20-051/052), whose inner S-curve Kato doesn't publish.
   - V12 and V13 (elevation).
   - V11 with V14 or V16 as four tracks, placed side by side.
-- [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
+- [x] **Bachmann E-Z Track (HO)**: the steel line (black roadbed) and Bachmann's Thoroughbred
+      train set, 00691 ($209).
+  - The pieces: 3", 9" and 18" straights, 18" and 22" radius curves, the terminal rerailers,
+    and the remote turnouts. Each has Bachmann's own geometry. The turnout's 1-1/2" lead
+    before its 18" curve comes from Bachmann's planning book.
+  - The Thoroughbred is a 47" × 38" oval with a Norfolk Southern F7-A, a gondola, a hopper and
+    a caboose, each car in its own livery at Bachmann's length.
+  - The parts bin keeps two makers' track of one scale apart (Märklin's and Bachmann's H0),
+    each section named.
+  - Not yet:
+    - the nickel silver line (grey roadbed);
+    - the #4, #5 and #6 turnouts and the crossings, whose geometry Bachmann doesn't publish;
+    - the Hayes bumper, whose length it doesn't give, and so the Layout Expander;
+    - Bachmann's other sets.
+- [ ] Brands: Tomix Fine Track.
 - [ ] Real H0 rolling stock (Märklin's Start up trains; see Phase 4). OO has Hornby's train-set
       trains.
 - [x] **Elevation in the engine.** Track can stand above the baseboard. A node has a height
