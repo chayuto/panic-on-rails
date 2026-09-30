@@ -50,3 +50,6 @@ docs/internal/
 .claude/settings.local.json
 # Agent git worktrees
 .claude/worktrees/
+
+# playwright-cli agent sessions
+.playwright-cli/

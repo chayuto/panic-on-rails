@@ -665,7 +665,12 @@ Order, biggest win per millisecond first:
   - A set of points keeps a button at least 12 px across however far out the view is zoomed.
 - [x] Playwright 1.63. The test agents have the `browser_mouse_*_xy` tools and are told to see
       the canvas with `look()`. The seed test waits for the lens.
-- [ ] Try `playwright-cli` for agent sessions.
+- [x] **Tried `playwright-cli` for agent sessions** (`@playwright/cli` 0.1.22). One shell
+      command per step, one kept page: snapshot refs for the toolbar and dialogs, `eval` of
+      `look()` for the canvas, and mouse commands at its page coordinates. A session built M1
+      from the shop and stopped its train with a click. A snapshot of the app is about 4 KB,
+      and there are no tool schemas to load. The testing skill has the recipe. One catch: a
+      click read before the view settles misses, as `clickTrain` in the e2e helpers knows.
 - [x] A console/page-error gate in the app fixture: every spec fails on a new error.
 - [x] fast-check model-based tests of building: random drops at open ends, deletes, undo, redo
       and points, against the real stores, snap manager and join. The graph must stay
