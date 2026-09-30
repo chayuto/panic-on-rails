@@ -364,7 +364,24 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     part 194548) whose length Märklin doesn't publish. With one 24188 opposite it, the oval can
     only close at 188.3 mm, the length of the 24088 connecting track too. That's a deduction,
     not a published figure.
-  - Hornby's sets with Track Pack 1: its contents need checking piece by piece.
+  - Hornby's other sets with Track Pack 1, the same track as R1255M's:
+    - R1230M GWR and R1289M BR High Speed Train: a power car at each end, so the rear one
+      needs a sprite that faces backwards. Hornby publishes no length for its Class 43; the real
+      one's 17.79 m would be 233 mm.
+    - R1288M LNER Azuma: driving cars at both ends too, 341 mm each (Hornby's R30449 pack).
+    - R1292M Diesel Mixed Freight and R1294M Branch Line Mixed Traffic: their shunters and
+      wagons aren't sold on their own, and Hornby gives no lengths for them.
+  - Hornby's R1295TXSSM Sovereign Pullman: a 3rd and 2nd radius double loop with a crossover
+    and a siding. Hornby lists no part numbers for it, only a drawing, and it's on pre-order.
+- [x] **Hornby's Flying Scotsman and Mallard train sets** (R1255M, $300; R1282M, $330): the oval
+      with Track Pack 1, and an A1 or an A4 with three Gresley coaches.
+  - Track Pack 1 is Extension Pack A's pieces, so the layout is A's siding plan. Hornby gives it
+    155 × 113 cm of table; the track is 111 cm deep.
+  - A car can have its own livery (`carColors`): the A1's apple green pulls teak coaches, the
+    A4's BR blue pulls crimson and cream ones.
+  - A train set's own train holds its own oval's curves flat out, as Kato's starter trains
+    hold M1's (`playMetrics.test.ts`). These two top out at 409 mm/s, under the 413 mm/s at
+    which R609 derails.
 - [x] **Car lengths per model.** Every car is as long as its real model over the couplers
       (`carLengths` in `data/rollingStock.ts`), where before every car was 44 mm.
   - The Super Chief's F7A is 96.5 mm and its cars 158–165 mm. The UP freight's ES44AC is

@@ -145,6 +145,21 @@ describe('crash and derail rates', () => {
         }
     });
 
+    // A train set's own train holds its own oval's curves flat out, as the box
+    // sells it: the express trains are the fast ones, not the ones in the box
+    it('flat out on its own layout, a train set\'s train holds the curves', LONG_RUN, () => {
+        for (const set of getAllSets().filter(s => s.rollingStock?.length)) {
+            resetWorld();
+            seedSimulation(1);
+            loadSetPlan(set.id);
+            const sim = useSimulationStore.getState();
+            for (const train of Object.values(sim.trains)) sim.setTrainThrottle(train.id, topSpeedOf(train));
+            const events = runMinutes(2);
+            note(`${set.id} flat out: ${count(events, 'derail')} derail(s)`);
+            expect({ set: set.id, derails: count(events, 'derail') }).toEqual({ set: set.id, derails: 0 });
+        }
+    });
+
     /**
      * Every Kato plan, driven by someone who yanks each throttle to a random
      * setting every five seconds, for two minutes (a few laps of the biggest

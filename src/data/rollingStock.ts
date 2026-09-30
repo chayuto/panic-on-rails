@@ -151,6 +151,43 @@ export const ROLLING_STOCK: RollingStock[] = [
         comesIn: ['hornby-R1270M'],
         referenceUrl: 'https://uk.hornby.com/products/valley-drifter-train-set-r1270m',
     },
+    {
+        id: 'hornby-flying-scotsman',
+        name: 'Flying Scotsman',
+        description: 'Hornby\'s RailRoad LNER Class A1 4472 "Flying Scotsman" in apple green, with two LNER teak composite coaches and a teak brake composite.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#4C8B2B',
+        carColors: ['#4C8B2B', '#8A5A2B', '#8A5A2B', '#8A5A2B'],
+        // Hornby's lengths for the RailRoad models the set is made of: the A1
+        // and its tender 293 mm (R3086), each coach 247 mm (R4332, R4333)
+        carLengths: [293, 247, 247, 247],
+        traction: 'steam-tender',
+        // Holds its set's 3rd radius oval flat out, just, as Kato's starter
+        // trains hold M1's: R609 derails at 413 mm/s
+        topSpeed: Math.round(195 * OO),
+        comesIn: ['hornby-R1255M'],
+        referenceUrl: 'https://uk.hornby.com/products/flying-scotsman-train-set-r1255m',
+    },
+    {
+        id: 'hornby-mallard',
+        name: 'Mallard',
+        description: 'Hornby\'s RailRoad Class A4 "Mallard" as BR No. 60022 in express blue, with two BR Gresley composite coaches and a brake coach in crimson and cream.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#27499A',
+        carColors: ['#27499A', '#8E1F2E', '#8E1F2E', '#8E1F2E'],
+        // The RailRoad A4 and its tender 291 mm (R3371, as LNER 4468). The
+        // coaches are the RailRoad Gresley composite and brake composite in
+        // BR livery, 247 mm (R4332, R4333)
+        carLengths: [291, 247, 247, 247],
+        traction: 'steam-tender',
+        // Holds its set's 3rd radius oval flat out, just, as Kato's starter
+        // trains hold M1's: R609 derails at 413 mm/s
+        topSpeed: Math.round(195 * OO),
+        comesIn: ['hornby-R1282M'],
+        referenceUrl: 'https://uk.hornby.com/products/mallard-record-breaker-train-set-era-3-r1282m',
+    },
     // The game's own generic models, sold on their own
     {
         id: 'diesel-passenger',

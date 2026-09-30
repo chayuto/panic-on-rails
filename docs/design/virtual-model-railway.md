@@ -131,6 +131,7 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | Box | Contents | Game |
 |-----|----------|------|
 | **Oval**, as in train sets such as R1296M | R609×8, R600, R8206 | ✅ 1210 × 1040 mm, as printed |
+| **Oval with Track Pack 1**, as in train sets such as R1255M and R1282M | The oval and A's pieces | ✅ A's siding plan, in the 155 × 113 cm Hornby gives it |
 | **A** R8221 | R600, R601×2, R606, R8072, R083 | ✅ Siding outside the back |
 | **B** R8222 | R600×2, R606, R607×4, R8073, R083 | ✅ Inner track from a point on the front |
 | **C** R8223 | R600×2, R606, R607×4, R8073 | ✅ Inner loop and crossover |
@@ -139,6 +140,11 @@ TrakMat plan; the train-set page for the oval; XTrackCAD for the curved points.
 | **F** R8226 | R600×2, R606×2, R8072, R8073, R083 | ✅ The whole TrakMat plan |
 
 - **Hornby's 168mm straight is 167.5mm:** two make the 335mm R601.
+- **Track Pack 1 is Extension Pack A.** Hornby's bigger train sets list "Track Pack 1
+  (includes point and buffer)", which the Mallard set's page and Hornby America call Track
+  Pack A. A retailer's list of R1292M's track is the oval and exactly R8221's pieces.
+  - Hornby prints the layout as 1550 × 1130 mm, and R1288M's specs call it "Space Required
+    (cm) 155x113cm". The track is 111 cm deep: the oval plus the siding 67 mm outside it.
 - **The train-set oval is 3rd radius.** The packs build a 2nd radius loop 67mm inside it.
 - **Where the game differs from the packs:**
   - The R083 buffer stop clips onto a track end in reality. Here it is a 44mm piece of its own.
@@ -264,3 +270,6 @@ Car lengths of the real trains (`src/data/rollingStock.ts`):
 - Kato's Viewliner II, 84 ft 4 in diaphragm to diaphragm: https://www.trains.com/mrr/news-reviews/reviews/staff-reviews/kato-n-scale-viewliner-ii-baggage-car/
 - Hornby's R1296M contents: https://railwaymodels.uk/news-hornby-smokey-joe-train-set-returns-for-oo-gauge-12508. Its lengths: Smokey Joe 10.8 cm (https://uk.hornby.com/products/br-class-264-pug-0-4-0st-56025-smokey-joe-era-45-r3064), the four-wheel coach 10 cm (https://uk.hornby.com/products/lms-four-wheel-coach-era-3-r4671), and Crimson King's GWR 101 Class body 10.8 cm (https://uk.hornby.com/products/gwr-101-class-101-era-3-r30053).
 - Hornby doesn't publish the set wagon's length. It matches the long-wheelbase open wagon of Hornby's 2007 Local Freight set, which is 88 mm: https://www.hornbyguide.com/item_details.asp?itemid=4046
+- Hornby's R1255M Flying Scotsman and R1282M Mallard train sets: "3rd Radius Starter Oval Track, 1x Track Pack 1 (includes point and buffer)" (https://uk.hornby.com/products/flying-scotsman-train-set-r1255m, https://uk.hornby.com/products/mallard-record-breaker-train-set-era-3-r1282m). The Mallard page names its train: "LNER Class A4 4-6-2 'Mallard', Two BR Gresley Composite Coaches, BR Gresley Brake Coach". Its photo shows the A4 as BR 60022 in express blue. Hornby America names the Flying Scotsman set's: "LNER Class A1 4-6-2 'Flying Scotsman'; Two LNER composite coaches; LNER brake coach", on "Track Pack A" (https://www.hornbyhobbies.com/products/flying-scotsman-train-set-r1255t, $299.99; the Mallard set is $329.99 at https://www.hornbyhobbies.com/products/mallard-record-breaker-train-set-era-3-r1282tf).
+- Track Pack 1's pieces: Kernow's list for R1292M, which has the same track, "2 x Straight Track, 8 x Double Curve Track, Power Track, 2 x Double Straight Track, Left-Hand Point, Standard Curve Track, Buffer Stop" (https://www.kernowmodelrailcentre.com/products/r1292m-hornby-diesel-mixed-freight-train-set). The space it needs: "Space Required (cm) 155x113cm" (https://uk.hornby.com/products/lner-azuma-high-speed-train-set-r1288m).
+- The two trains' lengths are Hornby's for the RailRoad models the sets are made of: the A1 29.3 cm (https://uk.hornby.com/products/lner-a1-class-4-6-2-4472-flying-scotsman-era-3-r3086), the A4 29.1 cm (https://uk.hornby.com/products/lner-a4-class-4-6-2-4468-mallard-era-3-r3371), and the teak composite and brake composite 24.7 cm each (https://uk.hornby.com/products/lner-composite-coach-era-3-r4332, https://uk.hornby.com/products/lner-brake-composite-coach-era-3-r4333). Hornby's RailRoad Flying Scotsman bundle is that engine with two R4332 and an R4333 (https://uk.hornby.com/products/railroad-lner-a1-class-flying-scotsman-train-and-coaches-bundle-bundleh68). The Mallard set's BR-liveried Gresley coaches are taken to be the same 24.7 cm body.

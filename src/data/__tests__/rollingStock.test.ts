@@ -96,6 +96,9 @@ describe('cars', () => {
     });
 
     it('are painted in their own liveries where the model has them, else in the train\'s colour', () => {
+        // Flying Scotsman's apple green engine pulls teak coaches
+        expect(carColorAt({ stockId: 'hornby-flying-scotsman', color: '#000000' }, 0)).toBe('#4C8B2B');
+        expect(carColorAt({ stockId: 'hornby-flying-scotsman', color: '#000000' }, 3)).toBe('#8A5A2B');
         expect(carColorAt({ stockId: 'hornby-smokey-joe', color: '#123456' }, 2)).toBe('#123456');
         expect(carColorAt({ color: '#ABCDEF' }, 1)).toBe('#ABCDEF');
     });
