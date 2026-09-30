@@ -167,7 +167,7 @@ Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, p
 
 **Prefer headless first.** Most gameplay/simulation questions can be answered in Vitest with `src/simulation/harness.ts` — no browser, ~15 ms per simulated minute. Reach for the browser only for rendering, input, and layout. `PLAY_METRICS=1 pnpm test --run playMetrics` prints the play metrics (earnings per minute, minutes to afford each box, derails per train-hour) that `playMetrics.test.ts` holds to budgets.
 
-`src/utils/debugBridge.ts` exposes all Zustand stores to `window.__PANIC_STORES__`, the Konva stage to `window.__PANIC_STAGE__`, and the simulation harness to `window.__PANIC_SIM__` (dev mode, `?e2e` param, or `localStorage.panic-e2e`). With the rAF loop paused, `__PANIC_SIM__.seed(1); __PANIC_SIM__.runSeconds(5)` steps the real simulation deterministically — no clock mocking or `waitForTimeout`. Playwright helpers in `e2e/helpers/` provide:
+`src/utils/debugBridge.ts` exposes all Zustand stores to `window.__PANIC_STORES__` (each section is `expose(store, stateKeys, actionKeys)`, typed from the store; add a key there to reach new state), the Konva stage to `window.__PANIC_STAGE__`, and the simulation harness to `window.__PANIC_SIM__` (dev mode, `?e2e` param, or `localStorage.panic-e2e`). With the rAF loop paused, `__PANIC_SIM__.seed(1); __PANIC_SIM__.runSeconds(5)` steps the real simulation deterministically — no clock mocking or `waitForTimeout`. Playwright helpers in `e2e/helpers/` provide:
 
 - **StoreBridge** — typed store access (read/write track, mode, simulation, editor state)
 - **AgentActions** — semantic API: `placeTrack()`, `switchMode()`, `verify()`, `clickCanvas()`

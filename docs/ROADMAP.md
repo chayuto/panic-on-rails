@@ -437,8 +437,12 @@ Order, biggest win per millisecond first:
 - [ ] Run `e2e/specs/` nightly against preview. Replace `waitForTimeout` with
       `expect.poll`/`__PANIC_SIM__`. Add Linux baselines, generated in the pinned Playwright
       Docker image with the headless mode pinned (GPU rasterization changes pixels).
-- [ ] Type the debug bridge against the real store types (no `unknown`/`any`). Add logic
-      mutators (sensors, signals, wires).
+- [x] **The debug bridge is typed from the stores.** Each store section is `expose(store,
+      stateKeys, actionKeys)`, so its types come from the store itself and can't drift, with no
+      `unknown` or `any` casts.
+  - The e2e helpers' snapshot types are derived from the bridge too.
+  - Logic mutators added: remove sensors, signals and wires. The simulation section exposes the
+    wreck record and the operating session.
 
 #### QA: play like a player (research: `docs/research/20260930_Agent QA and Testing Tools.md`)
 

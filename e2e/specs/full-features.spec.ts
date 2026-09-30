@@ -541,7 +541,7 @@ test.describe('Save and Load Layout', () => {
         expect(clearedCount).toBe(0);
 
         // Reload the saved layout
-        await stores.loadLayout(layoutData as object);
+        await stores.loadLayout(layoutData);
         await page.waitForTimeout(300);
         await snap('04-layout-reloaded');
 
