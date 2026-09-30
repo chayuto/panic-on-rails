@@ -92,7 +92,10 @@ export interface TrainSummary {
 export interface SimSummary {
     elapsed: number;
     trains: TrainSummary[];
+    /** Wrecks on the track now */
     crashed: number;
+    /** Trains wrecked since the log was cleared, re-railed ones included */
+    wrecks: number;
     debris: number;
     edges: number;
     nodes: number;
@@ -113,6 +116,7 @@ export function summarize(): SimSummary {
         elapsed: Math.round(useSimulationStore.getState().simElapsed * 1000) / 1000,
         trains,
         crashed: trains.filter(t => t.crashed).length,
+        wrecks: useSimulationStore.getState().wrecks,
         debris: world.crashedParts.length,
         edges: Object.keys(world.edges).length,
         nodes: Object.keys(world.nodes).length,

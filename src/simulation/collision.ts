@@ -1,6 +1,6 @@
 /**
  * Collision System
- * 
+ *
  * Coordinates collision detection and response (explosions, debris).
  */
 
@@ -9,9 +9,12 @@ import { detectCollisions } from '../utils/collisionManager';
 import { explodeTrain, calculateCrashSeverity } from '../utils/crashPhysics';
 import type { CrashedPart } from '../utils/crashPhysics';
 
+/** One train crashing. */
 export interface CollisionEvent {
     type: 'collision';
-    trainIds: string[];
+    trainId: string;
+    /** What it ran into: trains crashing with it, or wrecks */
+    otherTrainIds: string[];
     location: Vector2;
     severity: number;
     debris: CrashedPart[];
@@ -21,6 +24,9 @@ export interface CollisionEvent {
  * Checks for collisions between trains (any car of one overlapping any car
  * of another) and generates collision events, with debris thrown from where
  * the cars met.
+ *
+ * A train that runs into a wreck crashes; the wreck, wrecked already,
+ * doesn't again. A train crashes once, however many trains it hits.
  */
 export function checkCollisions(
     trains: Record<string, Train>,
@@ -28,33 +34,38 @@ export function checkCollisions(
     random: () => number,
     nodes: Record<NodeId, TrackNode>
 ): CollisionEvent[] {
-    const events: CollisionEvent[] = [];
+    const crashes = new Map<string, CollisionEvent>();
 
-    detectCollisions(trains, edges, nodes).forEach(({ trainA, trainB, location }) => {
+    for (const { trainA, trainB, location } of detectCollisions(trains, edges, nodes)) {
         // Severity is shared by both trains: it depends on their relative speed
         const severity = calculateCrashSeverity(
             { x: trainA.speed * trainA.direction, y: 0 },
             { x: trainB.speed * trainB.direction, y: 0 }
         );
 
-        for (const train of [trainA, trainB]) {
+        for (const [train, other] of [[trainA, trainB], [trainB, trainA]]) {
             if (!edges[train.currentEdgeId] || train.crashed) continue;
-            const debris = explodeTrain({
-                position: location,
-                velocity: { x: train.speed * train.direction * 0.5, y: 0 },
-                trainColor: train.color,
-                severity,
-            }, random);
-
-            events.push({
+            const crash = crashes.get(train.id);
+            if (crash) {
+                crash.otherTrainIds.push(other.id);
+                continue;
+            }
+            crashes.set(train.id, {
                 type: 'collision',
-                trainIds: [train.id],
+                trainId: train.id,
+                otherTrainIds: [other.id],
                 location,
                 severity,
-                debris,
+                debris: explodeTrain({
+                    position: location,
+                    velocity: { x: train.speed * train.direction * 0.5, y: 0 },
+                    trainColor: train.color,
+                    severity,
+                    trainId: train.id,
+                }, random),
             });
         }
-    });
+    }
 
-    return events;
+    return [...crashes.values()];
 }

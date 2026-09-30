@@ -78,7 +78,7 @@ Persisted stores (localStorage):
 
 Non-persisted stores (reset on refresh):
 - **useModeStore** — Edit/Simulate mode + sub-modes (select, place, delete, sensor, signal, wire, connect).
-- **useSimulationStore** — Train positions, speeds, collision state. Includes `setError()`/`clearError()` for simulation errors.
+- **useSimulationStore** — Train positions, speeds, collision state, and the wreck record (`wrecks`, `lastWreckAt`). Includes `setError()`/`clearError()` for simulation errors.
 - **useEditorStore** — Transient UI state (dragging, selection, ghost previews).
 - **useEffectsStore** — Visual/audio effects (screen shake, flash).
 - **useShopStore** — Whether the hobby shop dialog is open, and on which tab.
@@ -124,7 +124,8 @@ The simulation is a pure function plus thin adapters — keep it that way:
 - Subsystems it calls:
   - `driving.ts`: the power pack. Speed follows `train.throttle` with momentum, brakes in time for a red signal's stop line or the end of the line (`stopAhead`, `stoppingLimit`), and derails above a curve's limit (`derailSpeed(radius)`). The direction lever (`reverseRequested`) stops the train, then reverses it.
   - `movement.ts`: edge traversal, switch routing and dead-end bounce, with a hard stop at red stop lines as a safety net.
-  - `collision.ts`, plus `utils/collisionManager.ts`: two trains collide when any car of one overlaps any car of the other, each car a rectangle at its drawn pose (`getCarPoses`), so diamonds and fouled turnouts count.
+  - `collision.ts`, plus `utils/collisionManager.ts`: two trains collide when any car of one overlaps any car of the other, each car a rectangle at its drawn pose (`getCarPoses`), so diamonds and fouled turnouts count. A crashed train stays as wreckage that blocks the line: a train that runs into it crashes too.
+  - `wreckage.ts`: `rerail()` puts a wreck back on its own scale's track, standing, at the clearest spot where all its cars fit. Play doesn't clear wrecks; the player re-rails them or takes them off.
   - `signals.ts`: sensor zones → wire actions.
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
   - `economy.ts`: money from events.

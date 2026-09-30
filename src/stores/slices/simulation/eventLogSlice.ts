@@ -33,10 +33,16 @@ export interface EventLogSlice {
     simLogSeq: number;
     /** Simulation elapsed time in seconds */
     simElapsed: number;
+    /** Trains wrecked since the log was cleared: the session, in the browser */
+    wrecks: number;
+    /** When the last one was wrecked (simElapsed); null if none has been */
+    lastWreckAt: number | null;
     /** Push a new event */
     logEvent: (type: SimEventType, trainId: TrainId, edgeId: EdgeId, detail: string) => void;
     /** Advance elapsed time */
     tickElapsed: (dt: number) => void;
+    /** Count trains wrecked just now, for the crash counter */
+    recordWrecks: (count: number) => void;
     /** Clear the log (e.g. on simulation reset) */
     clearLog: () => void;
 }
@@ -45,6 +51,8 @@ export const createEventLogSlice: SimulationSliceCreator<EventLogSlice> = (set) 
     simLog: [],
     simLogSeq: 0,
     simElapsed: 0,
+    wrecks: 0,
+    lastWreckAt: null,
 
     logEvent: (type, trainId, edgeId, detail) => {
         set((state) => {
@@ -72,11 +80,20 @@ export const createEventLogSlice: SimulationSliceCreator<EventLogSlice> = (set) 
         });
     },
 
+    recordWrecks: (count) => {
+        set((state) => {
+            state.wrecks += count;
+            state.lastWreckAt = state.simElapsed;
+        });
+    },
+
     clearLog: () => {
         set((state) => {
             state.simLog = [];
             state.simLogSeq = 0;
             state.simElapsed = 0;
+            state.wrecks = 0;
+            state.lastWreckAt = null;
         });
     },
 });

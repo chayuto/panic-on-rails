@@ -87,9 +87,13 @@ export interface PanicStoreBridge {
             crashedParts: CrashedPart[];
             simLog: { seq: number; time: number; type: string; trainId: string; edgeId: string; detail: string }[];
             simElapsed: number;
+            wrecks: number;
+            lastWreckAt: number | null;
         };
         spawnTrain: (edgeId: string, color?: string, carriageCount?: number, distance?: number) => string;
         removeTrain: (trainId: string) => void;
+        rerailTrain: (trainId: string) => boolean;
+        setCrashed: (trainId: string) => void;
         setTrainStopped: (trainId: string, stopped: boolean) => void;
         reverseTrain: (trainId: string) => void;
         setTrainThrottle: (trainId: string, throttle: number) => void;
@@ -234,12 +238,18 @@ export function initDebugBridge(): void {
                     crashedParts: s.crashedParts,
                     simLog: s.simLog,
                     simElapsed: s.simElapsed,
+                    wrecks: s.wrecks,
+                    lastWreckAt: s.lastWreckAt,
                 };
             },
             spawnTrain: (edgeId, color?, carriageCount?, distance?) =>
                 useSimulationStore.getState().spawnTrain(edgeId, color, carriageCount, distance),
             removeTrain: (trainId) =>
                 useSimulationStore.getState().removeTrain(trainId),
+            rerailTrain: (trainId) =>
+                useSimulationStore.getState().rerailTrain(trainId),
+            setCrashed: (trainId) =>
+                useSimulationStore.getState().setCrashed(trainId),
             setTrainStopped: (trainId, stopped) =>
                 useSimulationStore.getState().setTrainStopped(trainId, stopped),
             reverseTrain: (trainId) =>

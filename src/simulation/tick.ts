@@ -91,6 +91,8 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
     if (world.sensors !== before.sensors || world.signals !== before.signals) {
         useLogicStore.setState({ sensors: world.sensors, signals: world.signals });
     }
+    const wrecked = events.filter(e => e.type === 'collision' || e.type === 'derail').length;
+    if (wrecked > 0) sim.recordWrecks(wrecked);
 
     for (const event of events) {
         logEvent(event, before);

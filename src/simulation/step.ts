@@ -74,7 +74,8 @@ export interface StepResult {
  * Order: movement → collisions → debris → sensors/wires. Inputs are never
  * mutated; changed collections are copied.
  *
- * Trains stopped by the player don't move. Trains heading into a node with a
+ * Trains stopped by the player don't move, and nor do wrecks: a train that
+ * runs into one crashes too. Trains heading into a node with a
  * red signal stop short of it (see `calculateTrainMovement`).
  */
 export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): StepResult {
@@ -154,6 +155,7 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
                 velocity: { x: 0, y: 0 },
                 trainColor: train.color,
                 severity: 2,
+                trainId: train.id,
             }, ctx.random)];
             trains[train.id] = { ...next, crashed: true, crashTime: ctx.now, speed: 0 };
             events.push({ type: 'derail', trainId: train.id, edgeId: update.edgeId, location, speed });
@@ -162,25 +164,19 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
         trains[train.id] = next;
     }
 
-    // 2. Collisions
-    const collisions = checkCollisions(trains, edges, ctx.random, nodes);
-    const collidedIds = new Set(collisions.flatMap(c => c.trainIds));
-    for (const collision of collisions) {
-        crashedParts = [...crashedParts, ...collision.debris];
-        for (const id of collision.trainIds) {
-            const train = trains[id];
-            if (!train) continue;
-            trains[id] = { ...train, crashed: true, crashTime: ctx.now, speed: 0 };
-            events.push({
-                type: 'collision',
-                trainId: id,
-                // Partners are whichever other trains crashed in this same tick
-                otherTrainIds: [...collidedIds].filter(other => other !== id),
-                edgeId: train.currentEdgeId,
-                location: collision.location,
-                severity: collision.severity,
-            });
-        }
+    // 2. Collisions: trains into each other, or into a wreck
+    for (const crash of checkCollisions(trains, edges, ctx.random, nodes)) {
+        const train = trains[crash.trainId];
+        crashedParts = [...crashedParts, ...crash.debris];
+        trains[train.id] = { ...train, crashed: true, crashTime: ctx.now, speed: 0 };
+        events.push({
+            type: 'collision',
+            trainId: train.id,
+            otherTrainIds: crash.otherTrainIds,
+            edgeId: train.currentEdgeId,
+            location: crash.location,
+            severity: crash.severity,
+        });
     }
 
     // 3. Debris physics

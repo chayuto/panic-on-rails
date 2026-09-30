@@ -68,24 +68,26 @@ export function spawnLayoutTrain(edgeId: EdgeId, color?: string): TrainId {
 }
 
 /**
- * Start (or restart) the simulation. After a crash, clears the wreckage and
- * the crashed trains first (survivors keep running); spawns a train if none
- * are left. No-op without track.
+ * Start (or resume) the simulation; spawns a train if there are none. Wrecks
+ * stay where they are until the player clears them (`rerailWrecks`, or
+ * taking them off the track). No-op without track.
  */
 export function startSimulation(): void {
     if (Object.keys(useTrackStore.getState().edges).length === 0) return;
     const sim = useSimulationStore.getState();
-    const crashed = Object.values(sim.trains).filter(t => t.crashed);
-    if (crashed.length > 0) {
-        crashed.forEach(t => sim.removeTrain(t.id));
-        sim.clearDebris();
-        sim.clearError();
-        sim.clearLog();
-    }
-    if (Object.keys(useSimulationStore.getState().trains).length === 0) {
+    if (Object.keys(sim.trains).length === 0) {
         spawnTrainAtClearestSpot();
     }
     sim.setRunning(true);
+}
+
+/**
+ * Re-rail every wreck, one at a time so each finds room clear of those
+ * before it. Returns the wrecks that found nowhere to go.
+ */
+export function rerailWrecks(): TrainId[] {
+    const wrecks = Object.values(useSimulationStore.getState().trains).filter(t => t.crashed);
+    return wrecks.filter(t => !useSimulationStore.getState().rerailTrain(t.id)).map(t => t.id);
 }
 
 /** Play/pause toggle. Pausing never leaves Simulate mode. */

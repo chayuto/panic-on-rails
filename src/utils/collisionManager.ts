@@ -6,6 +6,9 @@
  * (`getCarPoses`), so trains meeting on a crossing's diamond collide
  * although their tracks never share a node, and so does a train fouling a
  * turnout another is passing through.
+ *
+ * A crashed train is wreckage: it lies where it came to rest until the
+ * player clears it, and a train that runs into it crashes too.
  */
 
 import type { Train, TrackEdge, EdgeId, NodeId, TrackNode, Vector2 } from '../types';
@@ -87,18 +90,19 @@ export function bodiesOverlap(a: CarBody, b: CarBody): boolean {
 }
 
 /**
- * Every pair of trains with overlapping cars, once per pair. Crashed trains
- * are wreckage, not trains: they're left to the debris.
+ * Every pair of trains with overlapping cars, once per pair: two trains, or
+ * a train and a wreck. Wrecks lying against each other are the crash that
+ * made them, not a new one.
  */
 export function detectCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>,
     nodes: Record<NodeId, TrackNode>
 ): CollisionResult[] {
+    const all = Object.values(trains);
+    if (!all.some(t => !t.crashed)) return [];
     const geometryOf = frameGeometry(edges, nodes);
-    const bodies = Object.values(trains)
-        .filter(t => !t.crashed)
-        .flatMap(t => bodiesOf(t, edges, nodes, geometryOf));
+    const bodies = all.flatMap(t => bodiesOf(t, edges, nodes, geometryOf));
     if (bodies.length < 2) return [];
 
     // Broad phase: a grid of cells as wide as the biggest car
@@ -119,8 +123,8 @@ export function detectCollisions(
         for (let x = gx - 1; x <= gx + 1; x++) {
             for (let y = gy - 1; y <= gy + 1; y++) {
                 for (const b of grid.get(`${x},${y}`) ?? []) {
-                    // Each pair of trains once, and never a train with itself
-                    if (b.train.id <= a.train.id) continue;
+                    // Each pair of trains once, never a train with itself, and never two wrecks
+                    if (b.train.id <= a.train.id || (a.train.crashed && b.train.crashed)) continue;
                     const key = `${a.train.id}|${b.train.id}`;
                     if (paired.has(key) || !bodiesOverlap(a, b)) continue;
                     paired.add(key);

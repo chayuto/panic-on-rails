@@ -2,20 +2,28 @@
  * Train Management Slice
  */
 
-import type { Train } from '../../../types';
-import type { SimulationSliceCreator, TrainSlice } from './types';
+import type { Train, TrainId } from '../../../types';
+import type { SimulationSliceCreator, SimulationStateData, TrainSlice } from './types';
 import { CAR_PITCH } from '../../../config/rollingStock';
 import { DRIVING } from '../../../simulation/driving';
 import { getRollingStock, topSpeedOf } from '../../../data/rollingStock';
 import { getPartById } from '../../../data/catalog';
 import { sizeOf } from '../../../config/scales';
 import { reverseConsist } from '../../../utils/trainCars';
+import { rerail } from '../../../simulation/wreckage';
 import { useTrackStore } from '../../useTrackStore';
 
 const TRAIN_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
 let trainCounter = 0;
 
-export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
+/** Sweep up the debris that came off a train. */
+function sweepDebris(state: SimulationStateData, trainId: TrainId): void {
+    if (state.crashedParts.some(p => p.trainId === trainId)) {
+        state.crashedParts = state.crashedParts.filter(p => p.trainId !== trainId);
+    }
+}
+
+export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set, get) => ({
     /**
      * Spawn a new train on a specific edge.
      * 
@@ -57,14 +65,35 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     },
 
     /**
-     * Remove a train from the simulation.
-     * 
+     * Take a train off the track (a wreck, with its debris). In collection
+     * mode it goes back on the shelf, to run again.
+     *
      * @param trainId - ID of the train to remove
      */
     removeTrain: (trainId) => {
         set((state) => {
             delete state.trains[trainId];
+            sweepDebris(state, trainId);
         });
+    },
+
+    /**
+     * Put a wreck back on the rails, repaired (the bill came with the crash):
+     * standing at the clearest spot where it fits, its debris swept up.
+     * False if it isn't a wreck, or there's nowhere it fits.
+     */
+    rerailTrain: (trainId) => {
+        const { trains } = get();
+        const wreck = trains[trainId];
+        if (!wreck?.crashed) return false;
+        const { edges, nodes } = useTrackStore.getState();
+        const placed = rerail(wreck, trains, edges, nodes);
+        if (!placed) return false;
+        set((state) => {
+            state.trains[trainId] = placed;
+            sweepDebris(state, trainId);
+        });
+        return true;
     },
 
     /**
@@ -148,9 +177,10 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set) => ({
     },
 
     /**
-     * Remove all trains from the simulation.
+     * Remove all trains from the simulation, wrecks and debris too.
      */
     clearTrains: () => set((state) => {
         state.trains = {};
+        state.crashedParts = [];
     }),
 });

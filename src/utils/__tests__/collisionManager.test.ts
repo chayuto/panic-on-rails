@@ -61,12 +61,21 @@ describe('detectCollisions', () => {
         expect(collisions()).toEqual([]);
     });
 
-    it('leaves crashed trains to the wreckage', () => {
+    it('a train that runs into a wreck collides with it', () => {
         const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
-        trainAt(edge, 60, 1);
-        const other = trainAt(edge, 70, -1);
-        expect(collisions()).toHaveLength(1);
-        useSimulationStore.setState(s => ({ trains: { ...s.trains, [other]: { ...s.trains[other], crashed: true } } }));
+        const live = trainAt(edge, 60, 1);
+        const wreck = trainAt(edge, 70, -1);
+        useSimulationStore.getState().setCrashed(wreck);
+        const hits = collisions();
+        expect(hits.map(h => [h.trainA.id, h.trainB.id].sort())).toEqual([[live, wreck].sort()]);
+    });
+
+    it('wrecks lying against each other are the crash that made them, not a new one', () => {
+        const edge = state().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const a = trainAt(edge, 60, 1);
+        const b = trainAt(edge, 70, -1);
+        useSimulationStore.getState().setCrashed(a);
+        useSimulationStore.getState().setCrashed(b);
         expect(collisions()).toEqual([]);
     });
 

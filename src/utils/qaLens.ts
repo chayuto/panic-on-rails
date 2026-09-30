@@ -57,6 +57,8 @@ export interface QaLook {
     /** Sets of points, with the size of their button on screen (px across) */
     points: { part: string; at: PagePoint; set: 'normal' | 'reverse'; size: number }[];
     trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean }[];
+    /** Trains wrecked this session (re-railed ones included) */
+    wrecks: number;
 }
 
 const DROP_AHEAD_PX = 10;
@@ -157,5 +159,6 @@ export function look(): QaLook {
         openEnds,
         points,
         trains,
+        wrecks: useSimulationStore.getState().wrecks,
     };
 }

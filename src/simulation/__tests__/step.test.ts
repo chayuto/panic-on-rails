@@ -39,6 +39,28 @@ describe('stepSimulation', () => {
         expect(collisions.map(c => c.type === 'collision' && c.trainId).sort()).toEqual(['a', 'b']);
     });
 
+    it('a train that runs into a wreck crashes too; the wreck isn\'t wrecked again', () => {
+        const wreck = { ...train('w', 'e1', 60, -1), crashed: true, crashTime: 5, speed: 0 };
+        const w = world({ ...graph, trains: { w: wreck, t: train('t', 'e1', 50, 1) } });
+        const { world: next, events } = stepSimulation(w, 0.05, ctx());
+        expect(next.trains.t).toMatchObject({ crashed: true, speed: 0 });
+        expect(next.trains.w).toBe(wreck);
+        const collisions = events.filter(e => e.type === 'collision');
+        expect(collisions).toEqual([expect.objectContaining({ trainId: 't', otherTrainIds: ['w'] })]);
+        // The debris is the train's own, to sweep up with its wreck
+        expect(next.crashedParts.length).toBeGreaterThan(0);
+        expect(next.crashedParts.every(p => p.trainId === 't')).toBe(true);
+    });
+
+    it('a train crashes once, however many trains it hits', () => {
+        const wreck = (id: string, distance: number) => ({ ...train(id, 'e1', distance, -1), crashed: true, speed: 0 });
+        const w = world({ ...graph, trains: { a: wreck('a', 60), b: wreck('b', 62), t: train('t', 'e1', 50, 1) } });
+        const { events } = stepSimulation(w, 0.05, ctx());
+        const collisions = events.filter(e => e.type === 'collision');
+        expect(collisions).toHaveLength(1);
+        expect(collisions[0]).toMatchObject({ trainId: 't', otherTrainIds: ['a', 'b'] });
+    });
+
     it('crashed trains stay put', () => {
         const w = world({ ...graph, trains: { a: { ...train('a', 'e1', 40), crashed: true, speed: 0 } } });
         const { world: next } = stepSimulation(w, 1, ctx());
