@@ -328,3 +328,65 @@
     color: var(--fg-secondary);
     font-variant-numeric: tabular-nums;
 }
+/* Operating session */
+.session-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--fg-primary);
+}
+
+.session-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.session-tally {
+    color: var(--fg-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.session-bonus {
+    color: var(--fg-secondary);
+}
+
+.session-bonus.earned {
+    color: #7ee08a;
+    font-weight: 600;
+}
+
+.session-line button,
+.session-start {
+    background: var(--button-bg);
+    color: var(--fg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.session-start {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.session-start:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.session-line .session-dismiss {
+    display: inline-flex;
+    padding: 3px;
+    border: none;
+    background: none;
+    color: var(--fg-secondary);
+}

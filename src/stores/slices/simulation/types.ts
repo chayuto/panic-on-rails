@@ -7,6 +7,7 @@ import 'zustand/middleware/immer';
 import type { TrainId, EdgeId, Train } from '../../../types';
 import type { CrashedPart } from '../../../utils/crashPhysics';
 import type { SimEvent, SimEventType } from './eventLogSlice';
+import type { OperatingSession, SessionResult } from '../../../simulation/session';
 
 export interface SimulationStateData {
     trains: Record<TrainId, Train>;
@@ -21,6 +22,10 @@ export interface SimulationStateData {
     wrecks: number;
     /** When the last one was wrecked (simElapsed); null if none has been */
     lastWreckAt: number | null;
+    /** The operating session running, if any */
+    session: OperatingSession | null;
+    /** How the last session went, until the player dismisses it */
+    sessionResult: SessionResult | null;
 }
 
 export interface TrainSlice {
@@ -53,6 +58,8 @@ export interface EventLogSliceActions {
     logEvent: (type: SimEventType, trainId: TrainId, edgeId: EdgeId, detail: string) => void;
     tickElapsed: (dt: number) => void;
     recordWrecks: (count: number) => void;
+    setSession: (session: OperatingSession | null) => void;
+    setSessionResult: (result: SessionResult | null) => void;
     clearLog: () => void;
 }
 

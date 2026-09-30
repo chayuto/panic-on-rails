@@ -9,6 +9,7 @@
  * - Speed multiplier slider
  * - Wrecks: they block the line until re-railed or taken off the track
  * - The dispatcher's record: trains wrecked, and time since the last
+ * - Operating sessions: a timed shift, tallied, with a bonus if it's clean
  */
 
 import { useCallback, useState } from 'react';
@@ -16,7 +17,8 @@ import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Rep
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { useLogicStore } from '../../stores/useLogicStore';
-import { rerailWrecks, spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
+import { beginSession, endSessionEarly, rerailWrecks, spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
+import { SESSION } from '../../simulation/session';
 import { scaleKmh, throttleOf } from '../../simulation/driving';
 import { SCALES } from '../../config/scales';
 import { useCollectionStore } from '../../stores/useCollectionStore';
@@ -120,6 +122,8 @@ export function TrainPanel() {
                     <Trash2 size={14} />
                 </button>
             </div>
+
+            <SessionBox canRun={hasEdges} paid={inCollection} />
 
             {inCollection ? (
                 /* Your trains: run one you own */
@@ -287,6 +291,69 @@ export function TrainPanel() {
                 )}
             </div>
         </div>
+    );
+}
+
+const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * The operating session: start one, watch it tick down with its tally, and
+ * see how it went. A full session without a wreck earns a bonus.
+ */
+function SessionBox({ canRun, paid }: { canRun: boolean; paid: boolean }) {
+    const session = useSimulationStore(s => s.session);
+    const result = useSimulationStore(s => s.sessionResult);
+    const simElapsed = useSimulationStore(s => s.simElapsed);
+    const setSessionResult = useSimulationStore(s => s.setSessionResult);
+
+    if (session) {
+        return (
+            <div className="session-box" data-testid="session">
+                <div className="session-line">
+                    <span><strong>Session</strong> · {formatClock(session.endsAt - simElapsed)} left</span>
+                    <button onClick={endSessionEarly} data-testid="session-end">End</button>
+                </div>
+                <div className="session-tally" data-testid="session-tally">
+                    {money(session.income)} taken · {plural(session.calls, 'call')} · {plural(session.wrecks, 'wreck')}
+                </div>
+            </div>
+        );
+    }
+
+    if (result) {
+        const bonus = result.bonus > 0
+            ? `Crash-free: ${money(result.bonus)} bonus${paid ? '' : ' (paid in collection mode)'}`
+            : result.endedEarly ? 'Ended early: no bonus' : 'A wreck: no bonus';
+        return (
+            <div className="session-box" role="status" data-testid="session-result">
+                <div className="session-line">
+                    <strong>{result.endedEarly ? 'Session ended' : 'Session over'}</strong>
+                    <button className="session-dismiss" onClick={() => setSessionResult(null)} aria-label="Dismiss">
+                        <X size={12} />
+                    </button>
+                </div>
+                <div className="session-tally">
+                    {money(result.income)} taken · {plural(result.calls, 'call')} · {plural(result.wrecks, 'wreck')}
+                </div>
+                <div className={`session-bonus ${result.bonus > 0 ? 'earned' : ''}`} data-testid="session-bonus">{bonus}</div>
+                <button className="session-start" onClick={beginSession} disabled={!canRun} data-testid="session-start">
+                    Start another
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <button
+            className="session-start"
+            onClick={beginSession}
+            disabled={!canRun}
+            title={`${SESSION.MINUTES} minutes of railway time, tallied. Get through without a wreck for a ${SESSION.CLEAN_BONUS * 100}% bonus.`}
+            data-testid="session-start"
+        >
+            Start a {SESSION.MINUTES}-minute session
+        </button>
     );
 }
 
