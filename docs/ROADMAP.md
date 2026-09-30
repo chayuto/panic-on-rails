@@ -419,8 +419,11 @@ Order, biggest win per millisecond first:
       `logger` and add a `no-console` lint rule.
 - [x] `@vitest/coverage-v8` with floors per area (simulation, stores, data, utils) a little
       under today's numbers. CI runs `pnpm test:coverage`.
-- [ ] knip in CI. Delete the remaining dead code (`useSimulateModeHandler` or wire it up,
-      `isHeadOnCollision`, `cleanupOldParts`).
+- [x] **knip in CI** (`pnpm knip`) for unused files and dependencies. It deleted
+      `useSimulateModeHandler`, `useViewport`, two e2e helpers nothing used, and eight barrel
+      `index.ts` files nothing imported. (`isHeadOnCollision` had gone already.)
+- [ ] knip's unused exports (119): mostly store selectors and barrel re-exports. Decide which
+      are API worth keeping, delete the rest, then add exports to the CI check.
 - [ ] Run `e2e/specs/` nightly against preview. Replace `waitForTimeout` with
       `expect.poll`/`__PANIC_SIM__`. Add Linux baselines, generated in the pinned Playwright
       Docker image with the headless mode pinned (GPU rasterization changes pixels).
