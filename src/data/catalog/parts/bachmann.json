@@ -1,0 +1,163 @@
+{
+    "version": 1,
+    "brand": "bachmann",
+    "scale": "ho-scale",
+    "trackWidth": 50,
+    "parts": [
+        {
+            "id": "bachmann-44411",
+            "cost": 438,
+            "name": "Straight 9\"",
+            "type": "straight",
+            "length": 228.6,
+            "productCode": "44411",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2521",
+            "description": "9in (228.6mm), steel rail on black roadbed: \"Four pieces of 9in Straight Track build 36in of railroad.\""
+        },
+        {
+            "id": "bachmann-44412",
+            "cost": 399,
+            "name": "Straight 3\"",
+            "type": "straight",
+            "length": 76.2,
+            "productCode": "44412",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2522",
+            "description": "3in (76.2mm): four make one and a third 9in sections. Two switches in place of two curves need one on the other side."
+        },
+        {
+            "id": "bachmann-44416",
+            "cost": 798,
+            "name": "Straight 18\"",
+            "type": "straight",
+            "length": 457.2,
+            "productCode": "44416",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=9697",
+            "description": "18in (457.2mm), sold two to a card."
+        },
+        {
+            "id": "bachmann-44410",
+            "cost": 1595,
+            "name": "Terminal Rerailer 9\"",
+            "type": "straight",
+            "length": 228.6,
+            "productCode": "44410",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2520",
+            "description": "A 9in straight with the power pack's wires and rerailer ramps: the train set oval's other straight."
+        },
+        {
+            "id": "bachmann-44401",
+            "cost": 438,
+            "name": "Curve 18\" 30°",
+            "type": "curve",
+            "radius": 457.2,
+            "angle": 30,
+            "productCode": "44401",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=6403",
+            "description": "18in (457.2mm) radius, 30°: \"Four pieces of track make up one-third (120 degrees) of a 36in diameter circle.\" Twelve make the train set oval's ends."
+        },
+        {
+            "id": "bachmann-44402",
+            "cost": 1595,
+            "name": "Terminal Rerailer Curve 18\"",
+            "type": "curve",
+            "radius": 457.2,
+            "angle": 30,
+            "productCode": "44402",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2518",
+            "description": "An 18in radius 30° curve with the power pack's wires and rerailer ramps."
+        },
+        {
+            "id": "bachmann-44403",
+            "cost": 481,
+            "name": "Curve 22\" 22.5°",
+            "type": "curve",
+            "radius": 558.8,
+            "angle": 22.5,
+            "productCode": "44403",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2519",
+            "description": "22in (558.8mm) radius, 22.5°: \"Four pieces of track make up one quarter (90 degrees) of a 44in diameter circle.\""
+        },
+        {
+            "id": "bachmann-44461",
+            "cost": 5175,
+            "name": "Remote Turnout Left",
+            "type": "topology",
+            "productCode": "44461",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2527",
+            "description": "A 9in straight route; the diverging route is 1-1/2in (38.1mm) of straight, then the 18in radius 30° curve. Bachmann's E-Z Track planning book (1995), p.14: each switch replaces a 9in straight and an 18in radius curve, with an extra 1-1/2in of straight on its curved route.",
+            "connectors": {
+                "points": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "points",
+                    "to": "straight",
+                    "path": [
+                        {
+                            "straight": 228.6
+                        }
+                    ]
+                },
+                {
+                    "from": "points",
+                    "to": "diverging",
+                    "path": [
+                        {
+                            "straight": 38.1
+                        },
+                        {
+                            "arc": 457.2,
+                            "angle": 30,
+                            "turn": "left"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "bachmann-44462",
+            "cost": 5175,
+            "name": "Remote Turnout Right",
+            "type": "topology",
+            "productCode": "44462",
+            "referenceUrl": "https://shop.bachmanntrains.com/index.php?main_page=product_info&products_id=2528",
+            "description": "The mirror of the 44461: a 9in straight route, and 1-1/2in of straight then the 18in radius 30° curve to the right. Bachmann's E-Z Track planning book (1995), p.14: each switch replaces a 9in straight and an 18in radius curve, with an extra 1-1/2in of straight on its curved route.",
+            "connectors": {
+                "points": {
+                    "x": 0,
+                    "y": 0,
+                    "heading": 0
+                }
+            },
+            "routes": [
+                {
+                    "from": "points",
+                    "to": "straight",
+                    "path": [
+                        {
+                            "straight": 228.6
+                        }
+                    ]
+                },
+                {
+                    "from": "points",
+                    "to": "diverging",
+                    "path": [
+                        {
+                            "straight": 38.1
+                        },
+                        {
+                            "arc": 457.2,
+                            "angle": 30,
+                            "turn": "right"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -8,6 +8,7 @@ export const BRAND_NAMES: Partial<Record<PartBrand, { maker: string; track: stri
     kato: { maker: 'Kato', track: 'Unitrack' },
     marklin: { maker: 'Märklin', track: 'C-track' },
     hornby: { maker: 'Hornby', track: 'Setrack' },
+    bachmann: { maker: 'Bachmann', track: 'E-Z Track' },
     tomix: { maker: 'Tomix', track: 'Fine Track' },
     brio: { maker: 'Brio', track: 'wooden railway' },
     ikea: { maker: 'IKEA', track: 'Lillabo' },

@@ -180,6 +180,26 @@ export const SETRACK_LOOK: ModelLook = {
     railInactive: '#9a9ea4',
 };
 
+/**
+ * Bachmann E-Z Track, steel alloy (HO): steel rail and black ties on a black
+ * moulded roadbed, about 2in (50mm) wide. The ties are lifted a shade to
+ * read on screen.
+ */
+export const EZ_TRACK_STEEL_LOOK: ModelLook = {
+    gauge: 16.5,
+    ballast: '#2a2c2e',
+    ballastEdge: '#161718',
+    sleeper: '#3b3e41',
+    sleeperLength: 30,
+    sleeperWidth: 4,
+    sleeperSpacing: 11.5,
+    railBase: '#4f5357',
+    railBaseWidth: 3,
+    railHead: '#a9aeb3',
+    railHeadWidth: 1.4,
+    railInactive: '#7d8186',
+};
+
 /** Shared colours and the zoom levels detail appears at. */
 export const TRACK_LOOK = {
     ROAD: '#4a4a4a',

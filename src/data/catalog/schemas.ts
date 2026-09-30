@@ -187,7 +187,7 @@ export const PartSchema = z.discriminatedUnion('type', [
 /**
  * Brand enum matching PartBrand type
  */
-export const PartBrandSchema = z.enum(['kato', 'marklin', 'hornby', 'tomix', 'brio', 'ikea', 'generic']);
+export const PartBrandSchema = z.enum(['kato', 'marklin', 'hornby', 'bachmann', 'tomix', 'brio', 'ikea', 'generic']);
 
 /**
  * Scale enum matching PartScale type
