@@ -20,6 +20,8 @@ const OptionalPartFields = {
     width: z.number().positive().optional(),
     roadCrossing: z.boolean().optional(),
     slab: z.boolean().optional(),
+    deck: z.enum(['viaduct', 'truss']).optional(),
+    deckColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
     category: z.enum(['straight', 'curve', 'turnout', 'crossing', 'bumper']).optional(),
     productCode: z.string().optional(),
     description: z.string().optional(),

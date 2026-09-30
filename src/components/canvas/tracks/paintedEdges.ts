@@ -11,7 +11,10 @@ import type { PartDefinition } from '../../../data/catalog/types';
 import { isDoubleTrack } from '../../../data/catalog/helpers';
 import { getPartById } from '../../../data/catalog';
 import { deriveWorldGeometry } from '../../../utils/geometry';
-import { infillBetween, C_TRACK_LOOK, KATO_LOOK, KATO_SLAB_LOOK, SETRACK_LOOK, type ModelLook, type PaintedEdge, type PaintedPier } from './trackPainter';
+import {
+    infillBetween, C_TRACK_LOOK, KATO_BRIDGE_LOOK, KATO_LOOK, KATO_SLAB_LOOK, KATO_VIADUCT_LOOK, SETRACK_LOOK,
+    type ModelLook, type PaintedEdge, type PaintedPier,
+} from './trackPainter';
 
 /** Roadbed width (mm) for parts that don't say. */
 const DEFAULT_ROADBED = 25;
@@ -54,6 +57,8 @@ export function piersUnder(placed: readonly PlacedEdge[], nodes: Record<NodeId, 
 
 function lookOf(part: PartDefinition | undefined): ModelLook {
     if (part?.slab) return KATO_SLAB_LOOK;
+    if (part?.deck === 'viaduct') return KATO_VIADUCT_LOOK;
+    if (part?.deck === 'truss') return KATO_BRIDGE_LOOK;
     return (part && BRAND_LOOKS[part.brand]) ?? KATO_LOOK;
 }
 
@@ -72,6 +77,7 @@ export function paintedEdges(placed: readonly PlacedEdge[], selectedEdgeId: Edge
             selected: edge.id === selectedEdgeId,
             inactive: inactive.has(edge.id),
             ...(height > 0 && { height }),
+            ...(part?.deck && { deck: { kind: part.deck, width: part.width ?? DEFAULT_ROADBED, ...(part.deckColor && { color: part.deckColor }) } }),
         });
         if (part && edge.placementId && isDoubleTrack(part)) {
             const pair = pairs.get(edge.placementId);

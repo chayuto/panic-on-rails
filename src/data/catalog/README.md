@@ -71,6 +71,8 @@ Parts are validated against `PartCatalogFileSchema` in `src/data/catalog/schemas
 | `width` | number? | (Optional) Footprint across the track, mm. Default: the file's `trackWidth` (the roadbed) |
 | `roadCrossing` | boolean? | (Optional) The piece carries road-crossing plates as wide as `width` |
 | `slab` | boolean? | (Optional) Concrete slab track, like Kato's slab pieces: drawn as a concrete bed with panels, not ballast |
+| `deck` | enum? | (Optional) Track carried on a structure: `viaduct` (a concrete deck between walls) or `truss` (a through truss bridge) |
+| `deckColor` | string? | (Optional) A bridge's paint, `#rrggbb` |
 
 ### Part-Specific Fields
 

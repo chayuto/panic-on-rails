@@ -246,6 +246,15 @@ export interface PartDefinition {
     /** Concrete slab track: the rails on precast panels, not ballast (Kato's slab line) */
     slab?: boolean;
 
+    /**
+     * Track carried on a structure, not laid on the baseboard: a viaduct's
+     * concrete deck between side walls, or a through truss bridge
+     */
+    deck?: 'viaduct' | 'truss';
+
+    /** A bridge's paint */
+    deckColor?: string;
+
     /** Where the part sits in the parts bin. Default: from its geometry. */
     category?: PartCategory;
 }
