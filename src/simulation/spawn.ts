@@ -2,7 +2,7 @@
  * Spawn placement — where a newly added train should appear.
  */
 
-import type { EdgeId, TrackEdge, Train, TrainId, Vector2 } from '../types';
+import type { EdgeId, NodeId, TrackEdge, TrackNode, Train, TrainId, Vector2 } from '../types';
 import { getPositionOnEdge } from '../utils/trainGeometry';
 
 export interface SpawnLocation {
@@ -18,14 +18,15 @@ export interface SpawnLocation {
  */
 export function pickSpawnLocation(
     edges: Record<EdgeId, TrackEdge>,
-    trains: Record<TrainId, Train>
+    trains: Record<TrainId, Train>,
+    nodes?: Record<NodeId, TrackNode>
 ): SpawnLocation | null {
     const trainPositions: Vector2[] = Object.values(trains)
         .filter(t => !t.crashed && edges[t.currentEdgeId])
-        .map(t => getPositionOnEdge(edges[t.currentEdgeId], t.distanceAlongEdge));
+        .map(t => getPositionOnEdge(edges[t.currentEdgeId], t.distanceAlongEdge, nodes));
 
     const candidates = Object.values(edges).map(edge => {
-        const mid = getPositionOnEdge(edge, edge.length / 2);
+        const mid = getPositionOnEdge(edge, edge.length / 2, nodes);
         const clearance = trainPositions.length === 0
             ? Infinity
             : Math.min(...trainPositions.map(p => Math.hypot(p.x - mid.x, p.y - mid.y)));

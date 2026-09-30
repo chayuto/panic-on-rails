@@ -20,11 +20,13 @@ Konva `<canvas>`, opaque to the DOM and the accessibility tree. "High fidelity"
 testing here means **observing real state, not pixels guessed from a snapshot**,
 and **controlling time** so the rAF simulation is reproducible.
 
-Three pillars, all validated and working in this repo:
+Four pillars, all validated and working in this repo:
 
 1. **Debug bridge** — read/write every Zustand store + the Konva stage from tests.
-2. **Clock API** — drive the `requestAnimationFrame` game loop deterministically.
-3. **Visual regression** — `toHaveScreenshot()` on the (stable) canvas.
+2. **Player's-eye view** — `window.__PANIC_QA__.look()` says what's on the canvas
+   and where on the page, so tests and agents can play with real input.
+3. **Clock API / harness** — drive the simulation deterministically.
+4. **Visual regression** — `toHaveScreenshot()` on the (stable) canvas.
 
 ## Toolchain
 
@@ -77,6 +79,41 @@ Test helpers in `e2e/helpers/` wrap the bridge:
 - **`ScreenshotManager`** — paired `.png` + `.state.json` capture.
 
 Use `e2e/fixtures/app-fixture.ts` (`{ app, stores, snap }`) for new tests.
+
+## Play like a player: `look()` + `Player`
+
+Most specs drive the canvas through the store bridge. That is fast and exact, and
+blind to everything a player trips over: pieces dropped off screen, a button over
+the track, a toast that steals a click, a target 6 px wide. For those, play:
+
+- **`window.__PANIC_QA__.look()`** (`src/utils/qaLens.ts`, read-only) returns the
+  mode, wallet, open dialogs, visible hints, and every piece, open end, set of points
+  and train with **page coordinates**. Each point says `onScreen` and `clear` (not
+  under a button, hint or panel). Open ends carry `drop.{ahead,left,right}`: where
+  to drop the next piece so it joins there, straight on or turning that way.
+- **`Player`** (`e2e/helpers/player.ts`) acts only through the mouse and keyboard.
+  It uses `dragPart`, `click` (a canvas point or a locator), `press`, `wheel`,
+  `bringIntoView` (zoom out until a point is clear) and `dismissOverlays`. Letting
+  game time pass (`waitSimSeconds`) is its one bridge write. It counts `actions`,
+  `misses` (no visible change), `recoveries` (zoom/pan to get something back),
+  `obstructions` (something in the way) and console problems. `report()` writes
+  `e2e-results/playtest/<name>.json` with a journal.
+- **Playtests** (`e2e/specs/playtest.spec.ts`) assert the goal *and* hold the effort
+  to a budget (a ratchet): a change that makes the game harder to play fails. When
+  the game gets easier, lower the budget. There's also a seeded monkey that checks
+  graph integrity after every move; failures replay exactly.
+- **LLM agents with Playwright MCP** can do the same. Call
+  `browser_evaluate(() => window.__PANIC_QA__.look())`, then act at the returned
+  coordinates with `browser_mouse_click_xy` / `browser_mouse_drag_xy`. This is how
+  an agent "sees" the canvas, which `browser_snapshot` cannot.
+
+Side effect to know: Playwright's `page.evaluate` runs as a **user gesture** in
+Chromium, so calling `look()` (or any bridge call) unlocks audio and other
+gesture-gated behaviour. To test gesture-gated features, record their state in the
+page at load and read it afterwards.
+
+Rule: **no report-only checks.** A table of PASS/FAIL printed to the console with a
+pass-rate threshold rots silently; assert every row, or delete it.
 
 ## Deterministic simulation testing
 
@@ -139,9 +176,9 @@ await page.clock.runFor(3000);   // advance exactly 3s of rAF ticks
   Assert `distance`/`elapsed` with one-frame tolerance; **discrete event
   counts** (`simLog` length, bounces, collisions) ARE stable — assert those
   exactly.
-- For *bit-identical* determinism you would need a synchronous
-  `stepSimulation(dt)` extracted from `useGameLoop`'s rAF closure and exposed
-  on the bridge. Not done yet — propose it if frame-exact tests are needed.
+- For *bit-identical* determinism, pause the loop (`setRunning(false)`) and step
+  with `window.__PANIC_SIM__.run(frames)` / `runSeconds(s)`: the same
+  `tickSimulation` the loop calls, at fixed 60 fps ticks.
 - Edge/node IDs are random UUIDs per layout — **never assert on IDs**, assert
   on geometry and counts.
 
@@ -182,10 +219,9 @@ await expect(page.getByTestId('canvas-container'))
 
 **Canvas caveat:** the planner/generator agents explore via the accessibility
 tree (`browser_snapshot`). They see the toolbar/sidebars but are **blind to the
-Konva canvas** — they cannot perceive tracks or trains. For anything on the
-canvas, the **debug bridge is the source of truth**; drive and assert through
-`window.__PANIC_STORES__`, not snapshots. Use the agents for DOM-shell coverage
-(toolbar, parts bin, dialogs), the bridge for everything on the canvas.
+Konva canvas** — they cannot perceive tracks or trains. Give them eyes with
+`window.__PANIC_QA__.look()` (see "Play like a player"), and assert through the
+bridge, not snapshots.
 
 ## Writing a new test — checklist
 
@@ -201,12 +237,18 @@ canvas, the **debug bridge is the source of truth**; drive and assert through
 
 ## Gotchas (all validated)
 
-- **`stores.addTrack()` bypasses the budget.** It is the low-level store action;
-  the budget is charged only by the UI placement handler. Don't assert budget
-  changes after bridge placement.
+- **`stores.addTrack()` bypasses the collection.** It is the low-level store
+  action; only the UI drop handler checks that a piece is left in the player's
+  collection. Use free build (`mode-free`) or a `Player` drag for placement tests.
 - **`mode`, `simulation`, `editor`, `effects` stores are NOT persisted**;
-  `track`, `logic`, `budget`, `onboarding` ARE (localStorage). A reload resets
+  `track`, `logic`, `collection`, `onboarding` ARE (localStorage). A reload resets
   the former and restores the latter.
+- **Onboarding overlays sit on the canvas.** The "Skip tutorial" button and the
+  toasts cover track; a click there never reaches Konva. `look()` marks such
+  points `clear: false`; `Player.dismissOverlays()` closes hints and toasts.
+- **Konva's hit graph lags a frame** behind state changes: before clicking a canvas
+  point, wait for `__PANIC_STAGE__.getIntersection(p)` (`Player.click` and
+  `helpers/canvas.ts` do).
 - **Loading a template** via `[data-testid="file-template-selector"]` replaces
   the layout and auto-spawns trains + auto-starts the sim.
 - The `dev` project needs `pnpm dev` running; the `chromium` project builds its

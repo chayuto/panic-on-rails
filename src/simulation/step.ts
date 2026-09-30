@@ -163,7 +163,7 @@ export function stepSimulation(world: SimWorld, dt: number, ctx: StepContext): S
     }
 
     // 2. Collisions
-    const collisions = checkCollisions(trains, edges, ctx.random);
+    const collisions = checkCollisions(trains, edges, ctx.random, nodes);
     const collidedIds = new Set(collisions.flatMap(c => c.trainIds));
     for (const collision of collisions) {
         crashedParts = [...crashedParts, ...collision.debris];

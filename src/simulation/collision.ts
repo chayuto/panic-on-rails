@@ -4,7 +4,7 @@
  * Coordinates collision detection and response (explosions, debris).
  */
 
-import type { Train, EdgeId, TrackEdge, Vector2 } from '../types';
+import type { Train, EdgeId, TrackEdge, Vector2, NodeId, TrackNode } from '../types';
 import { detectCollisions } from '../utils/collisionManager';
 import { explodeTrain, calculateCrashSeverity } from '../utils/crashPhysics';
 import { getPositionOnEdge } from '../utils/trainGeometry';
@@ -24,7 +24,8 @@ export interface CollisionEvent {
 export function checkCollisions(
     trains: Record<string, Train>,
     edges: Record<EdgeId, TrackEdge>,
-    random: () => number = Math.random
+    random: () => number = Math.random,
+    nodes?: Record<NodeId, TrackNode>
 ): CollisionEvent[] {
     const events: CollisionEvent[] = [];
 
@@ -39,7 +40,7 @@ export function checkCollisions(
             const edge = edges[train.currentEdgeId];
             if (!edge || train.crashed) continue;
 
-            const position = getPositionOnEdge(edge, train.distanceAlongEdge);
+            const position = getPositionOnEdge(edge, train.distanceAlongEdge, nodes);
             const debris = explodeTrain({
                 position,
                 velocity: { x: train.speed * train.direction * 0.5, y: 0 },

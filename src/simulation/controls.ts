@@ -39,14 +39,14 @@ function scaleAt(edgeId: EdgeId): PartScale | undefined {
  * no train to spare.
  */
 export function spawnTrainAtClearestSpot(carriageCount?: number, color?: string, stockId?: string): TrainId | null {
-    const { edges } = useTrackStore.getState();
+    const { edges, nodes } = useTrackStore.getState();
     const { trains, spawnTrain } = useSimulationStore.getState();
     // A particular train goes on track of its own scale
     const scale = getRollingStock(stockId)?.scale;
     const fitting = scale
         ? Object.fromEntries(Object.entries(edges).filter(([, e]) => getPartById(e.partId)?.scale === scale))
         : edges;
-    const spot = pickSpawnLocation(fitting, trains);
+    const spot = pickSpawnLocation(fitting, trains, nodes);
     if (!spot) return null;
     const stock = nextAvailableStock(stockId, scaleAt(spot.edgeId));
     if (stock === null) return null;

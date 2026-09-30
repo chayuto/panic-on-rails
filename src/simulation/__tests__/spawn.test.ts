@@ -13,21 +13,21 @@ describe('pickSpawnLocation', () => {
     });
 
     it('spawns as far as possible from existing trains', () => {
-        const { edges } = lineGraph(5, 100);
-        expect(pickSpawnLocation(edges, { t: train('t', 'e0', 10) })!.edgeId).toBe('e4');
-        expect(pickSpawnLocation(edges, { t: train('t', 'e4', 90) })!.edgeId).toBe('e0');
+        const { edges, nodes } = lineGraph(5, 100);
+        expect(pickSpawnLocation(edges, { t: train('t', 'e0', 10) }, nodes)!.edgeId).toBe('e4');
+        expect(pickSpawnLocation(edges, { t: train('t', 'e4', 90) }, nodes)!.edgeId).toBe('e0');
     });
 
     it('never stacks a second train on the first', () => {
-        const { edges } = lineGraph(3, 100);
-        const first = pickSpawnLocation(edges, {})!;
-        const second = pickSpawnLocation(edges, { t: train('t', first.edgeId, first.distance) })!;
+        const { edges, nodes } = lineGraph(3, 100);
+        const first = pickSpawnLocation(edges, {}, nodes)!;
+        const second = pickSpawnLocation(edges, { t: train('t', first.edgeId, first.distance) }, nodes)!;
         expect(second.edgeId).not.toBe(first.edgeId);
     });
 
     it('ignores crashed trains', () => {
-        const { edges } = lineGraph(3, 100);
+        const { edges, nodes } = lineGraph(3, 100);
         const wreck = { ...train('t', 'e0', 50), crashed: true };
-        expect(pickSpawnLocation(edges, { t: wreck })!.edgeId).toBe('e0');
+        expect(pickSpawnLocation(edges, { t: wreck }, nodes)!.edgeId).toBe('e0');
     });
 });

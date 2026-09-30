@@ -6,3 +6,4 @@
  * `declare global` applies, without any runtime import of app code.
  */
 export type { PanicStoreBridge } from '../src/utils/debugBridge';
+export type { QaLook } from '../src/utils/qaLens';
