@@ -462,3 +462,14 @@
     background: none;
     color: var(--fg-secondary);
 }
+
+/* A phone: under the canvas, the whole width (index.css stacks them) */
+@media (max-width: 700px) {
+    .train-panel {
+        width: 100%;
+        min-width: 0;
+        height: auto;
+        flex: 0 0 40%;
+        border-top: 1px solid var(--border-color);
+    }
+}

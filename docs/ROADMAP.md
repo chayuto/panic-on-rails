@@ -743,4 +743,8 @@ Order, biggest win per millisecond first:
     - nothing pointing a new player to their box.
   - The last three are fixed with it: the toast says what the tools do, the panel names a
     train by its model, and the first hint points to the shop's box icon too.
+  - The phone-size session (`docs/qa/sessions/2026-10-01-the-phone.md`) found the canvas
+    squeezed to 90 px beside the train panel, its train off screen. Under 700 px the canvas
+    now takes the whole width, with the parts bin or train panel under it. The small-screen
+    warning is a slim bar that closes, and the first hint spans the canvas.
 - [ ] Trial: Stryker on geometry and simulation, nightly.

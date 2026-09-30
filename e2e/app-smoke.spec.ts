@@ -60,4 +60,20 @@ test.describe('App Smoke Tests', () => {
             expect(wallet!.y + wallet!.height, `at ${width}px`).toBeLessThanOrEqual(toolbar!.y + toolbar!.height);
         }
     });
+
+    test('on a phone the canvas takes the whole width, and a built layout\'s train is in view', async ({ page, app }) => {
+        void app;
+        await page.setViewportSize({ width: 390, height: 844 });
+        const look = () => page.evaluate(() => window.__PANIC_QA__!.look());
+        await page.getByTestId('open-set-shelf').click();
+        await page.getByTestId('set-build-kato-20-852').click();
+        await expect.poll(async () => (await look()).trains.length).toBe(1);
+        // The train panel sits under the canvas, not beside it
+        await expect.poll(async () => (await look()).canvas.width).toBe(390);
+        await expect.poll(async () => (await look()).trains[0].at.onScreen).toBe(true);
+        // The small-screen warning goes when dismissed
+        const warning = page.locator('.viewport-warning');
+        await warning.getByRole('button', { name: 'Dismiss' }).click();
+        await expect(warning).toHaveCount(0);
+    });
 });

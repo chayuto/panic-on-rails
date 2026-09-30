@@ -49,3 +49,4 @@ has written a test for yet.
 5. **The phone-size player.**
    - Setup: 390 × 844.
    - Charter: open the shop, build M1, run the train, stop it.
+   - Played 2026-10-01: [the session](sessions/2026-10-01-the-phone.md).
