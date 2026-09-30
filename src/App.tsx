@@ -3,6 +3,7 @@ import { StageWrapper } from './components/canvas';
 import { Toolbar, PartsBin, TrainPanel, DebugOverlay, MeasurementOverlay } from './components/ui';
 import { ErrorBanner } from './components/ui/ErrorBanner';
 import { ShopHost } from './components/ui/SetShelf/SetShelf';
+import { SharedLayoutHost } from './components/ui/ShareLayout/ShareLayout';
 import { OnboardingProvider, OnboardingHints } from './components/ui/Onboarding';
 import { useModeStore } from './stores/useModeStore';
 import { useEditorStore } from './stores/useEditorStore';
@@ -50,6 +51,8 @@ function App() {
                 <OnboardingHints />
                 {/* The hobby shop dialog, opened from the toolbar or parts bin */}
                 <ShopHost />
+                {/* A layout someone shared by link, opened on load */}
+                <SharedLayoutHost />
             </div>
         </OnboardingProvider>
     );
