@@ -58,6 +58,25 @@ describe('sharing a layout by link', () => {
         }
     });
 
+    it('keeps raised track raised, in a v2 link; a layout on the baseboard stays v1', async () => {
+        loadSetPlan('kato-20-852');
+        const { edges, nodes } = useTrackStore.getState();
+        expect(await encodeLayout(layoutPieces(edges, nodes))).toMatch(/^v1\./);
+
+        // Raise one straight 40 mm, on the far side of the oval
+        const straight = Object.values(edges).find(e => e.partId === 'kato-20-000')!;
+        const at = nodes[straight.startNodeId].position;
+        useTrackStore.getState().setNodeHeights({ [straight.startNodeId]: 40, [straight.endNodeId]: 40 });
+        const code = await encodeLayout(layoutPieces(useTrackStore.getState().edges, useTrackStore.getState().nodes));
+        expect(code).toMatch(/^v2\./);
+
+        resetWorld();
+        loadRecipe(sharedLayoutTemplate(await decodeLayout(code)));
+        const raised = Object.values(useTrackStore.getState().nodes).filter(n => n.height === 40);
+        expect(raised).toHaveLength(2);
+        expect(Math.min(...raised.map(n => Math.hypot(n.position.x - at.x, n.position.y - at.y)))).toBeLessThan(0.5);
+    });
+
     it('recovers a piece placed anywhere, at any angle', () => {
         useTrackStore.getState().addTrack('kato-20-202', { x: 123.45, y: -67.8 }, 217.5); // #6 turnout
         useTrackStore.getState().addTrack('marklin-24671', { x: -500, y: 40 }, 33.25);     // curved turnout

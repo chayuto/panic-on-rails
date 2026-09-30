@@ -11,6 +11,7 @@
 import type { EdgeId, NodeId, TrackEdge, TrackGeometry, TrackNode, Train, Vector2 } from '../types';
 import { deriveWorldGeometry } from './geometry';
 import { BOGIE_INSET_RATIO, BOGIE_SPACING, CAR_PITCH, ROLLING_STOCK } from '../config/rollingStock';
+import { heightAlong } from './elevation';
 import { sizeOf } from '../config/scales';
 
 export interface CarPose {
@@ -23,6 +24,8 @@ export interface CarPose {
     rotation: number;
     /** Body length, end to end (mm) */
     length: number;
+    /** How high the track under it stands (mm above the baseboard) */
+    height: number;
 }
 
 /** One car of a train, where it rides behind the leading car's front bogie (mm). */
@@ -203,11 +206,12 @@ export function getCarPoses(
     nodes: Record<NodeId, TrackNode>,
     geometryOf: GeometryLookup = frameGeometry(edges, nodes)
 ): CarPose[] {
-    const place = (behind: number): Vector2 | null => {
+    const place = (behind: number): (Vector2 & { height: number }) | null => {
         const p = walkBack(train, behind, edges, nodes);
         if (!p) return null;
         const g = geometryOf(p.edgeId);
-        return g ? pointOnEdge(g, edges[p.edgeId].length, p.distance) : null;
+        const edge = edges[p.edgeId];
+        return g ? { ...pointOnEdge(g, edge.length, p.distance), height: heightAlong(edge, p.distance, nodes) } : null;
     };
 
     const poses: CarPose[] = [];
@@ -221,6 +225,7 @@ export function getCarPoses(
             y: (front.y + rear.y) / 2,
             rotation: (Math.atan2(front.y - rear.y, front.x - rear.x) * 180) / Math.PI,
             length: span.length,
+            height: (front.height + rear.height) / 2,
         });
     }
     return poses;

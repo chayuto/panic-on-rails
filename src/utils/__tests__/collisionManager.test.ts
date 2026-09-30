@@ -143,7 +143,7 @@ describe('detectNearMisses', () => {
 describe('bodiesOverlap', () => {
     const body = (cx: number, cy: number, degrees: number): CarBody => {
         const r = (degrees * Math.PI) / 180;
-        return { train: {} as Train, cx, cy, ux: Math.cos(r), uy: Math.sin(r), halfLength: 20, halfWidth: 6, reach: Math.hypot(20, 6) };
+        return { train: {} as Train, cx, cy, ux: Math.cos(r), uy: Math.sin(r), halfLength: 20, halfWidth: 6, reach: Math.hypot(20, 6), height: 0, tall: 26 };
     };
 
     it('separates rectangles by any of their axes', () => {

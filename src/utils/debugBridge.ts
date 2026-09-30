@@ -72,7 +72,7 @@ function expose<S extends object, K extends keyof S, A extends keyof S>(
 function createBridge() {
     return {
         track: expose(useTrackStore, ['nodes', 'edges'], [
-            'addTrack', 'removeTrack', 'loadLayout', 'clearLayout', 'getLayout', 'getOpenEndpoints',
+            'addTrack', 'removeTrack', 'loadLayout', 'clearLayout', 'getLayout', 'getOpenEndpoints', 'setNodeHeights',
             'connectNodes', 'connectNetworks', 'toggleSwitch',
         ]),
         mode: expose(useModeStore, ['primaryMode', 'editSubMode', 'simulateSubMode'], [

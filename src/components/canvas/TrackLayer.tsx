@@ -19,7 +19,7 @@ import { pointsButtonRadius } from '../../config/interactions';
 import { NodeRenderer } from './tracks';
 import { EdgeHitTarget } from './tracks/EdgeHitTarget';
 import { paintTrack } from './tracks/trackPainter';
-import { paintedEdges, type PlacedEdge } from './tracks/paintedEdges';
+import { middleHeight, paintedEdges, piersUnder, type PlacedEdge } from './tracks/paintedEdges';
 import { SwitchRenderer } from './SwitchRenderer';
 import { useTrackInteraction } from './hooks/useTrackInteraction';
 import { useNodeInteraction } from './hooks/useNodeInteraction';
@@ -92,20 +92,22 @@ export function TrackLayer({ viewport }: TrackLayerProps) {
         return looks;
     }, [nodes, edges]);
 
-    // Each visible edge where it lies; the painter and click targets share it
+    // Each visible edge where it lies, lowest first so raised track's click
+    // targets sit on top; the painter and click targets share it
     const placed = useMemo(() => visibleEdges.flatMap((edge): PlacedEdge[] => {
         const geometry = getEdgeWorldGeometry(edge, nodes);
-        return geometry ? [{ edge, geometry, part: getPartById(edge.partId) }] : [];
-    }), [visibleEdges, nodes]);
+        return geometry ? [{ edge, geometry, part: getPartById(edge.partId), height: middleHeight(edge, nodes) }] : [];
+    }).sort((a, b) => a.height - b.height), [visibleEdges, nodes]);
 
     const painted = useMemo(
         () => paintedEdges(placed, selectedEdgeId, inactiveEdges),
         [placed, selectedEdgeId, inactiveEdges]
     );
+    const piers = useMemo(() => piersUnder(placed, nodes), [placed, nodes]);
 
     const paint = useCallback((ctx: Konva.Context, shape: Konva.Shape) => {
-        paintTrack(ctx._context, painted, shape.getStage()?.scaleX() ?? 1);
-    }, [painted]);
+        paintTrack(ctx._context, painted, shape.getStage()?.scaleX() ?? 1, piers);
+    }, [painted, piers]);
 
     const onSwitchHoverEnter = useCallback((nodeId: string, position: Vector2) => {
         setHoveredSwitch(nodeId, position);

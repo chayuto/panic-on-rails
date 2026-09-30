@@ -207,6 +207,21 @@ export const createTrackSlice: SliceCreator<TrackSlice> = (set, get) => ({
      * Clear the entire layout (tracks and nodes).
      * Resets store to initial state.
      */
+    setNodeHeights: (heights) => {
+        set((state) => {
+            const nodes = { ...state.nodes };
+            let changed = false;
+            for (const [id, height] of Object.entries(heights)) {
+                const node = nodes[id];
+                if (!node || (node.height ?? 0) === height) continue;
+                const { height: _old, ...rest } = node;
+                nodes[id] = height > 0 ? { ...rest, height } : rest;
+                changed = true;
+            }
+            return changed ? { nodes } : {};
+        });
+    },
+
     clearLayout: () => {
         spatialIndex.clear();
         nodeIndex.clear();

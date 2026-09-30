@@ -89,7 +89,7 @@ Always use atomic selectors: `useTrackStore(s => s.nodes)` not `useTrackStore()`
 
 ### Graph Data Model
 
-Track layouts are stored as a graph of `TrackNode` (connection points) and `TrackEdge` (track segments with `StraightGeometry` or `ArcGeometry`). Nodes have `position`, `rotation` (world facade direction), and `connections` (edge IDs). Edges reference start/end node IDs and hold intrinsic geometry.
+Track layouts are stored as a graph of `TrackNode` (connection points) and `TrackEdge` (track segments with `StraightGeometry` or `ArcGeometry`). Nodes have `position`, `rotation` (world facade direction), `connections` (edge IDs), and `height` for raised track (mm above the baseboard; a piece between two heights is a grade). Edges reference start/end node IDs and hold intrinsic geometry. `utils/elevation.ts` has the height helpers. Ends join only at the same height (`canJoin`), and cars collide only at the same level. Raised track paints over lower track, and the train layer paints it again over the trains passing under it.
 
 ### Key Domain Rules (from `docs/architecture/constitution.md`)
 

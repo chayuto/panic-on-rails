@@ -35,6 +35,8 @@ export interface TrackSliceActions {
     clearLayout: () => void;
     getLayout: () => LayoutData;
     getOpenEndpoints: () => TrackNode[];
+    /** Raise or lower track: each node to its height above the baseboard (mm; 0 on it) */
+    setNodeHeights: (heights: Record<NodeId, number>) => void;
 }
 
 export type TrackSlice = TrackSliceState & TrackSliceActions;

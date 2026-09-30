@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { stepSimulation, type SimWorld, type SimEvent } from '../step';
-import { approachSpeed, curveLimit, derailSpeed, DRIVING, scaleKmh, stoppingLimit } from '../driving';
+import { approachSpeed, curveLimit, derailSpeed, DRIVING, gradeFactor, scaleKmh, stoppingLimit } from '../driving';
 import { SIGNAL_STOP_GAP } from '../movement';
 import { lineGraph, train, world, node } from './fixtures';
 import { SCALES, sizeOf } from '../../config/scales';
@@ -61,6 +61,15 @@ describe('speed rules', () => {
 
     it('reads out scale speed: 100 mm/s is about 58 km/h in N scale', () => {
         expect(scaleKmh(100)).toBeCloseTo(57.6, 1);
+    });
+});
+
+describe('grades', () => {
+    it('hold a climbing train back, a quarter on Kato\'s 4% and at most half; going down, the motor holds it', () => {
+        expect(gradeFactor(0)).toBe(1);
+        expect(gradeFactor(-0.04)).toBe(1);
+        expect(gradeFactor(0.04)).toBeCloseTo(0.76, 9);
+        expect(gradeFactor(0.2)).toBe(0.5);
     });
 });
 

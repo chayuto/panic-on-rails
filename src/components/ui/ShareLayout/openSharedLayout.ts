@@ -40,7 +40,8 @@ export function openSharedLayout(pieces: TemplatePart[]): void {
         track.connectNodes,
         spawnLayoutTrain,
         () => { /* a shared layout arrives stopped: the player adds trains */ },
-        false
+        false,
+        track.setNodeHeights
     );
 
     // Show the layout's own system in the parts bin

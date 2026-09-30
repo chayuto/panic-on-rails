@@ -40,7 +40,8 @@ export function buildSetPlan(set: TrackSet, plan: LayoutPlan): void {
             useSimulationStore.getState().setRunning(true);
             fitViewWhenSettled();
         },
-        true
+        true,
+        useTrackStore.getState().setNodeHeights
     );
     fitViewToLayout();
 }

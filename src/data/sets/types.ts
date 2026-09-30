@@ -62,6 +62,12 @@ export interface PlanStep {
      * curve via 'B' to turn left.
      */
     via?: string;
+    /**
+     * How high its far end stands (mm above the baseboard, as on a pier):
+     * the piece is a grade from the height it's attached at. Default: level
+     * with where it's attached. The first step starts on the baseboard.
+     */
+    height?: number;
 }
 
 /** A train the plan puts on the track once it's built. */

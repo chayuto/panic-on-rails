@@ -26,6 +26,8 @@ export interface TemplatePart {
     partId: string;
     position: { x: number; y: number };
     rotation: number;  // degrees
+    /** Raised track: how high each of its ends stands (mm), by where the end is */
+    heights?: { at: { x: number; y: number }; height: number }[];
 }
 
 /**

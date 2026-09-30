@@ -3,6 +3,7 @@
  */
 
 import type { EdgeId, NodeId, TrackEdge, TrackNode } from '../types';
+import { sameHeight } from './elevation';
 
 /**
  * Whether more track can be joined here: a plain end, or points with
@@ -16,9 +17,12 @@ export function isOpenEnd(node: TrackNode): boolean {
     return node.type === 'switch' && !!branches && node.connections.every(id => branches.includes(id));
 }
 
-/** Two open ends can be joined, unless both are points: one joint holds one set. */
+/**
+ * Two open ends can be joined if they're level with each other, unless
+ * both are points: one joint holds one set.
+ */
 export function canJoin(a: TrackNode, b: TrackNode): boolean {
-    return a.id !== b.id && isOpenEnd(a) && isOpenEnd(b) && !(a.type === 'switch' && b.type === 'switch');
+    return a.id !== b.id && isOpenEnd(a) && isOpenEnd(b) && !(a.type === 'switch' && b.type === 'switch') && sameHeight(a, b);
 }
 
 /**

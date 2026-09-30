@@ -15,6 +15,7 @@ import type {
     EdgeId,
 } from '../types';
 import { normalizeAngle, localToWorld, radiansToDegrees, degreesToRadians } from './geometry';
+import { sameHeight } from './elevation';
 
 // ===========================
 // Connection Transform Calculation
@@ -314,6 +315,11 @@ export function validateConnection(
     // (e.g., 'kato-20-020'), while edgeId is unique per placed track
     if (edgeIdA === edgeIdB) {
         return { isValid: false, error: 'Cannot connect a part to itself' };
+    }
+
+    // Track only joins track at its own height
+    if (!sameHeight(nodeA, nodeB)) {
+        return { isValid: false, error: 'The two ends are at different heights' };
     }
 
     // No cycle detection needed - connecting two open endpoints creates

@@ -9,6 +9,7 @@ import { getPartById } from '../../catalog/registry';
 import type { LayoutPlan } from '../types';
 import { resetWorld, loadRecipe, summarize, simHarness } from '../../../simulation/harness';
 import { useTrackStore } from '../../../stores/useTrackStore';
+import { useSimulationStore } from '../../../stores/useSimulationStore';
 
 const S248 = 'kato-20-000';
 const S124 = 'kato-20-020';
@@ -152,3 +153,62 @@ describe('planToTemplate', () => {
         expect(events.filter(e => e.type === 'traverse').length).toBeGreaterThan(5);
     });
 });
+
+describe('raised track in a plan', () => {
+    /** The M1 oval with its far side raised 40 mm: each end climbs (or drops) 10 mm a curve. */
+    const raisedOval: LayoutPlan = {
+        id: 'raised-oval',
+        name: 'Raised oval',
+        steps: [
+            ...side.map(part => ({ part })),
+            ...[10, 20, 30, 40].map(height => ({ part: R315, height })),
+            ...side.map(part => ({ part })),
+            ...[30, 20, 10, 0].map(height => ({ part: R315, height })),
+        ],
+        trains: [{ piece: 0 }],
+    };
+
+    it('climbs piece by piece and closes level with where it began', () => {
+        const plan = resolvePlan(raisedOval);
+        expect(plan.openEnds).toEqual([]);
+        expect(plan.joints).toHaveLength(16);
+        // Each joint's two ends at one height: the far side at 40
+        for (const { a, b } of plan.joints) expect(a.height).toBe(b.height);
+        const farSide = plan.pieces.slice(8, 12).flatMap(p => p.connectors.map(c => c.height));
+        expect(farSide.every(h => h === 40)).toBe(true);
+    });
+
+    it('leaves ends at different heights unjoined', () => {
+        // Climbs at one end and never comes down: the loop doesn't close
+        const plan = resolvePlan({ ...raisedOval, steps: raisedOval.steps.map(s => ({ ...s, height: s.height === undefined ? undefined : Math.max(s.height, 40) })) });
+        expect(plan.openEnds).toHaveLength(2);
+        expect(plan.openEnds.map(c => c.height).sort()).toEqual([0, 40]);
+    });
+
+    it('builds raised: the nodes stand at their heights, and a train runs round, slower up the climb', () => {
+        resetWorld();
+        simHarness.seed(1);
+        loadRecipe(planToTemplate(raisedOval));
+        const nodes = Object.values(useTrackStore.getState().nodes);
+        expect(nodes.filter(n => n.connections.length !== 2)).toEqual([]);
+        expect(nodes.filter(n => n.height === 40)).toHaveLength(5);
+        expect(nodes.filter(n => !n.height)).toHaveLength(5);
+
+        // Speeds seen on the flat and on the climbing curves, over a few laps
+        const { edges } = useTrackStore.getState();
+        const speeds = { flat: [] as number[], climb: [] as number[] };
+        for (let i = 0; i < 60 * 60; i++) {
+            simHarness.run(1);
+            const train = Object.values(useSimulationStore.getState().trains)[0];
+            const edge = edges[train.currentEdgeId];
+            const rise = (useTrackStore.getState().nodes[edge.endNodeId].height ?? 0) - (useTrackStore.getState().nodes[edge.startNodeId].height ?? 0);
+            if (rise * train.direction > 0) speeds.climb.push(train.speed);
+            else if (rise === 0 && edge.partId === S248) speeds.flat.push(train.speed);
+        }
+        expect(summarize().crashed).toBe(0);
+        const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+        expect(speeds.climb.length).toBeGreaterThan(0);
+        expect(mean(speeds.climb)).toBeLessThan(mean(speeds.flat) * 0.9);
+    });
+});
+

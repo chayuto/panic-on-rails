@@ -15,6 +15,7 @@ const TrackNodeSchema = z.object({
     switchState: z.union([z.literal(0), z.literal(1)]).optional(),
     switchBranches: z.tuple([z.string(), z.string()]).optional(),
     switchGroup: z.string().optional(), // Points thrown together
+    height: z.number().nonnegative().optional(), // Track raised above the baseboard (mm)
 });
 
 const TrackEdgeSchema = z.object({

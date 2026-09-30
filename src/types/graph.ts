@@ -14,6 +14,12 @@ export interface TrackNode {
     type: 'endpoint' | 'junction' | 'switch';
     /** Buffer stop at the end of a bumper track: never an open endpoint */
     bumper?: boolean;
+    /**
+     * How high the track stands here (mm): its roadbed's underside above the
+     * baseboard, as on piers or a viaduct. Missing: on the baseboard. A
+     * piece between two heights is a grade.
+     */
+    height?: number;
     // Switch-specific fields
     switchState?: 0 | 1;           // 0 = main path, 1 = branch path
     switchBranches?: [EdgeId, EdgeId]; // [mainEdgeId, branchEdgeId] - exit edges
