@@ -37,7 +37,8 @@ interface SimResult {
 async function runDeterministicSim(page: Page, tickMs: number): Promise<SimResult> {
   // Clock MUST be installed before navigation.
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
-  await page.goto('/');
+  // ?e2e switches the debug bridge on in a production build (always on in dev)
+  await page.goto('/?e2e');
   await page.waitForFunction(() => !!window.__PANIC_STORES__);
 
   // Clean slate + a single deterministic edge.
@@ -126,7 +127,8 @@ test('static track layout canvas is pixel-stable (visual regression viable)', as
   // Edit mode, no simulation => the Konva canvas is fully static and should be
   // byte-for-byte reproducible. This is the prerequisite for toHaveScreenshot()
   // visual-regression assertions, which the repo captures PNGs for but never diffs.
-  await page.goto('/');
+  // ?e2e switches the debug bridge on in a production build (always on in dev)
+  await page.goto('/?e2e');
   await page.waitForFunction(() => !!window.__PANIC_STORES__);
   await page.evaluate((part) => {
     const s = window.__PANIC_STORES__!;

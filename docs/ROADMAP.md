@@ -434,9 +434,13 @@ Order, biggest win per millisecond first:
       `index.ts` files nothing imported. (`isHeadOnCollision` had gone already.)
 - [ ] knip's unused exports (119): mostly store selectors and barrel re-exports. Decide which
       are API worth keeping, delete the rest, then add exports to the CI check.
-- [ ] Run `e2e/specs/` nightly against preview. Replace `waitForTimeout` with
-      `expect.poll`/`__PANIC_SIM__`. Add Linux baselines, generated in the pinned Playwright
-      Docker image with the headless mode pinned (GPU rasterization changes pixels).
+- [x] **Agent specs nightly** (`.github/workflows/nightly.yml`, `pnpm e2e:specs`): `e2e/specs/`
+      against the production preview, with screenshot comparisons skipped until there are
+      Linux baselines. Its first local run caught the clock spec loading the page without
+      `?e2e`, which works only against the dev server.
+- [ ] Replace the agent specs' 150 `waitForTimeout`s with `expect.poll` or `__PANIC_SIM__`.
+- [ ] Add Linux screenshot baselines, generated in the pinned Playwright Docker image with the
+      headless mode pinned (GPU rasterization changes pixels).
 - [x] **The debug bridge is typed from the stores.** Each store section is `expose(store,
       stateKeys, actionKeys)`, so its types come from the store itself and can't drift, with no
       `unknown` or `any` casts.

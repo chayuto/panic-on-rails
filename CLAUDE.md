@@ -174,6 +174,11 @@ Sharing by link: `src/utils/shareLayout.ts` recovers each placed piece's part, p
 - **ScreenshotManager** — paired `.png` + `.state.json` capture to `e2e-screenshots/`
 - **ConsistencyChecker** — verifies rendered Konva shapes match store data
 
-Two Playwright projects: `chromium` (CI, port 4173, builds first) and `dev` (agentic, port 5173, needs `pnpm dev` running + `PLAYWRIGHT_DEV=1`). Agent specs live in `e2e/specs/` (not run in CI); top-level `e2e/*.spec.ts` run in CI. Every spec fails on a page or console error (`consoleGate` in `e2e/fixtures/app-fixture.ts`; opt out per test with `allowedConsoleErrors`).
+Playwright projects:
+- `chromium`: CI, port 4173, builds first.
+- `dev`: agentic, port 5173; needs `pnpm dev` running and `PLAYWRIGHT_DEV=1`.
+- `specs`: the agent specs against the production preview, which the nightly workflow runs (`pnpm e2e:specs`).
+
+Agent specs live in `e2e/specs/`. They don't run on PRs, only nightly, so a new spec must pass against the preview too: load the page with `?e2e`. Top-level `e2e/*.spec.ts` run in CI. Every spec fails on a page or console error (`consoleGate` in `e2e/fixtures/app-fixture.ts`; opt out per test with `allowedConsoleErrors`).
 
 **Play like a player.** The canvas is invisible to the DOM and to Playwright MCP snapshots. `window.__PANIC_QA__.look()` (`src/utils/qaLens.ts`) lists pieces, open ends (with drop points), points, trains, hints and dialogs, with page coordinates and whether each is clear of overlays. `e2e/helpers/player.ts` plays with real mouse and keyboard input only and counts actions, misses, recoveries and obstructions. `e2e/specs/playtest.spec.ts` holds that effort to budgets. For model-based fuzzing of building, see `src/stores/__tests__/buildModel.test.ts` (fast-check; failures shrink to the shortest breaking sequence and print a replay seed).
