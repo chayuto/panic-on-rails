@@ -37,6 +37,7 @@ export type PrimaryMode = 'edit' | 'simulate';
  * - 'signal': Click on nodes to place signals
  * - 'wire': Click to connect logic components with wires
  * - 'connect': Click two endpoints to connect existing tracks
+ * - 'station': Click on track edges to place station platforms
  */
 export type EditSubMode =
     | 'select'
@@ -45,7 +46,8 @@ export type EditSubMode =
     | 'sensor'
     | 'signal'
     | 'wire'
-    | 'connect';
+    | 'connect'
+    | 'station';
 
 // ===========================
 // Simulate Mode Sub-Modes
@@ -115,7 +117,8 @@ export function isEditSubMode(value: unknown): value is EditSubMode {
         value === 'sensor' ||
         value === 'signal' ||
         value === 'wire' ||
-        value === 'connect'
+        value === 'connect' ||
+        value === 'station'
     );
 }
 

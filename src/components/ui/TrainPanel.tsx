@@ -12,9 +12,10 @@
  */
 
 import { useCallback, useState } from 'react';
-import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Repeat, OctagonX, Wrench } from 'lucide-react';
+import { TrainFront, Play, Pause, Plus, Trash2, Zap, AlertTriangle, X, Hand, Repeat, OctagonX, Wrench, Landmark } from 'lucide-react';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { useTrackStore } from '../../stores/useTrackStore';
+import { useLogicStore } from '../../stores/useLogicStore';
 import { rerailWrecks, spawnTrainAtClearestSpot, togglePlayPause } from '../../simulation/controls';
 import { scaleKmh, throttleOf } from '../../simulation/driving';
 import { SCALES } from '../../config/scales';
@@ -22,7 +23,7 @@ import { useCollectionStore } from '../../stores/useCollectionStore';
 import { useShopStore } from '../../stores/useShopStore';
 import { getRollingStock, ROLLING_STOCK, topSpeedOf } from '../../data/rollingStock';
 import { trainsLeft } from '../../data/collection';
-import type { Train } from '../../types';
+import type { Station, StationId, Train } from '../../types';
 import './TrainPanel.css';
 
 export function TrainPanel() {
@@ -40,6 +41,7 @@ export function TrainPanel() {
     const lastWreckAt = useSimulationStore(s => s.lastWreckAt);
     const simElapsed = useSimulationStore(s => s.simElapsed);
     const hasEdges = useTrackStore(s => Object.keys(s.edges).length > 0);
+    const stations = useLogicStore(s => s.stations);
 
     const mode = useCollectionStore(s => s.mode);
     const ownedTrains = useCollectionStore(s => s.ownedTrains);
@@ -216,8 +218,9 @@ export function TrainPanel() {
                                     <span className="carriage-info"> ({train.carriageCount} cars)</span>
                                 )}
                             </span>
-                            <span className="train-status" title={trainStatus(train, isRunning)}>
+                            <span className="train-status" title={trainStatus(train, isRunning, stations)} data-testid={`train-status-${train.id}`}>
                                 {train.crashed ? <Zap size={14} />
+                                    : train.dwell !== undefined ? <Landmark size={14} />
                                     : train.heldAtSignal ? <OctagonX size={14} />
                                         : train.stopped ? <Hand size={14} />
                                             : isRunning ? <TrainFront size={14} /> : <Pause size={14} />}
@@ -296,8 +299,9 @@ function formatClock(seconds: number): string {
     return h > 0 ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`;
 }
 
-function trainStatus(train: Train, isRunning: boolean): string {
+function trainStatus(train: Train, isRunning: boolean, stations: Record<StationId, Station>): string {
     if (train.crashed) return 'Wrecked: blocking the line';
+    if (train.dwell !== undefined) return `At ${stations[train.calledAt ?? '']?.name ?? 'a station'}`;
     if (train.heldAtSignal) return 'Waiting at red signal';
     if (train.stopped) return 'Stopped';
     return isRunning ? 'Running' : 'Paused';

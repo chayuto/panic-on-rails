@@ -70,10 +70,10 @@ Rendering rules. They come from a measured budget (ROADMAP Phase 5); break them 
 
 Persisted stores (localStorage):
 - **useTrackStore** (`panic-on-rails-v1`) — Primary store. Composed from slices: `createTrackSlice`, `createConnectionSlice`, `createViewSlice`. Contains all track nodes/edges. Has migration logic in `onRehydrateStorage` (radian→degree conversion, rebuilds spatial indices).
-- **useLogicStore** — Sensors, signals, wires.
+- **useLogicStore** — Sensors, signals, wires, and station stops (`stations`: a platform on an edge, where passenger trains call).
 - **useCollectionStore** (`panic-on-rails-collection-v1`) — The hobby: owned boxes (`ownedSets`), loose parts, trains (`ownedTrains`, rolling stock ids from `src/data/rollingStock.ts`), hobby money (`wallet`, US cents) and `mode` (`collection` = build and run what you own, and earn; `free` = unlimited). Purchases are not undoable. Spawn trains through `simulation/controls.ts` (`spawnTrainAtClearestSpot`, `spawnLayoutTrain`), which respect the mode; loading a template switches to free build.
   - What's left to build with is **derived**, never stored: `src/data/collection.ts` computes inventory − `countPlacedPieces(edges)`. Every placed piece shares one `placementId` across its edges, so a turnout counts, selects and deletes as one piece.
-  - Money: `src/simulation/economy.ts` is a pure function of step events (traverse → pay per metre; collision → repair bill). `tickSimulation` settles it into the wallet in collection mode.
+  - Money: `src/simulation/economy.ts` is a pure function of step events (traverse → pay per metre; station stop → the passengers' fares; collision → repair bill). `tickSimulation` settles it into the wallet in collection mode.
 - **useOnboardingStore** — Tutorial progress.
 
 Non-persisted stores (reset on refresh):
@@ -128,6 +128,7 @@ The simulation is a pure function plus thin adapters — keep it that way:
   - `wreckage.ts`: `rerail()` puts a wreck back on its own scale's track, standing, at the clearest spot where all its cars fit. Play doesn't clear wrecks; the player re-rails them or takes them off.
   - `signals.ts`: sensor zones → wire actions.
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
+  - `stations.ts`: station stops. A passenger train brakes for the far end of a platform (`stopAhead` returns `kind: 'station'`), stands `dwell` seconds and is paid `fareFor` its ride; freight (`carriesPassengers`) passes through. Rates in `config/stations.ts`.
   - `economy.ts`: money from events.
 - **`src/simulation/tick.ts`** — `tickSimulation(realDt, { sink })` reads the stores, steps, writes back only what changed, logs to `simLog`, and hands events to a sink. `seedSimulation(n)` makes runs reproducible.
 - **`src/hooks/useGameLoop.ts`** — rAF driver only: delta capping, error recovery, and `browserEffectsSink` (events → audio/flash/shake).

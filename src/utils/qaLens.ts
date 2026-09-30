@@ -15,6 +15,7 @@ import { useEditorStore } from '../stores/useEditorStore';
 import { useModeStore } from '../stores/useModeStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
+import { useLogicStore } from '../stores/useLogicStore';
 import { getPartById } from '../data/catalog';
 import { getRollingStock } from '../data/rollingStock';
 import { SCALES } from '../config/scales';
@@ -56,7 +57,9 @@ export interface QaLook {
     openEnds: { at: PagePoint; facing: number; drop: { ahead: PagePoint; left: PagePoint; right: PagePoint } }[];
     /** Sets of points, with the size of their button on screen (px across) */
     points: { part: string; at: PagePoint; set: 'normal' | 'reverse'; size: number }[];
-    trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean }[];
+    trains: { id: string; name: string; at: PagePoint; kmh: number; crashed: boolean; stopped: boolean; atStation: string | null }[];
+    /** Station platforms, at the middle of the track beside them */
+    stations: { name: string; at: PagePoint }[];
     /** Trains wrecked this session (re-railed ones included) */
     wrecks: number;
 }
@@ -132,7 +135,13 @@ export function look(): QaLook {
             kmh: Math.round(scaleKmh(train.speed, SCALES[train.scale ?? 'n-scale'].ratio)),
             crashed: !!train.crashed,
             stopped: !!train.stopped,
+            atStation: train.dwell !== undefined ? useLogicStore.getState().stations[train.calledAt ?? '']?.name ?? null : null,
         }];
+    });
+
+    const stations = Object.values(useLogicStore.getState().stations).flatMap(station => {
+        const edge = edges[station.edgeId];
+        return edge ? [{ name: station.name, at: toPage(getPositionOnEdge(edge, station.position, nodes)) }] : [];
     });
 
     const collection = useCollectionStore.getState();
@@ -159,6 +168,7 @@ export function look(): QaLook {
         openEnds,
         points,
         trains,
+        stations,
         wrecks: useSimulationStore.getState().wrecks,
     };
 }
