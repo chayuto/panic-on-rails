@@ -370,10 +370,39 @@ Order, biggest win per millisecond first:
       (`createPartTrack`); crossovers and bumpers now preview their true shape.
 - [ ] Move cross-store cascades into an orchestration layer. Replace `console.log` with
       `logger` and add a `no-console` lint rule.
-- [ ] `@vitest/coverage-v8` with thresholds on `src/simulation/**` and `src/stores/**`.
+- [ ] `@vitest/coverage-v8` with thresholds on `src/simulation/**`, `src/stores/**` and
+      `src/utils/geometry*`, ratcheted with `autoUpdate`.
 - [ ] knip in CI. Delete the remaining dead code (`useSimulateModeHandler` or wire it up,
       `isHeadOnCollision`, `cleanupOldParts`).
 - [ ] Run `e2e/specs/` nightly against preview. Replace `waitForTimeout` with
-      `expect.poll`/`__PANIC_SIM__`. Add Linux baselines.
+      `expect.poll`/`__PANIC_SIM__`. Add Linux baselines, generated in the pinned Playwright
+      Docker image with the headless mode pinned (GPU rasterization changes pixels).
 - [ ] Type the debug bridge against the real store types (no `unknown`/`any`). Add logic
       mutators (sensors, signals, wires).
+
+#### QA: play like a player (research: `docs/research/20260930_Agent QA and Testing Tools.md`)
+
+- [x] `window.__PANIC_QA__.look()`: what's on the canvas and where on the page, for tests and
+      agents. A mouse-and-keyboard `Player`, and playtests with effort budgets: the oval by
+      hand, open M1, save up for V4, every set of points in V7/C5/Pack F, and a seeded monkey.
+- [x] `track-configs` asserts every configuration, in simulated time.
+- [ ] Fix what the playtests found, then lower their budgets:
+  - the view doesn't follow a hand build (7 zoom-outs for the M1 oval);
+  - the Skip tutorial button and the "You did it!" toast lie over the canvas;
+  - a curve dropped beside a track end turns the wrong way at low zoom;
+  - a set of points is a ~6 px target at the zoom that fits a large layout.
+- [ ] Upgrade Playwright to 1.63. Use `playwright-cli` for agent sessions. Give the test agents
+      the `browser_mouse_*_xy` tools, and have generated tests call `look()` instead of fixed
+      coordinates.
+- [ ] A console/page-error gate in the app fixture: every spec fails on a new error.
+- [ ] fast-check: geometry properties, and model-based tests of place/delete/undo/join with
+      shrinking. Port the monkey to `fc.commands`.
+- [ ] Headless Monte Carlo play metrics in Vitest: crash and derail rates per train-hour, and
+      economy pacing (minutes to afford each box).
+- [ ] Accessibility: axe on the page's DOM, aria snapshots of the dialogs, and reduced-motion
+      and flash tests.
+- [ ] A nightly frame-time budget: milliseconds per environment, not FPS; warn-only at first.
+- [ ] Vitest browser mode, narrowly, for the track painter and car sprites.
+- [ ] Agent playtest charters: persona, setup, budget, oracles, evidence. Each finding becomes a
+      failing `Player` test before it's filed.
+- [ ] Trial: Stryker on geometry and simulation, nightly.
