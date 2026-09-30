@@ -11,17 +11,28 @@
 the real parts. You open a real starter set, build real layouts with accurately modelled track,
 run your trains, and keep expanding the railway with no end point.
 
-- **Engine: done.** Phases 0 and 1 give a headless, deterministic simulation, snapping that
-  closes loops, signals that stop trains, switches you can throw mid-run, and train controls.
-- **Next:**
+- **Done:**
+  - **The engine (Phases 0–1):** a headless, deterministic simulation. Snapping closes loops,
+    signals stop trains, switches can be thrown mid-run, and trains have controls.
   - **The Box (Phase 2):** real boxed sets with their exact contents and the layouts from their
-    manuals.
-  - **The Hobby (Phase 3):** a collection you grow with virtual money earned by running trains.
-  - **The Power Pack (Phase 4):** driving trains realistically.
-  - **Looks (Phase 5):** track and trains that look like the models.
-
-The old "missions" plan is replaced by this hobby loop. Operations puzzles (Inglenook,
-Timesaver) come back later as optional challenges.
+    manuals, proved to close. That's Kato Unitrack M1–V7, Märklin C-track (start oval, C1–C5)
+    and Hornby Setrack (train-set oval, Track Packs A–F).
+  - **The Hobby (Phase 3):** a collection grown with hobby money earned by running trains, a
+    shop for boxes, loose parts and trains, and a shopping list for planners.
+  - **The Power Pack (Phase 4):** throttle with momentum, curve limits and derailments.
+  - **Looks (Phase 5):** track painted like the real product and sprite trains, at 120 fps on a
+    big layout. Trains collide by their cars' real extent.
+  - **Complex parts (Phase 6):** the general part model. It covers scissors crossovers, curved
+    turnouts and double slips, with trains sized and driven to scale in N, H0 and OO.
+  - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
+    model-based fuzzing of building, a console-error gate and coverage floors.
+- **Next:**
+  - share a layout by URL;
+  - wreckage that blocks the track until cleared;
+  - more ways to earn (station stops, on-time runs);
+  - real train sets with product numbers;
+  - elevation;
+  - Kato's double-track sets.
 
 ## Vision
 
@@ -265,8 +276,12 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     nothing.
   - The trains are generic models, flagged as such, until real train sets are verified.
 - [ ] More ways to earn: station stops, on-time runs, operating sessions.
-- [ ] **Shopping list:** a bill of materials for the current layout, with real product numbers,
-      for planners.
+- [x] **Shopping list:** the layout on the table as real products, for planners.
+  - It gives product numbers, quantities and prices, and in collection mode what's owned and
+    what's left to buy.
+  - Pieces not sold on their own name the boxes they come in.
+  - It copies as text and downloads as CSV.
+- [x] The loose parts shop sells every track system's pieces, not only N scale's.
 
 ### Phase 4: The Power Pack, driving
 

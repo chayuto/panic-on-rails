@@ -230,6 +230,13 @@ button:disabled {
   gap: 8px;
 }
 
+/* Below this width the toolbar needs the room: keep the logo, drop the name */
+@media (max-width: 1360px) {
+  .toolbar-title span {
+    display: none;
+  }
+}
+
 .toolbar-actions {
   display: flex;
   flex-wrap: wrap;

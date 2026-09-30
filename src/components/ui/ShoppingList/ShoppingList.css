@@ -1,0 +1,68 @@
+/* The shopping list reuses the shop's dialog frame (SetShelf.css) */
+
+.shopping-list {
+  max-width: 760px;
+}
+
+.shopping-list-empty {
+  color: var(--fg-secondary);
+  padding: 24px 0;
+}
+
+.shopping-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.shopping-list-table th,
+.shopping-list-table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.shopping-list-table thead th {
+  color: var(--fg-secondary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.shopping-list-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.shopping-list-table .code {
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-secondary);
+  white-space: nowrap;
+}
+
+.shopping-list-brand th {
+  padding-top: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-secondary);
+}
+
+.shopping-list-note {
+  display: block;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.shopping-list-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.shopping-list-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
