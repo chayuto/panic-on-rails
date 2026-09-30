@@ -335,7 +335,13 @@ Order, biggest win per millisecond first:
   - The far end of the train becomes its front, and the locomotive pushes from the back until
     the next reversal (`reverseConsist`, `train.locoLeading`).
   - Cars used to jump to the other side of the locomotive.
-- [ ] Collision using each car's real extent, not points along the train.
+- [x] **Collision by each car's real extent:** each car is a rectangle at the pose it's drawn at,
+      tested with the separating-axis test after a grid broad phase.
+  - Trains meeting on a crossing's diamond now crash. Before, they passed through each
+    other, because collisions were only checked on one edge or at a shared node. That
+    affected every crossing: the 90° and 15° crossings, the WX310's diagonals and the
+    double slip.
+  - It costs about 0.5 ms per tick for 40 trains of 8 cars (headless).
 - [x] **Decided: stay on Konva.** A WebGL renderer (PixiJS) runs at 0.3 ms per frame on a GPU but
       92 ms with software rendering. Reconsider only for lighting or particles.
 - [ ] Recorded or sampled audio: motor hum by speed, joiner clicks, horn, switch clack and crash.
