@@ -81,7 +81,11 @@ describe('the tally', () => {
     });
 });
 
-describe('a session on the M1 oval', () => {
+// A session is ten railway minutes, 36,000 steps: quick alone, but CI runs
+// it beside other long simulations, and under coverage
+const SESSION_RUN = { timeout: 30_000 };
+
+describe('a session on the M1 oval', SESSION_RUN, () => {
     beforeEach(() => {
         resetWorld();
         seedSimulation(1);
