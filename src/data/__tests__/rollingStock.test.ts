@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ROLLING_STOCK, carKindAt, genericCarLengths, getRollingStock, trainLength } from '../rollingStock';
+import { ROLLING_STOCK, carKindAt, genericCarLengths, getRollingStock, trainLength, tractionOf } from '../rollingStock';
 import { getAllSets, getSetById } from '../sets';
 import { SCALES, sizeOf } from '../../config/scales';
 
@@ -84,6 +84,14 @@ describe('cars', () => {
         expect(genericCarLengths(3, 'n-scale')).toEqual(diesel.carLengths);
         expect(genericCarLengths(1, 'ho-scale')).toEqual([diesel.carLengths[0] * sizeOf('ho-scale')]);
         expect(genericCarLengths(0, undefined)).toHaveLength(1);
+    });
+
+    it('are led by the kind of locomotive the model has: Hornby\'s steam tank engines, a diesel unless said', () => {
+        expect(tractionOf({ stockId: 'hornby-smokey-joe' })).toBe('steam-tank');
+        expect(tractionOf({ stockId: 'oo-express' })).toBe('steam-tender');
+        expect(tractionOf({ stockId: 'h0-passenger' })).toBe('electric');
+        expect(tractionOf({ stockId: 'kato-up-gevo-freight' })).toBe('diesel');
+        expect(tractionOf({})).toBe('diesel');
     });
 
     it('add up to the train\'s length', () => {

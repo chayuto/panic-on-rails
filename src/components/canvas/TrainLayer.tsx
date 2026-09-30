@@ -18,7 +18,7 @@ import type { BoundingBox } from '../../types';
 import { carCount, frameGeometry, getCarPoses } from '../../utils/trainCars';
 import { ROLLING_STOCK } from '../../config/rollingStock';
 import { sizeOf } from '../../config/scales';
-import { carKindAt } from '../../data/rollingStock';
+import { carKindAt, tractionOf } from '../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from './trains/carSprites';
 
 /** Cars this far outside the viewport (mm, N scale) still draw, to avoid pop-in. */
@@ -89,12 +89,13 @@ export function TrainLayer({ viewport }: TrainLayerProps) {
             const count = carCount(train);
             // Each car's place in the train counting from the locomotive
             const fromLoco = (i: number) => (pushing ? count - 1 - i : i);
+            const traction = tractionOf(train);
             // Draw from the back so the leading car sits on top at couplings
             for (let i = poses.length - 1; i >= 0; i--) {
                 const pose = poses[i];
                 const kind = carKindAt(train, fromLoco(i));
                 const isLoco = kind === 'loco';
-                const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size);
+                const sprite = getCarSprite(kind, train.color, train.crashed === true, pose.length / size, traction);
                 if (!sprite) continue;
                 const L = pose.length;
                 ctx.save();

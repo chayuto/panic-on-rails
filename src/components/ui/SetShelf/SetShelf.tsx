@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { carKindAt, getRollingStock, ROLLING_STOCK, trainLength, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
+import { carKindAt, getRollingStock, ROLLING_STOCK, trainLength, tractionOf, type RollingStock, type TrainBrand } from '../../../data/rollingStock';
 import { getCarSprite, SPRITE_MARGIN } from '../../canvas/trains/carSprites';
 import { scaleKmh } from '../../../simulation/driving';
 import { SCALES, sizeOf } from '../../../config/scales';
@@ -192,7 +192,7 @@ function TrainPreview({ stock }: { stock: RollingStock }) {
         let front = canvas.width - SPRITE_MARGIN * px;
         cars.forEach((overCouplers, i) => {
             const body = overCouplers - CAR.GAP;
-            const sprite = getCarSprite(carKindAt({ stockId: stock.id }, i), stock.color, false, body);
+            const sprite = getCarSprite(carKindAt({ stockId: stock.id }, i), stock.color, false, body, tractionOf({ stockId: stock.id }));
             if (!sprite) return;
             const w = (body + 2 * SPRITE_MARGIN) * px;
             const h = (sprite.height / sprite.width) * w;
