@@ -17,6 +17,10 @@ export interface SimulationStateData {
     simLog: SimEvent[];
     simLogSeq: number;
     simElapsed: number;
+    /** Trains wrecked since the log was cleared: the session, in the browser */
+    wrecks: number;
+    /** When the last one was wrecked (simElapsed); null if none has been */
+    lastWreckAt: number | null;
 }
 
 export interface TrainSlice {
@@ -25,6 +29,7 @@ export interface TrainSlice {
     setTrainThrottle: (trainId: TrainId, throttle: number) => void;
     reverseTrain: (trainId: TrainId) => void;
     removeTrain: (trainId: TrainId) => void;
+    rerailTrain: (trainId: TrainId) => boolean;
     updateTrainPosition: (trainId: TrainId, distance: number, edgeId?: EdgeId, direction?: 1 | -1, bounceTime?: number) => void;
     setCrashed: (trainId: TrainId) => void;
     clearTrains: () => void;
@@ -47,6 +52,7 @@ export interface ControlSlice {
 export interface EventLogSliceActions {
     logEvent: (type: SimEventType, trainId: TrainId, edgeId: EdgeId, detail: string) => void;
     tickElapsed: (dt: number) => void;
+    recordWrecks: (count: number) => void;
     clearLog: () => void;
 }
 
