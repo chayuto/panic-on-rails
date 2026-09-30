@@ -27,6 +27,11 @@ One JSON file per real product, in `src/data/sets/<brand>/`. Files are loaded au
   table and fill at least 85% of each side.
 - Never loosen a test to make a plan pass. A plan that doesn't close means the plan or the
   catalog geometry is wrong.
+- **A train set lists its train.** `rollingStock` holds the ids of the trains in the box, each
+  an entry in `src/data/rollingStock.ts` with `comesIn` naming the set. Buying the set adds
+  them to the player's trains. Its plan's train says which to run: `"stock"` in `trains`.
+  `rollingStock.test.ts` checks both sides agree, and that a train only in a box has no price
+  of its own.
 
 ## Writing a plan
 
@@ -47,6 +52,9 @@ A plan is a chain of steps, read like the manual's diagram:
   "trains": [{ "piece": 0, "color": "#E74C3C" }]
 }
 ```
+
+A train set's plan names its own train, so building it runs that one: `{ "piece": 0, "color":
+"#C0C4C8", "stock": "kato-super-chief" }`.
 
 Each field of a step:
 

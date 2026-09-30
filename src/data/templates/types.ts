@@ -36,6 +36,8 @@ export interface TemplatePart {
 export interface TemplateTrainPlacement {
     partIndex: number;
     color: string;
+    /** The rolling stock to run, if a particular train (data/rollingStock) */
+    stock?: string;
 }
 
 /**

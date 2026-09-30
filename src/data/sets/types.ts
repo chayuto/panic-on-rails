@@ -69,6 +69,8 @@ export interface PlanTrain {
     /** Step index whose track the train starts on */
     piece: number;
     color?: string;
+    /** The rolling stock to run (data/rollingStock), e.g. the set's own train */
+    stock?: string;
 }
 
 /** A layout printed in the set's manual. */
@@ -109,6 +111,8 @@ export interface TrackSet {
     contents: SetContentItem[];
     /** Other things in the box (power pack, turnout controllers, tools) */
     accessories?: string[];
+    /** The trains in the box, as rolling stock ids (data/rollingStock): a train set's own train */
+    rollingStock?: string[];
     /**
      * Pieces in the box that none of the plans need (e.g. the spare S60 cut
      * straights of a #4 set). Also listed in `contents`.

@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { countPlacedPieces, inventoryOf, piecesLeft, shortfall, formatMoney, trainsLeft } from '../collection';
-import { spawnTrainAtClearestSpot, nextAvailableStock } from '../../simulation/controls';
+import { spawnTrainAtClearestSpot, spawnLayoutTrain, nextAvailableStock } from '../../simulation/controls';
 import { useSimulationStore } from '../../stores/useSimulationStore';
 import { getRollingStock } from '../rollingStock';
 import { useCollectionStore, STARTER_COLLECTION } from '../../stores/useCollectionStore';
@@ -106,6 +106,19 @@ describe('useCollectionStore', () => {
         expect(useCollectionStore.getState().ownedTrains.commuter).toBe(1);
     });
 
+    it('buys a train set, track and train together; its train isn\'t sold on its own', () => {
+        const store = useCollectionStore.getState();
+        expect(store.buyTrain('kato-super-chief')).toBe(false);
+        store.earn(40_000);
+        expect(useCollectionStore.getState().buySet('kato-106-0018')).toBe(true);
+        const s = useCollectionStore.getState();
+        expect(s.ownedSets['kato-106-0018']).toBe(1);
+        expect(s.ownedTrains).toEqual({ 'diesel-passenger': 1, 'kato-super-chief': 1 });
+        expect(s.wallet).toBe(STARTER_COLLECTION.wallet + 40_000 - 33_000);
+        // Still not sold without the box
+        expect(useCollectionStore.getState().buyTrain('kato-super-chief')).toBe(false);
+    });
+
     it('buys loose parts with a product number, but not box-only pieces', () => {
         const store = useCollectionStore.getState();
         expect(store.buyPart('kato-20-000', 2)).toBe(true);
@@ -156,6 +169,18 @@ describe('owned trains', () => {
         expect(useSimulationStore.getState().trains[id]).toMatchObject({ stockId: 'h0-goods', scale: 'ho-scale' });
         // Asked for by name, a train goes to track of its scale, or nowhere
         expect(spawnTrainAtClearestSpot(undefined, undefined, 'diesel-passenger')).toBeNull();
+    });
+
+    it('building a train set\'s layout runs the set\'s own train, if you have it', () => {
+        resetWorld();
+        useCollectionStore.getState().earn(40_000);
+        useCollectionStore.getState().buySet('kato-106-0018');
+        const edgeId = useTrackStore.getState().addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+        const id = spawnLayoutTrain(edgeId, '#fff', 'kato-super-chief');
+        expect(useSimulationStore.getState().trains[id].stockId).toBe('kato-super-chief');
+        // Running already: the next layout train is another of yours
+        const next = spawnLayoutTrain(edgeId, '#fff', 'kato-super-chief');
+        expect(useSimulationStore.getState().trains[next].stockId).toBe('diesel-passenger');
     });
 
     it('free build runs as many generic trains as you like', () => {

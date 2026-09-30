@@ -250,7 +250,7 @@ export function planToTemplate(plan: LayoutPlan, meta: Partial<TemplateMetadata>
             position: { x: p.position.x + dx, y: p.position.y + dy },
             rotation: p.rotation,
         })),
-        trains: (plan.trains ?? []).map(t => ({ partIndex: t.piece, color: t.color ?? '#E74C3C' })),
+        trains: (plan.trains ?? []).map(t => ({ partIndex: t.piece, color: t.color ?? '#E74C3C', ...(t.stock && { stock: t.stock }) })),
         // Plan positions are exact; only connectors that truly meet should merge
         connectThreshold: Math.max(1, (plan.tolerance ?? JOINT_TOLERANCE_MM) + 0.5),
     };

@@ -30,7 +30,6 @@ run your trains, and keep expanding the railway with no end point.
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
   - on-time runs, to timetables;
-  - real train sets with product numbers;
   - elevation;
   - Kato's double-track sets.
 
@@ -284,7 +283,7 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - Each train's throttle tops out at its top speed.
   - Templates load in free build: they're demo layouts, not your collection, so they earn
     nothing.
-  - The trains are generic models, flagged as such, until real train sets are verified.
+  - The generic trains are flagged as such. Real train sets now sell alongside them (Phase 4).
 - [x] **Station stops.** The Station tool (7) puts a platform on the track. Its length is five
       cars for the scale, or the piece's length if that's shorter.
   - A passenger train brakes for the platform's far end, stands for six seconds, and its
@@ -325,7 +324,24 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     $20 repair.
 - [x] Rolling stock as data (`src/data/rollingStock.ts`): livery, cars, top speed and price,
       bought in the shop.
-- [ ] Real train sets (Kato and other brands) with product numbers, and car lengths per model.
+- [x] **Real train sets.** The shop sells real boxes with their own train, which buying the box
+      adds to the player's trains. Building the set's layout runs that train.
+  - Kato USA's N starter sets: 106-0018 Santa Fe Super Chief ($330), 106-0023 Union Pacific
+    ES44AC and mixed freight ($290) and 106-0047 Amtrak ALC-42 and Viewliner II ($360). Each is
+    the M1 oval's sixteen pieces, a Power Pack SX and the train.
+  - Hornby's R1296M Smokey Joe and R1270M Valley Drifter train sets: the 3rd radius starter
+    oval and an 0-4-0 tank engine with a coach and a wagon. Hornby lists them at £99.99; the
+    game charges $120, following the ratio of Hornby's US and UK prices for its Flying
+    Scotsman set ($299.99 to £249.99).
+  - Contents come from the makers' pages and the consists from retailers' listings, where the
+    makers' pages only show photos. Every real train cites its source (`referenceUrl`).
+  - The Trains tab groups trains by maker. A train that only comes in a box says which one,
+    and the game's generic models are listed last, flagged.
+- [ ] More real train sets:
+  - Märklin's Start up sets (29133 and others): their oval has an IR base-station track whose
+    length Märklin doesn't publish.
+  - Hornby's sets with Track Pack 1: its contents need checking piece by piece.
+- [ ] Car lengths per model: every car is the same shortened length for now.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
 
 ### Phase 5: Looks
@@ -404,7 +420,8 @@ Order, biggest win per millisecond first:
 - [x] Brands: Märklin C-track (start oval plus C1–C5), Hornby Setrack (oval plus Track Packs
       A–F).
 - [ ] Brands: Tomix Fine Track, Bachmann E-Z Track.
-- [ ] Rolling stock per scale beyond the generic H0 and OO trains.
+- [ ] Real H0 rolling stock (Märklin's Start up trains; see Phase 4). OO has Hornby's train-set
+      trains.
 - [ ] Elevation: viaducts and bridges (Kato V2/V12/V13), with grades affecting speed.
 - [x] **Share a layout by URL.** Share copies a link with the track in its fragment
       (`#layout=v1.…`): each piece's part, position to 0.01 mm and rotation, compressed.

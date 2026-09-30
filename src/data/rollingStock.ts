@@ -1,9 +1,16 @@
 /**
  * Rolling stock: the trains a player can own and run.
  *
- * These are generic models (a diesel with coaches, a freight train...),
- * not specific products: every entry is flagged `generic`. Real train sets
- * with product numbers belong here once their details are verified.
+ * Two kinds:
+ * - **Real trains**, from real train sets (`brand`, `referenceUrl`, and the
+ *   boxes they come in, `comesIn`). A train that only comes in a box has no
+ *   price of its own: you buy the box, track and all.
+ * - **Generic models** (a diesel with coaches, a freight train...), flagged
+ *   `generic`: the game's own archetypes, sold on their own.
+ *
+ * Top speeds are the game's, not the maker's: models don't publish one. They
+ * go by the kind of train: shunters and tank engines slowest, then freight,
+ * then passenger trains, which hold the starter ovals' curves flat out.
  */
 
 import { DRIVING } from '../simulation/driving';
@@ -11,12 +18,20 @@ import { sizeOf } from '../config/scales';
 import type { PartScale } from './catalog/types';
 import type { Train } from '../types';
 
+export type TrainBrand = 'kato' | 'marklin' | 'hornby';
+
 export interface RollingStock {
     id: string;
     name: string;
     description: string;
-    /** Not a specific real product */
-    generic: true;
+    /** One of the game's own models, not a specific real product */
+    generic?: true;
+    /** The maker, for a real train */
+    brand?: TrainBrand;
+    /** Where its details come from: the maker's page, or a retailer's for what the maker leaves out */
+    referenceUrl?: string;
+    /** The boxed sets it comes in (set ids): the train in a train set */
+    comesIn?: string[];
     /** The track it runs on */
     scale: PartScale;
     /** Livery colour */
@@ -25,8 +40,8 @@ export interface RollingStock {
     cars: number;
     /** Fastest the model runs, mm/s: the throttle's top */
     topSpeed: number;
-    /** Hobby-shop price, US cents, in line with typical train sets of its scale */
-    price: number;
+    /** Hobby-shop price, US cents, when it's sold on its own; a train that only comes in a box has none */
+    price?: number;
     /** A goods train: it passes through stations, carrying no passengers */
     freight?: true;
 }
@@ -36,6 +51,70 @@ const H0 = sizeOf('ho-scale');
 const OO = sizeOf('oo-scale');
 
 export const ROLLING_STOCK: RollingStock[] = [
+    // Real trains, each in its train set: Kato USA's N starter sets (the M1
+    // oval, a power pack and a train) and Hornby's OO train sets
+    {
+        id: 'kato-super-chief',
+        name: 'Santa Fe Super Chief',
+        description: 'An F7A in the red and silver warbonnet, with the 4-4-2 sleeper Regal Court, diner #601 and the observation car Vista Valley.',
+        brand: 'kato',
+        scale: 'n-scale',
+        color: '#C0C4C8',
+        cars: 4,
+        topSpeed: 220,
+        comesIn: ['kato-106-0018'],
+        referenceUrl: 'https://www.trainz.com/products/kato-106-0018-n-santa-fe-starter-set',
+    },
+    {
+        id: 'kato-up-gevo-freight',
+        name: 'Union Pacific ES44AC mixed freight',
+        description: 'A GE ES44AC "Gevo" in Union Pacific yellow with six freight cars: two tank cars, two hoppers and two gondolas.',
+        brand: 'kato',
+        scale: 'n-scale',
+        color: '#F5B120',
+        cars: 7,
+        topSpeed: 160,
+        freight: true,
+        comesIn: ['kato-106-0023'],
+        referenceUrl: 'https://www.trainz.com/products/kato-106-0023-n-es44ac-freight-train-set-up',
+    },
+    {
+        id: 'kato-amtrak-viewliner',
+        name: 'Amtrak ALC-42 and Viewliner II',
+        description: 'A Siemens ALC-42 Charger in Amtrak\'s Phase VII paint with four Viewliner II cars: two sleepers, a diner and a baggage-dorm.',
+        brand: 'kato',
+        scale: 'n-scale',
+        color: '#1F2B4D',
+        cars: 5,
+        topSpeed: 220,
+        comesIn: ['kato-106-0047'],
+        referenceUrl: 'https://tonystrains.com/product/kato-106-0047-n-scale-amtrak-starter-set-includes-siemens-alc-42-locomotive-in-phase-vii-paint-4-viewliner-ii-cars-unitrack-oval-power-pack',
+    },
+    {
+        id: 'hornby-smokey-joe',
+        name: 'Smokey Joe',
+        description: 'Hornby\'s 0-4-0 saddle tank "Smokey Joe" in BR black, with a coach and a wagon.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#333333',
+        cars: 3,
+        topSpeed: Math.round(150 * OO),
+        comesIn: ['hornby-R1296M'],
+        referenceUrl: 'https://uk.hornby.com/products/smokey-joe-train-set-r1296m',
+    },
+    {
+        id: 'hornby-valley-drifter',
+        name: 'Valley Drifter',
+        description: 'A little 0-4-0 tank engine in crimson, with a coach and a wagon.',
+        brand: 'hornby',
+        scale: 'oo-scale',
+        color: '#B2182B',
+        cars: 3,
+        topSpeed: Math.round(150 * OO),
+        comesIn: ['hornby-R1270M'],
+        referenceUrl: 'https://uk.hornby.com/products/valley-drifter-train-set-r1270m',
+    },
+    // The game's own generic models, sold on their own
     {
         id: 'diesel-passenger',
         name: 'Diesel passenger train',

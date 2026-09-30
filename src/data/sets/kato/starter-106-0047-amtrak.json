@@ -1,0 +1,49 @@
+{
+    "id": "kato-106-0047",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "106-0047",
+    "name": "N Amtrak ALC-42 & Viewliner II Starter Set",
+    "price": 36000,
+    "kind": "starter",
+    "description": "Kato USA's N starter set: the M1 oval of Unitrack, the same sixteen pieces as the 20-852 master set, and a power pack, with an Amtrak ALC-42 and four Viewliner II cars.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-020", "qty": 1 },
+        { "part": "kato-20-026", "qty": 1 },
+        { "part": "kato-20-040", "qty": 1 },
+        { "part": "kato-20-041", "qty": 1 },
+        { "part": "kato-20-120", "qty": 8 }
+    ],
+    "accessories": ["Power Pack SX", "Road crossing accessories", "Rerailing ramp and UniJoiner remover", "Starter guide"],
+    "rollingStock": ["kato-amtrak-viewliner"],
+    "plans": [
+        {
+            "id": "basic-oval",
+            "name": "Basic oval",
+            "description": "The M1 oval: 682 mm of straight on each side and R315 curves at both ends, the feeder and rerailer on the front straight.",
+            "steps": [
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#1F2B4D", "stock": "kato-amtrak-viewliner" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/product/n-amtrak-alc-42-viewliner-ii-starter-set/"
+}

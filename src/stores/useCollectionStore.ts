@@ -41,11 +41,11 @@ interface CollectionActions {
     setMode: (mode: CollectionMode) => void;
     /** Add (or, if negative, take) hobby money. Income counts toward lifetime earnings. */
     earn: (cents: number) => void;
-    /** Buy a boxed set. False if it's unknown, unpriced or too expensive. */
+    /** Buy a boxed set, and any trains in it. False if it's unknown, unpriced or too expensive. */
     buySet: (setId: string) => boolean;
     /** Buy loose pieces of a part. False if it's unknown, not sold alone or too expensive. */
     buyPart: (partId: string, qty?: number) => boolean;
-    /** Buy a train. False if it's unknown or too expensive. */
+    /** Buy a train. False if it's unknown, only comes in a box, or too expensive. */
     buyTrain: (stockId: string) => boolean;
     /** Start over with the starter collection. */
     resetCollection: () => void;
@@ -81,10 +81,16 @@ export const useCollectionStore = create<CollectionStore>()(
                 const box = getSetById(setId);
                 const price = box?.price;
                 if (!box || price === undefined || get().wallet < price) return false;
-                set(s => ({
-                    wallet: s.wallet - price,
-                    ownedSets: { ...s.ownedSets, [setId]: (s.ownedSets[setId] ?? 0) + 1 },
-                }));
+                set(s => {
+                    // A train set's own train comes with it
+                    const ownedTrains = { ...s.ownedTrains };
+                    for (const stockId of box.rollingStock ?? []) ownedTrains[stockId] = (ownedTrains[stockId] ?? 0) + 1;
+                    return {
+                        wallet: s.wallet - price,
+                        ownedSets: { ...s.ownedSets, [setId]: (s.ownedSets[setId] ?? 0) + 1 },
+                        ownedTrains,
+                    };
+                });
                 return true;
             },
 
@@ -102,10 +108,11 @@ export const useCollectionStore = create<CollectionStore>()(
             },
 
             buyTrain: (stockId) => {
-                const stock = getRollingStock(stockId);
-                if (!stock || get().wallet < stock.price) return false;
+                const price = getRollingStock(stockId)?.price;
+                // A train that only comes in a box is bought with the box
+                if (price === undefined || get().wallet < price) return false;
                 set(s => ({
-                    wallet: s.wallet - stock.price,
+                    wallet: s.wallet - price,
                     ownedTrains: { ...s.ownedTrains, [stockId]: (s.ownedTrains[stockId] ?? 0) + 1 },
                 }));
                 return true;

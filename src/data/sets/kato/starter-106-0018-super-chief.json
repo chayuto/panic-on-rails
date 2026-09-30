@@ -1,0 +1,49 @@
+{
+    "id": "kato-106-0018",
+    "brand": "kato",
+    "scale": "n-scale",
+    "productCode": "106-0018",
+    "name": "N Santa Fe Super Chief Starter Set",
+    "price": 33000,
+    "kind": "starter",
+    "description": "Kato USA's N starter set: the M1 oval of Unitrack, the same sixteen pieces as the 20-852 master set, and a power pack, with the Santa Fe Super Chief: an F7A and three passenger cars.",
+    "contents": [
+        { "part": "kato-20-000", "qty": 4 },
+        { "part": "kato-20-020", "qty": 1 },
+        { "part": "kato-20-026", "qty": 1 },
+        { "part": "kato-20-040", "qty": 1 },
+        { "part": "kato-20-041", "qty": 1 },
+        { "part": "kato-20-120", "qty": 8 }
+    ],
+    "accessories": ["Power Pack SX", "Road crossing accessories", "Rerailing ramp and UniJoiner remover", "Starter guide"],
+    "rollingStock": ["kato-super-chief"],
+    "plans": [
+        {
+            "id": "basic-oval",
+            "name": "Basic oval",
+            "description": "The M1 oval: 682 mm of straight on each side and R315 curves at both ends, the feeder and rerailer on the front straight.",
+            "steps": [
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-020" },
+                { "part": "kato-20-040" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-000" },
+                { "part": "kato-20-026" },
+                { "part": "kato-20-041" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" },
+                { "part": "kato-20-120" }
+            ],
+            "trains": [
+                { "piece": 0, "color": "#C0C4C8", "stock": "kato-super-chief" }
+            ]
+        }
+    ],
+    "referenceUrl": "https://katousa.com/product/n-santa-fe-super-chief-starter-set/"
+}

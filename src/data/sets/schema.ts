@@ -29,6 +29,7 @@ const LayoutPlanSchema = z.object({
     trains: z.array(z.object({
         piece: z.number().int().nonnegative(),
         color: z.string().optional(),
+        stock: z.string().min(1).optional(),
     })).optional(),
     openEnds: z.number().int().nonnegative().optional(),
     tolerance: z.number().positive().max(3).optional(),
@@ -49,6 +50,7 @@ export const TrackSetSchema = z.object({
         qty: z.number().int().positive(),
     })).min(1),
     accessories: z.array(z.string()).optional(),
+    rollingStock: z.array(z.string().min(1)).optional(),
     spares: z.array(z.object({
         part: z.string().min(1),
         qty: z.number().int().positive(),
