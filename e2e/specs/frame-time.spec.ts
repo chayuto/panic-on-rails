@@ -1,8 +1,10 @@
 /**
- * Frame time, warn-only: a busy layout run live for a few seconds, timed
- * from the page. The numbers belong to the environment (a headless CI
- * runner renders in software), so they're reported for comparing runs of
- * the same environment, not judged. Only a collapse fails.
+ * Frame time: a busy layout run live for a few seconds, timed from the
+ * page, and held to a budget. The numbers belong to the environment, so
+ * the budget is the nightly runner's: headless Chromium on GitHub's Ubuntu
+ * runner drew this at a steady 60 fps in its first runs (p95 16.7 ms, the
+ * slowest frame 16.8 ms). It fails when frames stop keeping up with the
+ * display, not on one hiccup.
  *
  * The report is attached to the test (frame-time.json) and noted in its
  * annotations, which the HTML report shows.
@@ -13,6 +15,13 @@ import { test, expect } from '../fixtures/app-fixture';
 const SECONDS = 6;
 /** Interval of a frame that missed its vsync, at 60 Hz (ms) */
 const LATE = 25;
+
+const BUDGET = {
+    /** 95th percentile frame interval (ms): one frame in twenty may miss its vsync, no more */
+    p95: 20,
+    /** Frames Chromium reports as long (over 50 ms) in the whole run */
+    longAnimationFrames: 2,
+};
 
 interface FrameStats {
     frames: number;
@@ -76,6 +85,8 @@ test('frame time: Hornby Pack F with six trains running', async ({ page, app }, 
     await testInfo.attach('frame-time.json', { body: JSON.stringify(stats, null, 2), contentType: 'application/json' });
     console.log(`[frame-time] ${summary}`);
 
-    // Warn-only for now: fail only on a collapse, ten frames a second or worse
-    expect(stats.p95).toBeLessThan(100);
+    expect(stats.p95, 'p95 frame interval (ms)').toBeLessThanOrEqual(BUDGET.p95);
+    if (stats.longAnimationFrames !== null) {
+        expect(stats.longAnimationFrames, 'long animation frames').toBeLessThanOrEqual(BUDGET.longAnimationFrames);
+    }
 });

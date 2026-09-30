@@ -660,9 +660,11 @@ Order, biggest win per millisecond first:
   - It reports frame-interval p50, p95 and max, the share of late frames (over 25 ms) and
     Chromium's long animation frames. The numbers go in the test's annotations and an attached
     `frame-time.json`.
-  - Warn-only: the numbers belong to the environment, so it fails only on a collapse (p95 over
-    100 ms). On a developer Mac it runs at a steady 60 fps.
-- [ ] Turn the frame-time report into a budget once the nightly has a baseline for its runner.
+  - On a developer Mac it runs at a steady 60 fps.
+- [x] **The frame-time report is a budget.** The nightly runner (headless Chromium on GitHub's
+      Ubuntu) drew Pack F at a steady 60 fps in its first runs: p95 16.7 ms, the slowest frame
+      16.8 ms, no long animation frames. The test now fails when p95 goes over 20 ms (more than
+      one frame in twenty misses its vsync) or Chromium reports more than two long frames.
 - [ ] Vitest browser mode, narrowly, for the track painter and car sprites.
 - [ ] Agent playtest charters: persona, setup, budget, oracles, evidence. Each finding becomes a
       failing `Player` test before it's filed.
