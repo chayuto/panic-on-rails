@@ -49,6 +49,23 @@ describe('joining track at points', () => {
         expect(integrityProblems()).toEqual([]);
     });
 
+    it('deleting a turnout that brought its points onto a track end leaves a plain end', () => {
+        // Found by the model-based building test
+        state().addTrack('kato-20-000', { x: -248, y: 0 }, 0);
+        const turnout = state().addTrack('kato-20-202', { x: 0, y: 0 }, 0)!;
+        const entry = points()[0];
+        const lead = at(0, 0, entry.id);
+        state().connectNodes(lead.id, entry.id);
+
+        state().removeTrack(turnout);
+
+        const end = state().nodes[lead.id];
+        expect(end).toMatchObject({ type: 'endpoint', connections: [expect.any(String)] });
+        expect(end.switchBranches).toBeUndefined();
+        expect(points()).toHaveLength(0);
+        expect(integrityProblems()).toEqual([]);
+    });
+
     it('a track end joined onto a turnout\'s open entry keeps the points where they are', () => {
         state().addTrack('kato-20-202', { x: 0, y: 0 }, 0);
         state().addTrack('kato-20-000', { x: -248, y: 0 }, 0);
