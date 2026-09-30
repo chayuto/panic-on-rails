@@ -20,11 +20,8 @@ async function autoConnect(stores: StoreBridge, _page: Page, tolerance = 5): Pro
     // Find nodes that are very close to each other and connect them
     let connected = 0;
     for (let pass = 0; pass < 10; pass++) {
-        const state = await stores.getTrackState();
-        const nodes = Object.values(state.nodes) as any[];
-
-        // Find open endpoints (1 connection)
-        const endpoints = nodes.filter(n => n.connections.length === 1);
+        // Open ends, as the app sees them: plain ends and points with nothing beyond
+        const endpoints = (await stores.getOpenEndpoints()) as any[];
         if (endpoints.length < 2) break;
 
         let foundPair = false;
@@ -67,24 +64,22 @@ async function runTrainTest(
     await stores.enterSimulateMode();
     await stores.clearTrains();
     await stores.spawnTrain(edgeIds[0], '#ff3300');
-    await stores.setRunning(true);
+    await stores.setRunning(false);
 
-    const positions: { edge: string; dist: number; dir: number }[] = [];
-    const steps = Math.ceil(durationMs / 250);
-
-    for (let i = 0; i < steps; i++) {
-        await page.waitForTimeout(250);
-        const sim = await stores.getSimulationState();
-        const train = Object.values(sim.trains)[0] as any;
-        if (train) {
-            positions.push({
-                edge: train.currentEdgeId,
-                dist: train.distanceAlongEdge,
-                dir: train.direction,
-            });
+    // Step the simulation deterministically rather than watching the clock.
+    // Three times the old wall-clock budget: trains now brake for the end of
+    // the line and creep up to it before turning back.
+    const positions = await page.evaluate((seconds) => {
+        const out: { edge: string; dist: number; dir: number; crashed: boolean }[] = [];
+        for (let t = 0; t < seconds; t += 0.25) {
+            window.__PANIC_SIM__!.runSeconds(0.25);
+            const train = Object.values(window.__PANIC_STORES__!.simulation.getState().trains)[0];
+            if (!train) continue;
+            out.push({ edge: train.currentEdgeId, dist: train.distanceAlongEdge, dir: train.direction, crashed: !!train.crashed });
             if (train.crashed) break;
         }
-    }
+        return out;
+    }, (durationMs / 1000) * 3);
 
     await stores.setRunning(false);
     await stores.enterEditMode();
@@ -92,7 +87,7 @@ async function runTrainTest(
     const uniqueEdges = new Set(positions.map(p => p.edge));
     const dirs = positions.map(p => p.dir);
     const bounced = dirs.some((d, i) => i > 0 && d !== dirs[i - 1]);
-    const crashed = positions.length > 0 && (Object.values((await stores.getSimulationState()).trains)[0] as any)?.crashed;
+    const crashed = positions.some(p => p.crashed);
     const moved = positions.length >= 2 &&
         (positions[0].dist !== positions[positions.length - 1].dist ||
          positions[0].edge !== positions[positions.length - 1].edge);
@@ -867,7 +862,7 @@ test.describe('Track Configuration Matrix', () => {
         console.log(`TOTAL: ${passCount} PASS, ${failCount} FAIL out of ${results.length}`);
         console.log('========================================\n');
 
-        // At least 80% should pass
-        expect(passCount).toBeGreaterThanOrEqual(Math.floor(results.length * 0.7));
+        // Every configuration must work: a pass rate lets real failures hide
+        expect(results.filter(r => !r.success).map(r => r.name)).toEqual([]);
     });
 });
