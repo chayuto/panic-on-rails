@@ -14,6 +14,7 @@ import { useLogicStore } from '../stores/useLogicStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { stepSimulation, createRng, type SimEvent, type SimWorld, type StepContext } from './step';
 import { earningsFor } from './economy';
+import { finishSession, tallySession } from './session';
 import type { TrainId } from '../types';
 
 export type SimEventSink = (event: SimEvent, world: SimWorld) => void;
@@ -99,7 +100,28 @@ export function tickSimulation(realDt: number, options: TickOptions = {}): SimEv
         options.sink?.(event, world);
     }
     if (events.length > 0) settleEarnings(events, before);
+    keepSessionTally(events, before);
     return events;
+}
+
+/**
+ * Count the tick into the operating session, and end it when its time is
+ * up: a clean session's bonus is paid into the wallet in collection mode.
+ */
+function keepSessionTally(events: SimEvent[], before: SimWorld): void {
+    const { session, simElapsed } = useSimulationStore.getState();
+    if (!session) return;
+    const tally = tallySession(session, events, before.edges);
+    if (simElapsed < tally.endsAt) {
+        if (tally !== session) useSimulationStore.setState({ session: tally });
+        return;
+    }
+    const result = finishSession(tally, simElapsed);
+    if (result.bonus > 0 && useCollectionStore.getState().mode === 'collection') {
+        flushEarnings();
+        useCollectionStore.getState().earn(result.bonus);
+    }
+    useSimulationStore.setState({ session: null, sessionResult: result });
 }
 
 /**

@@ -8,6 +8,7 @@ import { useTrackStore } from '../stores/useTrackStore';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { trainsLeft } from '../data/collection';
 import { pickSpawnLocation } from './spawn';
+import { finishSession, startSession } from './session';
 import type { EdgeId, PartScale, TrainId } from '../types';
 import { getRollingStock } from '../data/rollingStock';
 import { getPartById } from '../data/catalog';
@@ -88,6 +89,25 @@ export function startSimulation(): void {
 export function rerailWrecks(): TrainId[] {
     const wrecks = Object.values(useSimulationStore.getState().trains).filter(t => t.crashed);
     return wrecks.filter(t => !useSimulationStore.getState().rerailTrain(t.id)).map(t => t.id);
+}
+
+/**
+ * Start an operating session: SESSION.MINUTES of railway time, tallied.
+ * Starts the trains if they're standing.
+ */
+export function beginSession(): void {
+    const sim = useSimulationStore.getState();
+    sim.setSessionResult(null);
+    sim.setSession(startSession(sim.simElapsed));
+    if (!sim.isRunning) startSimulation();
+}
+
+/** End the session now. Cut short, it earns no bonus. */
+export function endSessionEarly(): void {
+    const { session, simElapsed, setSession, setSessionResult } = useSimulationStore.getState();
+    if (!session) return;
+    setSessionResult(finishSession(session, simElapsed));
+    setSession(null);
 }
 
 /** Play/pause toggle. Pausing never leaves Simulate mode. */

@@ -29,7 +29,7 @@ run your trains, and keep expanding the railway with no end point.
   - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
     model-based fuzzing of building, a console-error gate and coverage floors.
 - **Next:**
-  - more ways to earn (on-time runs, operating sessions);
+  - on-time runs, to timetables;
   - real train sets with product numbers;
   - elevation;
   - Kato's double-track sets.
@@ -294,7 +294,14 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     call and its fare, and the QA lens lists the stations.
   - Laptop toolbars got narrower buttons to make room for the tool. The one-line check now
     covers the width just past each breakpoint, not only 1280.
-- [ ] More ways to earn: on-time runs, operating sessions.
+- [x] **Operating sessions.** Start one from the train panel: ten railway minutes, tallied
+      as it runs (takings, station calls, wrecks).
+  - A full session without a wreck pays a 25% bonus on what it took, into the wallet in
+    collection mode.
+  - A wreck or ending early forfeits the bonus.
+  - The tally is a pure function of step events (`simulation/session.ts`), kept by
+    `tickSimulation`.
+- [ ] On-time runs: timetables at stations, and a bonus for keeping to them.
 - [x] **Shopping list:** the layout on the table as real products, for planners.
   - It gives product numbers, quantities and prices, and in collection mode what's owned and
     what's left to buy.

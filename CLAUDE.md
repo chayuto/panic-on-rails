@@ -131,6 +131,7 @@ The simulation is a pure function plus thin adapters — keep it that way:
   - `utils/crashPhysics.ts`: debris. RNG-injected; never mutates input.
   - `stations.ts`: station stops. A passenger train brakes for the far end of a platform (`stopAhead` returns `kind: 'station'`), stands `dwell` seconds and is paid `fareFor` its ride; freight (`carriesPassengers`) passes through. Rates in `config/stations.ts`.
   - `economy.ts`: money from events.
+  - `session.ts`: operating sessions, ten railway minutes tallied from the events (`tickSimulation` keeps the tally and pays a clean session's bonus).
 - **`src/simulation/tick.ts`** — `tickSimulation(realDt, { sink })` reads the stores, steps, writes back only what changed, logs to `simLog`, and hands events to a sink. `seedSimulation(n)` makes runs reproducible.
 - **`src/hooks/useGameLoop.ts`** — rAF driver only: delta capping, error recovery, and `browserEffectsSink` (events → audio/flash/shake).
 - **`src/simulation/harness.ts`** — headless API: `resetWorld()`, `loadRecipe(template)`, `seed()`, `run(frames)`, `runSeconds(s)`, `summarize()`.

@@ -57,6 +57,14 @@ test.describe('Accessibility', () => {
         await expect.poll(() => running(page)).toBe(true);
         await expectAccessible(page, 'Simulate, M1 running');
 
+        // An operating session, running and over
+        await page.getByTestId('session-start').click();
+        await expect(page.getByTestId('session')).toBeVisible();
+        await expectAccessible(page, 'Simulate, a session running');
+        await page.getByTestId('session-end').click();
+        await expect(page.getByTestId('session-result')).toBeVisible();
+        await expectAccessible(page, 'Simulate, a session over');
+
         await page.evaluate(() => {
             const sim = window.__PANIC_STORES__!.simulation;
             sim.setCrashed(Object.keys(sim.getState().trains)[0]);

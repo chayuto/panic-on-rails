@@ -7,6 +7,7 @@
 
 import type { SimulationSliceCreator } from './types';
 import type { TrainId, EdgeId } from '../../../types';
+import type { OperatingSession, SessionResult } from '../../../simulation/session';
 
 /** Maximum number of events to keep in the log */
 const MAX_LOG_SIZE = 500;
@@ -37,12 +38,18 @@ export interface EventLogSlice {
     wrecks: number;
     /** When the last one was wrecked (simElapsed); null if none has been */
     lastWreckAt: number | null;
+    /** The operating session running, if any (its times are simElapsed) */
+    session: OperatingSession | null;
+    /** How the last session went, until the player dismisses it */
+    sessionResult: SessionResult | null;
     /** Push a new event */
     logEvent: (type: SimEventType, trainId: TrainId, edgeId: EdgeId, detail: string) => void;
     /** Advance elapsed time */
     tickElapsed: (dt: number) => void;
     /** Count trains wrecked just now, for the crash counter */
     recordWrecks: (count: number) => void;
+    setSession: (session: OperatingSession | null) => void;
+    setSessionResult: (result: SessionResult | null) => void;
     /** Clear the log (e.g. on simulation reset) */
     clearLog: () => void;
 }
@@ -53,6 +60,8 @@ export const createEventLogSlice: SimulationSliceCreator<EventLogSlice> = (set) 
     simElapsed: 0,
     wrecks: 0,
     lastWreckAt: null,
+    session: null,
+    sessionResult: null,
 
     logEvent: (type, trainId, edgeId, detail) => {
         set((state) => {
@@ -87,8 +96,22 @@ export const createEventLogSlice: SimulationSliceCreator<EventLogSlice> = (set) 
         });
     },
 
+    setSession: (session) => {
+        set((state) => {
+            state.session = session;
+        });
+    },
+
+    setSessionResult: (result) => {
+        set((state) => {
+            state.sessionResult = result;
+        });
+    },
+
     clearLog: () => {
         set((state) => {
+            state.session = null;
+            state.sessionResult = null;
             state.simLog = [];
             state.simLogSeq = 0;
             state.simElapsed = 0;

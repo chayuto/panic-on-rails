@@ -176,7 +176,11 @@ run trains ──▶ earn hobby money ──▶ buy a box / parts / a train in t
     it. Every stop costs its six-second dwell, so a station every few pieces pays no more than
     one would. Freight trains pass through. A platform is an operating point, not a product:
     real platform kits could come later as scenery.
-  - Later: on-time runs and an operating-session bonus.
+  - **Operating sessions.** The player runs ten railway minutes as a shift, tallied: takings,
+    station calls and wrecks. Getting through without a wreck pays a 25% bonus on what the
+    session took. It's a reason to set the points and signals with care, and a goal for a
+    short sitting.
+  - Later: on-time runs to timetables.
 - **Prices** follow real 2025 US street prices, so the virtual shelf feels like the real one:
   - M1 $95, V1 $75, V5 $45;
   - a #6 turnout $33, a 248 mm straight about $2.
