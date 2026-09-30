@@ -1,9 +1,10 @@
 # Panic on Rails: State of the Game & Roadmap
 
 > **Living document.** Update the checkboxes and the "Last assessed" line when a phase lands.
-> Last assessed: 2026-09-29. Method: two code audits, hands-on play in headless Chromium (real
-> drag-and-drop, templates, crashes), headless simulation of every shipped template, and research
-> into real starter sets (Kato, Hornby, Märklin).
+> Last assessed: 2026-10-01. Method: two code audits, hands-on play in headless Chromium (real
+> drag-and-drop, templates, crashes), headless simulation of every shipped template, research
+> into real starter sets (Kato, Hornby, Märklin, Bachmann), and five agent playtest charters
+> (`docs/qa/`).
 
 ## TL;DR
 
@@ -16,8 +17,10 @@ run your trains, and keep expanding the railway with no end point.
     signals stop trains, switches can be thrown mid-run, and trains have controls. Wrecks
     block the line until they're re-railed.
   - **The Box (Phase 2):** real boxed sets with their exact contents and the layouts from their
-    manuals, proved to close. That's Kato Unitrack M1–V7, Märklin C-track (start oval, C1–C5)
-    and Hornby Setrack (train-set oval, Track Packs A–F).
+    manuals, proved to close. That's Kato Unitrack M1–V7 and V11–V17, Märklin C-track (start oval,
+    C1–C5), Hornby Setrack (train-set oval, Track Packs A–F) and Bachmann E-Z Track.
+    - Train sets carry their own trains: Kato USA's three, and ten from Hornby and Bachmann.
+    - Each car is at its model's length, in its own livery.
   - **The Hobby (Phase 3):** a collection grown with hobby money earned by running trains and
     from passengers' fares at stations, a shop for boxes, loose parts and trains, and a
     shopping list for planners. Operating sessions pay bonuses for running without a wreck and
@@ -27,8 +30,17 @@ run your trains, and keep expanding the railway with no end point.
     big layout. Trains collide by their cars' real extent.
   - **Complex parts (Phase 6):** the general part model. It covers scissors crossovers, curved
     turnouts and double slips, with trains sized and driven to scale in N, H0 and OO.
-  - **QA (Phase 7):** playtests that play with real input and hold effort to budgets,
-    model-based fuzzing of building, a console-error gate and coverage floors.
+  - **QA (Phase 7):**
+    - Playtests that play with real input and hold effort to budgets.
+    - Model-based fuzzing of building and a fast-check monkey.
+    - Screenshot baselines compared pixel for pixel in a pinned browser.
+    - A frame-time budget, a console-error gate, coverage floors and a dead-code check.
+    - Agent playtest charters: five personas, each finding a failing test before it's fixed.
+      They found and fixed:
+      - trains set down on track too short for them;
+      - track that could only be laid with a mouse;
+      - a canvas squeezed to a sliver on a phone;
+      - points that moved under a train.
 - **Next:**
   - the rest of elevation: V12's double-track climb, and the V2 + M1 up-and-over;
   - V15's widening sections, whose inner S-curve Kato doesn't publish.
