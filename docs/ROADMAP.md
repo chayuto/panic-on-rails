@@ -653,7 +653,7 @@ Order, biggest win per millisecond first:
 
 - [x] `window.__PANIC_QA__.look()`: what's on the canvas and where on the page, for tests and
       agents. A mouse-and-keyboard `Player`, and playtests with effort budgets: the oval by
-      hand, open M1, save up for V4, every set of points in V7/C5/Pack F, and a seeded monkey.
+      hand, open M1, save up for V4, every set of points in V7/C5/Pack F, and a monkey.
 - [x] `track-configs` asserts every configuration, in simulated time.
 - [x] Fixed what the playtests found, and lowered their budgets to zero:
   - The view follows a hand build: after a drop it pans (never zooms) to keep the new piece's
@@ -687,7 +687,11 @@ Order, biggest win per millisecond first:
     the origin: same edges, nodes, open ends and points.
   - The first run found that `normalizeAngle` wasn't idempotent. Re-normalizing an angle in
     range could move it one unit in the last place, and 359.99999999999994 became 0. Fixed.
-- [ ] Port the monkey playtest to `fc.commands`.
+- [x] **The monkey plays fast-check commands** (`fc.commands`): drags, clicks, wheels, keys and
+      mode switches, weighted as before, two sessions of up to 60 moves. After every move the
+      track must be whole, and at the end nothing may have errored. A failure shrinks to the
+      shortest run of moves that still breaks, with the seed and path to replay it. A planted
+      bug (more than two pieces) shrank in 14 steps to three drags of a straight.
 - [x] **Play metrics in Vitest** (`playMetrics.test.ts`; `PLAY_METRICS=1` prints them). The
       numbers are budgets:
   - Pacing: the starter train on the M1 oval earns $8–10 a minute just running. One station
