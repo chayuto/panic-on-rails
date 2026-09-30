@@ -9,6 +9,7 @@ import type { EdgeId, Station, StationId, TrackEdge, Train } from '../types';
 import { STATIONS } from '../config/stations';
 import { sizeOf } from '../config/scales';
 import { getPartById } from '../data/catalog';
+import { carCount } from '../utils/trainCars';
 
 export type StationsByEdge = ReadonlyMap<EdgeId, readonly Station[]>;
 
@@ -30,7 +31,7 @@ export function stopPointOf(station: Station, direction: 1 | -1): number {
 
 /** Cars carrying passengers: every car but the locomotive. */
 export function coachesOf(train: Train): number {
-    return Math.max(1, (train.carriageCount ?? 1) - 1);
+    return Math.max(1, carCount(train) - 1);
 }
 
 /** What a stop's passengers pay, US cents: their ride so far, per coach, up to the longest ride. */

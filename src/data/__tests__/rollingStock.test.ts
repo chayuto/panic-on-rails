@@ -5,8 +5,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ROLLING_STOCK, getRollingStock } from '../rollingStock';
+import { ROLLING_STOCK, carKindAt, genericCarLengths, getRollingStock, trainLength } from '../rollingStock';
 import { getAllSets, getSetById } from '../sets';
+import { SCALES, sizeOf } from '../../config/scales';
 
 describe('rolling stock', () => {
     it('has unique ids', () => {
@@ -36,6 +37,20 @@ describe('rolling stock', () => {
         expect(stock.price).toBeUndefined();
     });
 
+    it.each(ROLLING_STOCK.map(s => [s.id, s] as const))('%s has cars as long as real railway vehicles, at its scale', (_id, stock) => {
+        expect(stock.carLengths.length).toBeGreaterThan(0);
+        for (const length of stock.carLengths) {
+            // From a little tank engine or a four-wheel wagon to the longest coach, in metres
+            const real = (length * SCALES[stock.scale].ratio) / 1000;
+            expect(real).toBeGreaterThan(5);
+            expect(real).toBeLessThan(27.5);
+        }
+        if (stock.carKinds) {
+            expect(stock.carKinds).toHaveLength(stock.carLengths.length);
+            expect(stock.carKinds[0]).toBe('loco');
+        }
+    });
+
     it.each(getAllSets().filter(s => s.rollingStock).map(s => [s.id, s] as const))('%s holds known trains of its own scale, that say they come in it', (_id, set) => {
         for (const stockId of set.rollingStock ?? []) {
             const stock = getRollingStock(stockId);
@@ -49,5 +64,29 @@ describe('rolling stock', () => {
                 if (train.stock) expect(set.rollingStock).toContain(train.stock);
             }
         }
+    });
+});
+
+describe('cars', () => {
+    it('are the locomotive, then coaches, or a freight train\'s wagons, or what the model says', () => {
+        expect(carKindAt({ stockId: 'diesel-passenger' }, 0)).toBe('loco');
+        expect(carKindAt({ stockId: 'diesel-passenger' }, 2)).toBe('coach');
+        expect(carKindAt({ stockId: 'kato-up-gevo-freight' }, 3)).toBe('wagon');
+        // Hornby's set trains: a coach, then a wagon
+        expect(carKindAt({ stockId: 'hornby-smokey-joe' }, 1)).toBe('coach');
+        expect(carKindAt({ stockId: 'hornby-smokey-joe' }, 2)).toBe('wagon');
+        // A free-build train with no model
+        expect(carKindAt({}, 1)).toBe('coach');
+    });
+
+    it('of a free-build train are the generic diesel and its coaches, grown to the track\'s scale', () => {
+        const diesel = getRollingStock('diesel-passenger')!;
+        expect(genericCarLengths(3, 'n-scale')).toEqual(diesel.carLengths);
+        expect(genericCarLengths(1, 'ho-scale')).toEqual([diesel.carLengths[0] * sizeOf('ho-scale')]);
+        expect(genericCarLengths(0, undefined)).toHaveLength(1);
+    });
+
+    it('add up to the train\'s length', () => {
+        expect(trainLength({ carLengths: [100, 150, 150] })).toBe(400);
     });
 });

@@ -4,9 +4,8 @@
 
 import type { Train, TrainId } from '../../../types';
 import type { SimulationSliceCreator, SimulationStateData, TrainSlice } from './types';
-import { CAR_PITCH } from '../../../config/rollingStock';
 import { DRIVING } from '../../../simulation/driving';
-import { getRollingStock, topSpeedOf } from '../../../data/rollingStock';
+import { genericCarLengths, getRollingStock, topSpeedOf } from '../../../data/rollingStock';
 import { getPartById } from '../../../data/catalog';
 import { sizeOf } from '../../../config/scales';
 import { reverseConsist } from '../../../utils/trainCars';
@@ -29,7 +28,7 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set, get) =
      * 
      * @param edgeId - ID of the starting edge
      * @param color - Optional color (cycles through defaults if omitted)
-     * @param carriageCount - Number of carriages (default: 1)
+     * @param carriageCount - Cars for a train with no model, locomotive included (default: 1)
      * @param distance - Starting distance along the edge (default: 0)
      * @returns ID of the newly created train
      */
@@ -41,6 +40,8 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set, get) =
         const edge = useTrackStore.getState().edges[edgeId];
         const scale = stock?.scale ?? (edge && getPartById(edge.partId)?.scale) ?? 'n-scale';
         const size = sizeOf(scale);
+        // The model's own cars, or free build's generic diesel and coaches
+        const carLengths = stock?.carLengths ?? genericCarLengths(carriageCount ?? 1, scale);
 
         const train: Train = {
             id: trainId,
@@ -51,8 +52,8 @@ export const createTrainSlice: SimulationSliceCreator<TrainSlice> = (set, get) =
             speed: DRIVING.DEFAULT_THROTTLE * size,
             throttle: DRIVING.DEFAULT_THROTTLE * size,
             color: trainColor,
-            carriageCount: carriageCount ?? stock?.cars ?? 1,
-            carriageSpacing: CAR_PITCH * size,
+            carriageCount: carLengths.length,
+            carLengths: [...carLengths],
             scale,
             ...(stock && { stockId: stock.id }),
         };

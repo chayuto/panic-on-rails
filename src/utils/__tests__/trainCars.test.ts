@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getCarPoses, reverseConsist } from '../trainCars';
 import { stepSimulation, type SimWorld } from '../../simulation/step';
-import { BOGIE_SPACING, CAR_PITCH } from '../../config/rollingStock';
+import { BOGIE_INSET_RATIO, BOGIE_SPACING, CAR_PITCH, ROLLING_STOCK } from '../../config/rollingStock';
 import { useTrackStore } from '../../stores/useTrackStore';
 import { resetWorld } from '../../simulation/harness';
 import type { Train } from '../../types';
@@ -66,6 +66,56 @@ describe('getCarPoses', () => {
         const fromCentre = Math.hypot(loco.x - g.center.x, loco.y - g.center.y);
         // Chord midpoint of a BOGIE_SPACING chord on R216: sagitta ≈ s²/(8R)
         expect(fromCentre).toBeCloseTo(216 - (BOGIE_SPACING ** 2) / (8 * 216), 1);
+    });
+
+    describe('a model\'s own cars', () => {
+        /** Two 248 mm straights end to end, west to east, for a long train. */
+        function line() {
+            const store = useTrackStore.getState();
+            const first = store.addTrack('kato-20-000', { x: 0, y: 0 }, 0)!;
+            const second = store.addTrack('kato-20-000', { x: 248, y: 0 }, 0)!;
+            const [a, b] = Object.values(useTrackStore.getState().nodes).filter(n => n.position.x === 248);
+            store.connectNodes(a.id, b.id);
+            return { first, second, ...useTrackStore.getState() };
+        }
+
+        it('rides each car at its own length, coupled up end to end', () => {
+            const { first, second, edges, nodes } = line();
+            // An ES44AC and two freight cars, over couplers
+            const lengths = [139, 90, 95];
+            const poses = getCarPoses(train({ currentEdgeId: second, distanceAlongEdge: 200, carLengths: lengths, trail: [first] }), edges, nodes);
+            const gap = ROLLING_STOCK.GAP;
+            const bodies = lengths.map(l => l - gap);
+            expect(poses.map(p => p.length)).toEqual(bodies);
+            // Each body's front end, from its centre: the next car's front is a gap behind the one ahead's back
+            const fronts = poses.map(p => p.x + p.length / 2);
+            const backs = poses.map(p => p.x - p.length / 2);
+            expect(fronts[1]).toBeCloseTo(backs[0] - gap, 6);
+            expect(fronts[2]).toBeCloseTo(backs[1] - gap, 6);
+            // The train's position is the locomotive's front bogie, set in from its front end
+            expect(fronts[0]).toBeCloseTo(248 + 200 + bodies[0] * BOGIE_INSET_RATIO, 6);
+        });
+
+        it('turns back without moving a car, however long each is', () => {
+            const { first, second, edges, nodes } = line();
+            const t = train({ currentEdgeId: second, distanceAlongEdge: 150, carLengths: [139, 90, 95, 95], trail: [first] });
+            const before = getCarPoses(t, edges, nodes);
+            const reversed = reverseConsist(t, edges, nodes);
+            const after = getCarPoses(reversed, edges, nodes);
+            const centres = (poses: { x: number; y: number }[]) => poses.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).sort();
+            expect(centres(after)).toEqual(centres(before));
+            // The locomotive, now at the back, is still the long one
+            expect(after[after.length - 1].length).toBe(139 - ROLLING_STOCK.GAP);
+            const again = reverseConsist(reversed, edges, nodes);
+            expect(again.distanceAlongEdge).toBeCloseTo(150, 6);
+        });
+
+        it('are the short uniform car when a train has no lengths', () => {
+            const { second, edges, nodes } = line();
+            const uniform = getCarPoses(train({ currentEdgeId: second, distanceAlongEdge: 150 }), edges, nodes);
+            const asLengths = getCarPoses(train({ currentEdgeId: second, distanceAlongEdge: 150, carLengths: [CAR_PITCH, CAR_PITCH, CAR_PITCH] }), edges, nodes);
+            expect(asLengths).toEqual(uniform);
+        });
     });
 
     describe('through a turnout', () => {

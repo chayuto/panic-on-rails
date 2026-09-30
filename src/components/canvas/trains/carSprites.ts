@@ -1,15 +1,15 @@
 /**
- * Car sprites: each kind of car is drawn once per colour into an offscreen
- * canvas (with its soft shadow baked in), then stamped along the track
- * every frame. Drawing a bitmap is far cheaper than redrawing vector
+ * Car sprites: each kind of car is drawn once per colour and length into an
+ * offscreen canvas (with its soft shadow baked in), then stamped along the
+ * track every frame. Drawing a bitmap is far cheaper than redrawing vector
  * shapes or blurring a shadow per car per frame.
  *
- * Sprites are drawn looking down, with the front of the car toward +x.
+ * Sprites are drawn looking down, at N size, with the front of the car
+ * toward +x.
  */
 
 import { ROLLING_STOCK } from '../../../config/rollingStock';
-
-export type CarKind = 'loco' | 'coach';
+import type { CarKind } from '../../../data/rollingStock';
 
 /** Pixels per mm the sprites are drawn at (crisp up to about 4× zoom). */
 const RES = 6;
@@ -130,17 +130,51 @@ function drawCoach(ctx: CanvasRenderingContext2D, color: string, L: number, W: n
     ctx.fillRect(-x0 - 0.8, -3, 1.6, 6);
 }
 
+/** A freight car, looking into it: an open top with ribs across, whatever it carries. */
+function drawWagon(ctx: CanvasRenderingContext2D, color: string, L: number, W: number) {
+    const x0 = -L / 2;
+    const y0 = -W / 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 2.5 * RES;
+    ctx.shadowOffsetX = 0.8 * RES;
+    ctx.shadowOffsetY = 1.2 * RES;
+    roundRect(ctx, x0, y0, L, W, 1.2);
+    ctx.fillStyle = shade(color, -12);
+    ctx.fill();
+    ctx.restore();
+    ctx.lineWidth = 0.6;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+    roundRect(ctx, x0, y0, L, W, 1.2);
+    ctx.stroke();
+
+    ctx.fillStyle = shade(color, -48);
+    roundRect(ctx, x0 + 1.6, y0 + 1.6, L - 3.2, W - 3.2, 0.8);
+    ctx.fill();
+    ctx.strokeStyle = shade(color, -20);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    const ribs = Math.max(1, Math.round((L - 3.2) / 9));
+    for (let i = 1; i < ribs; i++) {
+        const x = x0 + 1.6 + (i * (L - 3.2)) / ribs;
+        ctx.moveTo(x, y0 + 1.6);
+        ctx.lineTo(x, -y0 - 1.6);
+    }
+    ctx.stroke();
+}
+
 /**
- * Sprite for one kind of car in one colour. Crashed trains use a
- * scorched grey. Returns null outside a browser.
+ * Sprite for one kind of car, `length` mm long at N size, in one colour.
+ * Crashed trains use a scorched grey. Returns null outside a browser.
  */
-export function getCarSprite(kind: CarKind, color: string, crashed = false): HTMLCanvasElement | null {
+export function getCarSprite(kind: CarKind, color: string, crashed: boolean, length: number): HTMLCanvasElement | null {
     if (typeof document === 'undefined') return null;
-    const key = `${kind}|${crashed ? 'crashed' : color}`;
+    // A tenth of a millimetre is as fine as a length needs to be
+    const L = Math.round(length * 10) / 10;
+    const key = `${kind}|${crashed ? 'crashed' : color}|${L}`;
     const hit = cache.get(key);
     if (hit) return hit;
 
-    const L = ROLLING_STOCK.CAR_LENGTH;
     const W = ROLLING_STOCK.CAR_WIDTH;
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil((L + 2 * SPRITE_MARGIN) * RES);
@@ -151,6 +185,7 @@ export function getCarSprite(kind: CarKind, color: string, crashed = false): HTM
     ctx.translate(L / 2 + SPRITE_MARGIN, W / 2 + SPRITE_MARGIN);
     const paint = crashed ? '#555555' : color;
     if (kind === 'loco') drawLoco(ctx, paint, L, W);
+    else if (kind === 'wagon') drawWagon(ctx, paint, L, W);
     else drawCoach(ctx, paint, L, W);
 
     cache.set(key, canvas);

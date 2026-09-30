@@ -34,6 +34,12 @@ export interface Train {
     crashTime?: number;     // Timestamp when crash occurred
     // Multi-car train properties
     carriageCount?: number;    // Number of carriages (default 1 = locomotive only)
+    /**
+     * Each car's length over its couplers (mm), locomotive first: the
+     * model's own. Without it the train is `carriageCount` short uniform
+     * cars, `carriageSpacing` apart.
+     */
+    carLengths?: number[];
     carriageSpacing?: number;  // Distance between consecutive cars' front bogies (mm, default CAR_PITCH)
     /** Edges the train came through, most recent first, for placing its cars */
     trail?: EdgeId[];

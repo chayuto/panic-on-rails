@@ -345,7 +345,27 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
     only close at 188.3 mm, the length of the 24088 connecting track too. That's a deduction,
     not a published figure.
   - Hornby's sets with Track Pack 1: its contents need checking piece by piece.
-- [ ] Car lengths per model: every car is the same shortened length for now.
+- [x] **Car lengths per model.** Every car is as long as its real model over the couplers
+      (`carLengths` in `data/rollingStock.ts`), where before every car was 44 mm.
+  - The Super Chief's F7A is 96.5 mm and its cars 158–165 mm. The UP freight's ES44AC is
+    139 mm. Its cars are Kato's models of Japanese wagons, 93 and 103 mm. The Amtrak
+    Viewliners are 161 mm, and Hornby's tank engines 108 mm. The real trains are 30 to 78 cm
+    long, and the shop says so.
+  - Figures are the model's own where the maker or a review gives one, else the prototype's
+    at the model's scale. The design doc lists each source.
+  - The generic trains have lengths typical of their kind. A free-build train with no model
+    is the generic diesel and its coaches, grown to its track's scale.
+  - Bogies sit 18% of a car's length in from each end, so long cars cut further inside a
+    curve. Collisions, near misses, re-railing, spawning and the shop's previews all go by
+    each car's length. The clearest spot for a new train now counts every car, not only
+    each train's front.
+  - Freight cars have their own sprite. Hornby's set trains draw their coach and their
+    wagon.
+  - Widths stay 15 mm, a little under a real N-scale car's 19–20 mm, so trains passing on
+    Kato's 33 mm double track keep clear of a near miss. Real widths need that threshold
+    tuned first.
+- [x] **Fixed:** loading a layout with as many pieces as the one before (every Kato starter
+      set is M1's sixteen) drew no track until the view moved.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
 
 ### Phase 5: Looks
@@ -372,7 +392,8 @@ Order, biggest win per millisecond first:
   - a diesel locomotive and coaches as pre-drawn sprites with baked shadows;
   - each car placed by two bogies, so it cuts across curves;
   - cars follow the route the train came through (`train.trail`), not `connections[0]`;
-  - 44 mm cars at game scale (`config/rollingStock.ts`).
+  - 44 mm cars at game scale (`config/rollingStock.ts`); each model's real lengths since
+    Phase 4.
 - [x] **Model track:**
   - ballasted roadbed, sleepers and two-tone rails, painted by one shape with zoom-based
     detail;

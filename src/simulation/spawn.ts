@@ -4,6 +4,7 @@
 
 import type { EdgeId, NodeId, TrackEdge, TrackNode, Train, TrainId, Vector2 } from '../types';
 import { getPositionOnEdge } from '../utils/trainGeometry';
+import { getCarPoses } from '../utils/trainCars';
 
 export interface SpawnLocation {
     edgeId: EdgeId;
@@ -12,7 +13,7 @@ export interface SpawnLocation {
 
 /**
  * Spots to put a train, best first: the middle of every edge, farthest from
- * the nearest train on the track (wrecks included) first. Ties go to the
+ * the nearest car on the track (wrecks included) first. Ties go to the
  * longer edge (more room before the train meets anything).
  */
 export function spawnCandidates(
@@ -20,9 +21,13 @@ export function spawnCandidates(
     trains: Record<TrainId, Train>,
     nodes?: Record<NodeId, TrackNode>
 ): SpawnLocation[] {
+    // Every car, not just the front: a long train fills a lot of track
     const trainPositions: Vector2[] = Object.values(trains)
         .filter(t => edges[t.currentEdgeId])
-        .map(t => getPositionOnEdge(edges[t.currentEdgeId], t.distanceAlongEdge, nodes));
+        .flatMap(t => {
+            const cars = nodes ? getCarPoses(t, edges, nodes) : [];
+            return cars.length > 0 ? cars : [getPositionOnEdge(edges[t.currentEdgeId], t.distanceAlongEdge, nodes)];
+        });
 
     const candidates = Object.values(edges).map(edge => {
         const mid = getPositionOnEdge(edge, edge.length / 2, nodes);
