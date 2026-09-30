@@ -95,8 +95,9 @@ for (const tmpl of TEMPLATES) {
             { timeout: 3000 },
         );
 
-        // Let simulation run for 3 seconds
-        await page.waitForTimeout(3000);
+        // Run it for 3 seconds, stepped exactly with the loop paused
+        await stores.setRunning(false);
+        await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(3));
 
         // Capture screenshot mid-simulation
         await snap(`${tmpl.id}-running`);

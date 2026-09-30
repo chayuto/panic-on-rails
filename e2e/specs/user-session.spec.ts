@@ -14,6 +14,7 @@
 import { test, expect } from '../fixtures/app-fixture';
 import { AgentActions } from '../helpers/agent-actions';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
+import { loadTemplateByName } from '../helpers/templates';
 
 test.describe('Full User Session', () => {
 
@@ -41,7 +42,7 @@ test.describe('Full User Session', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
         await screenshots.capture('02-tutorial-dismissed');
 
@@ -56,12 +57,11 @@ test.describe('Full User Session', () => {
 
         // Switch to Wooden system tab
         await agent.selectSystem('wooden');
-        await page.waitForTimeout(200);
         await screenshots.capture('04-parts-bin-wooden');
 
         // Switch back to N-Scale
         await agent.selectSystem('n-scale');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getEditorState()).selectedSystem).toBe('n-scale');
 
         // ==========================================
         // PHASE 3: Build a Track Layout
@@ -135,7 +135,6 @@ test.describe('Full User Session', () => {
 
         // Clear current layout
         await stores.clearLayout();
-        await page.waitForTimeout(200);
         await screenshots.capture('14-cleared-layout');
 
         // Load the simple oval template
@@ -146,7 +145,6 @@ test.describe('Full User Session', () => {
         // Try loading first non-empty template
         if (options.length > 1) {
             await templateSelector.selectOption({ index: 1 });
-            await page.waitForTimeout(500);
             await screenshots.capture('15-template-loaded');
 
             const afterTemplate = await stores.getTrackState();
@@ -160,7 +158,6 @@ test.describe('Full User Session', () => {
         // ==========================================
 
         await agent.switchMode('simulate');
-        await page.waitForTimeout(300);
         await screenshots.capture('16-simulate-mode');
 
         // Verify mode changed
@@ -185,7 +182,6 @@ test.describe('Full User Session', () => {
 
             // Spawn first train (red by default)
             const train1 = await stores.spawnTrain(edgeIds[0]);
-            await page.waitForTimeout(200);
             await screenshots.capture('17-first-train-spawned');
 
             // Check simulation state
@@ -196,7 +192,6 @@ test.describe('Full User Session', () => {
             // Spawn second train on a different edge
             if (edgeIds.length > 2) {
                 const train2 = await stores.spawnTrain(edgeIds[Math.floor(edgeIds.length / 2)], '#0088ff');
-                await page.waitForTimeout(200);
                 await screenshots.capture('18-second-train-spawned');
                 console.log('Train 2 spawned:', train2);
             }
@@ -205,19 +200,21 @@ test.describe('Full User Session', () => {
             // PHASE 8: Run the Simulation
             // ==========================================
 
-            // Start the simulation
-            await stores.setRunning(true);
-            await page.waitForTimeout(500);
+            // Run it, stepped exactly between the screenshots: the rAF loop
+            // stays paused and the harness steps the same simulation
+            const run = (seconds: number) => page.evaluate(s => window.__PANIC_SIM__!.runSeconds(s), seconds);
+            await stores.setRunning(false);
+            await run(0.5);
             await screenshots.capture('19-simulation-running-0.5s');
 
             // Let it run for a bit and capture at intervals
-            await page.waitForTimeout(1000);
+            await run(1);
             await screenshots.capture('20-simulation-running-1.5s');
 
-            await page.waitForTimeout(1000);
+            await run(1);
             await screenshots.capture('21-simulation-running-2.5s');
 
-            await page.waitForTimeout(1000);
+            await run(1);
             await screenshots.capture('22-simulation-running-3.5s');
 
             // Check train positions have changed
@@ -227,7 +224,7 @@ test.describe('Full User Session', () => {
                 console.log(`Train ${id.slice(0, 8)}: edge=${t.currentEdgeId?.slice(0, 8)}, dist=${t.distanceAlongEdge?.toFixed(1)}, speed=${t.speed}, crashed=${t.crashed}`);
             }
 
-            await page.waitForTimeout(1500);
+            await run(1.5);
             await screenshots.capture('23-simulation-running-5s');
 
             // ==========================================
@@ -236,7 +233,7 @@ test.describe('Full User Session', () => {
 
             // Speed up the simulation
             await stores.setSpeedMultiplier(3.0);
-            await page.waitForTimeout(1000);
+            await run(1);
             await screenshots.capture('24-simulation-3x-speed');
 
             // Slow it back down
@@ -248,7 +245,6 @@ test.describe('Full User Session', () => {
 
             // Pause the simulation
             await stores.setRunning(false);
-            await page.waitForTimeout(200);
             await screenshots.capture('25-simulation-paused');
 
             // Check final state
@@ -266,7 +262,6 @@ test.describe('Full User Session', () => {
         // ==========================================
 
         await agent.switchMode('edit');
-        await page.waitForTimeout(300);
         await screenshots.capture('26-back-to-edit');
 
         // Verify edit mode
@@ -279,12 +274,11 @@ test.describe('Full User Session', () => {
 
         // Toggle grid
         await page.getByTestId('view-grid-toggle').click();
-        await page.waitForTimeout(200);
         await screenshots.capture('27-grid-toggled-off');
 
         // Toggle grid back on
         await page.getByTestId('view-grid-toggle').click();
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getEditorState()).showGrid).toBe(true);
 
         // ==========================================
         // PHASE 13: Delete Some Tracks
@@ -300,7 +294,6 @@ test.describe('Full User Session', () => {
         if (edgesToDelete.length > 0) {
             // Remove a track programmatically
             await stores.removeTrack(edgesToDelete[0]);
-            await page.waitForTimeout(200);
             await screenshots.capture('29-after-delete');
 
             const stateAfterDelete = await stores.getTrackState();
@@ -328,7 +321,7 @@ test.describe('Full User Session', () => {
 
         // 'M' key toggles mode
         await page.keyboard.press('m');
-        await page.waitForTimeout(300);
+        await expect.poll(async () => (await stores.getModeState()).primaryMode).toBe('simulate');
         await screenshots.capture('31-mode-after-m-key');
 
         const afterM = await stores.getModeState();
@@ -336,7 +329,7 @@ test.describe('Full User Session', () => {
 
         // Press M again to go back
         await page.keyboard.press('m');
-        await page.waitForTimeout(300);
+        await expect.poll(async () => (await stores.getModeState()).primaryMode).toBe('edit');
         await screenshots.capture('32-mode-after-m-again');
 
         const afterM2 = await stores.getModeState();
@@ -359,7 +352,7 @@ test.describe('Full User Session', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Build a long straight track
@@ -369,20 +362,18 @@ test.describe('Full User Session', () => {
 
         // Switch to simulate
         await agent.switchMode('simulate');
-        await page.waitForTimeout(200);
 
         // Spawn two trains on the same edge (potential collision)
         if (edges.length >= 2) {
             await stores.spawnTrain(edges[0], '#ff0000');
             await stores.spawnTrain(edges[edges.length - 1], '#0000ff');
-            await page.waitForTimeout(200);
             await screenshots.capture('02-two-trains-placed');
 
-            // Run simulation and watch for collision
-            await stores.setRunning(true);
+            // Run the simulation a second at a time and watch for a collision
+            await stores.setRunning(false);
 
             for (let i = 0; i < 8; i++) {
-                await page.waitForTimeout(1000);
+                await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(1));
                 const simState = await stores.getSimulationState();
                 const trains = Object.values(simState.trains) as any[];
                 const anyCollision = trains.some(t => t.crashed);
@@ -415,7 +406,7 @@ test.describe('Full User Session', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         await screenshots.capture('01-empty-start');
@@ -429,11 +420,9 @@ test.describe('Full User Session', () => {
         for (let i = 1; i < options.length; i++) {
             // Clear first
             await stores.clearLayout();
-            await page.waitForTimeout(100);
 
             // Load template
-            await templateSelector.selectOption({ index: i });
-            await page.waitForTimeout(500);
+            await loadTemplateByName(page, stores, { index: i });
 
             const state = await stores.getTrackState();
             const edgeCount = Object.keys(state.edges).length;
@@ -454,12 +443,11 @@ test.describe('Full User Session', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Switch to wooden system
         await agent.selectSystem('wooden');
-        await page.waitForTimeout(200);
         await screenshots.capture('01-wooden-parts-bin');
 
         // Check what wooden parts are available
@@ -487,14 +475,12 @@ test.describe('Full User Session', () => {
 
         if (woodenEdges.length > 0) {
             await stores.spawnTrain(woodenEdges[0], '#228B22');
-            await page.waitForTimeout(200);
             await screenshots.capture('04-wooden-with-train');
 
             // Run briefly
-            await stores.setRunning(true);
-            await page.waitForTimeout(2000);
-            await screenshots.capture('05-wooden-simulation');
             await stores.setRunning(false);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(2));
+            await screenshots.capture('05-wooden-simulation');
         }
     });
 });

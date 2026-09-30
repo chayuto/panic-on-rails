@@ -14,6 +14,7 @@
 import { test, expect } from '../fixtures/app-fixture';
 import { StoreBridge } from '../helpers/store-bridge';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
+import { loadTemplateByName } from '../helpers/templates';
 import type { Page } from '@playwright/test';
 
 // =============================================
@@ -52,8 +53,6 @@ async function extendCircuit(
             window.__PANIC_STORES__!.track.addTrack(partId, pos, rotation),
         { partId, pos: endpoint.position, rotation: endpoint.rotation },
     );
-
-    await page.waitForTimeout(50);
 
     // Auto-connect: find nodes within 5px and merge them
     let connected = false;
@@ -99,11 +98,9 @@ async function buildCircuit(
 }> {
     await stores.clearLayout();
     await stores.enterEditMode();
-    await page.waitForTimeout(100);
 
     // Place first track
     await stores.addTrack(parts[0], startPos, startRotation);
-    await page.waitForTimeout(50);
     let connectionsFormed = 0;
 
     // Place remaining tracks by extending from endpoints
@@ -170,13 +167,14 @@ async function verifyTrainRuns(
     await stores.enterSimulateMode();
     await stores.clearTrains();
     await stores.spawnTrain(edgeIds[0], '#ff3300');
-    await stores.setRunning(true);
+    // The rAF loop stays paused: the harness steps the same simulation, exactly
+    await stores.setRunning(false);
 
     const positions: { t: number; edge: string; dist: number }[] = [];
     const steps = Math.ceil(durationMs / 300);
 
     for (let i = 0; i < steps; i++) {
-        await page.waitForTimeout(300);
+        await page.evaluate(() => window.__PANIC_SIM__!.run(18));
         const sim = await stores.getSimulationState();
         const train = Object.values(sim.trains)[0] as any;
         if (train) {
@@ -240,7 +238,7 @@ test.describe('Circuit Configurations', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // ============================================
@@ -249,7 +247,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(8).fill('kato-20-100');
             const build = await buildCircuit(stores, page, parts, { x: 700, y: 300 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('01-circle-R249');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -273,7 +270,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(8).fill('kato-20-170');
             const build = await buildCircuit(stores, page, parts, { x: 700, y: 300 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('02-circle-R216');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -297,7 +293,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(8).fill('kato-20-120');
             const build = await buildCircuit(stores, page, parts, { x: 700, y: 200 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('03-circle-R315');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -320,7 +315,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(8).fill('kato-20-132');
             const build = await buildCircuit(stores, page, parts, { x: 700, y: 200 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('04-circle-R348');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -343,7 +337,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(12).fill('kato-20-140');
             const build = await buildCircuit(stores, page, parts, { x: 700, y: 200 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('05-circle-R381-12');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -372,7 +365,6 @@ test.describe('Circuit Configurations', () => {
                 'kato-20-000',  // straight back
             ];
             const build = await buildCircuit(stores, page, parts, { x: 500, y: 300 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('06-oval-with-straights');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -401,7 +393,6 @@ test.describe('Circuit Configurations', () => {
                 'kato-20-000', 'kato-20-000', 'kato-20-000',  // 3 straights back
             ];
             const build = await buildCircuit(stores, page, parts, { x: 400, y: 250 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('07-long-oval');
 
             const train = await verifyTrainRuns(stores, page, 8000);
@@ -434,7 +425,6 @@ test.describe('Circuit Configurations', () => {
                 'kato-20-100', 'kato-20-100',                   // bottom-left corner
             ];
             const build = await buildCircuit(stores, page, parts, { x: 350, y: 500 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('08-rectangle');
 
             const train = await verifyTrainRuns(stores, page, 8000);
@@ -458,7 +448,6 @@ test.describe('Circuit Configurations', () => {
         {
             const parts = Array(8).fill('wooden-curve-large');
             const build = await buildCircuit(stores, page, parts, { x: 600, y: 300 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('09-wooden-circle');
 
             const train = await verifyTrainRuns(stores, page, 5000);
@@ -486,7 +475,6 @@ test.describe('Circuit Configurations', () => {
                 'wooden-straight-long',
             ];
             const build = await buildCircuit(stores, page, parts, { x: 500, y: 250 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('10-wooden-oval');
 
             const train = await verifyTrainRuns(stores, page, 5000);
@@ -514,7 +502,6 @@ test.describe('Circuit Configurations', () => {
                 'kato-20-000', 'kato-20-000', 'kato-20-000', 'kato-20-000', 'kato-20-000',
             ];
             const build = await buildCircuit(stores, page, parts, { x: 200, y: 200 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('11-large-oval');
 
             const train = await verifyTrainRuns(stores, page, 10000);
@@ -543,7 +530,6 @@ test.describe('Circuit Configurations', () => {
                 'kato-20-020',   // 124mm short straight
             ];
             const build = await buildCircuit(stores, page, parts, { x: 500, y: 250 }, 0);
-            await page.waitForTimeout(200);
             await screenshots.capture('12-compact-oval');
 
             const train = await verifyTrainRuns(stores, page, 6000);
@@ -566,20 +552,14 @@ test.describe('Circuit Configurations', () => {
         {
             // Load template for known-good circuit
             await stores.clearLayout();
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Simple Oval');
-            await page.waitForTimeout(500);
-
-            const state = await stores.getTrackState();
-            const edgeIds = Object.keys(state.edges);
+            const edgeIds = await loadTemplateByName(page, stores, 'Simple Oval');
 
             await stores.enterSimulateMode();
             await stores.clearTrains();
             await stores.spawnTrain(edgeIds[0], '#ff0000', 1);
             await stores.spawnTrain(edgeIds[4], '#0066ff', 1);
             await stores.spawnTrain(edgeIds[2], '#00cc00', 1);
-            await stores.setRunning(true);
-            await page.waitForTimeout(5000);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(5));
 
             const simState = await stores.getSimulationState();
             const trains = Object.values(simState.trains) as any[];
@@ -610,19 +590,13 @@ test.describe('Circuit Configurations', () => {
         // ============================================
         {
             await stores.clearLayout();
-            const selector = page.getByTestId('file-template-selector');
-            await selector.selectOption('Simple Oval');
-            await page.waitForTimeout(500);
-
-            const state = await stores.getTrackState();
-            const edgeIds = Object.keys(state.edges);
+            const edgeIds = await loadTemplateByName(page, stores, 'Simple Oval');
 
             await stores.enterSimulateMode();
             await stores.clearTrains();
             await stores.spawnTrain(edgeIds[0], '#ff6600');
             await stores.setSpeedMultiplier(3.0);
-            await stores.setRunning(true);
-            await page.waitForTimeout(5000);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(5));
 
             const simState = await stores.getSimulationState();
             const train = Object.values(simState.trains)[0] as any;

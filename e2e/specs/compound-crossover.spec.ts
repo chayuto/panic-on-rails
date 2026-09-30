@@ -123,8 +123,11 @@ test('Compound crossover: place, connect, and simulate', async ({ page, snap }) 
         { timeout: 3000 },
     );
 
-    // Let simulation run for 3 seconds
-    await page.waitForTimeout(3000);
+    // Run it for 3 seconds, stepped exactly with the loop paused
+    await page.evaluate(() => {
+        window.__PANIC_STORES__!.simulation.setRunning(false);
+        window.__PANIC_SIM__!.runSeconds(3);
+    });
 
     await snap('compound-simulating');
 

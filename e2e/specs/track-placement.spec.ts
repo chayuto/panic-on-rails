@@ -75,7 +75,6 @@ test.describe('Track Placement via Agent', () => {
 
         // Clear
         await stores.clearLayout();
-        await page.waitForTimeout(100);
 
         await snap('02-after-clear');
         await agent.assertTrackState({ edgeCount: 0, nodeCount: 0 });

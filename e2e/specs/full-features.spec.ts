@@ -18,6 +18,7 @@
 import { test, expect } from '../fixtures/app-fixture';
 import { AgentActions } from '../helpers/agent-actions';
 import { ScreenshotManager } from '../helpers/screenshot-manager';
+import { loadTemplateByName } from '../helpers/templates';
 
 test.describe('Connect Mode — Join Track Endpoints', () => {
     test('connect two adjacent tracks via connect mode', async ({ page, app, stores, snap }) => {
@@ -29,7 +30,7 @@ test.describe('Connect Mode — Join Track Endpoints', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Place two straight tracks side by side (close but not connected)
@@ -52,7 +53,6 @@ test.describe('Connect Mode — Join Track Endpoints', () => {
 
         // Connect them via store
         await stores.connectNodes(nodeA.id, nodeB.id);
-        await page.waitForTimeout(200);
         await snap('02-after-connect');
 
         // Should now have fewer nodes (one was merged)
@@ -71,13 +71,11 @@ test.describe('Switch Toggling During Simulation', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Load the Switch Showdown template (has switches)
-        const templateSelector = page.getByTestId('file-template-selector');
-        await templateSelector.selectOption('Switch Showdown');
-        await page.waitForTimeout(500);
+        await loadTemplateByName(page, stores, 'Switch Showdown');
         await snap('01-switch-template-loaded');
 
         // Check for switch nodes
@@ -87,7 +85,6 @@ test.describe('Switch Toggling During Simulation', () => {
 
         // Switch to simulate mode
         await agent.switchMode('simulate');
-        await page.waitForTimeout(200);
         await snap('02-simulate-mode');
 
         // Toggle a switch if one exists
@@ -95,12 +92,10 @@ test.describe('Switch Toggling During Simulation', () => {
             const switchNode = switchNodes[0] as any;
             console.log(`Toggling switch ${switchNode.id.slice(0, 8)}`);
             await stores.toggleSwitch(switchNode.id);
-            await page.waitForTimeout(200);
             await snap('03-switch-toggled');
 
             // Toggle back
             await stores.toggleSwitch(switchNode.id);
-            await page.waitForTimeout(200);
             await snap('04-switch-toggled-back');
         }
 
@@ -109,25 +104,24 @@ test.describe('Switch Toggling During Simulation', () => {
         if (edges.length > 0) {
             await stores.clearTrains();
             await stores.spawnTrain(edges[0], '#ff3300');
-            await stores.setRunning(true);
+            // Stepped exactly: the rAF loop stays paused and the harness runs the same simulation
+            const run = (seconds: number) => page.evaluate(s => window.__PANIC_SIM__!.runSeconds(s), seconds);
+            await stores.setRunning(false);
 
-            await page.waitForTimeout(1000);
+            await run(1);
             await snap('05-train-running-1s');
 
-            await page.waitForTimeout(2000);
+            await run(2);
             await snap('06-train-running-3s');
 
             // Toggle switch while train is running
             if (switchNodes.length > 0) {
                 await stores.toggleSwitch((switchNodes[0] as any).id);
-                await page.waitForTimeout(200);
                 await snap('07-switch-toggled-during-sim');
             }
 
-            await page.waitForTimeout(2000);
+            await run(2);
             await snap('08-train-after-switch-toggle');
-
-            await stores.setRunning(false);
         }
     });
 });
@@ -142,7 +136,7 @@ test.describe('Collision & Crash System', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Build a short straight run for fast collision
@@ -159,11 +153,11 @@ test.describe('Collision & Crash System', () => {
 
         // Run at high speed for faster collision
         await stores.setSpeedMultiplier(3.0);
-        await stores.setRunning(true);
+        await stores.setRunning(false);
 
-        // Capture every second looking for crash
+        // Step half a second at a time (1.5 s of railway time at 3x), looking for a crash
         for (let i = 1; i <= 10; i++) {
-            await page.waitForTimeout(500);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(0.5));
             const simState = await stores.getSimulationState();
             const trains = Object.values(simState.trains) as any[];
             const crashed = trains.filter(t => t.crashed);
@@ -180,9 +174,9 @@ test.describe('Collision & Crash System', () => {
                 );
                 console.log('Effects state:', JSON.stringify(effects));
 
-                // Check simulation error state
-                expect(simState.error).not.toBeNull();
-                console.log('Simulation error:', simState.error);
+                // A crash is a wreck on the record (it's no simulation error)
+                expect(simState.wrecks).toBeGreaterThan(0);
+                expect(simState.error).toBeNull();
                 break;
             }
         }
@@ -207,7 +201,7 @@ test.describe('Logic System — Sensors, Signals, Wires', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Place a straight track
@@ -223,7 +217,6 @@ test.describe('Logic System — Sensors, Signals, Wires', () => {
         if (isSensorVisible) {
             // Switch to sensor mode
             await sensorTool.click();
-            await page.waitForTimeout(200);
             await snap('02-sensor-mode');
 
             // Place sensor by clicking on the track
@@ -233,7 +226,6 @@ test.describe('Logic System — Sensors, Signals, Wires', () => {
                 const midX = (edge.geometry.start.x + edge.geometry.end.x) / 2;
                 const midY = (edge.geometry.start.y + edge.geometry.end.y) / 2;
                 await agent.clickCanvas(midX, midY);
-                await page.waitForTimeout(300);
                 await snap('03-after-sensor-click');
             }
 
@@ -248,14 +240,12 @@ test.describe('Logic System — Sensors, Signals, Wires', () => {
             const signalTool = page.getByTestId('edit-tool-signal');
             if (await signalTool.isVisible().catch(() => false)) {
                 await signalTool.click();
-                await page.waitForTimeout(200);
                 await snap('04-signal-mode');
 
                 // Place signal by clicking on a node
                 const nodes = Object.values(state.nodes) as any[];
                 if (nodes.length > 0) {
                     await agent.clickCanvas(nodes[0].position.x, nodes[0].position.y);
-                    await page.waitForTimeout(300);
                     await snap('05-after-signal-click');
                 }
 
@@ -284,7 +274,7 @@ test.describe('Multi-Carriage Trains', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Build a long track for the train to fit
@@ -297,23 +287,20 @@ test.describe('Multi-Carriage Trains', () => {
         // Spawn a single-carriage train
         const edges = Object.keys((await stores.getTrackState()).edges);
         await stores.spawnTrain(edges[0], '#ff0000', 1);
-        await page.waitForTimeout(200);
         await snap('02-single-carriage');
 
         // Spawn a 5-carriage train
         await stores.spawnTrain(edges[2], '#0066ff', 5);
-        await page.waitForTimeout(200);
         await snap('03-five-carriages');
 
-        // Run simulation to see carriages trailing
-        await stores.setRunning(true);
-        await page.waitForTimeout(1500);
+        // Run the simulation to see the carriages trailing, stepped exactly
+        const run = (seconds: number) => page.evaluate(s => window.__PANIC_SIM__!.runSeconds(s), seconds);
+        await stores.setRunning(false);
+        await run(1.5);
         await snap('04-carriages-running-1.5s');
 
-        await page.waitForTimeout(1500);
+        await run(1.5);
         await snap('05-carriages-running-3s');
-
-        await stores.setRunning(false);
         await snap('06-carriages-stopped');
 
         // Verify carriage counts in state
@@ -335,7 +322,7 @@ test.describe('Bounce at Dead-Ends', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Place a single short track (dead ends on both sides)
@@ -348,12 +335,12 @@ test.describe('Bounce at Dead-Ends', () => {
         await stores.spawnTrain(edges[0], '#ff6600');
         await snap('02-train-on-short-track');
 
-        // Run and capture bounces
-        await stores.setRunning(true);
+        // Run, stepped half a second at a time, and capture bounces
+        await stores.setRunning(false);
         const positions: { time: number; dist: number; dir: number }[] = [];
 
         for (let i = 0; i < 12; i++) {
-            await page.waitForTimeout(500);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(0.5));
             const simState = await stores.getSimulationState();
             const train = Object.values(simState.trains)[0] as any;
             if (train) {
@@ -391,7 +378,7 @@ test.describe('Collection', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // A new player owns an M1 box: four S248 straights
@@ -420,28 +407,28 @@ test.describe('Keyboard Shortcuts', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Test edit tool shortcuts (1-6)
         await page.keyboard.press('1');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getModeState()).editSubMode).toBe('select');
         let mode = await stores.getModeState();
         console.log('After "1":', mode.editSubMode);
         await snap('01-key-1-select');
 
         await page.keyboard.press('3');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getModeState()).editSubMode).toBe('delete');
         mode = await stores.getModeState();
         console.log('After "3":', mode.editSubMode);
         await snap('02-key-3-delete');
 
         await page.keyboard.press('1');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getModeState()).editSubMode).toBe('select');
 
         // M key — mode toggle
         await page.keyboard.press('m');
-        await page.waitForTimeout(300);
+        await expect.poll(async () => (await stores.getModeState()).primaryMode).toBe('simulate');
         mode = await stores.getModeState();
         expect(mode.primaryMode).toBe('simulate');
         await snap('03-key-m-simulate');
@@ -458,47 +445,48 @@ test.describe('Keyboard Shortcuts', () => {
         }
 
         await page.keyboard.press('Space');
-        await page.waitForTimeout(500);
+        await expect.poll(async () => (await stores.getSimulationState()).isRunning).toBe(true);
         let simState = await stores.getSimulationState();
         console.log('After Space:', simState.isRunning);
         await snap('04-key-space-play');
 
         await page.keyboard.press('Space');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getSimulationState()).isRunning).toBe(false);
         simState = await stores.getSimulationState();
         console.log('After Space again:', simState.isRunning);
         await snap('05-key-space-pause');
 
         // + key — speed up
+        const speed = (await stores.getSimulationState()).speedMultiplier;
         await page.keyboard.press('Equal'); // + key
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getSimulationState()).speedMultiplier).toBeGreaterThan(speed);
         simState = await stores.getSimulationState();
         console.log('After +:', simState.speedMultiplier);
 
         // - key — speed down
         await page.keyboard.press('Minus');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getSimulationState()).speedMultiplier).toBe(speed);
         simState = await stores.getSimulationState();
         console.log('After -:', simState.speedMultiplier);
 
         // Shift+M — measurement overlay
         await page.keyboard.press('m'); // back to edit
         await page.keyboard.press('Shift+m');
-        await page.waitForTimeout(300);
+        await expect.poll(async () => (await stores.getEditorState()).showMeasurements).toBe(true);
         await snap('06-measurement-overlay');
 
         // Toggle off
         await page.keyboard.press('Shift+m');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getEditorState()).showMeasurements).toBe(false);
 
         // Backtick — debug overlay
         await page.keyboard.press('Backquote');
-        await page.waitForTimeout(300);
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('panic-debug'))).toBe('true');
         await snap('07-debug-overlay');
 
         // Toggle off
         await page.keyboard.press('Backquote');
-        await page.waitForTimeout(200);
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('panic-debug'))).toBe('false');
         await snap('08-debug-off');
     });
 });
@@ -513,7 +501,7 @@ test.describe('Save and Load Layout', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Build a layout
@@ -534,7 +522,6 @@ test.describe('Save and Load Layout', () => {
 
         // Clear the layout
         await stores.clearLayout();
-        await page.waitForTimeout(200);
         await snap('03-layout-cleared');
 
         const clearedCount = await stores.getEdgeCount();
@@ -542,7 +529,6 @@ test.describe('Save and Load Layout', () => {
 
         // Reload the saved layout
         await stores.loadLayout(layoutData);
-        await page.waitForTimeout(300);
         await snap('04-layout-reloaded');
 
         const reloadedCount = await stores.getEdgeCount();
@@ -561,7 +547,7 @@ test.describe('Measurement & Debug Overlays', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Place some tracks so overlays have data to show
@@ -571,7 +557,7 @@ test.describe('Measurement & Debug Overlays', () => {
 
         // Toggle measurement overlay
         await page.keyboard.press('Shift+m');
-        await page.waitForTimeout(300);
+        await expect.poll(async () => (await stores.getEditorState()).showMeasurements).toBe(true);
         await snap('02-measurement-overlay-on');
 
         // Check if measurement overlay content is visible
@@ -583,11 +569,11 @@ test.describe('Measurement & Debug Overlays', () => {
 
         // Toggle off
         await page.keyboard.press('Shift+m');
-        await page.waitForTimeout(200);
+        await expect.poll(async () => (await stores.getEditorState()).showMeasurements).toBe(false);
 
         // Toggle debug overlay
         await page.keyboard.press('Backquote');
-        await page.waitForTimeout(300);
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('panic-debug'))).toBe('true');
         await snap('03-debug-overlay-on');
 
         // Check debug overlay content
@@ -598,7 +584,7 @@ test.describe('Measurement & Debug Overlays', () => {
         }
 
         await page.keyboard.press('Backquote');
-        await page.waitForTimeout(200);
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('panic-debug'))).toBe('false');
         await snap('04-overlays-off');
     });
 });
@@ -613,13 +599,11 @@ test.describe('Complete Gameplay Loop', () => {
         const skipBtn = page.getByText('Skip tutorial');
         if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await skipBtn.click();
-            await page.waitForTimeout(300);
+            await expect(skipBtn).toBeHidden();
         }
 
         // Load the Simple Oval template (connected circuit)
-        const templateSelector = page.getByTestId('file-template-selector');
-        await templateSelector.selectOption('Simple Oval');
-        await page.waitForTimeout(500);
+        await loadTemplateByName(page, stores, 'Simple Oval');
         await snap('01-oval-loaded');
 
         // Verify it's a connected circuit
@@ -640,15 +624,14 @@ test.describe('Complete Gameplay Loop', () => {
         await stores.clearTrains();
         const edges = Object.keys(state.edges);
         await stores.spawnTrain(edges[0], '#ff0000', 3); // 3-carriage red train
-        await page.waitForTimeout(200);
         await snap('03-train-spawned');
 
-        // Run simulation and track position over time to verify loop completion
-        await stores.setRunning(true);
+        // Run the simulation, stepped half a second at a time, and track the train round the loop
+        await stores.setRunning(false);
         const positions: { time: number; edgeId: string; dist: number }[] = [];
 
         for (let i = 0; i < 20; i++) {
-            await page.waitForTimeout(500);
+            await page.evaluate(() => window.__PANIC_SIM__!.runSeconds(0.5));
             const simState = await stores.getSimulationState();
             const train = Object.values(simState.trains)[0] as any;
             if (train) {
