@@ -46,4 +46,13 @@ test.describe('App Smoke Tests', () => {
         await expect(page.getByTestId('view-grid-toggle')).toBeVisible();
         await expect(page.getByTestId('view-mute-toggle')).toBeVisible();
     });
+
+    test('the toolbar stays on one line at laptop width, wallet included', async ({ page, app }) => {
+        void app;
+        await page.setViewportSize({ width: 1280, height: 720 });
+        const toolbar = await page.getByTestId('toolbar').boundingBox();
+        const wallet = await page.getByTestId('wallet').boundingBox();
+        expect(toolbar!.height).toBeLessThan(64);
+        expect(wallet!.y + wallet!.height).toBeLessThanOrEqual(toolbar!.y + toolbar!.height);
+    });
 });
