@@ -31,6 +31,17 @@ import { trainsLeft } from '../../data/collection';
 import type { Station, StationId, Train } from '../../types';
 import './TrainPanel.css';
 
+/**
+ * What the panel calls a train: its model's name, numbered when more than
+ * one of the model is running; a free-build train, "Train N".
+ */
+function trainLabel(train: Train, trains: Train[]): string {
+    const stock = getRollingStock(train.stockId);
+    if (!stock) return train.id.replace('train-', 'Train ');
+    const same = trains.filter(t => t.stockId === train.stockId);
+    return same.length > 1 ? `${stock.name} ${same.indexOf(train) + 1}` : stock.name;
+}
+
 export function TrainPanel() {
     const trains = useSimulationStore(s => s.trains);
     const isRunning = useSimulationStore(s => s.isRunning);
@@ -233,9 +244,10 @@ export function TrainPanel() {
                                 className="train-color"
                                 style={{ backgroundColor: train.color }}
                             />
-                            <span className="train-name" title={getRollingStock(train.stockId)?.name}>
-                                {train.id.replace('train-', 'Train ')}
-                                {(train.carriageCount ?? 1) > 1 && (
+                            <span className="train-name" title={`${trainLabel(train, trainList)}, ${train.carriageCount ?? 1} cars`} data-testid={`train-name-${train.id}`}>
+                                {trainLabel(train, trainList)}
+                                {/* A model's name says what it is; a free-build train's cars are the player's choice */}
+                                {!train.stockId && (train.carriageCount ?? 1) > 1 && (
                                     <span className="carriage-info"> ({train.carriageCount} cars)</span>
                                 )}
                             </span>
@@ -295,7 +307,7 @@ export function TrainPanel() {
                                         step={5}
                                         value={throttleOf(train)}
                                         onChange={e => setTrainThrottle(train.id, Number(e.target.value))}
-                                        aria-label={`${train.id.replace('train-', 'Train ')} throttle`}
+                                        aria-label={`${trainLabel(train, trainList)} throttle`}
                                         data-testid={`train-throttle-${train.id}`}
                                     />
                                     <span className="train-speed" data-testid={`train-speed-${train.id}`}>

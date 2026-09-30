@@ -60,9 +60,10 @@ test.describe('Collection', () => {
         await page.getByTestId('open-set-shelf').click();
         await page.getByTestId('set-build-kato-20-852').click();
 
-        // The M1 plan's train is the starter diesel you own
+        // The M1 plan's train is the starter diesel you own, and the panel calls it that
         await expect.poll(trainCount).toBe(1);
         await expect(page.getByTestId('stock-left-diesel-passenger')).toHaveText('0/1');
+        await expect(page.locator('[data-testid^="train-name-"]')).toHaveText(['Diesel passenger train']);
 
         // Every train you own is running: Add Train takes you to the shop's trains
         await page.getByTestId('train-add-btn').click();
@@ -74,6 +75,13 @@ test.describe('Collection', () => {
         await page.getByTestId('set-shelf-close').click();
         await page.getByTestId('run-stock-commuter').click();
         await expect.poll(trainCount).toBe(2);
+        await expect(page.locator('[data-testid^="train-name-"]')).toHaveText(['Diesel passenger train', 'Commuter train']);
+    });
+
+    test('a new player is pointed to their box, as well as to the parts', async ({ page, app }) => {
+        void app;
+        // The first hint: drag track, or build the box's layout from the shop
+        await expect(page.getByText(/Or open the shop/)).toContainText("build your box's layout");
     });
 
     test('a loose part bought in the shop shows up in the bin', async ({ page, app }) => {
