@@ -528,7 +528,14 @@ Order, biggest win per millisecond first:
   - edit tools named by their whole tooltip, with no pressed state.
   - A crash no longer shakes the view for players who ask for reduced motion, and the effects
     store starts at most three flashes a second (WCAG 2.3.1), however many trains pile up.
-- [ ] A nightly frame-time budget: milliseconds per environment, not FPS; warn-only at first.
+- [x] **A nightly frame-time report** (`e2e/specs/frame-time.spec.ts`, so the nightly runs it).
+      Hornby Pack F with six trains, run live for 6 s.
+  - It reports frame-interval p50, p95 and max, the share of late frames (over 25 ms) and
+    Chromium's long animation frames. The numbers go in the test's annotations and an attached
+    `frame-time.json`.
+  - Warn-only: the numbers belong to the environment, so it fails only on a collapse (p95 over
+    100 ms). On a developer Mac it runs at a steady 60 fps.
+- [ ] Turn the frame-time report into a budget once the nightly has a baseline for its runner.
 - [ ] Vitest browser mode, narrowly, for the track painter and car sprites.
 - [ ] Agent playtest charters: persona, setup, budget, oracles, evidence. Each finding becomes a
       failing `Player` test before it's filed.
