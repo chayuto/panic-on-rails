@@ -4,7 +4,10 @@ import {
     pointToArcDistance,
     findClosestEdge,
     findClosestNode,
+    trainAt,
 } from '../hitTesting';
+import { getCarPoses } from '../trainCars';
+import { lineGraph, train as fixtureTrain } from '../../simulation/__tests__/fixtures';
 import type { TrackEdge, TrackNode } from '../../types';
 
 describe('pointToLineDistance', () => {
@@ -249,5 +252,41 @@ describe('findClosestNode', () => {
     test('handles empty candidate list', () => {
         const result = findClosestNode([], { x: 50, y: 50 }, nodes, 12);
         expect(result).toBeNull();
+    });
+});
+
+describe('trainAt', () => {
+    const { edges, nodes } = lineGraph(3, 300);
+    const two = { ...fixtureTrain('t1', 'e1', 250), carriageCount: 2, carLengths: [100, 100] };
+
+    test('finds a train by any of its cars, not only the front', () => {
+        const [lead, second] = getCarPoses(two, edges, nodes);
+        expect(trainAt({ x: lead.x, y: lead.y }, { t1: two }, edges, nodes)?.id).toBe('t1');
+        expect(trainAt({ x: second.x, y: second.y }, { t1: two }, edges, nodes)?.id).toBe('t1');
+    });
+
+    test('a car is as wide as it is drawn; slack widens it', () => {
+        const [lead] = getCarPoses(two, edges, nodes);
+        const beside = { x: lead.x, y: lead.y + 11 }; // cars are 18 mm wide
+        expect(trainAt(beside, { t1: two }, edges, nodes)).toBeNull();
+        expect(trainAt(beside, { t1: two }, edges, nodes, 3)?.id).toBe('t1');
+        expect(trainAt({ x: 5, y: 0 }, { t1: two }, edges, nodes)).toBeNull();
+    });
+
+    test('where trains overlap, the one drawn on top: the higher, else the later', () => {
+        // A bridge over the line, on the same plan: its own nodes 60 mm up
+        const bridgeEdges = { ...edges, b1: { ...edges.e1, id: 'b1', startNodeId: 'm1', endNodeId: 'm2' } };
+        const bridgeNodes = {
+            ...nodes,
+            m1: { ...nodes.n1, id: 'm1', connections: ['b1'], height: 60 },
+            m2: { ...nodes.n2, id: 'm2', connections: ['b1'], height: 60 },
+        };
+        const over = fixtureTrain('over', 'b1', 250);
+        const under = fixtureTrain('under', 'e1', 250);
+        const [pose] = getCarPoses(under, edges, nodes);
+        const at = { x: pose.x, y: pose.y };
+        expect(trainAt(at, { over, under }, bridgeEdges, bridgeNodes)?.id).toBe('over');
+        const level = fixtureTrain('level', 'e1', 250);
+        expect(trainAt(at, { under, level }, edges, nodes)?.id).toBe('level');
     });
 });

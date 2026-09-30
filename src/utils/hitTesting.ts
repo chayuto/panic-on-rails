@@ -1,13 +1,16 @@
 /**
  * Hit Testing Utilities
  * 
- * Functions for determining if a point clicks on a track edge.
- * Uses geometric distance calculations rather than Konva's hit graph
- * for better performance with spatial indexing.
+ * Functions for determining if a point clicks on a track edge, a joint or
+ * a train. Uses geometric distance calculations rather than Konva's hit
+ * graph for better performance with spatial indexing.
  */
 
-import type { Vector2, TrackEdge, TrackNode, NodeId, TrackGeometry } from '../types';
+import type { Vector2, TrackEdge, TrackNode, NodeId, EdgeId, TrackGeometry, Train } from '../types';
 import { deriveWorldGeometry } from './geometry';
+import { frameGeometry, getCarPoses } from './trainCars';
+import { ROLLING_STOCK } from '../config/rollingStock';
+import { sizeOf } from '../config/scales';
 
 /**
  * Calculate the perpendicular distance from a point to a line segment.
@@ -330,4 +333,42 @@ export function findClosestNode(
     }
 
     return closest;
+}
+
+/**
+ * The train under a point on the layout: the one with a car, as drawn, that
+ * holds the point, each car grown by `slack` all round so a small one stays
+ * easy to hit. Where trains overlap (one on a bridge over another) it's the
+ * one drawn on top: the higher, or the later at the same height.
+ */
+export function trainAt(
+    point: Vector2,
+    trains: Record<string, Train>,
+    edges: Record<EdgeId, TrackEdge>,
+    nodes: Record<NodeId, TrackNode>,
+    slack = 0
+): Train | null {
+    const geometryOf = frameGeometry(edges, nodes);
+    let hit: Train | null = null;
+    let top = -Infinity;
+    for (const train of Object.values(trains)) {
+        const poses = getCarPoses(train, edges, nodes, geometryOf);
+        if (poses.length === 0) continue;
+        const height = Math.max(...poses.map(p => p.height));
+        if (height < top) continue;
+        const halfWidth = (ROLLING_STOCK.CAR_WIDTH * sizeOf(train.scale)) / 2 + slack;
+        const onCar = poses.some(pose => {
+            const r = (pose.rotation * Math.PI) / 180;
+            const dx = point.x - pose.x;
+            const dy = point.y - pose.y;
+            const along = dx * Math.cos(r) + dy * Math.sin(r);
+            const across = dy * Math.cos(r) - dx * Math.sin(r);
+            return Math.abs(along) <= pose.length / 2 + slack && Math.abs(across) <= halfWidth;
+        });
+        if (onCar) {
+            hit = train;
+            top = height;
+        }
+    }
+    return hit;
 }

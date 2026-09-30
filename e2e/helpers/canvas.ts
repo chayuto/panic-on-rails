@@ -30,6 +30,27 @@ export async function clickWorld(page: Page, world: { x: number; y: number }) {
     await page.mouse.click(box.x + p.x, box.y + p.y);
 }
 
+/**
+ * Click a train where a player would: the middle of its leading car, as
+ * the QA lens places it. Like `clickWorld`, it waits for the view to hold
+ * still, and for nothing to cover the spot.
+ */
+export async function clickTrain(page: Page, id: string) {
+    const where = () => page.evaluate((t) => window.__PANIC_QA__!.look().trains.find(train => train.id === t)!.at, id);
+
+    let last = '';
+    await expect.poll(async () => {
+        const at = await where();
+        const key = `${at.x},${at.y}`;
+        const still = key === last;
+        last = key;
+        return still && at.clear;
+    }).toBe(true);
+
+    const at = await where();
+    await page.mouse.click(at.x, at.y);
+}
+
 /** Wait until the page has painted twice: React has committed and Konva has drawn. */
 export async function nextFrame(page: Page): Promise<void> {
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));

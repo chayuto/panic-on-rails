@@ -188,7 +188,17 @@ Goal: a player can build by hand, and in every template can prevent a crash by a
     since the last wreck.
   - The train panel has a fixed width, so the canvas no longer shifts as trains come, go
     and crash.
-- [ ] Clicking a train on the canvas to stop it (the panel buttons cover this for now).
+- [x] **Click a train to stop it,** and again to start it, as its Stop/Go button does.
+  - A click anywhere on a car counts, as the car is drawn, and a little around it on screen
+    (`trainAt` in `utils/hitTesting.ts`). Where trains overlap, the one on top takes it: the
+    train on the bridge, not the one underneath. Points and signals under a train still take
+    their own clicks.
+  - Over a train the pointer becomes a hand, and the tooltip says what a click does. The
+    tooltip finds a train by any car too; before, only within 20 mm of its front, so on real
+    160 mm cars most of a train showed nothing.
+- [x] **Fixed:** in Simulate mode a click on a signal deleted it if the signal tool was the last
+      one used, and sensors and wires answered their edit tools too. The edit tool stays chosen
+      while simulating; now it acts only while editing.
 
 ### Phase 2: The Box, real starter sets
 

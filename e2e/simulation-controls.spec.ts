@@ -5,7 +5,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/app-fixture.js';
-import { clickWorld } from './helpers/canvas.js';
+import { clickTrain, clickWorld } from './helpers/canvas.js';
 
 /**
  * Load a template and wait until its trains are running. A template spawns
@@ -77,6 +77,40 @@ test.describe('Simulation controls', () => {
 
         await page.getByTestId(`train-stop-${id}`).click();
         await expect.poll(position).not.toBe(held);
+    });
+
+    test('in Simulate mode a click on a signal changes it, whatever tool was last used', async ({ page, app }) => {
+        void app;
+        await loadTemplate(page, 'simple-oval');
+        await page.getByTestId('mode-edit-btn').click();
+        await page.getByTestId('edit-tool-signal').click();
+        const signal = await page.evaluate(() => {
+            const s = window.__PANIC_STORES__!;
+            const node = Object.values(s.track.getState().nodes)[0];
+            const id = s.logic.addSignal(node.id);
+            const { offset } = s.logic.getState().signals[id];
+            return { id, at: { x: node.position.x + offset.x, y: node.position.y + offset.y } };
+        });
+        await page.getByTestId('mode-simulate-btn').click();
+
+        await clickWorld(page, signal.at);
+        await expect.poll(() => page.evaluate((id) => window.__PANIC_STORES__!.logic.getState().signals[id]?.state ?? 'removed', signal.id))
+            .toBe('green');
+    });
+
+    test('a click on a train stops it, and another starts it again', async ({ page, app }) => {
+        void app;
+        await loadTemplate(page, 'simple-oval');
+        await page.getByTestId('sim-play-pause').click(); // paused, so it holds still to be clicked
+        const id = await page.evaluate(() => Object.keys(window.__PANIC_STORES__!.simulation.getState().trains)[0]);
+        const stopped = () => page.evaluate((t) => !!window.__PANIC_STORES__!.simulation.getState().trains[t].stopped, id);
+
+        await clickTrain(page, id);
+        await expect.poll(stopped).toBe(true);
+        await expect(page.getByTestId(`train-stop-${id}`)).toHaveAttribute('aria-pressed', 'true');
+
+        await clickTrain(page, id);
+        await expect.poll(stopped).toBe(false);
     });
 
     test('pausing from the toolbar stays in Simulate mode', async ({ page, app }) => {
