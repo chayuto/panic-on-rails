@@ -5,20 +5,21 @@
  * and the completion toast. Each hint carries the Skip tutorial link.
  */
 
-import { ArrowLeft, RefreshCw, TrainFront, Plus, Play, PartyPopper } from 'lucide-react';
+import { ArrowLeft, RefreshCw, TrainFront, Plus, Play, PartyPopper, Package } from 'lucide-react';
 import { useOnboardingStore } from '../../../stores/useOnboardingStore';
 import { useModeStore } from '../../../stores/useModeStore';
+import { useCollectionStore } from '../../../stores/useCollectionStore';
 import { Hint } from './Hint';
 import { Toast } from './Toast';
 import { COMPLETION_TOAST_MS } from './OnboardingProvider';
 import './Onboarding.css';
 
 export function OnboardingHints() {
-    const { stage, isOnboardingActive } = useOnboardingStore();
+    const stage = useOnboardingStore(s => s.stage);
     const primaryMode = useModeStore(s => s.primaryMode);
 
     // Don't render anything if onboarding is complete
-    if (!isOnboardingActive()) {
+    if (stage === 'complete') {
         return null;
     }
 
@@ -36,9 +37,11 @@ export function OnboardingHints() {
 }
 
 /**
- * Stage 1: Point user to PartsBin to drag their first track
+ * Stage 1: Point user to PartsBin to drag their first track, or to the
+ * shop, where their box's layout builds itself
  */
 function FirstTrackHint() {
+    const collection = useCollectionStore(s => s.mode) === 'collection';
     return (
         <Hint
             id="first-track"
@@ -49,7 +52,9 @@ function FirstTrackHint() {
                 left: '240px',
             }}
         >
-            Drag a track from the left to start building!
+            Drag a track from the left to start building! Or open the shop{' '}
+            <Package size={14} style={{ verticalAlign: 'middle' }} /> above and build
+            {collection ? ' your box\'s' : ' a set\'s'} layout.
         </Hint>
     );
 }
@@ -145,8 +150,8 @@ function CompletionToast() {
             title="You did it!"
             duration={COMPLETION_TOAST_MS}
         >
-            Trains are running. Signals, sensors and wires are now unlocked: click a
-            signal to turn it red and hold trains, or click a switch to reroute them.
+            Trains are running. The editor's signals, sensors and wires are unlocked: a
+            signal at red holds trains, and a click on a set of points reroutes them.
         </Toast>
     );
 }

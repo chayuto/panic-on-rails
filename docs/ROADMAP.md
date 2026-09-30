@@ -732,6 +732,15 @@ Order, biggest win per millisecond first:
       16.8 ms, no long animation frames. The test now fails when p95 goes over 20 ms (more than
       one frame in twenty misses its vsync) or Chromium reports more than two long frames.
 - [ ] Vitest browser mode, narrowly, for the track painter and car sprites.
-- [ ] Agent playtest charters: persona, setup, budget, oracles, evidence. Each finding becomes a
-      failing `Player` test before it's filed.
+- [x] **Agent playtest charters** (`docs/qa/charters.md`): a charter, persona, setup, budget,
+      oracles and evidence per session, and a debrief rating each finding. Each finding becomes
+      a failing test before it's fixed. Five charters, one per persona.
+  - The first session, "the gift" (`docs/qa/sessions/2026-10-01-the-gift.md`), played a new
+    player through `playwright-cli`. It found four things:
+    - a train longer than its track put on anyway, off the rails (fixed, #182);
+    - a completion toast about signals and points the layout doesn't have;
+    - one train with two names in one panel;
+    - nothing pointing a new player to their box.
+  - The last three are fixed with it: the toast says what the tools do, the panel names a
+    train by its model, and the first hint points to the shop's box icon too.
 - [ ] Trial: Stryker on geometry and simulation, nightly.
