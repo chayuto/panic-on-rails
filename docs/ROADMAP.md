@@ -375,9 +375,10 @@ Goal: the endless loop. Run trains → earn → buy boxes → build bigger → r
   - Locomotives look like what they are (`traction`): a diesel's hood and fans, an
     electric's pantographs, or a steam engine's boiler, chimney and dome, with a tank
     engine's bunker or a tender engine's tender.
-  - Widths stay 15 mm, a little under a real N-scale car's 19–20 mm, so trains passing on
-    Kato's 33 mm double track keep clear of a near miss. Real widths need that threshold
-    tuned first.
+  - Cars were 15 mm wide, a quarter too narrow. They're now 18 mm, a European or Japanese
+    car's 2.9 m at 1:160. Grown by each scale's size, that's 33 mm in H0 and 38 mm in OO,
+    within a tenth of real cars there. US cars are a little wider (20 mm). Long cars passing
+    on Kato's 33 mm double track, even on V14's R282/315, still clear a near miss.
 - [x] **Fixed:** loading a layout with as many pieces as the one before (every Kato starter
       set is M1's sixteen) drew no track until the view moved.
 - [ ] Optional operations challenges on real puzzle layouts (Inglenook sidings, Timesaver).
